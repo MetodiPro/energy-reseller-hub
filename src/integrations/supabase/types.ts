@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      step_progress: {
+        Row: {
+          checklist_progress: Json | null
+          completed: boolean | null
+          completion_date: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          start_date: string | null
+          step_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          checklist_progress?: Json | null
+          completed?: boolean | null
+          completion_date?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string | null
+          step_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          checklist_progress?: Json | null
+          completed?: boolean | null
+          completion_date?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string | null
+          step_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

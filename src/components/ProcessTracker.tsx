@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,24 +14,26 @@ import {
   AlertCircle,
   Calendar,
   Euro,
-  ListChecks
+  ListChecks,
+  Cloud,
+  CloudOff
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
-
-interface StepProgress {
-  stepId: string;
-  completed: boolean;
-  notes: string;
-  checklistProgress: boolean[];
-  startDate?: string;
-  completionDate?: string;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { useStepProgress } from "@/hooks/useStepProgress";
 
 export const ProcessTracker = () => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
-  const [stepProgress, setStepProgress] = useState<Record<string, StepProgress>>({});
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
+  const [userId, setUserId] = useState<string | undefined>();
+  const { stepProgress, loading, updateProgress } = useStepProgress(userId);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id);
+    });
+  }, []);
 
   const toggleStep = (stepId: string) => {
     setExpandedSteps(prev =>
@@ -42,55 +44,37 @@ export const ProcessTracker = () => {
   };
 
   const toggleStepCompletion = (stepId: string) => {
-    setStepProgress(prev => {
-      const current = prev[stepId] || {
-        stepId,
-        completed: false,
-        notes: '',
-        checklistProgress: []
-      };
-      
-      return {
-        ...prev,
-        [stepId]: {
-          ...current,
-          completed: !current.completed,
-          completionDate: !current.completed ? new Date().toISOString() : undefined
-        }
-      };
+    const current = stepProgress[stepId] || {
+      stepId,
+      completed: false,
+      notes: '',
+      checklistProgress: []
+    };
+    
+    updateProgress(stepId, {
+      completed: !current.completed,
+      completionDate: !current.completed ? new Date().toISOString() : undefined
     });
   };
 
   const updateChecklistItem = (stepId: string, index: number, checked: boolean) => {
-    setStepProgress(prev => {
-      const current = prev[stepId] || {
-        stepId,
-        completed: false,
-        notes: '',
-        checklistProgress: []
-      };
-      
-      const newChecklist = [...current.checklistProgress];
-      newChecklist[index] = checked;
-      
-      return {
-        ...prev,
-        [stepId]: {
-          ...current,
-          checklistProgress: newChecklist
-        }
-      };
+    const current = stepProgress[stepId] || {
+      stepId,
+      completed: false,
+      notes: '',
+      checklistProgress: []
+    };
+    
+    const newChecklist = [...current.checklistProgress];
+    newChecklist[index] = checked;
+    
+    updateProgress(stepId, {
+      checklistProgress: newChecklist
     });
   };
 
   const updateNotes = (stepId: string, notes: string) => {
-    setStepProgress(prev => ({
-      ...prev,
-      [stepId]: {
-        ...(prev[stepId] || { stepId, completed: false, checklistProgress: [] }),
-        notes
-      }
-    }));
+    updateProgress(stepId, { notes });
   };
 
   const getCategoryColor = (category: ProcessStep['category']) => {
@@ -115,8 +99,31 @@ export const ProcessTracker = () => {
     return (completed / step.checklist.length) * 100;
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-muted-foreground">Caricamento progressi...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Sync Status */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {userId ? (
+          <>
+            <Cloud className="h-4 w-4 text-success" />
+            <span>Sincronizzazione automatica attiva</span>
+          </>
+        ) : (
+          <>
+            <CloudOff className="h-4 w-4 text-warning" />
+            <span>Accedi per salvare i progressi</span>
+          </>
+        )}
+      </div>
+
       {/* Phase Filters */}
       <div className="flex flex-wrap gap-2">
         <Button

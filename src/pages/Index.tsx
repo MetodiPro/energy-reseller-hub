@@ -1,12 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
+import { AuthForm } from "@/components/AuthForm";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Caricamento...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm onSuccess={() => {}} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,6 +57,15 @@ const Index = () => {
                 <p className="text-white/80 text-sm">Reseller Energia Elettrica - Percorso Operativo 2025/2026</p>
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-white hover:bg-white/10"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Esci
+            </Button>
           </div>
         </div>
       </header>
