@@ -5,7 +5,10 @@ import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { supabase } from "@/integrations/supabase/client";
+import { useStepProgress } from "@/hooks/useStepProgress";
+import { useNotifications } from "@/hooks/useNotifications";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -25,6 +28,12 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const { stepProgress } = useStepProgress(user?.id);
+  const { notifications, unreadCount, markAsRead, clearAll } = useNotifications(
+    user?.id,
+    stepProgress
+  );
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -57,15 +66,23 @@ const Index = () => {
                 <p className="text-white/80 text-sm">Reseller Energia Elettrica - Percorso Operativo 2025/2026</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-white hover:bg-white/10"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Esci
-            </Button>
+            <div className="flex items-center gap-3">
+              <NotificationCenter
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkAsRead={markAsRead}
+                onClearAll={clearAll}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-white hover:bg-white/10"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Esci
+              </Button>
+            </div>
           </div>
         </div>
       </header>
