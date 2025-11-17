@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut, Download, Users, FolderOpen } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut, Download, Users, FolderOpen, Briefcase } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { TeamAnalyticsDashboard } from "@/components/TeamAnalyticsDashboard";
 import { DocumentManager } from "@/components/DocumentManager";
+import { BusinessPlanEditor } from "@/components/BusinessPlanEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
