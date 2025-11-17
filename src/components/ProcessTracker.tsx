@@ -22,12 +22,15 @@ import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
+import { NotificationSettingsDialog } from "@/components/NotificationSettingsDialog";
 
 export const ProcessTracker = () => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
   const { stepProgress, loading, updateProgress } = useStepProgress(userId);
+  const { settings: notificationSettings, updateSetting, deleteSetting } = useNotificationSettings(userId);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -308,8 +311,14 @@ export const ProcessTracker = () => {
                     />
                   </div>
 
-                  {/* Complete Button */}
-                  <div className="pt-4 border-t">
+                  {/* Notification Settings & Complete Button */}
+                  <div className="pt-4 border-t space-y-3">
+                    <NotificationSettingsDialog
+                      step={step}
+                      setting={notificationSettings?.[step.id]}
+                      onUpdateSetting={updateSetting}
+                      onDeleteSetting={deleteSetting}
+                    />
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
