@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { processSteps } from "@/data/processSteps";
 import { toast } from "@/hooks/use-toast";
-import { differenceInDays, parseISO, addDays } from "date-fns";
+import { differenceInDays, parseISO, addDays, isSameDay, isAfter, startOfDay } from "date-fns";
+import { NotificationSetting } from "./useNotificationSettings";
 
 export interface Notification {
   id: string;
@@ -14,7 +15,11 @@ export interface Notification {
   createdAt: Date;
 }
 
-export const useNotifications = (userId: string | undefined, stepProgress: Record<string, any>) => {
+export const useNotifications = (
+  userId: string | undefined, 
+  stepProgress: Record<string, any>,
+  notificationSettings?: Record<string, NotificationSetting>
+) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -46,13 +51,14 @@ export const useNotifications = (userId: string | undefined, stepProgress: Recor
           });
         }
 
-        // Deadline approaching
+        // Deadline approaching (con days before personalizzati)
         if (hasStarted && progress.startDate) {
           const startDate = parseISO(progress.startDate);
           const expectedEndDate = addDays(startDate, step.estimatedDays);
           const daysRemaining = differenceInDays(expectedEndDate, today);
+          const customDaysBefore = notificationSettings?.[step.id]?.reminderDaysBefore ?? 3;
 
-          if (daysRemaining <= 3 && daysRemaining >= 0) {
+          if (daysRemaining <= customDaysBefore && daysRemaining >= 0) {
             newNotifications.push({
               id: `deadline-${step.id}`,
               stepId: step.id,
@@ -96,6 +102,27 @@ export const useNotifications = (userId: string | undefined, stepProgress: Recor
             });
           }
         }
+
+        // Custom reminder date notification
+        if (notificationSettings?.[step.id]) {
+          const setting = notificationSettings[step.id];
+          if (setting.enabled && setting.reminderDate) {
+            const reminderDate = startOfDay(setting.reminderDate);
+            const todayStart = startOfDay(today);
+            
+            if (isSameDay(reminderDate, todayStart) || isAfter(todayStart, reminderDate)) {
+              newNotifications.push({
+                id: `custom-reminder-${step.id}`,
+                stepId: step.id,
+                type: 'reminder',
+                message: `🔔 Promemoria personalizzato: ${step.title}${setting.note ? ` - ${setting.note}` : ''}`,
+                priority: step.priority,
+                read: false,
+                createdAt: today,
+              });
+            }
+          }
+        }
       });
 
       setNotifications(newNotifications);
@@ -119,7 +146,7 @@ export const useNotifications = (userId: string | undefined, stepProgress: Recor
     const interval = setInterval(checkNotifications, 3600000);
 
     return () => clearInterval(interval);
-  }, [userId, stepProgress]);
+  }, [userId, stepProgress, notificationSettings]);
 
   const markAsRead = (notificationId: string) => {
     setNotifications(prev =>

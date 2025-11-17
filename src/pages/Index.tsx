@@ -9,6 +9,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useExportPDF } from "@/hooks/useExportPDF";
 import type { User } from "@supabase/supabase-js";
 
@@ -31,9 +32,11 @@ const Index = () => {
   }, []);
 
   const { stepProgress } = useStepProgress(user?.id);
+  const { settings: notificationSettings } = useNotificationSettings(user?.id);
   const { notifications, unreadCount, markAsRead, clearAll } = useNotifications(
     user?.id,
-    stepProgress
+    stepProgress,
+    notificationSettings
   );
   const { exportToPDF } = useExportPDF();
 
