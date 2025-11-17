@@ -121,7 +121,7 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <Dashboard />
+            <Dashboard stepProgress={stepProgress} />
           </TabsContent>
 
           <TabsContent value="process" className="space-y-6">
