@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut, Download } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut, Download, Users } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { TeamAnalyticsDashboard } from "@/components/TeamAnalyticsDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useExportPDF } from "@/hooks/useExportPDF";
+import { useTeamAnalytics } from "@/hooks/useTeamAnalytics";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -39,6 +41,7 @@ const Index = () => {
     notificationSettings
   );
   const { exportToPDF } = useExportPDF();
+  const { analytics, loading: analyticsLoading } = useTeamAnalytics(user?.id, stepProgress);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -104,7 +107,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -112,6 +115,10 @@ const Index = () => {
             <TabsTrigger value="process" className="gap-2">
               <ListTodo className="h-4 w-4" />
               <span className="hidden sm:inline">Processo</span>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Team</span>
             </TabsTrigger>
             <TabsTrigger value="business-plan" className="gap-2">
               <FileText className="h-4 w-4" />
@@ -135,6 +142,16 @@ const Index = () => {
               </div>
             </div>
             <ProcessTracker />
+          </TabsContent>
+
+          <TabsContent value="team" className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Analytics Team</h2>
+                <p className="text-muted-foreground">Monitora le performance e il progresso del team</p>
+              </div>
+            </div>
+            <TeamAnalyticsDashboard analytics={analytics} loading={analyticsLoading} />
           </TabsContent>
 
           <TabsContent value="business-plan" className="space-y-6">
