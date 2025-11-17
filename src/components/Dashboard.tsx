@@ -60,10 +60,16 @@ export const Dashboard = ({ stepProgress }: DashboardProps) => {
     };
   });
 
-  // Prepare data for cost breakdown by phase
+  // Prepare data for cost breakdown by phase (only phases with started/completed steps)
   const costByPhaseData = phases.map(phase => {
     const phaseSteps = processSteps.filter(s => s.phase === phase.id);
-    const phaseCosts = phaseSteps.reduce((sum, step) => {
+    const startedPhaseSteps = phaseSteps.filter(step => 
+      stepProgress[step.id] && (stepProgress[step.id].startDate || stepProgress[step.id].completed)
+    );
+    
+    if (startedPhaseSteps.length === 0) return null;
+    
+    const phaseCosts = startedPhaseSteps.reduce((sum, step) => {
       if (step.costs) return sum + ((step.costs.min + step.costs.max) / 2);
       return sum;
     }, 0);
@@ -72,21 +78,32 @@ export const Dashboard = ({ stepProgress }: DashboardProps) => {
       name: phase.name,
       valore: Math.round(phaseCosts)
     };
-  });
+  }).filter(Boolean) as { name: string; valore: number }[];
 
-  // Prepare data for priority distribution
+  // Prepare data for priority distribution (only started steps)
+  const startedSteps = processSteps.filter(step => 
+    stepProgress[step.id] && (stepProgress[step.id].startDate || stepProgress[step.id].completed)
+  );
   const priorityData = [
-    { name: 'Alta', value: processSteps.filter(s => s.priority === 'high').length, color: '#ef4444' },
-    { name: 'Media', value: processSteps.filter(s => s.priority === 'medium').length, color: '#f59e0b' },
-    { name: 'Bassa', value: processSteps.filter(s => s.priority === 'low').length, color: '#10b981' }
-  ];
+    { name: 'Alta', value: startedSteps.filter(s => s.priority === 'high').length, color: '#ef4444' },
+    { name: 'Media', value: startedSteps.filter(s => s.priority === 'medium').length, color: '#f59e0b' },
+    { name: 'Bassa', value: startedSteps.filter(s => s.priority === 'low').length, color: '#10b981' }
+  ].filter(item => item.value > 0);
 
-  // Prepare timeline data
+  // Prepare timeline data (only phases with activity)
   const timelineData = phases.map((phase, index) => {
     const phaseSteps = processSteps.filter(s => s.phase === phase.id);
-    const phaseDays = phaseSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
+    const startedPhaseSteps = phaseSteps.filter(step => 
+      stepProgress[step.id] && (stepProgress[step.id].startDate || stepProgress[step.id].completed)
+    );
+    
+    if (startedPhaseSteps.length === 0) return null;
+    
+    const phaseDays = startedPhaseSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
     const prevPhaseDays = phases.slice(0, index).reduce((sum, p) => {
-      const steps = processSteps.filter(s => s.phase === p.id);
+      const steps = processSteps.filter(s => s.phase === p.id && 
+        stepProgress[s.id] && (stepProgress[s.id].startDate || stepProgress[s.id].completed)
+      );
       return sum + steps.reduce((s, step) => s + step.estimatedDays, 0);
     }, 0);
 
@@ -96,7 +113,7 @@ export const Dashboard = ({ stepProgress }: DashboardProps) => {
       fine: prevPhaseDays + phaseDays,
       durata: phaseDays
     };
-  });
+  }).filter(Boolean) as { fase: string; inizio: number; fine: number; durata: number }[];
 
   return (
     <div className="space-y-6">
@@ -185,31 +202,37 @@ export const Dashboard = ({ stepProgress }: DashboardProps) => {
             <Target className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-bold">Distribuzione Priorità</h2>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={priorityData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {priorityData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '6px'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {priorityData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={priorityData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {priorityData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--background))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              Nessuno step iniziato
+            </div>
+          )}
         </Card>
       </div>
 
@@ -219,23 +242,29 @@ export const Dashboard = ({ stepProgress }: DashboardProps) => {
           <Euro className="h-5 w-5 text-success" />
           <h2 className="text-xl font-bold">Analisi Costi per Fase</h2>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={phaseProgressData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="name" className="text-xs" />
-            <YAxis className="text-xs" />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px'
-              }}
-              formatter={(value: number) => `€${value.toLocaleString()}`}
-            />
-            <Legend />
-            <Bar dataKey="costi" fill="hsl(var(--success))" name="Costi Stimati (€)" />
-          </BarChart>
-        </ResponsiveContainer>
+        {costByPhaseData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={costByPhaseData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="name" className="text-xs" />
+              <YAxis className="text-xs" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '6px'
+                }}
+                formatter={(value: number) => `€${value.toLocaleString()}`}
+              />
+              <Legend />
+              <Bar dataKey="valore" fill="hsl(var(--success))" name="Costi Stimati (€)" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+            Nessuno step iniziato
+          </div>
+        )}
       </Card>
 
       {/* Timeline Chart */}
@@ -244,23 +273,29 @@ export const Dashboard = ({ stepProgress }: DashboardProps) => {
           <Calendar className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-bold">Timeline Progetto</h2>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={timelineData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="fase" className="text-xs" />
-            <YAxis label={{ value: 'Giorni', angle: -90, position: 'insideLeft' }} className="text-xs" />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px'
-              }}
-            />
-            <Legend />
-            <Line type="monotone" dataKey="fine" stroke="hsl(var(--primary))" strokeWidth={2} name="Giorno Fine" />
-            <Line type="monotone" dataKey="durata" stroke="hsl(var(--accent))" strokeWidth={2} name="Durata (giorni)" />
-          </LineChart>
-        </ResponsiveContainer>
+        {timelineData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={timelineData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="fase" className="text-xs" />
+              <YAxis label={{ value: 'Giorni', angle: -90, position: 'insideLeft' }} className="text-xs" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '6px'
+                }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="fine" stroke="hsl(var(--primary))" strokeWidth={2} name="Giorno Fine" />
+              <Line type="monotone" dataKey="durata" stroke="hsl(var(--accent))" strokeWidth={2} name="Durata (giorni)" />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+            Nessuno step iniziato
+          </div>
+        )}
       </Card>
 
       {/* Phase Overview */}
