@@ -9,6 +9,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { TeamAnalyticsDashboard } from "@/components/TeamAnalyticsDashboard";
 import { DocumentManager } from "@/components/DocumentManager";
 import { BusinessPlanEditor } from "@/components/BusinessPlanEditor";
+import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -173,17 +174,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="marketing" className="space-y-6">
-            <div className="text-center py-20">
-              <TrendingUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Piano Marketing</h2>
-              <p className="text-muted-foreground mb-6">
-                Definisci strategie di acquisizione clienti, pricing e posizionamento competitivo
-              </p>
-              <Button className="gap-2">
-                <Lightbulb className="h-4 w-4" />
-                Coming Soon
-              </Button>
-            </div>
+            <MarketingPlanEditor 
+              userId={user.id} 
+              projectId={currentProjectId} 
+              stepProgress={stepProgress}
+            />
           </TabsContent>
         </Tabs>
       </main>
