@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_plans: {
+        Row: {
+          company_description: string | null
+          created_at: string
+          executive_summary: string | null
+          financial_plan: string | null
+          id: string
+          market_analysis: string | null
+          marketing_strategy: string | null
+          organization: string | null
+          products_services: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_description?: string | null
+          created_at?: string
+          executive_summary?: string | null
+          financial_plan?: string | null
+          id?: string
+          market_analysis?: string | null
+          marketing_strategy?: string | null
+          organization?: string | null
+          products_services?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_description?: string | null
+          created_at?: string
+          executive_summary?: string | null
+          financial_plan?: string | null
+          id?: string
+          market_analysis?: string | null
+          marketing_strategy?: string | null
+          organization?: string | null
+          products_services?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_plans_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_categories: {
         Row: {
           color: string | null

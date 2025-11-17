@@ -165,17 +165,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="business-plan" className="space-y-6">
-            <div className="text-center py-20">
-              <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Business Plan Builder</h2>
-              <p className="text-muted-foreground mb-6">
-                Strumento per creare un business plan dettagliato con proiezioni finanziarie e analisi di mercato
-              </p>
-              <Button className="gap-2">
-                <Lightbulb className="h-4 w-4" />
-                Coming Soon
-              </Button>
-            </div>
+            <BusinessPlanEditor 
+              userId={user.id} 
+              projectId={currentProjectId} 
+              stepProgress={stepProgress}
+            />
           </TabsContent>
 
           <TabsContent value="marketing" className="space-y-6">
