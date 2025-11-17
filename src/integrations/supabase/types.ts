@@ -233,6 +233,53 @@ export type Database = {
           },
         ]
       }
+      marketing_plans: {
+        Row: {
+          acquisition_strategy: string | null
+          budget_allocation: string | null
+          communication_channels: string | null
+          competitive_positioning: string | null
+          created_at: string
+          id: string
+          pricing_strategy: string | null
+          project_id: string
+          target_market: string | null
+          updated_at: string
+        }
+        Insert: {
+          acquisition_strategy?: string | null
+          budget_allocation?: string | null
+          communication_channels?: string | null
+          competitive_positioning?: string | null
+          created_at?: string
+          id?: string
+          pricing_strategy?: string | null
+          project_id: string
+          target_market?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acquisition_strategy?: string | null
+          budget_allocation?: string | null
+          communication_channels?: string | null
+          competitive_positioning?: string | null
+          created_at?: string
+          id?: string
+          pricing_strategy?: string | null
+          project_id?: string
+          target_market?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_plans_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_settings: {
         Row: {
           created_at: string
