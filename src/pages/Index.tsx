@@ -19,7 +19,7 @@ const Index = () => {
                 <Zap className="h-7 w-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">AURA Gas & Power</h1>
+                <h1 className="text-3xl font-bold text-white">Metodi ResBuilder</h1>
                 <p className="text-white/80 text-sm">Reseller Energia Elettrica - Percorso Operativo 2025/2026</p>
               </div>
             </div>
