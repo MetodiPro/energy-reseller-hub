@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface StepProgress {
+export interface StepProgress {
   stepId: string;
   completed: boolean;
   notes: string;

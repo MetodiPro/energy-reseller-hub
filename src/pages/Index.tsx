@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut, Download } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
@@ -9,6 +9,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useExportPDF } from "@/hooks/useExportPDF";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -34,6 +35,7 @@ const Index = () => {
     user?.id,
     stepProgress
   );
+  const { exportToPDF } = useExportPDF();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -73,6 +75,15 @@ const Index = () => {
                 onMarkAsRead={markAsRead}
                 onClearAll={clearAll}
               />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => exportToPDF(stepProgress)}
+                className="text-white hover:bg-white/10"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Esporta PDF
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
