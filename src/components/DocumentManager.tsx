@@ -7,10 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, File, Download, Trash2, Edit, Clock, Users, FileText, FolderOpen } from 'lucide-react';
+import { Upload, File, Download, Trash2, Edit, Clock, Users, FileText, FolderOpen, Eye } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { DocumentPreview } from './DocumentPreview';
 
 interface DocumentManagerProps {
   projectId: string | null;
@@ -26,6 +27,7 @@ export const DocumentManager = ({ projectId }: DocumentManagerProps) => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [previewDocument, setPreviewDocument] = useState<any>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -288,11 +290,18 @@ export const DocumentManager = ({ projectId }: DocumentManagerProps) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => downloadDocument(doc)}
+                    onClick={() => setPreviewDocument(doc)}
                     className="flex-1"
                   >
-                    <Download className="h-3 w-3 mr-1" />
-                    Download
+                    <Eye className="h-3 w-3 mr-1" />
+                    Anteprima
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadDocument(doc)}
+                  >
+                    <Download className="h-3 w-3" />
                   </Button>
                   <Button
                     variant="outline"
@@ -365,6 +374,17 @@ export const DocumentManager = ({ projectId }: DocumentManagerProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <DocumentPreview
+        document={previewDocument}
+        open={!!previewDocument}
+        onClose={() => setPreviewDocument(null)}
+        onDownload={() => {
+          if (previewDocument) {
+            downloadDocument(previewDocument);
+          }
+        }}
+      />
     </div>
   );
 };
