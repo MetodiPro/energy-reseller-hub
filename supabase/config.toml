@@ -1,1 +1,4 @@
 project_id = "okflhzpjopqhdbhbmwxl"
+
+[functions.generate-marketing-suggestions]
+verify_jwt = false
