@@ -243,6 +243,7 @@ export type Database = {
           id: string
           pricing_strategy: string | null
           project_id: string
+          project_type: string | null
           target_market: string | null
           updated_at: string
         }
@@ -255,6 +256,7 @@ export type Database = {
           id?: string
           pricing_strategy?: string | null
           project_id: string
+          project_type?: string | null
           target_market?: string | null
           updated_at?: string
         }
@@ -267,6 +269,7 @@ export type Database = {
           id?: string
           pricing_strategy?: string | null
           project_id?: string
+          project_type?: string | null
           target_market?: string | null
           updated_at?: string
         }

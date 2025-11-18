@@ -11,62 +11,71 @@ serve(async (req) => {
   }
 
   try {
-    const { sectionId, projectData } = await req.json();
+    const { sectionId, projectData, projectType = 'generale' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const sectionPrompts: Record<string, string> = {
-      target_market: `Genera una descrizione dettagliata del mercato target per un'azienda nel settore energia. Includi:
-- Segmentazione clientela (residenziale, PMI, grandi clienti)
-- Dimensione del mercato italiano energia
-- Potenziale di crescita settore energie rinnovabili
-- Caratteristiche demografiche e comportamentali dei clienti
-- Tendenze di mercato attuali nel settore energia`,
-      
-      acquisition_strategy: `Genera una strategia di acquisizione clienti completa per un'azienda nel settore energia. Includi:
-- Tattiche di acquisizione specifiche per il settore energia
-- Funnel di conversione per servizi energetici
-- Partnership strategiche (es. installatori, rivenditori)
-- Programmi referral e incentivi
-- Strategie di lead generation B2B e B2C`,
-      
-      pricing_strategy: `Genera un piano prezzi dettagliato per servizi energetici. Includi:
-- Struttura tariffaria competitiva
-- Offerte promozionali per nuovi clienti
-- Pacchetti servizi (base, premium, enterprise)
-- Sconti volume per grandi clienti
-- Condizioni di pagamento e modalità di fatturazione`,
-      
-      competitive_positioning: `Genera un'analisi di posizionamento competitivo nel mercato energia. Includi:
-- Unique Selling Proposition (USP) distintiva
-- Differenziatori rispetto ai concorrenti
-- Vantaggi competitivi sostenibili
-- Barriere all'entrata nel settore
-- Value proposition per diversi segmenti di clientela`,
-      
-      communication_channels: `Genera un mix di canali di comunicazione per un'azienda nel settore energia. Includi:
-- Digital marketing (SEO, SEM, social media)
-- Content marketing (blog, guide energia)
-- Email marketing automation
-- Eventi e fiere di settore
-- Direct sales e telemarketing
-- Partnership commerciali`,
-      
-      budget_allocation: `Genera una proposta di budget marketing per un'azienda nel settore energia. Includi:
-- Distribuzione percentuale del budget per canale
-- KPI target per ogni canale
-- ROI atteso per investimento marketing
-- Investimenti mensili e annuali consigliati
-- Metriche di performance e ottimizzazione`
+    const projectTypeContext: Record<string, string> = {
+      solare: 'fotovoltaico e solare termico',
+      eolico: 'energia eolica on-shore e off-shore',
+      efficienza_energetica: 'efficienza energetica e riqualificazione edifici',
+      generale: 'energia e rinnovabili'
     };
 
-    const systemPrompt = `Sei un esperto di marketing strategico specializzato nel settore energia italiano. 
-Genera contenuti professionali, dettagliati e specifici per il mercato italiano dell'energia.
-Usa dati realistici e best practices del settore.
-Scrivi in italiano professionale, usando termini tecnici appropriati.`;
+    const context = projectTypeContext[projectType] || projectTypeContext.generale;
+
+    const sectionPrompts: Record<string, string> = {
+      target_market: `Genera una descrizione dettagliata del mercato target per un'azienda specializzata in ${context}. Includi:
+- Segmentazione clientela specifica per ${context} (residenziale, PMI, grandi clienti)
+- Dimensione del mercato italiano per ${context}
+- Potenziale di crescita settore ${context}
+- Caratteristiche demografiche e comportamentali dei clienti interessati a ${context}
+- Tendenze di mercato attuali nel settore ${context}`,
+      
+      acquisition_strategy: `Genera una strategia di acquisizione clienti completa per un'azienda specializzata in ${context}. Includi:
+- Tattiche di acquisizione specifiche per ${context}
+- Funnel di conversione per servizi ${context}
+- Partnership strategiche rilevanti per ${context} (es. installatori, rivenditori, consulenti)
+- Programmi referral e incentivi specifici per ${context}
+- Strategie di lead generation B2B e B2C ottimizzate per ${context}`,
+      
+      pricing_strategy: `Genera un piano prezzi dettagliato per servizi ${context}. Includi:
+- Struttura tariffaria competitiva specifica per ${context}
+- Offerte promozionali per nuovi clienti interessati a ${context}
+- Pacchetti servizi ${context} (base, premium, enterprise)
+- Sconti volume e incentivi fiscali applicabili a ${context}
+- Condizioni di pagamento e modalità di fatturazione per progetti ${context}`,
+      
+      competitive_positioning: `Genera un'analisi di posizionamento competitivo nel mercato ${context}. Includi:
+- Unique Selling Proposition (USP) distintiva per ${context}
+- Differenziatori rispetto ai concorrenti nel settore ${context}
+- Vantaggi competitivi sostenibili specifici per ${context}
+- Barriere all'entrata nel settore ${context}
+- Value proposition per diversi segmenti di clientela interessati a ${context}`,
+      
+      communication_channels: `Genera un mix di canali di comunicazione per un'azienda specializzata in ${context}. Includi:
+- Digital marketing ottimizzato per ${context} (SEO, SEM, social media)
+- Content marketing specifico per ${context} (blog, guide, case study)
+- Email marketing automation per lead nurturing nel settore ${context}
+- Eventi e fiere di settore ${context}
+- Direct sales e telemarketing per progetti ${context}
+- Partnership commerciali strategiche per ${context}`,
+      
+      budget_allocation: `Genera una proposta di budget marketing per un'azienda specializzata in ${context}. Includi:
+- Distribuzione percentuale del budget per canale ottimizzata per ${context}
+- KPI target specifici per ogni canale nel settore ${context}
+- ROI atteso per investimento marketing in progetti ${context}
+- Investimenti mensili e annuali consigliati per promuovere ${context}
+- Metriche di performance e ottimizzazione specifiche per il settore ${context}`
+    };
+
+    const systemPrompt = `Sei un esperto di marketing strategico specializzato nel settore ${context} in Italia. 
+Genera contenuti professionali, dettagliati e specifici per il mercato italiano ${context}.
+Usa dati realistici e best practices del settore ${context}.
+Scrivi in italiano professionale, usando termini tecnici appropriati per ${context}.`;
 
     const userPrompt = sectionPrompts[sectionId] || `Genera contenuto per la sezione ${sectionId}`;
 
