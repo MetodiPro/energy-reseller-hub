@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useMarketingPlan } from '@/hooks/useMarketingPlan';
 import { useExportMarketingPlanPDF } from '@/hooks/useExportMarketingPlanPDF';
 import type { StepProgress } from '@/hooks/useStepProgress';
-import { Save, Target, TrendingUp, Users, DollarSign, Megaphone, Download, Lightbulb, Sparkles } from 'lucide-react';
+import { Save, Target, TrendingUp, Users, DollarSign, Megaphone, Download, Lightbulb, Sparkles, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
@@ -371,6 +371,17 @@ export const MarketingPlanEditor = ({ userId, projectId, stepProgress }: Marketi
                       )}
                       {editedContent[section.id] !== undefined && (
                         <Badge variant="secondary">Non salvato</Badge>
+                      )}
+                      {validationResults[section.id] && !validationResults[section.id].isValid && (
+                        <Button
+                          onClick={() => handleGenerateAISuggestion(section.id)}
+                          disabled={generatingAI === section.id}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          {generatingAI === section.id ? 'Rigenerazione...' : 'Rigenera'}
+                        </Button>
                       )}
                       <Button
                         onClick={() => handleGenerateAISuggestion(section.id)}
