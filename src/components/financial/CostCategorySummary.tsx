@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Scale, 
   Landmark, 
@@ -12,7 +13,8 @@ import {
   Zap,
   ShoppingCart,
   Briefcase,
-  HelpCircle
+  HelpCircle,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -148,6 +150,20 @@ const calculateAnnualizedCost = (cost: CostItem): number => {
 };
 
 export const CostCategorySummary = ({ costs }: CostCategorySummaryProps) => {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (categoryKey: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryKey)) {
+        next.delete(categoryKey);
+      } else {
+        next.add(categoryKey);
+      }
+      return next;
+    });
+  };
+
   const groupedCosts = useMemo(() => {
     const groups: Record<string, { costs: CostItem[]; total: number }> = {};
     
@@ -208,50 +224,71 @@ export const CostCategorySummary = ({ costs }: CostCategorySummaryProps) => {
           const config = categoryConfigs[categoryKey];
           const Icon = config.icon;
           const percentage = totalCosts > 0 ? (group.total / totalCosts) * 100 : 0;
+          const isExpanded = expandedCategories.has(categoryKey);
           
           return (
-            <div key={categoryKey} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={cn("p-2 rounded-lg", config.bgColor)}>
-                    <Icon className={cn("h-4 w-4", config.color)} />
+            <Collapsible
+              key={categoryKey}
+              open={isExpanded}
+              onOpenChange={() => toggleCategory(categoryKey)}
+            >
+              <div className="space-y-2">
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center justify-between hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("p-2 rounded-lg", config.bgColor)}>
+                        <Icon className={cn("h-4 w-4", config.color)} />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-sm">{config.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {group.costs.length} {group.costs.length === 1 ? 'voce' : 'voci'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-bold">
+                          €{group.total.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {percentage.toFixed(1)}%
+                        </p>
+                      </div>
+                      <ChevronDown 
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                          isExpanded && "rotate-180"
+                        )} 
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{config.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {group.costs.length} {group.costs.length === 1 ? 'voce' : 'voci'}
-                    </p>
+                </CollapsibleTrigger>
+                
+                <Progress 
+                  value={percentage} 
+                  className="h-2"
+                />
+                
+                <CollapsibleContent className="animate-accordion-down">
+                  <div className="pl-10 space-y-1 pt-2 border-l-2 border-muted ml-4">
+                    {group.costs.map((cost, idx) => (
+                      <div 
+                        key={cost.id || idx} 
+                        className="flex justify-between text-xs text-muted-foreground py-1 hover:bg-muted/30 rounded px-2 -mx-2"
+                      >
+                        <span className="truncate max-w-[250px]" title={cost.name}>
+                          {cost.name}
+                        </span>
+                        <span className="font-medium">
+                          €{calculateAnnualizedCost(cost).toLocaleString('it-IT', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold">
-                    €{group.total.toLocaleString('it-IT', { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {percentage.toFixed(1)}%
-                  </p>
-                </div>
+                </CollapsibleContent>
               </div>
-              <Progress 
-                value={percentage} 
-                className="h-2"
-              />
-              
-              {/* Dettaglio voci nella categoria */}
-              <div className="pl-10 space-y-1">
-                {group.costs.slice(0, 5).map((cost, idx) => (
-                  <div key={cost.id || idx} className="flex justify-between text-xs text-muted-foreground">
-                    <span className="truncate max-w-[200px]">{cost.name}</span>
-                    <span>€{calculateAnnualizedCost(cost).toLocaleString('it-IT')}</span>
-                  </div>
-                ))}
-                {group.costs.length > 5 && (
-                  <p className="text-xs text-muted-foreground italic">
-                    +{group.costs.length - 5} altre voci...
-                  </p>
-                )}
-              </div>
-            </div>
+            </Collapsible>
           );
         })}
       </CardContent>
