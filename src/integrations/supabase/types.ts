@@ -266,6 +266,53 @@ export type Database = {
           },
         ]
       }
+      financial_audit_log: {
+        Row: {
+          action: string
+          changed_fields: string[] | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_fields?: string[] | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changed_fields?: string[] | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_audit_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_plans: {
         Row: {
           acquisition_strategy: string | null
