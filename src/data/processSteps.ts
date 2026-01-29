@@ -120,12 +120,12 @@ export const processSteps: ProcessStep[] = [
     ]
   },
 
-  // FASE 3: ISCRIZIONE EVE
+  // FASE 3: AUTORIZZAZIONI ARERA E ISCRIZIONE EVE
   {
     id: 'step-3-1',
     phase: 3,
     title: 'Iscrizione EVE - Elenco Venditori Energia',
-    description: 'Iscrizione all\'Elenco Venditori Energia Elettrica presso MASE',
+    description: 'Iscrizione all\'Elenco Venditori Energia Elettrica presso MASE (Ministero Ambiente e Sicurezza Energetica)',
     category: 'administrative',
     estimatedDays: 30,
     priority: 'high',
@@ -160,8 +160,77 @@ export const processSteps: ProcessStep[] = [
       'Monitoraggio stato pratica'
     ]
   },
+  {
+    id: 'step-3-2',
+    phase: 3,
+    title: 'Registrazione Anagrafica Operatori ARERA',
+    description: 'Iscrizione all\'Anagrafica Operatori dell\'Autorità di Regolazione per Energia Reti e Ambiente',
+    category: 'administrative',
+    estimatedDays: 15,
+    priority: 'high',
+    dependencies: ['step-3-1'],
+    documents: [
+      'Credenziali SPID/CNS legale rappresentante',
+      'Visura camerale',
+      'Dati societari completi',
+      'Codice ATECO attività'
+    ],
+    costs: {
+      min: 0,
+      max: 0,
+      description: 'Registrazione gratuita'
+    },
+    notes: [
+      'Portale: https://www.arera.it/anagrafica-operatori',
+      'Obbligatoria per tutti gli operatori del settore energetico',
+      'Prerequisito per accesso ai sistemi ARERA',
+      'Aggiornamento dati obbligatorio entro 30 giorni da variazioni'
+    ],
+    checklist: [
+      'Accesso portale ARERA con SPID/CNS',
+      'Compilazione anagrafica società',
+      'Inserimento dati legale rappresentante',
+      'Dichiarazione attività svolta (vendita EE/Gas)',
+      'Conferma e invio registrazione',
+      'Conservazione credenziali di accesso'
+    ]
+  },
+  {
+    id: 'step-3-3',
+    phase: 3,
+    title: 'Adempimenti Obblighi Informativi ARERA',
+    description: 'Configurazione sistemi per rispettare gli obblighi informativi periodici verso ARERA',
+    category: 'administrative',
+    estimatedDays: 10,
+    priority: 'high',
+    dependencies: ['step-3-2'],
+    documents: [
+      'Manuale procedure raccolta dati',
+      'Template comunicazioni periodiche',
+      'Calendario scadenze ARERA'
+    ],
+    costs: {
+      min: 2000,
+      max: 5000,
+      description: 'Consulenza setup procedure e formazione'
+    },
+    notes: [
+      'Comunicazioni annuali su volumi venduti',
+      'Raccolta dati qualità commerciale',
+      'Segnalazioni reclami e controversie',
+      'Sanzioni ARERA per inadempimenti: fino a 3% fatturato'
+    ],
+    checklist: [
+      'Studio delibere ARERA su obblighi informativi',
+      'Setup calendario scadenze comunicazioni',
+      'Predisposizione procedure raccolta dati interni',
+      'Test compilazione moduli ARERA',
+      'Formazione personale su obblighi',
+      'Nomina responsabile compliance ARERA'
+    ]
+  },
 
-  // FASE 4: ACCORDO CON GROSSISTA
+  // FASE 4: ACCORDO CON GROSSISTA E ACCESSO SII
   {
     id: 'step-4-1',
     phase: 4,
@@ -194,52 +263,165 @@ export const processSteps: ProcessStep[] = [
       'Formazione su procedure operative'
     ]
   },
+  {
+    id: 'step-4-2',
+    phase: 4,
+    title: 'Accreditamento Sistema Informativo Integrato (SII)',
+    description: 'Registrazione e accreditamento presso Acquirente Unico per accesso al SII',
+    category: 'technical',
+    estimatedDays: 30,
+    priority: 'high',
+    dependencies: ['step-4-1'],
+    documents: [
+      'Richiesta accreditamento AU',
+      'Certificati digitali per firma flussi',
+      'Documentazione tecnica sistemi',
+      'Test di conformità superati'
+    ],
+    costs: {
+      min: 5000,
+      max: 15000,
+      description: 'Setup tecnico, certificati, test conformità'
+    },
+    notes: [
+      'SII gestito da Acquirente Unico (AU)',
+      'Necessario per switching, volture, attivazioni',
+      'Flussi XML standardizzati secondo specifiche AU',
+      'Test obbligatori prima della messa in produzione'
+    ],
+    checklist: [
+      'Richiesta credenziali portale Acquirente Unico',
+      'Acquisizione certificati digitali per firma flussi',
+      'Setup ambiente di test SII',
+      'Configurazione software gestione flussi XML',
+      'Esecuzione test di conformità',
+      'Superamento test switching simulato',
+      'Superamento test volture/subentri',
+      'Richiesta passaggio in produzione',
+      'Attivazione ambiente produzione SII'
+    ]
+  },
+  {
+    id: 'step-4-3',
+    phase: 4,
+    title: 'Accreditamento Portali Distributori Locali',
+    description: 'Registrazione e accesso ai portali dei distributori locali per gestione pratiche',
+    category: 'technical',
+    estimatedDays: 20,
+    priority: 'high',
+    dependencies: ['step-4-2'],
+    documents: [
+      'Richieste accreditamento per ogni distributore',
+      'Contratti di trasporto e distribuzione',
+      'Credenziali accesso portali',
+      'Procedure operative distributore'
+    ],
+    costs: {
+      min: 1000,
+      max: 3000,
+      description: 'Costi amministrativi e setup per distributore'
+    },
+    notes: [
+      'Ogni distributore ha proprio portale (E-Distribuzione, Unareti, Areti, ecc.)',
+      'Necessario per gestione contatori, letture, interventi',
+      'Alcuni distributori richiedono fideiussioni specifiche',
+      'Tempi variabili per accreditamento (15-30 giorni)'
+    ],
+    checklist: [
+      'Mappatura distributori nelle aree operative target',
+      'Richiesta accreditamento E-Distribuzione',
+      'Richiesta accreditamento altri distributori locali',
+      'Sottoscrizione contratti di trasporto',
+      'Attivazione credenziali portali',
+      'Test accesso e funzionalità portali',
+      'Formazione personale su procedure specifiche',
+      'Documentazione procedure per ogni distributore'
+    ]
+  },
 
-  // FASE 5: SETUP OPERATIVO
+  // FASE 5: SETUP OPERATIVO E SOFTWARE
   {
     id: 'step-5-1',
     phase: 5,
-    title: 'Infrastruttura IT e CRM',
-    description: 'Setup sistema gestionale, CRM e infrastruttura IT necessaria',
+    title: 'Implementazione Software SII e Switching',
+    description: 'Setup piattaforma gestione flussi SII, switching, volture e subentri',
+    category: 'technical',
+    estimatedDays: 20,
+    priority: 'high',
+    dependencies: ['step-4-2'],
+    documents: [
+      'Contratto software SII',
+      'Documentazione tecnica integrazione',
+      'Procedure operative switching',
+      'Manuale utente'
+    ],
+    costs: {
+      min: 10000,
+      max: 25000,
+      description: 'Licenze software + setup + formazione'
+    },
+    notes: [
+      'Software deve essere certificato per flussi AU',
+      'Integrazione con CRM e billing necessaria',
+      'Gestione automatica esiti e scarti',
+      'Monitoraggio SLA switching (21 giorni)'
+    ],
+    checklist: [
+      'Selezione fornitore software SII',
+      'Installazione e configurazione piattaforma',
+      'Integrazione con sistemi AU',
+      'Configurazione flussi switching in/out',
+      'Configurazione flussi volture/subentri',
+      'Test end-to-end con ambiente AU test',
+      'Formazione operatori su gestione pratiche',
+      'Go-live ambiente produzione'
+    ]
+  },
+  {
+    id: 'step-5-2',
+    phase: 5,
+    title: 'Infrastruttura CRM e Billing',
+    description: 'Setup sistema gestionale, CRM clienti e piattaforma fatturazione',
     category: 'technical',
     estimatedDays: 15,
     priority: 'high',
-    dependencies: ['step-4-1'],
+    dependencies: ['step-5-1'],
     documents: [
       'Licenze software',
       'Contratti fornitori IT',
       'Procedure backup dati'
     ],
     costs: {
-      min: 3000,
-      max: 10000,
-      description: 'Software CRM, gestionale, infrastruttura IT'
+      min: 5000,
+      max: 15000,
+      description: 'Software CRM, gestionale, billing, infrastruttura IT'
     },
     notes: [
       'CRM per gestione clienti e contratti',
-      'Sistema di fatturazione elettronica',
-      'Portale clienti per autoletture e documenti',
+      'Sistema di fatturazione elettronica SDI',
+      'Integrazione con software SII',
       'Conformità GDPR per dati personali'
     ],
     checklist: [
       'Selezione e acquisto CRM',
+      'Integrazione CRM con software SII',
       'Setup sistema fatturazione elettronica',
+      'Configurazione invio SDI',
       'Implementazione portale clienti',
       'Configurazione backup automatici',
       'Setup procedure GDPR',
-      'Formazione staff su sistemi',
-      'Test integrazione con grossista'
+      'Formazione staff su sistemi'
     ]
   },
   {
-    id: 'step-5-2',
+    id: 'step-5-3',
     phase: 5,
     title: 'Struttura Commerciale e Contact Center',
     description: 'Organizzazione rete vendita e servizio assistenza clienti',
     category: 'operational',
     estimatedDays: 20,
     priority: 'high',
-    dependencies: ['step-5-1'],
+    dependencies: ['step-5-2'],
     documents: [
       'Contratti agenti/venditori',
       'Procedure assistenza clienti',
@@ -252,16 +434,16 @@ export const processSteps: ProcessStep[] = [
       description: 'Setup contact center, materiali commerciali, formazione'
     },
     notes: [
-      'Numero verde per assistenza clienti',
+      'Numero verde per assistenza clienti (obbligatorio ARERA)',
       'Email servizio clienti dedicata',
-      'Sistema ticketing per reclami',
-      'SLA tempi risposta definiti'
+      'Sistema ticketing per reclami (SLA ARERA)',
+      'Tempi risposta reclami: max 30 giorni solari'
     ],
     checklist: [
       'Selezione personale commerciale',
       'Setup numero verde',
       'Configurazione email servizio clienti',
-      'Creazione procedure gestione reclami',
+      'Creazione procedure gestione reclami ARERA-compliant',
       'Formazione staff su prodotti e normativa',
       'Preparazione materiali commerciali',
       'Test procedure operative'
@@ -301,17 +483,54 @@ export const processSteps: ProcessStep[] = [
       'Comunicazione polizze a grossista'
     ]
   },
+  {
+    id: 'step-6-2',
+    phase: 6,
+    title: 'Compliance GDPR e Privacy',
+    description: 'Adeguamento completo alla normativa privacy per trattamento dati clienti',
+    category: 'legal',
+    estimatedDays: 15,
+    priority: 'high',
+    dependencies: ['step-5-2'],
+    documents: [
+      'Registro trattamenti dati',
+      'Informative privacy',
+      'Contratti DPO/Responsabili esterni',
+      'Procedure data breach'
+    ],
+    costs: {
+      min: 3000,
+      max: 8000,
+      description: 'Consulenza privacy, DPO, documentazione'
+    },
+    notes: [
+      'Nomina DPO obbligatoria per trattamento dati su larga scala',
+      'Informative specifiche per contratti energia',
+      'Gestione consensi marketing',
+      'Procedure notifica data breach (72 ore)'
+    ],
+    checklist: [
+      'Mappatura trattamenti dati personali',
+      'Redazione registro trattamenti',
+      'Preparazione informative privacy',
+      'Nomina DPO (se obbligatorio)',
+      'Contratti con responsabili esterni',
+      'Procedure gestione diritti interessati',
+      'Procedure notifica data breach',
+      'Formazione personale su GDPR'
+    ]
+  },
 
   // FASE 7: LANCIO COMMERCIALE
   {
     id: 'step-7-1',
     phase: 7,
     title: 'Definizione Offerte Commerciali',
-    description: 'Creazione listino prodotti e strategie pricing',
+    description: 'Creazione listino prodotti e strategie pricing per residenziale e business',
     category: 'commercial',
     estimatedDays: 10,
     priority: 'high',
-    dependencies: ['step-5-2'],
+    dependencies: ['step-5-3'],
     documents: [
       'Listino prezzi',
       'Condizioni generali vendita',
@@ -319,18 +538,18 @@ export const processSteps: ProcessStep[] = [
       'Schede prodotto'
     ],
     notes: [
-      'Analisi competitiva mercato',
+      'Conformità a delibere ARERA su trasparenza prezzi',
       'Definizione margini target',
       'Segmentazione clientela (domestico/business)',
-      'Servizi aggiuntivi e bundling'
+      'Offerte luce, gas, dual fuel'
     ],
     checklist: [
       'Analisi prezzi mercato',
       'Calcolo margini e pricing',
-      'Creazione offerte commerciali',
+      'Creazione offerte commerciali ARERA-compliant',
       'Redazione contratti tipo',
       'Approvazione condizioni generali',
-      'Preparazione materiali marketing',
+      'Preparazione schede trasparenza',
       'Training forza vendita su offerte'
     ]
   },
@@ -355,7 +574,7 @@ export const processSteps: ProcessStep[] = [
       description: 'Sviluppo brand, sito web, materiali marketing'
     },
     notes: [
-      'Sito web con area clienti',
+      'Sito web con area clienti e bolletta online',
       'Presenza social media',
       'Campagne digital marketing',
       'Materiali punto vendita'
@@ -379,7 +598,7 @@ export const processSteps: ProcessStep[] = [
     category: 'operational',
     estimatedDays: 0,
     priority: 'high',
-    dependencies: ['step-7-2', 'step-6-1'],
+    dependencies: ['step-7-2', 'step-6-1', 'step-6-2'],
     documents: [
       'Checklist go-live',
       'Procedure emergenza',
@@ -388,11 +607,13 @@ export const processSteps: ProcessStep[] = [
     notes: [
       'Soft launch con target clienti limitato',
       'Monitoraggio KPI operativi',
+      'Verifica tempi switching effettivi',
       'Feedback e ottimizzazione processi'
     ],
     checklist: [
       'Verifica completezza setup',
-      'Test end-to-end processi',
+      'Test end-to-end processi switching',
+      'Verifica funzionamento flussi SII',
       'Formazione finale team',
       'Attivazione campagne marketing',
       'Primo contratto cliente',
@@ -406,8 +627,8 @@ export const processSteps: ProcessStep[] = [
 export const phases = [
   { id: 1, name: 'Costituzione Società', color: 'primary' },
   { id: 2, name: 'Registrazioni Obbligatorie', color: 'accent' },
-  { id: 3, name: 'Iscrizione EVE', color: 'success' },
-  { id: 4, name: 'Accordo Grossista', color: 'warning' },
+  { id: 3, name: 'Autorizzazioni ARERA', color: 'success' },
+  { id: 4, name: 'Grossista e SII', color: 'warning' },
   { id: 5, name: 'Setup Operativo', color: 'primary' },
   { id: 6, name: 'Compliance', color: 'accent' },
   { id: 7, name: 'Lancio Commerciale', color: 'success' }

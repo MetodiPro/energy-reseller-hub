@@ -39,13 +39,18 @@ export const projectTemplates: ProjectTemplate[] = [
     costs: [
       // Costi Strutturali - Setup Iniziale
       { name: 'Costituzione Società', description: 'Notaio, Camera di Commercio, pratiche', amount: 3500, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Consulenza Legale Iniziale', description: 'Contratti tipo, privacy, condizioni generali', amount: 4000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
+      { name: 'Consulenza Regolatoria ARERA', description: 'Iscrizione EVE, compliance normativa, procedure', amount: 8000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
+      { name: 'Garanzie Bancarie', description: 'Fideiussioni per grossisti energia', amount: 25000, quantity: 1, unit: 'garanzia', cost_type: 'structural', is_recurring: false },
+      { name: 'Assicurazione RC Professionale', description: 'Polizza annuale', amount: 2500, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Software e Sistemi SII
+      { name: 'Software Gestione SII', description: 'Piattaforma per flussi SII (Sistema Informativo Integrato) con distributori', amount: 500, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Software Switching', description: 'Gestione pratiche switching, volture, subentri', amount: 350, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Integrazione SII - Setup', description: 'Configurazione iniziale flussi XML con Acquirente Unico', amount: 5000, quantity: 1, unit: 'progetto', cost_type: 'structural', is_recurring: false },
       { name: 'Licenza Software CRM', description: 'Gestione clienti e contratti', amount: 150, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Piattaforma Billing', description: 'Software fatturazione e gestione bollette', amount: 300, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Sito Web e Portale Clienti', description: 'Sviluppo e hosting annuale', amount: 5000, quantity: 1, unit: 'progetto', cost_type: 'structural', is_recurring: false },
-      { name: 'Consulenza Legale Iniziale', description: 'Contratti tipo, privacy, condizioni generali', amount: 4000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
-      { name: 'Consulenza Regolatoria ARERA', description: 'Pratiche autorizzative e compliance', amount: 8000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
-      { name: 'Garanzie Bancarie', description: 'Fideiussioni per grossisti energia', amount: 25000, quantity: 1, unit: 'garanzia', cost_type: 'structural', is_recurring: false },
-      { name: 'Assicurazione RC Professionale', description: 'Polizza annuale', amount: 2500, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
       
       // Costi Commerciali - Acquisizione Clienti
       { name: 'Rete Agenti (Provvigioni)', description: 'Commissione per contratto residenziale acquisito', amount: 80, quantity: 100, unit: 'contratto', cost_type: 'commercial', is_recurring: false },
@@ -54,7 +59,8 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Formazione Agenti', description: 'Corsi e materiale formativo', amount: 1500, quantity: 2, unit: 'sessione', cost_type: 'commercial', is_recurring: false },
       
       // Costi Indiretti - Operatività
-      { name: 'Personale Back-Office', description: 'Gestione contratti e assistenza clienti', amount: 2200, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Personale Back-Office', description: 'Gestione contratti, pratiche SII e assistenza', amount: 2200, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Operatore Pratiche SII', description: 'Gestione flussi switching e rapporti distributori', amount: 1800, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Affitto Ufficio', description: 'Sede operativa', amount: 800, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Utenze e Servizi Ufficio', description: 'Telefono, internet, elettricità', amount: 200, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Commercialista', description: 'Gestione contabile e fiscale', amount: 400, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
@@ -63,6 +69,7 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Costo Energia Acquistata (Luce)', description: 'Acquisto energia da grossista - stima mensile', amount: 15000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Costo Gas Acquistato', description: 'Acquisto gas da grossista - stima mensile', amount: 12000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Oneri di Sistema', description: 'Quote oneri da versare', amount: 3000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Corrispettivi Distributori', description: 'Costi trasporto e distribuzione', amount: 4000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
     ],
     revenues: [
       { name: 'Margine Energia Elettrica', description: 'Margine su vendita energia residenziale (500 clienti)', amount: 8, quantity: 500, unit: 'cliente/mese', revenue_type: 'recurring', status: 'expected' },
@@ -79,13 +86,19 @@ export const projectTemplates: ProjectTemplate[] = [
     costs: [
       // Costi Strutturali - Setup Iniziale
       { name: 'Costituzione Società', description: 'Notaio, Camera di Commercio, pratiche', amount: 4000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Consulenza Legale Specializzata', description: 'Contratti B2B, SLA, condizioni commerciali', amount: 6000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
+      { name: 'Consulenza Regolatoria ARERA', description: 'Iscrizione EVE, compliance, obblighi informativi', amount: 10000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
+      { name: 'Garanzie Bancarie', description: 'Fideiussioni per grossisti (volumi maggiori)', amount: 50000, quantity: 1, unit: 'garanzia', cost_type: 'structural', is_recurring: false },
+      { name: 'Assicurazione RC Professionale', description: 'Polizza annuale maggiorata', amount: 4000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Software e Sistemi SII
+      { name: 'Software Gestione SII Enterprise', description: 'Piattaforma SII per volumi business con API avanzate', amount: 800, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Software Switching Avanzato', description: 'Gestione massiva pratiche switching B2B', amount: 500, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Integrazione SII - Setup Enterprise', description: 'Configurazione flussi XML multi-distributore', amount: 8000, quantity: 1, unit: 'progetto', cost_type: 'structural', is_recurring: false },
+      { name: 'Connessione Portale Distributori', description: 'Setup accessi e certificati per ogni distributore locale', amount: 500, quantity: 10, unit: 'distributore', cost_type: 'structural', is_recurring: false },
       { name: 'Licenza Software CRM Avanzato', description: 'CRM con gestione offerte B2B', amount: 250, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Piattaforma Billing Enterprise', description: 'Fatturazione con gestione grandi volumi', amount: 500, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Sito Web B2B e Area Riservata', description: 'Portale clienti business', amount: 8000, quantity: 1, unit: 'progetto', cost_type: 'structural', is_recurring: false },
-      { name: 'Consulenza Legale Specializzata', description: 'Contratti B2B, SLA, condizioni commerciali', amount: 6000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
-      { name: 'Consulenza Regolatoria ARERA', description: 'Pratiche autorizzative e compliance', amount: 10000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
-      { name: 'Garanzie Bancarie', description: 'Fideiussioni per grossisti (volumi maggiori)', amount: 50000, quantity: 1, unit: 'garanzia', cost_type: 'structural', is_recurring: false },
-      { name: 'Assicurazione RC Professionale', description: 'Polizza annuale maggiorata', amount: 4000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
       
       // Costi Commerciali - Acquisizione Clienti Business
       { name: 'Rete Agenti B2B (Provvigioni)', description: 'Commissione per contratto business acquisito', amount: 200, quantity: 50, unit: 'contratto', cost_type: 'commercial', is_recurring: false },
@@ -95,6 +108,7 @@ export const projectTemplates: ProjectTemplate[] = [
       
       // Costi Indiretti - Operatività
       { name: 'Team Back-Office', description: '2 risorse gestione contratti business', amount: 4500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Specialista SII/Switching', description: 'Gestione pratiche e rapporti distributori', amount: 2500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Affitto Ufficio Rappresentativo', description: 'Sede in zona business', amount: 1500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Utenze e Servizi Ufficio', description: 'Telefono, internet, elettricità', amount: 350, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Commercialista e Consulenze', description: 'Gestione contabile avanzata', amount: 600, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
@@ -103,6 +117,7 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Costo Energia Acquistata (Luce)', description: 'Acquisto energia da grossista - volumi business', amount: 40000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Costo Gas Acquistato', description: 'Acquisto gas da grossista - volumi business', amount: 30000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Oneri di Sistema', description: 'Quote oneri da versare', amount: 8000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Corrispettivi Distributori', description: 'Costi trasporto e distribuzione', amount: 10000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
     ],
     revenues: [
       { name: 'Margine Energia Elettrica Business', description: 'Margine su vendita energia (100 clienti PMI)', amount: 150, quantity: 100, unit: 'cliente/mese', revenue_type: 'recurring', status: 'expected' },
@@ -120,13 +135,20 @@ export const projectTemplates: ProjectTemplate[] = [
     costs: [
       // Costi Strutturali - Setup Completo
       { name: 'Costituzione Società (SRL)', description: 'Notaio, Camera di Commercio, pratiche complete', amount: 4500, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Consulenza Legale Completa', description: 'Contratti B2C, B2B, GDPR, condizioni', amount: 8000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
+      { name: 'Consulenza Regolatoria ARERA', description: 'Iscrizione EVE, compliance completa, audit', amount: 12000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
+      { name: 'Garanzie Bancarie', description: 'Fideiussioni per grossisti - importo combinato', amount: 60000, quantity: 1, unit: 'garanzia', cost_type: 'structural', is_recurring: false },
+      { name: 'Assicurazione RC Professionale', description: 'Polizza annuale completa', amount: 5000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Software e Sistemi SII Completi
+      { name: 'Piattaforma SII Completa', description: 'Gestione flussi SII multi-segmento con AU', amount: 900, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Software Switching Multi-Segmento', description: 'Gestione switching B2C e B2B integrata', amount: 600, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Integrazione SII Completa', description: 'Setup flussi XML, test, certificazione AU', amount: 10000, quantity: 1, unit: 'progetto', cost_type: 'structural', is_recurring: false },
+      { name: 'Accreditamento Distributori', description: 'Setup accessi portali distributori locali', amount: 500, quantity: 15, unit: 'distributore', cost_type: 'structural', is_recurring: false },
+      { name: 'Formazione Operatori SII', description: 'Training su flussi e procedure Acquirente Unico', amount: 3000, quantity: 1, unit: 'corso', cost_type: 'structural', is_recurring: false },
       { name: 'Licenza Software CRM Completo', description: 'CRM per gestione B2C e B2B', amount: 350, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Piattaforma Billing Completa', description: 'Fatturazione multi-segmento', amount: 600, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Sito Web Completo', description: 'Portale clienti residenziali e business', amount: 10000, quantity: 1, unit: 'progetto', cost_type: 'structural', is_recurring: false },
-      { name: 'Consulenza Legale Completa', description: 'Contratti B2C, B2B, GDPR, condizioni', amount: 8000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
-      { name: 'Consulenza Regolatoria ARERA', description: 'Pratiche autorizzative complete', amount: 12000, quantity: 1, unit: 'consulenza', cost_type: 'structural', is_recurring: false },
-      { name: 'Garanzie Bancarie', description: 'Fideiussioni per grossisti - importo combinato', amount: 60000, quantity: 1, unit: 'garanzia', cost_type: 'structural', is_recurring: false },
-      { name: 'Assicurazione RC Professionale', description: 'Polizza annuale completa', amount: 5000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
       
       // Costi Commerciali
       { name: 'Rete Agenti Residenziale', description: 'Provvigioni contratti domestici', amount: 80, quantity: 150, unit: 'contratto', cost_type: 'commercial', is_recurring: false },
@@ -137,6 +159,7 @@ export const projectTemplates: ProjectTemplate[] = [
       
       // Costi Indiretti
       { name: 'Team Operativo', description: '3 risorse back-office e customer care', amount: 6500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Team SII/Switching', description: '2 operatori gestione pratiche e distributori', amount: 4000, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Affitto Ufficio', description: 'Sede operativa adeguata', amount: 1200, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Utenze e Servizi', description: 'Telefono, internet, elettricità', amount: 300, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Commercialista', description: 'Gestione contabile e fiscale', amount: 500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
@@ -145,6 +168,7 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Costo Energia Acquistata', description: 'Acquisto energia - volumi combinati', amount: 45000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Costo Gas Acquistato', description: 'Acquisto gas - volumi combinati', amount: 35000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Oneri di Sistema', description: 'Quote oneri da versare', amount: 10000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Corrispettivi Distributori', description: 'Costi trasporto e distribuzione', amount: 12000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
     ],
     revenues: [
       { name: 'Margine Energia Residenziale', description: 'Margine luce domestica (400 clienti)', amount: 8, quantity: 400, unit: 'cliente/mese', revenue_type: 'recurring', status: 'expected' },
