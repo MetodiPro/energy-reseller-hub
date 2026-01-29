@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, Lightbulb, LogOut, Download, Users, FolderOpen, Briefcase } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
@@ -10,6 +10,7 @@ import { TeamAnalyticsDashboard } from "@/components/TeamAnalyticsDashboard";
 import { DocumentManager } from "@/components/DocumentManager";
 import { BusinessPlanEditor } from "@/components/BusinessPlanEditor";
 import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
+import { FinancialDashboard } from "@/components/FinancialDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -110,7 +111,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -126,6 +127,10 @@ const Index = () => {
             <TabsTrigger value="documents" className="gap-2">
               <FolderOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Documenti</span>
+            </TabsTrigger>
+            <TabsTrigger value="financials" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Finanza</span>
             </TabsTrigger>
             <TabsTrigger value="business-plan" className="gap-2">
               <FileText className="h-4 w-4" />
@@ -163,6 +168,20 @@ const Index = () => {
 
           <TabsContent value="documents" className="space-y-6">
             <DocumentManager projectId={currentProjectId} />
+          </TabsContent>
+
+          <TabsContent value="financials" className="space-y-6">
+            {currentProjectId ? (
+              <FinancialDashboard 
+                projectId={currentProjectId} 
+                projectName="Progetto Corrente"
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Crea prima un progetto per accedere alla Dashboard Finanziaria</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="business-plan" className="space-y-6">
