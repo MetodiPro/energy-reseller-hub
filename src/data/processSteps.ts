@@ -593,6 +593,28 @@ export const processSteps: ProcessStep[] = [
       'Procedure gestione diritti interessati',
       'Procedure notifica data breach',
       'Formazione personale su GDPR'
+    ],
+    officialLinks: [
+      {
+        name: 'Garante Privacy',
+        url: 'https://www.garanteprivacy.it',
+        description: 'Autorità Garante per la Protezione dei Dati Personali'
+      },
+      {
+        name: 'Modulistica GDPR',
+        url: 'https://www.garanteprivacy.it/home/modulistica',
+        description: 'Moduli e documenti ufficiali privacy'
+      },
+      {
+        name: 'Registro Trattamenti - Template',
+        url: 'https://www.garanteprivacy.it/registro-delle-attivita-di-trattamento',
+        description: 'Guida e modello registro trattamenti'
+      },
+      {
+        name: 'Notifica Data Breach',
+        url: 'https://servizi.gpdp.it/databreach/s/',
+        description: 'Portale notifica violazioni dati personali'
+      }
     ]
   },
 
