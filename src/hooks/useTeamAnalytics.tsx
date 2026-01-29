@@ -68,20 +68,33 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
       setLoading(true);
       
       try {
-        // Get user's projects
-        const { data: projects } = await supabase
+        // Get latest project owned by current user (avoid .single() when there may be 0 rows)
+        const { data: project, error: projectError } = await supabase
           .from('projects')
           .select('*')
+          .eq('owner_id', userId)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (!projects) {
-          setLoading(false);
+        if (projectError) {
+          console.error('Error fetching project:', projectError);
+        }
+
+        if (!project) {
+          // No project yet: keep analytics empty and allow UI to render without error loops
+          setCurrentProjectId(null);
+          setAnalytics({
+            members: [],
+            assignments: [],
+            comments: [],
+            memberPerformance: [],
+            teamVelocity: []
+          });
           return;
         }
 
-        setCurrentProjectId(projects.id);
+        setCurrentProjectId(project.id);
 
         // Get team members
         const { data: membersData } = await supabase
@@ -94,24 +107,14 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
               full_name
             )
           `)
-          .eq('project_id', projects.id);
-
-        // Get user emails from auth
-        const userIds = membersData?.map(m => m.user_id) || [];
-        let authUsers: any = null;
-        try {
-          const { data } = await supabase.auth.admin.listUsers();
-          authUsers = data;
-        } catch (error) {
-          console.error('Cannot fetch auth users:', error);
-        }
+          .eq('project_id', project.id);
         
         const members: TeamMember[] = membersData?.map(member => {
-          const authUser = authUsers?.users?.find((u: any) => u.id === member.user_id);
           const profile = member.profiles as any;
           return {
             id: member.user_id,
-            email: authUser?.email || '',
+            // Email isn't available client-side without privileged access; keep empty.
+            email: '',
             full_name: profile?.full_name || null,
             role: member.role
           };
@@ -127,11 +130,10 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
               full_name
             )
           `)
-          .eq('project_id', projects.id);
+          .eq('project_id', project.id);
 
         const assignments: StepAssignment[] = assignmentsData?.map(a => {
           const assignee = a.assignee as any;
-          const authUser = authUsers?.users?.find((u: any) => u.id === a.assigned_to);
           return {
             id: a.id,
             step_id: a.step_id,
@@ -139,7 +141,7 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
             assigned_by: a.assigned_by,
             created_at: a.created_at,
             assignee: {
-              email: authUser?.email || '',
+              email: '',
               full_name: assignee?.full_name || null
             }
           };
@@ -155,12 +157,11 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
               full_name
             )
           `)
-          .eq('project_id', projects.id)
+          .eq('project_id', project.id)
           .order('created_at', { ascending: false });
 
         const comments: StepComment[] = commentsData?.map(c => {
           const user = c.user as any;
-          const authUser = authUsers?.users?.find((u: any) => u.id === c.user_id);
           return {
             id: c.id,
             step_id: c.step_id,
@@ -168,7 +169,7 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
             comment: c.comment,
             created_at: c.created_at,
             user: {
-              email: authUser?.email || '',
+              email: '',
               full_name: user?.full_name || null
             }
           };
