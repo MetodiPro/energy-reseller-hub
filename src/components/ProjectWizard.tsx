@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Rocket, Sun, Wind, Leaf, ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { Rocket, Home, Building2, Zap, ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { projectTemplates, type ProjectTemplate } from '@/data/costTemplates';
 import { toast } from '@/hooks/use-toast';
@@ -19,9 +19,9 @@ interface ProjectWizardProps {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Sun,
-  Wind,
-  Leaf,
+  Home,
+  Building2,
+  Zap,
 };
 
 export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: ProjectWizardProps) => {
@@ -211,7 +211,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
 
       <div className="grid gap-4">
         {projectTemplates.map((template) => {
-          const IconComponent = iconMap[template.icon] || Sun;
+          const IconComponent = iconMap[template.icon] || Zap;
           const isSelected = selectedTemplate?.id === template.id;
 
           return (
