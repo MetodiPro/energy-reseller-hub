@@ -59,6 +59,18 @@ export const processSteps: ProcessStep[] = [
       'Redazione atto costitutivo presso notaio',
       'Firma atto costitutivo',
       'Registrazione presso Agenzia delle Entrate'
+    ],
+    officialLinks: [
+      {
+        name: 'Agenzia delle Entrate',
+        url: 'https://www.agenziaentrate.gov.it',
+        description: 'Registrazione atti e attribuzione codice fiscale'
+      },
+      {
+        name: 'Consiglio Nazionale del Notariato',
+        url: 'https://www.notariato.it',
+        description: 'Ricerca notaio e informazioni atti societari'
+      }
     ]
   },
   
@@ -94,6 +106,28 @@ export const processSteps: ProcessStep[] = [
       'Attribuzione Partita IVA',
       'Iscrizione posizioni previdenziali',
       'Comunicazione inizio attività'
+    ],
+    officialLinks: [
+      {
+        name: 'Registro Imprese - ComUnica',
+        url: 'https://www.registroimprese.it/comunica-starweb',
+        description: 'Pratica telematica unica per avvio impresa'
+      },
+      {
+        name: 'InfoCamere - Registro Imprese',
+        url: 'https://www.registroimprese.it',
+        description: 'Visure camerali e ricerca imprese'
+      },
+      {
+        name: 'Unioncamere',
+        url: 'https://www.unioncamere.gov.it',
+        description: 'Sistema Camere di Commercio italiane'
+      },
+      {
+        name: 'INPS - Iscrizione Aziende',
+        url: 'https://www.inps.it/prestazioni-servizi/iscrizione-azienda',
+        description: 'Gestione posizioni previdenziali'
+      }
     ]
   },
   {
@@ -124,6 +158,18 @@ export const processSteps: ProcessStep[] = [
       'Richiesta firma digitale',
       'Comunicazione PEC al Registro Imprese',
       'Test funzionalità firma digitale'
+    ],
+    officialLinks: [
+      {
+        name: 'INI-PEC',
+        url: 'https://www.inipec.gov.it',
+        description: 'Indice Nazionale Indirizzi PEC'
+      },
+      {
+        name: 'AgID - Firma Digitale',
+        url: 'https://www.agid.gov.it/it/piattaforme/firma-elettronica-qualificata',
+        description: 'Elenco prestatori servizi fiduciari qualificati'
+      }
     ]
   },
 
