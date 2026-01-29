@@ -25,6 +25,7 @@ import { CostTemplateSelector } from '@/components/financial/CostTemplateSelecto
 import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
 import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { FinancialTimeline } from '@/components/financial/FinancialTimeline';
+import { CostCategorySummary } from '@/components/financial/CostCategorySummary';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -337,6 +338,9 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
               </div>
             </CardContent>
           </Card>
+
+          {/* Cost Category Summary */}
+          <CostCategorySummary costs={costs} />
 
           {/* Trend Chart with Forecast */}
           <FinancialTrendChart costs={costs} revenues={revenues} summary={summary} />
