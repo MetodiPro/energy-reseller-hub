@@ -24,6 +24,7 @@ import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
 import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
+import { FinancialTimeline } from '@/components/financial/FinancialTimeline';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -128,7 +129,7 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
@@ -144,6 +145,10 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           <TabsTrigger value="revenues" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Ricavi
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Storico
           </TabsTrigger>
         </TabsList>
 
@@ -370,6 +375,10 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
             onUpdate={updateRevenue}
             onDelete={deleteRevenue}
           />
+        </TabsContent>
+
+        <TabsContent value="history">
+          <FinancialTimeline projectId={projectId} />
         </TabsContent>
       </Tabs>
     </div>
