@@ -64,6 +64,39 @@ export type Database = {
           },
         ]
       }
+      cost_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["cost_type"]
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["cost_type"]
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          type?: Database["public"]["Enums"]["cost_type"]
+        }
+        Relationships: []
+      }
       document_categories: {
         Row: {
           color: string | null
@@ -340,6 +373,78 @@ export type Database = {
         }
         Relationships: []
       }
+      project_costs: {
+        Row: {
+          amount: number
+          category_id: string | null
+          cost_type: Database["public"]["Enums"]["cost_type"]
+          created_at: string | null
+          created_by: string
+          date: string | null
+          description: string | null
+          id: string
+          is_recurring: boolean | null
+          name: string
+          notes: string | null
+          project_id: string
+          quantity: number | null
+          recurrence_period: string | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          cost_type?: Database["public"]["Enums"]["cost_type"]
+          created_at?: string | null
+          created_by: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          name: string
+          notes?: string | null
+          project_id: string
+          quantity?: number | null
+          recurrence_period?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          cost_type?: Database["public"]["Enums"]["cost_type"]
+          created_at?: string | null
+          created_by?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          name?: string
+          notes?: string | null
+          project_id?: string
+          quantity?: number | null
+          recurrence_period?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_costs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "cost_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_costs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_invites: {
         Row: {
           created_at: string | null
@@ -406,6 +511,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_revenues: {
+        Row: {
+          amount: number
+          created_at: string | null
+          created_by: string
+          date: string | null
+          description: string | null
+          id: string
+          name: string
+          notes: string | null
+          project_id: string
+          quantity: number | null
+          recurrence_period: string | null
+          revenue_type: string | null
+          status: string | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          created_by: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          project_id: string
+          quantity?: number | null
+          recurrence_period?: string | null
+          revenue_type?: string | null
+          status?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          created_by?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          project_id?: string
+          quantity?: number | null
+          recurrence_period?: string | null
+          revenue_type?: string | null
+          status?: string | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_revenues_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -578,6 +745,7 @@ export type Database = {
       }
     }
     Enums: {
+      cost_type: "commercial" | "structural" | "direct" | "indirect"
       project_role: "owner" | "admin" | "member" | "viewer"
     }
     CompositeTypes: {
@@ -706,6 +874,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      cost_type: ["commercial", "structural", "direct", "indirect"],
       project_role: ["owner", "admin", "member", "viewer"],
     },
   },
