@@ -11,6 +11,7 @@ import { DocumentManager } from "@/components/DocumentManager";
 import { BusinessPlanEditor } from "@/components/BusinessPlanEditor";
 import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
 import { FinancialDashboard } from "@/components/FinancialDashboard";
+import { ProjectWizard } from "@/components/ProjectWizard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -23,6 +24,8 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWizard, setShowWizard] = useState(false);
+  const [forceRefresh, setForceRefresh] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,6 +50,19 @@ const Index = () => {
   const { exportToPDF } = useExportPDF();
   const { analytics, loading: analyticsLoading, currentProjectId } = useTeamAnalytics(user?.id, stepProgress);
 
+  // Show wizard when user has no project (after analytics finishes loading)
+  useEffect(() => {
+    if (!analyticsLoading && user && currentProjectId === null) {
+      setShowWizard(true);
+    }
+  }, [analyticsLoading, user, currentProjectId, forceRefresh]);
+
+  const handleProjectCreated = (projectId: string) => {
+    setShowWizard(false);
+    // Force refresh analytics to pick up the new project
+    setForceRefresh((r) => r + 1);
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -65,6 +81,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Project Wizard for first-time users */}
+      <ProjectWizard
+        userId={user.id}
+        open={showWizard}
+        onClose={() => setShowWizard(false)}
+        onProjectCreated={handleProjectCreated}
+      />
       {/* Hero Header */}
       <header className="bg-gradient-hero border-b shadow-lg">
         <div className="container mx-auto px-4 py-8">
