@@ -177,7 +177,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
         <div>
           <label className="text-sm font-medium mb-2 block">Nome del progetto *</label>
           <Input
-            placeholder="Es. Impianto Fotovoltaico Via Roma 15"
+            placeholder="Es. Reseller Energia Nord Italia SRL"
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             className="text-lg"
