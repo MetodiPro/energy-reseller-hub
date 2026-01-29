@@ -32,8 +32,8 @@ export interface ProjectTemplate {
 export const projectTemplates: ProjectTemplate[] = [
   {
     id: 'reseller-residenziale',
-    name: 'Reseller Utenze Residenziali',
-    description: 'Avvio attività reseller focalizzata su clienti domestici (luce e gas)',
+    name: 'Reseller Residenziale',
+    description: 'Vendita luce e gas a famiglie e utenze domestiche. Ideale per chi punta su volumi, sportelli territoriali e assistenza al consumatore.',
     icon: 'Home',
     color: 'hsl(200, 80%, 50%)',
     costs: [
@@ -113,8 +113,8 @@ export const projectTemplates: ProjectTemplate[] = [
   },
   {
     id: 'reseller-business',
-    name: 'Reseller Utenze Business',
-    description: 'Avvio attività reseller focalizzata su clienti aziendali (PMI e partite IVA)',
+    name: 'Reseller Business (B2B)',
+    description: 'Fornitura energia a PMI, partite IVA e aziende. Richiede key account manager, contratti personalizzati e garanzie bancarie più elevate.',
     icon: 'Building2',
     color: 'hsl(142, 71%, 45%)',
     costs: [
@@ -196,8 +196,8 @@ export const projectTemplates: ProjectTemplate[] = [
   },
   {
     id: 'reseller-misto',
-    name: 'Reseller Misto (Residenziale + Business)',
-    description: 'Avvio attività reseller completa per entrambi i segmenti di mercato',
+    name: 'Reseller Misto (Dual Market)',
+    description: 'Operatività completa su residenziale e business. Struttura più complessa con team dedicati, doppia compliance e maggiore fabbisogno finanziario.',
     icon: 'Zap',
     color: 'hsl(45, 93%, 47%)',
     costs: [
