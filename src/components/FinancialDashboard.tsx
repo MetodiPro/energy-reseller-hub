@@ -14,9 +14,11 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Target,
-  Percent
+  Percent,
+  FileDown
 } from 'lucide-react';
 import { useProjectFinancials, FinancialSummary } from '@/hooks/useProjectFinancials';
+import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostRevenueManager } from '@/components/CostRevenueManager';
 import {
   PieChart as RechartsPie,
@@ -68,7 +70,12 @@ const formatPercent = (value: number) => {
 
 export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboardProps) => {
   const { costs, revenues, categories, loading, summary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue } = useProjectFinancials(projectId);
+  const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleExportPDF = () => {
+    exportToPDF(projectName, costs, revenues, summary);
+  };
 
   if (loading) {
     return (
@@ -106,6 +113,10 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           <h2 className="text-2xl font-bold">Dashboard Finanziaria</h2>
           <p className="text-muted-foreground">{projectName}</p>
         </div>
+        <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+          <FileDown className="h-4 w-4" />
+          Esporta PDF
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
