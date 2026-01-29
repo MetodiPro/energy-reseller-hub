@@ -10,16 +10,18 @@ import {
   DollarSign, 
   PieChart, 
   BarChart3,
-  Plus,
   ArrowUpRight,
   ArrowDownRight,
   Target,
   Percent,
   FileDown
 } from 'lucide-react';
-import { useProjectFinancials, FinancialSummary } from '@/hooks/useProjectFinancials';
+import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostRevenueManager } from '@/components/CostRevenueManager';
+import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
+import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
+import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -31,9 +33,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  AreaChart,
-  Area,
 } from 'recharts';
 
 interface FinancialDashboardProps {
@@ -69,12 +68,16 @@ const formatPercent = (value: number) => {
 };
 
 export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboardProps) => {
-  const { costs, revenues, categories, loading, summary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue } = useProjectFinancials(projectId);
+  const { costs, revenues, categories, loading, summary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleExportPDF = () => {
     exportToPDF(projectName, costs, revenues, summary);
+  };
+
+  const handleTemplateApplied = () => {
+    refetch();
   };
 
   if (loading) {
@@ -113,10 +116,13 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           <h2 className="text-2xl font-bold">Dashboard Finanziaria</h2>
           <p className="text-muted-foreground">{projectName}</p>
         </div>
-        <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-          <FileDown className="h-4 w-4" />
-          Esporta PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />
+          <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" />
+            Esporta PDF
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -317,6 +323,12 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
               </div>
             </CardContent>
           </Card>
+
+          {/* Trend Chart with Forecast */}
+          <FinancialTrendChart costs={costs} revenues={revenues} summary={summary} />
+
+          {/* Break-Even Analysis */}
+          <BreakEvenAnalysis summary={summary} />
         </TabsContent>
 
         <TabsContent value="costs">
