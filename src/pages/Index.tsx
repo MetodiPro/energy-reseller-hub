@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign, HelpCircle } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
@@ -12,6 +12,7 @@ import { BusinessPlanEditor } from "@/components/BusinessPlanEditor";
 import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
 import { FinancialDashboard } from "@/components/FinancialDashboard";
 import { ProjectWizard } from "@/components/ProjectWizard";
+import { FAQ } from "@/components/FAQ";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -134,7 +135,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -162,6 +163,10 @@ const Index = () => {
             <TabsTrigger value="marketing" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Marketing</span>
+            </TabsTrigger>
+            <TabsTrigger value="faq" className="gap-2">
+              <HelpCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">FAQ</span>
             </TabsTrigger>
           </TabsList>
 
@@ -221,6 +226,16 @@ const Index = () => {
               projectId={currentProjectId} 
               stepProgress={stepProgress}
             />
+          </TabsContent>
+
+          <TabsContent value="faq" className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">FAQ Reseller Energia</h2>
+                <p className="text-muted-foreground">Domande frequenti sull'avvio e gestione di un reseller luce e gas</p>
+              </div>
+            </div>
+            <FAQ />
           </TabsContent>
         </Tabs>
       </main>
