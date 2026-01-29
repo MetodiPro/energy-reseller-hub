@@ -1,3 +1,9 @@
+export interface OfficialLink {
+  name: string;
+  url: string;
+  description?: string;
+}
+
 export interface ProcessStep {
   id: string;
   phase: number;
@@ -15,6 +21,7 @@ export interface ProcessStep {
   };
   notes: string[];
   checklist: string[];
+  officialLinks?: OfficialLink[];
 }
 
 export const processSteps: ProcessStep[] = [
@@ -144,7 +151,6 @@ export const processSteps: ProcessStep[] = [
     },
     notes: [
       'Accesso con SPID/CIE del legale rappresentante',
-      'URL: https://elencovenditorielettrici.mase.gov.it/eve',
       'Tempi istruttoria: 30 giorni lavorativi',
       'Rinnovo annuale entro 31 gennaio'
     ],
@@ -158,6 +164,13 @@ export const processSteps: ProcessStep[] = [
       'Upload documenti richiesti',
       'Invio domanda',
       'Monitoraggio stato pratica'
+    ],
+    officialLinks: [
+      {
+        name: 'Portale EVE - MASE',
+        url: 'https://elencovenditorielettrici.mase.gov.it/eve',
+        description: 'Elenco Venditori Energia Elettrica - Ministero Ambiente'
+      }
     ]
   },
   {
@@ -181,7 +194,6 @@ export const processSteps: ProcessStep[] = [
       description: 'Registrazione gratuita'
     },
     notes: [
-      'Portale: https://www.arera.it/anagrafica-operatori',
       'Obbligatoria per tutti gli operatori del settore energetico',
       'Prerequisito per accesso ai sistemi ARERA',
       'Aggiornamento dati obbligatorio entro 30 giorni da variazioni'
@@ -193,6 +205,18 @@ export const processSteps: ProcessStep[] = [
       'Dichiarazione attività svolta (vendita EE/Gas)',
       'Conferma e invio registrazione',
       'Conservazione credenziali di accesso'
+    ],
+    officialLinks: [
+      {
+        name: 'Anagrafica Operatori ARERA',
+        url: 'https://www.arera.it/anagrafica-operatori',
+        description: 'Portale registrazione operatori energetici'
+      },
+      {
+        name: 'Portale ARERA',
+        url: 'https://www.arera.it',
+        description: 'Autorità di Regolazione per Energia Reti e Ambiente'
+      }
     ]
   },
   {
@@ -227,6 +251,18 @@ export const processSteps: ProcessStep[] = [
       'Test compilazione moduli ARERA',
       'Formazione personale su obblighi',
       'Nomina responsabile compliance ARERA'
+    ],
+    officialLinks: [
+      {
+        name: 'Raccolta Dati ARERA',
+        url: 'https://rd.arera.it/',
+        description: 'Sistema raccolta dati obbligatori ARERA'
+      },
+      {
+        name: 'Delibere e Regolamenti ARERA',
+        url: 'https://www.arera.it/atti-e-provvedimenti',
+        description: 'Normativa e delibere autorità'
+      }
     ]
   },
 
@@ -299,6 +335,23 @@ export const processSteps: ProcessStep[] = [
       'Superamento test volture/subentri',
       'Richiesta passaggio in produzione',
       'Attivazione ambiente produzione SII'
+    ],
+    officialLinks: [
+      {
+        name: 'Portale Acquirente Unico - SII',
+        url: 'https://www.acquirenteunico.it/sii',
+        description: 'Sistema Informativo Integrato'
+      },
+      {
+        name: 'Specifiche Tecniche SII',
+        url: 'https://www.acquirenteunico.it/sii/specifiche-tecniche',
+        description: 'Documentazione tecnica flussi XML'
+      },
+      {
+        name: 'Area Operatori AU',
+        url: 'https://portale.acquirenteunico.it/',
+        description: 'Accesso operatori accreditati'
+      }
     ]
   },
   {
@@ -336,6 +389,28 @@ export const processSteps: ProcessStep[] = [
       'Test accesso e funzionalità portali',
       'Formazione personale su procedure specifiche',
       'Documentazione procedure per ogni distributore'
+    ],
+    officialLinks: [
+      {
+        name: 'E-Distribuzione',
+        url: 'https://e-distribuzione.it/operatori.html',
+        description: 'Portale operatori Enel Distribuzione'
+      },
+      {
+        name: 'Unareti (A2A)',
+        url: 'https://www.unareti.it/portale/operatori',
+        description: 'Portale operatori Milano/Brescia'
+      },
+      {
+        name: 'Areti (ACEA)',
+        url: 'https://www.areti.it/operatori',
+        description: 'Portale operatori Roma e Lazio'
+      },
+      {
+        name: 'Ireti (IREN)',
+        url: 'https://www.gruppoiren.it/ireti',
+        description: 'Portale operatori Genova/Torino/Emilia'
+      }
     ]
   },
 

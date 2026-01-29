@@ -16,7 +16,8 @@ import {
   Euro,
   ListChecks,
   Cloud,
-  CloudOff
+  CloudOff,
+  ExternalLink
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
@@ -300,6 +301,38 @@ export const ProcessTracker = () => {
                     </div>
                   )}
 
+                  {/* Official Links */}
+                  {step.officialLinks && step.officialLinks.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <ExternalLink className="h-5 w-5 text-primary" />
+                        Link Portali Ufficiali
+                      </h4>
+                      <div className="grid gap-2">
+                        {step.officialLinks.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors group"
+                          >
+                            <ExternalLink className="h-4 w-4 text-primary flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm group-hover:text-primary transition-colors">
+                                {link.name}
+                              </p>
+                              {link.description && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {link.description}
+                                </p>
+                              )}
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {/* User Notes */}
                   <div>
                     <h4 className="font-semibold mb-3">Note Personali</h4>
