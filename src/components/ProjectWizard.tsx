@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Rocket, Home, Building2, Zap, ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Rocket, Home, Building2, Zap, ArrowRight, ArrowLeft, Check, Sparkles, Info, Users, Landmark, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { projectTemplates, type ProjectTemplate } from '@/data/costTemplates';
 import { toast } from '@/hooks/use-toast';
@@ -22,6 +23,34 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Home,
   Building2,
   Zap,
+};
+
+interface TemplateRequirements {
+  garanzie: string;
+  personale: string;
+  investimento: string;
+  complessita: 'Bassa' | 'Media' | 'Alta';
+}
+
+const templateRequirements: Record<string, TemplateRequirements> = {
+  'reseller-residenziale': {
+    garanzie: '€25.000 - Fideiussioni standard per grossisti',
+    personale: '2-3 risorse: 1 back-office, 1 operatore SII, agenti esterni',
+    investimento: '€80.000 - €120.000 primo anno',
+    complessita: 'Media',
+  },
+  'reseller-business': {
+    garanzie: '€50.000 - Fideiussioni maggiorate per volumi B2B',
+    personale: '4-5 risorse: team back-office, specialista SII, key account manager',
+    investimento: '€150.000 - €200.000 primo anno',
+    complessita: 'Alta',
+  },
+  'reseller-misto': {
+    garanzie: '€60.000 - Fideiussioni combinate residenziale + business',
+    personale: '5-7 risorse: team dedicati per segmento, compliance officer',
+    investimento: '€200.000 - €280.000 primo anno',
+    complessita: 'Alta',
+  },
 };
 
 export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: ProjectWizardProps) => {
@@ -209,55 +238,107 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
         </p>
       </div>
 
-      <div className="grid gap-4">
-        {projectTemplates.map((template) => {
-          const IconComponent = iconMap[template.icon] || Zap;
-          const isSelected = selectedTemplate?.id === template.id;
+      <TooltipProvider delayDuration={300}>
+        <div className="grid gap-4">
+          {projectTemplates.map((template) => {
+            const IconComponent = iconMap[template.icon] || Zap;
+            const isSelected = selectedTemplate?.id === template.id;
+            const requirements = templateRequirements[template.id];
 
-          return (
-            <Card
-              key={template.id}
-              className={cn(
-                'cursor-pointer transition-all hover:shadow-md',
-                isSelected && 'ring-2 ring-primary bg-primary/5'
-              )}
-              onClick={() => setSelectedTemplate(isSelected ? null : template)}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${template.color}20` }}
-                  >
-                    <IconComponent
-                      className="h-5 w-5"
-                      style={{ color: template.color }}
-                    />
+            return (
+              <Card
+                key={template.id}
+                className={cn(
+                  'cursor-pointer transition-all hover:shadow-md',
+                  isSelected && 'ring-2 ring-primary bg-primary/5'
+                )}
+                onClick={() => setSelectedTemplate(isSelected ? null : template)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${template.color}20` }}
+                    >
+                      <IconComponent
+                        className="h-5 w-5"
+                        style={{ color: template.color }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        {template.name}
+                        {isSelected && (
+                          <Badge variant="default" className="text-xs">
+                            Selezionato
+                          </Badge>
+                        )}
+                        {requirements && (
+                          <Tooltip>
+                            <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-xs p-4" onClick={(e) => e.stopPropagation()}>
+                              <div className="space-y-3">
+                                <p className="font-semibold text-sm border-b pb-2">Requisiti {template.name}</p>
+                                <div className="flex items-start gap-2">
+                                  <Landmark className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                                  <div>
+                                    <p className="text-xs font-medium">Garanzie Bancarie</p>
+                                    <p className="text-xs text-muted-foreground">{requirements.garanzie}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <Users className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                                  <div>
+                                    <p className="text-xs font-medium">Personale</p>
+                                    <p className="text-xs text-muted-foreground">{requirements.personale}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <Landmark className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
+                                  <div>
+                                    <p className="text-xs font-medium">Investimento Stimato</p>
+                                    <p className="text-xs text-muted-foreground">{requirements.investimento}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <Shield className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                                  <div>
+                                    <p className="text-xs font-medium">Complessità</p>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(
+                                        "text-xs",
+                                        requirements.complessita === 'Bassa' && 'border-green-500 text-green-600',
+                                        requirements.complessita === 'Media' && 'border-yellow-500 text-yellow-600',
+                                        requirements.complessita === 'Alta' && 'border-red-500 text-red-600'
+                                      )}
+                                    >
+                                      {requirements.complessita}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </CardTitle>
+                      <CardDescription className="text-sm">
+                        {template.description}
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      {template.name}
-                      {isSelected && (
-                        <Badge variant="default" className="text-xs">
-                          Selezionato
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      {template.description}
-                    </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>{template.costs.length} voci di costo</span>
+                    <span>{template.revenues.length} voci di ricavo</span>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span>{template.costs.length} voci di costo</span>
-                  <span>{template.revenues.length} voci di ricavo</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })}
 
         <Card
           className={cn(
@@ -287,7 +368,8 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
             </div>
           </CardHeader>
         </Card>
-      </div>
+        </div>
+      </TooltipProvider>
     </div>
   );
 
