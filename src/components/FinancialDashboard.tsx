@@ -22,6 +22,8 @@ import { CostRevenueManager } from '@/components/CostRevenueManager';
 import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
 import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
+import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
+import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -126,10 +128,14 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
+          </TabsTrigger>
+          <TabsTrigger value="simulation" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Simulazione
           </TabsTrigger>
           <TabsTrigger value="costs" className="flex items-center gap-2">
             <TrendingDown className="h-4 w-4" />
@@ -142,6 +148,9 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Financial Alerts */}
+          <FinancialAlerts summary={summary} />
+
           {/* KPI Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -327,6 +336,14 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           {/* Trend Chart with Forecast */}
           <FinancialTrendChart costs={costs} revenues={revenues} summary={summary} />
 
+          {/* Break-Even Analysis */}
+          <BreakEvenAnalysis summary={summary} />
+        </TabsContent>
+
+        <TabsContent value="simulation" className="space-y-6">
+          {/* What-If Simulator */}
+          <WhatIfSimulator summary={summary} />
+          
           {/* Break-Even Analysis */}
           <BreakEvenAnalysis summary={summary} />
         </TabsContent>
