@@ -70,6 +70,40 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Costo Gas Acquistato', description: 'Acquisto gas da grossista - stima mensile', amount: 12000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Oneri di Sistema', description: 'Quote oneri da versare', amount: 3000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Corrispettivi Distributori', description: 'Costi trasporto e distribuzione', amount: 4000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi Regolatori e Compliance
+      { name: 'Contributo Annuale ARERA', description: 'Fee operatori settore energetico', amount: 1500, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Audit Qualità Commerciale ARERA', description: 'Verifica conformità standard qualità', amount: 2000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Consulenza Aggiornamento Normativo', description: 'Monitoraggio delibere e adeguamenti', amount: 300, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Fondo Rischio Sanzioni', description: 'Accantonamento per eventuali sanzioni ARERA', amount: 2000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Costi Finanziari
+      { name: 'Interessi Capitale Circolante', description: 'Costo finanziario anticipo acquisto energia', amount: 500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Rinnovo Fideiussioni', description: 'Costi annuali mantenimento garanzie bancarie', amount: 1500, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Fondo Svalutazione Crediti', description: 'Accantonamento per morosità clienti (3%)', amount: 400, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Costi Recupero Crediti', description: 'Solleciti, diffide, procedure legali', amount: 150, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi IT/Sicurezza
+      { name: 'Hosting e Manutenzione Sistemi', description: 'Server, cloud, aggiornamenti', amount: 200, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Cybersecurity', description: 'Antivirus, firewall, monitoraggio sicurezza', amount: 100, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Backup e Disaster Recovery', description: 'Backup automatici e piano continuità', amount: 80, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Manutenzione Software Annuale', description: 'Aggiornamenti CRM, billing, SII', amount: 3000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Costi Operativi Aggiuntivi
+      { name: 'Numero Verde / Contact Center', description: 'Servizio assistenza clienti obbligatorio ARERA', amount: 400, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Gestione Reclami e Conciliazioni', description: 'Procedure ADR e conciliazione paritetica', amount: 150, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Spese Postali', description: 'Invio bollette cartacee e comunicazioni', amount: 300, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Software Firma Elettronica', description: 'Firma OTP contratti digitali', amount: 50, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi HR/Personale
+      { name: 'Consulente del Lavoro', description: 'Gestione buste paga e adempimenti', amount: 150, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Formazione Obbligatoria Sicurezza', description: 'Corsi D.Lgs 81/08', amount: 500, quantity: 1, unit: 'anno', cost_type: 'indirect', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Accantonamento TFR', description: 'Quota mensile TFR dipendenti', amount: 300, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi Una Tantum Aggiuntivi
+      { name: 'Deposito Cauzionale Ufficio', description: 'Cauzione affitto sede', amount: 2400, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Arredamento Ufficio', description: 'Scrivanie, sedie, arredi', amount: 3000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Hardware IT', description: 'PC, stampanti, telefoni, router', amount: 4000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
     ],
     revenues: [
       { name: 'Margine Energia Elettrica', description: 'Margine su vendita energia residenziale (500 clienti)', amount: 8, quantity: 500, unit: 'cliente/mese', revenue_type: 'recurring', status: 'expected' },
@@ -118,6 +152,40 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Costo Gas Acquistato', description: 'Acquisto gas da grossista - volumi business', amount: 30000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Oneri di Sistema', description: 'Quote oneri da versare', amount: 8000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Corrispettivi Distributori', description: 'Costi trasporto e distribuzione', amount: 10000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi Regolatori e Compliance
+      { name: 'Contributo Annuale ARERA', description: 'Fee operatori settore energetico', amount: 2500, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Audit Qualità Commerciale ARERA', description: 'Verifica conformità standard qualità B2B', amount: 3000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Consulenza Aggiornamento Normativo', description: 'Monitoraggio delibere e adeguamenti', amount: 500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Fondo Rischio Sanzioni', description: 'Accantonamento per eventuali sanzioni ARERA', amount: 5000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Costi Finanziari
+      { name: 'Interessi Capitale Circolante', description: 'Costo finanziario anticipo acquisto energia', amount: 1500, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Rinnovo Fideiussioni', description: 'Costi annuali mantenimento garanzie bancarie', amount: 3000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Fondo Svalutazione Crediti', description: 'Accantonamento per morosità clienti (2%)', amount: 800, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Costi Recupero Crediti', description: 'Solleciti, diffide, procedure legali', amount: 300, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi IT/Sicurezza
+      { name: 'Hosting e Manutenzione Sistemi', description: 'Server, cloud, aggiornamenti enterprise', amount: 400, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Cybersecurity Avanzata', description: 'Protezione dati aziendali sensibili', amount: 250, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Backup e Disaster Recovery', description: 'Backup automatici e piano continuità', amount: 150, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Manutenzione Software Annuale', description: 'Aggiornamenti CRM, billing, SII enterprise', amount: 6000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Costi Operativi Aggiuntivi
+      { name: 'Numero Verde / Contact Center', description: 'Servizio assistenza clienti obbligatorio ARERA', amount: 600, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Gestione Reclami e Conciliazioni', description: 'Procedure ADR e conciliazione paritetica', amount: 250, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Spese Postali e Corriere', description: 'Invio fatture e documentazione business', amount: 200, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Software Firma Elettronica Qualificata', description: 'Firma digitale contratti B2B', amount: 100, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi HR/Personale
+      { name: 'Consulente del Lavoro', description: 'Gestione buste paga e adempimenti', amount: 250, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Formazione Obbligatoria Sicurezza', description: 'Corsi D.Lgs 81/08', amount: 800, quantity: 1, unit: 'anno', cost_type: 'indirect', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Accantonamento TFR', description: 'Quota mensile TFR dipendenti', amount: 600, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi Una Tantum Aggiuntivi
+      { name: 'Deposito Cauzionale Ufficio', description: 'Cauzione affitto sede business', amount: 4500, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Arredamento Ufficio Rappresentativo', description: 'Arredi professionali, sala riunioni', amount: 8000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Hardware IT', description: 'PC, stampanti, telefoni, networking', amount: 6000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
     ],
     revenues: [
       { name: 'Margine Energia Elettrica Business', description: 'Margine su vendita energia (100 clienti PMI)', amount: 150, quantity: 100, unit: 'cliente/mese', revenue_type: 'recurring', status: 'expected' },
@@ -169,6 +237,40 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Costo Gas Acquistato', description: 'Acquisto gas - volumi combinati', amount: 35000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Oneri di Sistema', description: 'Quote oneri da versare', amount: 10000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
       { name: 'Corrispettivi Distributori', description: 'Costi trasporto e distribuzione', amount: 12000, quantity: 12, unit: 'mese', cost_type: 'direct', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi Regolatori e Compliance
+      { name: 'Contributo Annuale ARERA', description: 'Fee operatori settore energetico', amount: 3000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Audit Qualità Commerciale ARERA', description: 'Verifica conformità multi-segmento', amount: 4000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Consulenza Aggiornamento Normativo', description: 'Monitoraggio delibere e adeguamenti', amount: 600, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Fondo Rischio Sanzioni', description: 'Accantonamento per eventuali sanzioni ARERA', amount: 6000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Costi Finanziari
+      { name: 'Interessi Capitale Circolante', description: 'Costo finanziario anticipo acquisto energia', amount: 1800, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Rinnovo Fideiussioni', description: 'Costi annuali mantenimento garanzie bancarie', amount: 4000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Fondo Svalutazione Crediti', description: 'Accantonamento per morosità clienti (2.5%)', amount: 1000, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Costi Recupero Crediti', description: 'Solleciti, diffide, procedure legali', amount: 400, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi IT/Sicurezza
+      { name: 'Hosting e Manutenzione Sistemi', description: 'Server, cloud, aggiornamenti', amount: 500, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Cybersecurity', description: 'Protezione dati e sistemi', amount: 300, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Backup e Disaster Recovery', description: 'Backup automatici e piano continuità', amount: 200, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Manutenzione Software Annuale', description: 'Aggiornamenti CRM, billing, SII', amount: 8000, quantity: 1, unit: 'anno', cost_type: 'structural', is_recurring: true, recurrence_period: 'yearly' },
+      
+      // Costi Operativi Aggiuntivi
+      { name: 'Numero Verde / Contact Center', description: 'Servizio assistenza clienti obbligatorio ARERA', amount: 800, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Gestione Reclami e Conciliazioni', description: 'Procedure ADR e conciliazione paritetica', amount: 350, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Spese Postali', description: 'Invio bollette e comunicazioni', amount: 400, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Software Firma Elettronica', description: 'Firma OTP e qualificata contratti', amount: 120, quantity: 12, unit: 'mese', cost_type: 'structural', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi HR/Personale
+      { name: 'Consulente del Lavoro', description: 'Gestione buste paga e adempimenti', amount: 350, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      { name: 'Formazione Obbligatoria Sicurezza', description: 'Corsi D.Lgs 81/08', amount: 1200, quantity: 1, unit: 'anno', cost_type: 'indirect', is_recurring: true, recurrence_period: 'yearly' },
+      { name: 'Accantonamento TFR', description: 'Quota mensile TFR dipendenti', amount: 900, quantity: 12, unit: 'mese', cost_type: 'indirect', is_recurring: true, recurrence_period: 'monthly' },
+      
+      // Costi Una Tantum Aggiuntivi
+      { name: 'Deposito Cauzionale Ufficio', description: 'Cauzione affitto sede', amount: 3600, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Arredamento Ufficio', description: 'Scrivanie, sedie, sala riunioni', amount: 6000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
+      { name: 'Hardware IT', description: 'PC, stampanti, telefoni, networking', amount: 5000, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false },
     ],
     revenues: [
       { name: 'Margine Energia Residenziale', description: 'Margine luce domestica (400 clienti)', amount: 8, quantity: 400, unit: 'cliente/mese', revenue_type: 'recurring', status: 'expected' },
