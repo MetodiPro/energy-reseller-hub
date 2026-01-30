@@ -14,7 +14,8 @@ import {
   ArrowDownRight,
   Target,
   Percent,
-  FileDown
+  FileDown,
+  Receipt
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
@@ -26,6 +27,8 @@ import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
 import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { FinancialTimeline } from '@/components/financial/FinancialTimeline';
 import { CostCategorySummary } from '@/components/financial/CostCategorySummary';
+import { TaxesManager } from '@/components/financial/TaxesManager';
+import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -130,7 +133,7 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
@@ -145,7 +148,11 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           </TabsTrigger>
           <TabsTrigger value="revenues" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Ricavi
+            Margini
+          </TabsTrigger>
+          <TabsTrigger value="taxes" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Imposte
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -357,11 +364,15 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           <BreakEvenAnalysis summary={summary} />
         </TabsContent>
 
-        <TabsContent value="costs">
+        <TabsContent value="costs" className="space-y-6">
+          {/* Passthrough costs card - separated from operating costs */}
+          <PassthroughCostsCard costs={costs} />
+          
+          {/* Operating costs manager */}
           <CostRevenueManager
             type="costs"
             projectId={projectId}
-            items={costs}
+            items={costs.filter(c => !(c as any).is_passthrough)}
             categories={categories}
             onAdd={addCost}
             onUpdate={updateCost}
@@ -370,15 +381,29 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
         </TabsContent>
 
         <TabsContent value="revenues">
-          <CostRevenueManager
-            type="revenues"
-            projectId={projectId}
-            items={revenues}
-            categories={categories}
-            onAdd={addRevenue}
-            onUpdate={updateRevenue}
-            onDelete={deleteRevenue}
-          />
+          <div className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-1">Nota per Reseller Energia</h3>
+              <p className="text-sm text-blue-700 dark:text-blue-400">
+                I ricavi qui indicati rappresentano il <strong>margine netto</strong> trattenuto dal reseller, 
+                non il fatturato lordo. La differenza tra prezzo di vendita al cliente e costo di acquisto 
+                dal grossista costituisce il vero ricavo operativo.
+              </p>
+            </div>
+            <CostRevenueManager
+              type="revenues"
+              projectId={projectId}
+              items={revenues}
+              categories={categories}
+              onAdd={addRevenue}
+              onUpdate={updateRevenue}
+              onDelete={deleteRevenue}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="taxes">
+          <TaxesManager projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="history">
