@@ -629,30 +629,116 @@ export type Database = {
       }
       projects: {
         Row: {
+          arera_code: string | null
           created_at: string | null
           description: string | null
+          eve_license_date: string | null
+          evg_license_date: string | null
+          expected_volumes: number | null
+          go_live_date: string | null
           id: string
+          market_type: string | null
           name: string
           owner_id: string
+          regions: string[] | null
+          status: string | null
+          updated_at: string | null
+          wholesaler_contact: string | null
+          wholesaler_name: string | null
+        }
+        Insert: {
+          arera_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          eve_license_date?: string | null
+          evg_license_date?: string | null
+          expected_volumes?: number | null
+          go_live_date?: string | null
+          id?: string
+          market_type?: string | null
+          name: string
+          owner_id: string
+          regions?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+          wholesaler_contact?: string | null
+          wholesaler_name?: string | null
+        }
+        Update: {
+          arera_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          eve_license_date?: string | null
+          evg_license_date?: string | null
+          expected_volumes?: number | null
+          go_live_date?: string | null
+          id?: string
+          market_type?: string | null
+          name?: string
+          owner_id?: string
+          regions?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+          wholesaler_contact?: string | null
+          wholesaler_name?: string | null
+        }
+        Relationships: []
+      }
+      regulatory_deadlines: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          deadline_type: string
+          description: string | null
+          due_date: string
+          id: string
+          is_recurring: boolean | null
+          project_id: string
+          recurrence_pattern: string | null
+          reminder_days: number | null
+          title: string
           updated_at: string | null
         }
         Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
           created_at?: string | null
+          deadline_type: string
           description?: string | null
+          due_date: string
           id?: string
-          name: string
-          owner_id: string
+          is_recurring?: boolean | null
+          project_id: string
+          recurrence_pattern?: string | null
+          reminder_days?: number | null
+          title: string
           updated_at?: string | null
         }
         Update: {
+          completed?: boolean | null
+          completed_at?: string | null
           created_at?: string | null
+          deadline_type?: string
           description?: string | null
+          due_date?: string
           id?: string
-          name?: string
-          owner_id?: string
+          is_recurring?: boolean | null
+          project_id?: string
+          recurrence_pattern?: string | null
+          reminder_days?: number | null
+          title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_deadlines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       step_assignments: {
         Row: {
@@ -720,6 +806,45 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "step_comments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      step_documents: {
+        Row: {
+          created_at: string | null
+          document_id: string
+          id: string
+          project_id: string
+          step_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_id: string
+          id?: string
+          project_id: string
+          step_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string
+          id?: string
+          project_id?: string
+          step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "step_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "step_documents_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"

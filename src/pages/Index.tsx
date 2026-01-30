@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign, HelpCircle } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign, HelpCircle, Building2, Calendar, Link } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
@@ -13,6 +13,10 @@ import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
 import { FinancialDashboard } from "@/components/FinancialDashboard";
 import { ProjectWizard } from "@/components/ProjectWizard";
 import { ProjectSelector } from "@/components/ProjectSelector";
+import { ProjectOverview } from "@/components/ProjectOverview";
+import { RegulatoryCalendar } from "@/components/RegulatoryCalendar";
+import { StepDocuments } from "@/components/StepDocuments";
+import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { FAQ } from "@/components/FAQ";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
@@ -213,7 +217,11 @@ const Index = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1 lg:inline-flex">
+            <TabsTrigger value="overview" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Scheda</span>
+            </TabsTrigger>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -221,6 +229,14 @@ const Index = () => {
             <TabsTrigger value="process" className="gap-2">
               <ListTodo className="h-4 w-4" />
               <span className="hidden sm:inline">Processo</span>
+            </TabsTrigger>
+            <TabsTrigger value="deadlines" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Scadenze</span>
+            </TabsTrigger>
+            <TabsTrigger value="step-docs" className="gap-2">
+              <Link className="h-4 w-4" />
+              <span className="hidden sm:inline">Doc/Step</span>
             </TabsTrigger>
             <TabsTrigger value="team" className="gap-2">
               <Users className="h-4 w-4" />
@@ -236,7 +252,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger value="business-plan" className="gap-2">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Business Plan</span>
+              <span className="hidden sm:inline">Business</span>
             </TabsTrigger>
             <TabsTrigger value="marketing" className="gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -248,28 +264,35 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview" className="space-y-6">
+            <ProjectOverview 
+              project={currentProject as any} 
+              onProjectUpdate={(p) => updateProject(p.id, p.name, p.description || undefined)}
+            />
+          </TabsContent>
+
           <TabsContent value="dashboard" className="space-y-6">
             <Dashboard stepProgress={stepProgress} />
           </TabsContent>
 
           <TabsContent value="process" className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold">Tracker Processo Operativo</h2>
-                <p className="text-muted-foreground">Segui step-by-step tutte le attività necessarie</p>
-              </div>
-            </div>
             <ProcessTracker projectId={currentProjectId ?? undefined} />
           </TabsContent>
 
+          <TabsContent value="deadlines" className="space-y-6">
+            <RegulatoryCalendar 
+              projectId={currentProjectId}
+              eveLicenseDate={(currentProject as any)?.eve_license_date}
+              evgLicenseDate={(currentProject as any)?.evg_license_date}
+            />
+          </TabsContent>
+
+          <TabsContent value="step-docs" className="space-y-6">
+            <StepDocuments projectId={currentProjectId} />
+          </TabsContent>
+
           <TabsContent value="team" className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold">Analytics Team</h2>
-                <p className="text-muted-foreground">Monitora le performance e il progresso del team</p>
-              </div>
-            </div>
-            <TeamAnalyticsDashboard analytics={analytics} loading={analyticsLoading} />
+            <ProjectTeamManager projectId={currentProjectId} currentUserId={user?.id} />
           </TabsContent>
 
           <TabsContent value="documents" className="space-y-6">
@@ -307,12 +330,6 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="faq" className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold">FAQ Reseller Energia</h2>
-                <p className="text-muted-foreground">Domande frequenti sull'avvio e gestione di un reseller luce e gas</p>
-              </div>
-            </div>
             <FAQ />
           </TabsContent>
         </Tabs>
