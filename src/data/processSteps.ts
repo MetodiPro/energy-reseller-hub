@@ -173,12 +173,12 @@ export const processSteps: ProcessStep[] = [
     ]
   },
 
-  // FASE 3: AUTORIZZAZIONI ARERA E ISCRIZIONE EVE
+  // FASE 3: AUTORIZZAZIONI MASE, ARERA E ISCRIZIONI OBBLIGATORIE
   {
     id: 'step-3-1',
     phase: 3,
-    title: 'Iscrizione EVE - Elenco Venditori Energia',
-    description: 'Iscrizione all\'Elenco Venditori Energia Elettrica presso MASE (Ministero Ambiente e Sicurezza Energetica)',
+    title: 'Iscrizione EVE - Elenco Venditori Energia Elettrica',
+    description: 'Iscrizione all\'Elenco Venditori Energia Elettrica (EVE) presso MASE (Ministero Ambiente e Sicurezza Energetica)',
     category: 'administrative',
     estimatedDays: 30,
     priority: 'high',
@@ -188,7 +188,9 @@ export const processSteps: ProcessStep[] = [
       'Certificato carichi pendenti amministratori',
       'Autocertificazione requisiti onorabilità',
       'Descrizione struttura organizzativa',
-      'Procedure gestione reclami'
+      'Procedure gestione reclami',
+      'Certificato iscrizione Registro Imprese',
+      'Dichiarazione requisiti finanziari minimi'
     ],
     costs: {
       min: 0,
@@ -196,26 +198,101 @@ export const processSteps: ProcessStep[] = [
       description: 'Iscrizione gratuita'
     },
     notes: [
+      'Obbligatoria per vendita energia elettrica ai clienti finali',
       'Accesso con SPID/CIE del legale rappresentante',
       'Tempi istruttoria: 30 giorni lavorativi',
-      'Rinnovo annuale entro 31 gennaio'
+      'Rinnovo annuale entro 31 gennaio con autocertificazione',
+      'Requisiti onorabilità: assenza condanne penali, procedure concorsuali, interdizioni',
+      'Decreto di riferimento: DM 24 luglio 2015'
     ],
     checklist: [
-      'Verifica requisiti giuridici',
-      'Verifica requisiti onorabilità amministratori',
+      'Verifica requisiti giuridici (Srl/SpA con oggetto sociale idoneo)',
+      'Verifica requisiti onorabilità amministratori e soci >10%',
+      'Acquisizione certificato casellario giudiziale',
       'Preparazione documentazione struttura organizzativa',
+      'Accesso portale EVE con SPID/CIE',
       'Compilazione domanda online sezione A (Dati Societari)',
       'Compilazione sezione B (Dati Operativi)',
       'Compilazione sezione C (Dichiarazioni)',
       'Upload documenti richiesti',
-      'Invio domanda',
-      'Monitoraggio stato pratica'
+      'Invio domanda con firma digitale',
+      'Monitoraggio stato pratica',
+      'Ricezione decreto iscrizione'
     ],
     officialLinks: [
       {
         name: 'Portale EVE - MASE',
         url: 'https://elencovenditorielettrici.mase.gov.it/eve',
         description: 'Elenco Venditori Energia Elettrica - Ministero Ambiente'
+      },
+      {
+        name: 'MASE - Sezione Vendita',
+        url: 'https://www.mase.gov.it/portale/vendita',
+        description: 'Informazioni e decreti vendita energia'
+      }
+    ]
+  },
+  {
+    id: 'step-3-1b',
+    phase: 3,
+    title: 'Iscrizione EVG - Elenco Venditori Gas Naturale',
+    description: 'Iscrizione all\'Elenco Venditori Gas Naturale (EVG) presso MASE - Obbligatorio dal 2025',
+    category: 'administrative',
+    estimatedDays: 30,
+    priority: 'high',
+    dependencies: ['step-2-2'],
+    documents: [
+      'Visura camerale aggiornata',
+      'Certificato carichi pendenti amministratori',
+      'Autocertificazione requisiti onorabilità',
+      'Descrizione struttura organizzativa',
+      'Dichiarazione capacità tecnica e finanziaria',
+      'Garanzia finanziaria (fideiussione o deposito cauzionale)',
+      'Piano di contingenza per emergenze'
+    ],
+    costs: {
+      min: 10000,
+      max: 50000,
+      description: 'Garanzia finanziaria obbligatoria (importo proporzionale ai volumi previsti)'
+    },
+    notes: [
+      'NOVITÀ 2025: Nuovo regolamento DM 19 maggio 2025 n. 85',
+      'Obbligatoria per vendita gas naturale ai clienti finali',
+      'Requisiti più stringenti rispetto a EVE',
+      'Garanzia finanziaria minima richiesta (varia in base ai volumi)',
+      'Iscrizione provvisoria possibile in attesa documentazione completa',
+      'Termine iscrizione definitiva: verificare scadenze sul portale MASE',
+      'Requisiti capacità tecnica: personale qualificato, procedure operative'
+    ],
+    checklist: [
+      'Verifica requisiti giuridici e onorabilità',
+      'Valutazione volumi gas previsti per calcolo garanzia',
+      'Richiesta fideiussione bancaria/assicurativa',
+      'Predisposizione piano di contingenza',
+      'Accesso portale EVG con SPID/CIE',
+      'Compilazione domanda online',
+      'Upload garanzia finanziaria',
+      'Upload piano contingenza',
+      'Invio domanda',
+      'Ottenimento iscrizione provvisoria (se applicabile)',
+      'Completamento documentazione per iscrizione definitiva',
+      'Ricezione decreto iscrizione definitiva'
+    ],
+    officialLinks: [
+      {
+        name: 'Portale EVG - MASE',
+        url: 'https://www.mase.gov.it/portale/vendita',
+        description: 'Elenco Venditori Gas Naturale'
+      },
+      {
+        name: 'Decreto EVG n. 85/2025',
+        url: 'https://www.mase.gov.it/portale/vendita',
+        description: 'Regolamento iscrizione venditori gas naturale'
+      },
+      {
+        name: 'ARERA - Delibera 70/2024/R/gas',
+        url: 'https://www.arera.it/atti-e-provvedimenti/dettaglio/24/70-24',
+        description: 'Condizioni di accesso EVG'
       }
     ]
   },
@@ -311,13 +388,164 @@ export const processSteps: ProcessStep[] = [
       }
     ]
   },
+  {
+    id: 'step-3-4',
+    phase: 3,
+    title: 'Pubblicazione Offerte sul Portale Offerte ARERA',
+    description: 'Registrazione e pubblicazione obbligatoria delle offerte commerciali sul Portale Offerte di ARERA/Acquirente Unico',
+    category: 'administrative',
+    estimatedDays: 10,
+    priority: 'high',
+    dependencies: ['step-3-2'],
+    documents: [
+      'Schede di confrontabilità offerte',
+      'Condizioni economiche dettagliate',
+      'Condizioni contrattuali generali'
+    ],
+    costs: {
+      min: 0,
+      max: 0,
+      description: 'Pubblicazione gratuita'
+    },
+    notes: [
+      'Obbligo di legge per tutti i venditori (L. 124/2017)',
+      'Tutte le offerte per clienti domestici e microimprese devono essere pubblicate',
+      'Aggiornamento entro 5 giorni lavorativi da ogni variazione',
+      'Il Portale Offerte permette ai clienti di confrontare le offerte',
+      'Sanzioni ARERA per mancata pubblicazione o dati non corretti'
+    ],
+    checklist: [
+      'Registrazione operatore sul Portale Offerte',
+      'Configurazione credenziali accesso',
+      'Preparazione schede offerte formato richiesto',
+      'Inserimento offerte energia elettrica',
+      'Inserimento offerte gas naturale',
+      'Inserimento offerte dual fuel (se presenti)',
+      'Verifica correttezza dati pubblicati',
+      'Setup procedure aggiornamento periodico',
+      'Monitoraggio offerte concorrenza'
+    ],
+    officialLinks: [
+      {
+        name: 'Portale Offerte',
+        url: 'https://www.ilportaleofferte.it',
+        description: 'Confronto offerte luce e gas per i consumatori'
+      },
+      {
+        name: 'Area Operatori Portale Offerte',
+        url: 'https://www.ilportaleofferte.it/portaleOfferte/it/operatori.page',
+        description: 'Accesso operatori per pubblicazione offerte'
+      }
+    ]
+  },
+  {
+    id: 'step-3-5',
+    phase: 3,
+    title: 'Codice di Condotta Commerciale ARERA',
+    description: 'Adozione e formazione sul Codice di Condotta Commerciale per la vendita di energia elettrica e gas',
+    category: 'legal',
+    estimatedDays: 10,
+    priority: 'high',
+    dependencies: ['step-3-2'],
+    documents: [
+      'Codice di Condotta Commerciale adottato',
+      'Procedure vendita conformi al Codice',
+      'Materiali formativi agenti',
+      'Script telefonici conformi'
+    ],
+    costs: {
+      min: 1000,
+      max: 3000,
+      description: 'Consulenza e formazione personale commerciale'
+    },
+    notes: [
+      'Obbligatorio per tutti i venditori (TIQV - Delibera 413/2016)',
+      'Regole su: trasparenza prezzi, contratti non richiesti, telemarketing',
+      'Obbligo di verifica consenso cliente prima della stipula',
+      'Registrazione vocale obbligatoria per contratti telefonici',
+      'Diritto di ripensamento 14 giorni per contratti a distanza',
+      'Sanzioni severe per pratiche commerciali scorrette'
+    ],
+    checklist: [
+      'Studio completo Codice di Condotta Commerciale ARERA',
+      'Adozione formale del Codice in azienda',
+      'Predisposizione procedure vendita conformi',
+      'Formazione obbligatoria rete vendita',
+      'Implementazione sistema registrazione chiamate',
+      'Procedure gestione diritto di ripensamento',
+      'Procedure verifica contratti non richiesti',
+      'Audit periodico conformità vendite'
+    ],
+    officialLinks: [
+      {
+        name: 'Codice di Condotta Commerciale',
+        url: 'https://www.arera.it/atti-e-provvedimenti/dettaglio/16/413-16',
+        description: 'Delibera ARERA 413/2016 - TIQV'
+      },
+      {
+        name: 'Pratiche Commerciali Scorrette',
+        url: 'https://www.arera.it/consumatori/segnala-pratica-commerciale-scorretta',
+        description: 'Segnalazioni e sanzioni'
+      }
+    ]
+  },
+  {
+    id: 'step-3-6',
+    phase: 3,
+    title: 'Contributi CSEA (Cassa Servizi Energetici)',
+    description: 'Registrazione e adempimenti verso CSEA per contributi e oneri di sistema',
+    category: 'administrative',
+    estimatedDays: 15,
+    priority: 'high',
+    dependencies: ['step-3-2'],
+    documents: [
+      'Registrazione portale CSEA',
+      'Documentazione per contributi',
+      'Procedure versamento oneri'
+    ],
+    costs: {
+      min: 0,
+      max: 0,
+      description: 'Registrazione gratuita - contributi proporzionali ai volumi'
+    },
+    notes: [
+      'CSEA gestisce i flussi finanziari degli oneri di sistema',
+      'Il reseller incassa gli oneri in bolletta e li riversa a CSEA',
+      'Dichiarazioni periodiche obbligatorie',
+      'Contributo annuale operatori (proporzionale ai clienti serviti)',
+      'Gestione bonus sociali (erogazione/recupero)',
+      'Sanzioni per ritardi nei versamenti'
+    ],
+    checklist: [
+      'Registrazione portale CSEA',
+      'Ottenimento credenziali accesso',
+      'Comprensione meccanismo oneri di sistema',
+      'Setup procedure dichiarazioni periodiche',
+      'Configurazione flussi contabili oneri',
+      'Procedure gestione bonus sociali',
+      'Calendario scadenze versamenti',
+      'Formazione personale amministrativo'
+    ],
+    officialLinks: [
+      {
+        name: 'CSEA - Cassa per i Servizi Energetici',
+        url: 'https://www.csea.it',
+        description: 'Portale Cassa Servizi Energetici e Ambientali'
+      },
+      {
+        name: 'Area Operatori CSEA',
+        url: 'https://www.csea.it/area-operatori',
+        description: 'Accesso operatori e dichiarazioni'
+      }
+    ]
+  },
 
   // FASE 4: ACCORDO CON GROSSISTA E ACCESSO SII
   {
     id: 'step-4-1',
     phase: 4,
     title: 'Selezione e Contrattualizzazione Grossista',
-    description: 'Ricerca, valutazione e firma accordo con Utente del Dispacciamento (grossista)',
+    description: 'Ricerca, valutazione e firma accordo con Utente del Dispacciamento (grossista) per fornitura energia all\'ingrosso',
     category: 'commercial',
     estimatedDays: 20,
     priority: 'high',
@@ -325,31 +553,45 @@ export const processSteps: ProcessStep[] = [
     documents: [
       'Contratto di fornitura all\'ingrosso',
       'Accordo di reselling',
-      'Condizioni economiche',
-      'SLA servizi'
+      'Condizioni economiche e pricing',
+      'SLA servizi operativi',
+      'Procedure operative condivise',
+      'Garanzie finanziarie richieste'
     ],
+    costs: {
+      min: 50000,
+      max: 100000,
+      description: 'Garanzia finanziaria verso grossista (fideiussione bancaria/assicurativa)'
+    },
     notes: [
-      'Il grossista gestisce rapporti con Terna, GME e distributori',
-      'Valutare: prezzi energia, servizi inclusi, supporto tecnico',
-      'Verificare copertura territoriale',
-      'Negoziare margini e condizioni commerciali'
+      'FONDAMENTALE: Il grossista gestisce tutti i rapporti con Terna, GME e distributori',
+      'Come reseller NON avrai contratti diretti con distributori locali',
+      'Il grossista si occupa di: bilanciamento, dispacciamento, switching, volture',
+      'Valutare: prezzi energia, servizi inclusi, supporto tecnico, SLA',
+      'Verificare copertura territoriale del grossista',
+      'Negoziare margini e condizioni commerciali',
+      'La garanzia finanziaria è obbligatoria (importo negoziabile)',
+      'Principali grossisti: Enel, Edison, A2A, Eni, Axpo, Repower, ecc.'
     ],
     checklist: [
-      'Ricerca e selezione grossisti qualificati',
-      'Richiesta preventivi e condizioni',
-      'Analisi comparativa offerte',
+      'Identificazione e ricerca grossisti qualificati',
+      'Richiesta preventivi e condizioni commerciali',
+      'Analisi comparativa offerte (pricing, servizi, SLA)',
+      'Valutazione requisiti garanzia finanziaria',
+      'Richiesta fideiussione bancaria/assicurativa',
       'Negoziazione termini contrattuali',
-      'Verifica coperture assicurative',
+      'Verifica copertura territoriale',
       'Firma contratto di reselling',
+      'Consegna garanzia finanziaria',
       'Setup accessi portale grossista',
-      'Formazione su procedure operative'
+      'Formazione su procedure operative grossista'
     ]
   },
   {
     id: 'step-4-2',
     phase: 4,
     title: 'Accreditamento Sistema Informativo Integrato (SII)',
-    description: 'Registrazione e accreditamento presso Acquirente Unico per accesso al SII',
+    description: 'Registrazione e accreditamento presso Acquirente Unico per accesso al SII - gestione flussi switching e volture',
     category: 'technical',
     estimatedDays: 30,
     priority: 'high',
@@ -366,13 +608,17 @@ export const processSteps: ProcessStep[] = [
       description: 'Setup tecnico, certificati, test conformità'
     },
     notes: [
-      'SII gestito da Acquirente Unico (AU)',
-      'Necessario per switching, volture, attivazioni',
-      'Flussi XML standardizzati secondo specifiche AU',
-      'Test obbligatori prima della messa in produzione'
+      'NOTA RESELLER: La gestione SII può essere delegata al grossista',
+      'Alcuni grossisti gestiscono il SII per conto del reseller',
+      'Valutare con il grossista chi gestisce l\'accreditamento SII',
+      'Se delegato: il grossista opera i flussi, il reseller ha visibilità',
+      'Se autonomo: necessario accreditamento diretto presso AU',
+      'SII gestisce: switching, volture, subentri, cessazioni',
+      'Flussi XML standardizzati secondo specifiche AU'
     ],
     checklist: [
-      'Richiesta credenziali portale Acquirente Unico',
+      'Verificare con grossista chi gestisce SII',
+      'Se autonomo: Richiesta credenziali portale Acquirente Unico',
       'Acquisizione certificati digitali per firma flussi',
       'Setup ambiente di test SII',
       'Configurazione software gestione flussi XML',
@@ -384,14 +630,19 @@ export const processSteps: ProcessStep[] = [
     ],
     officialLinks: [
       {
-        name: 'Portale Acquirente Unico - SII',
-        url: 'https://www.acquirenteunico.it/sii',
+        name: 'Portale SII - Acquirente Unico',
+        url: 'https://siiportale.acquirenteunico.it/',
         description: 'Sistema Informativo Integrato'
       },
       {
         name: 'Specifiche Tecniche SII',
-        url: 'https://www.acquirenteunico.it/sii/specifiche-tecniche',
+        url: 'https://siiportale.acquirenteunico.it/documentazione',
         description: 'Documentazione tecnica flussi XML'
+      },
+      {
+        name: 'Switching Gas',
+        url: 'https://siiportale.acquirenteunico.it/processi/settore-gas/switching',
+        description: 'Processo switching settore gas'
       },
       {
         name: 'Area Operatori AU',
@@ -415,30 +666,38 @@ export const processSteps: ProcessStep[] = [
       'Visura camerale aggiornata',
       'Documenti identità legale rappresentante',
       'Dichiarazione inizio attività',
-      'Modello di garanzia (se richiesto)'
+      'Modello di garanzia (se richiesto)',
+      'Contratto con grossista (per verifica operatività)'
     ],
     costs: {
       min: 500,
-      max: 2000,
-      description: 'Costi amministrativi e consulenza fiscale accise'
+      max: 3000,
+      description: 'Costi amministrativi, consulenza fiscale accise e eventuale diritto di licenza'
     },
     notes: [
-      'Obbligatoria per tutti i venditori di energia elettrica e gas naturale',
+      'OBBLIGATORIA per tutti i venditori di energia elettrica e gas naturale',
       'Codice accise necessario per la fatturazione con addebito accise al cliente finale',
-      'Dichiarazioni periodiche obbligatorie (mensili/annuali)',
+      'Dichiarazioni periodiche: mensili per grandi volumi, annuali per tutti',
+      'Dichiarazione annuale energia elettrica: entro febbraio anno successivo',
+      'Dichiarazione annuale gas naturale: entro marzo anno successivo',
       'Il reseller applica e versa le accise per conto dello Stato',
-      'Sanzioni severe per inadempimenti (fino a 5 volte l\'imposta evasa)'
+      'Diritto di Licenza annuale: circa €23 per energia elettrica',
+      'Sanzioni severe per inadempimenti (fino a 5 volte l\'imposta evasa)',
+      'Aliquote accise: variabili per tipologia cliente (domestico/business) e zona geografica'
     ],
     checklist: [
-      'Richiesta credenziali portale Agenzia Dogane',
+      'Richiesta credenziali portale Agenzia Dogane (SPID/CNS)',
       'Compilazione istanza registrazione energia elettrica',
       'Compilazione istanza registrazione gas naturale',
       'Predisposizione documentazione societaria',
       'Invio telematico istanze',
       'Ottenimento codice accise energia elettrica',
       'Ottenimento codice accise gas naturale',
-      'Setup procedure dichiarazioni periodiche',
-      'Formazione personale su normativa accise'
+      'Pagamento Diritto di Licenza annuale',
+      'Setup calendario scadenze dichiarazioni',
+      'Configurazione software per calcolo accise in bolletta',
+      'Formazione personale su normativa accise',
+      'Procedure versamento periodico accise'
     ],
     officialLinks: [
       {
@@ -447,14 +706,14 @@ export const processSteps: ProcessStep[] = [
         description: 'Portale Agenzia delle Dogane e dei Monopoli'
       },
       {
-        name: 'Accise Energia Elettrica',
-        url: 'https://www.adm.gov.it/portale/energia-elettrica',
-        description: 'Sezione dedicata accise energia elettrica'
+        name: 'Dichiarazioni Annuali Energia',
+        url: 'https://www.adm.gov.it/portale/en/dichiarazioni-annuali-energie',
+        description: 'Modelli dichiarazioni annuali accise'
       },
       {
-        name: 'Accise Gas Naturale',
-        url: 'https://www.adm.gov.it/portale/gas-naturale',
-        description: 'Sezione dedicata accise gas naturale'
+        name: 'Circolare Accise 2024',
+        url: 'https://www.adm.gov.it/portale/accise',
+        description: 'Normativa e circolari accise'
       },
       {
         name: 'Servizi Online ADM',
@@ -827,7 +1086,7 @@ export const processSteps: ProcessStep[] = [
 export const phases = [
   { id: 1, name: 'Costituzione Società', color: 'primary' },
   { id: 2, name: 'Registrazioni Obbligatorie', color: 'accent' },
-  { id: 3, name: 'Autorizzazioni ARERA', color: 'success' },
+  { id: 3, name: 'Autorizzazioni MASE/ARERA', color: 'success' },
   { id: 4, name: 'Grossista e SII', color: 'warning' },
   { id: 5, name: 'Setup Operativo', color: 'primary' },
   { id: 6, name: 'Compliance', color: 'accent' },
