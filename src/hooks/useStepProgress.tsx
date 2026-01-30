@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,7 +11,30 @@ export interface StepProgress {
   completionDate?: string;
 }
 
-export const useStepProgress = (userId: string | undefined) => {
+interface UseStepProgressOptions {
+  userId: string | undefined;
+  projectId: string | null;
+}
+
+export const useStepProgress = (
+  userIdOrOptions: string | undefined | UseStepProgressOptions,
+  projectIdArg?: string | null
+) => {
+  // Support both old signature (userId) and new signature ({ userId, projectId })
+  let userId: string | undefined;
+  let projectId: string | null;
+
+  if (typeof userIdOrOptions === 'object' && userIdOrOptions !== null && 'userId' in userIdOrOptions) {
+    userId = userIdOrOptions.userId;
+    projectId = userIdOrOptions.projectId;
+  } else if (typeof userIdOrOptions === 'string') {
+    userId = userIdOrOptions;
+    projectId = projectIdArg ?? null;
+  } else {
+    userId = undefined;
+    projectId = projectIdArg ?? null;
+  }
+
   const [stepProgress, setStepProgress] = useState<Record<string, StepProgress>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -24,11 +47,22 @@ export const useStepProgress = (userId: string | undefined) => {
     }
 
     const loadProgress = async () => {
+      setLoading(true);
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from("step_progress")
           .select("*")
           .eq("user_id", userId);
+
+        // If projectId is provided, filter by project
+        if (projectId) {
+          query = query.eq("project_id", projectId);
+        } else {
+          // If no project, get progress without project_id (legacy/global progress)
+          query = query.is("project_id", null);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -46,6 +80,7 @@ export const useStepProgress = (userId: string | undefined) => {
 
         setStepProgress(progressMap);
       } catch (error: any) {
+        console.error("Error loading step progress:", error);
         toast({
           title: "Errore nel caricamento",
           description: error.message,
@@ -59,19 +94,29 @@ export const useStepProgress = (userId: string | undefined) => {
     loadProgress();
 
     // Subscribe to realtime updates
+    const filterParts = [`user_id=eq.${userId}`];
+    if (projectId) {
+      filterParts.push(`project_id=eq.${projectId}`);
+    }
+
     const channel = supabase
-      .channel("step_progress_changes")
+      .channel(`step_progress_${userId}_${projectId || 'global'}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "step_progress",
-          filter: `user_id=eq.${userId}`,
+          filter: filterParts[0], // Primary filter
         },
         (payload) => {
+          const item = payload.new as any || payload.old as any;
+          
+          // Additional client-side filter for project_id
+          if (projectId && item.project_id !== projectId) return;
+          if (!projectId && item.project_id !== null) return;
+
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            const item = payload.new as any;
             setStepProgress((prev) => ({
               ...prev,
               [item.step_id]: {
@@ -84,7 +129,6 @@ export const useStepProgress = (userId: string | undefined) => {
               },
             }));
           } else if (payload.eventType === "DELETE") {
-            const item = payload.old as any;
             setStepProgress((prev) => {
               const newProgress = { ...prev };
               delete newProgress[item.step_id];
@@ -98,23 +142,33 @@ export const useStepProgress = (userId: string | undefined) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, toast]);
+  }, [userId, projectId, toast]);
 
   // Save progress to database
-  const saveProgress = async (stepId: string, progress: StepProgress) => {
+  const saveProgress = useCallback(async (stepId: string, progress: StepProgress) => {
     if (!userId) return;
 
     try {
+      const upsertData: any = {
+        user_id: userId,
+        step_id: stepId,
+        completed: progress.completed,
+        notes: progress.notes,
+        checklist_progress: progress.checklistProgress,
+        start_date: progress.startDate,
+        completion_date: progress.completionDate,
+      };
+
+      // Include project_id if provided
+      if (projectId) {
+        upsertData.project_id = projectId;
+      }
+
+      // Determine the conflict columns based on whether we have a project
+      // The table has a unique constraint on (user_id, step_id)
+      // But we need to handle project-specific progress
       const { error } = await supabase.from("step_progress").upsert(
-        {
-          user_id: userId,
-          step_id: stepId,
-          completed: progress.completed,
-          notes: progress.notes,
-          checklist_progress: progress.checklistProgress,
-          start_date: progress.startDate,
-          completion_date: progress.completionDate,
-        },
+        upsertData,
         {
           onConflict: "user_id,step_id",
         }
@@ -122,15 +176,16 @@ export const useStepProgress = (userId: string | undefined) => {
 
       if (error) throw error;
     } catch (error: any) {
+      console.error("Error saving step progress:", error);
       toast({
         title: "Errore nel salvataggio",
         description: error.message,
         variant: "destructive",
       });
     }
-  };
+  }, [userId, projectId, toast]);
 
-  const updateProgress = (stepId: string, updates: Partial<StepProgress>) => {
+  const updateProgress = useCallback((stepId: string, updates: Partial<StepProgress>) => {
     const current = stepProgress[stepId] || {
       stepId,
       completed: false,
@@ -141,7 +196,7 @@ export const useStepProgress = (userId: string | undefined) => {
     const updated = { ...current, ...updates };
     setStepProgress((prev) => ({ ...prev, [stepId]: updated }));
     saveProgress(stepId, updated);
-  };
+  }, [stepProgress, saveProgress]);
 
   return { stepProgress, loading, updateProgress };
 };

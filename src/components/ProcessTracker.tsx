@@ -26,11 +26,18 @@ import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { NotificationSettingsDialog } from "@/components/NotificationSettingsDialog";
 
-export const ProcessTracker = () => {
+interface ProcessTrackerProps {
+  projectId?: string | null;
+}
+
+export const ProcessTracker = ({ projectId }: ProcessTrackerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
-  const { stepProgress, loading, updateProgress } = useStepProgress(userId);
+  const { stepProgress, loading, updateProgress } = useStepProgress({
+    userId,
+    projectId: projectId ?? null,
+  });
   const { settings: notificationSettings, updateSetting, deleteSetting } = useNotificationSettings(userId);
 
   useEffect(() => {
