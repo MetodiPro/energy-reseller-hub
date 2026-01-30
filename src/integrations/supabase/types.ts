@@ -423,6 +423,8 @@ export type Database = {
       project_costs: {
         Row: {
           amount: number
+          calculation_basis: string | null
+          calculation_params: Json | null
           category_id: string | null
           cost_type: Database["public"]["Enums"]["cost_type"]
           created_at: string | null
@@ -430,9 +432,11 @@ export type Database = {
           date: string | null
           description: string | null
           id: string
+          is_passthrough: boolean | null
           is_recurring: boolean | null
           name: string
           notes: string | null
+          passthrough_recipient: string | null
           project_id: string
           quantity: number | null
           recurrence_period: string | null
@@ -441,6 +445,8 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          calculation_basis?: string | null
+          calculation_params?: Json | null
           category_id?: string | null
           cost_type?: Database["public"]["Enums"]["cost_type"]
           created_at?: string | null
@@ -448,9 +454,11 @@ export type Database = {
           date?: string | null
           description?: string | null
           id?: string
+          is_passthrough?: boolean | null
           is_recurring?: boolean | null
           name: string
           notes?: string | null
+          passthrough_recipient?: string | null
           project_id: string
           quantity?: number | null
           recurrence_period?: string | null
@@ -459,6 +467,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          calculation_basis?: string | null
+          calculation_params?: Json | null
           category_id?: string | null
           cost_type?: Database["public"]["Enums"]["cost_type"]
           created_at?: string | null
@@ -466,9 +476,11 @@ export type Database = {
           date?: string | null
           description?: string | null
           id?: string
+          is_passthrough?: boolean | null
           is_recurring?: boolean | null
           name?: string
           notes?: string | null
+          passthrough_recipient?: string | null
           project_id?: string
           quantity?: number | null
           recurrence_period?: string | null
@@ -568,11 +580,14 @@ export type Database = {
       project_revenues: {
         Row: {
           amount: number
+          calculation_basis: string | null
+          calculation_params: Json | null
           created_at: string | null
           created_by: string
           date: string | null
           description: string | null
           id: string
+          margin_type: string | null
           name: string
           notes: string | null
           project_id: string
@@ -585,11 +600,14 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          calculation_basis?: string | null
+          calculation_params?: Json | null
           created_at?: string | null
           created_by: string
           date?: string | null
           description?: string | null
           id?: string
+          margin_type?: string | null
           name: string
           notes?: string | null
           project_id: string
@@ -602,11 +620,14 @@ export type Database = {
         }
         Update: {
           amount?: number
+          calculation_basis?: string | null
+          calculation_params?: Json | null
           created_at?: string | null
           created_by?: string
           date?: string | null
           description?: string | null
           id?: string
+          margin_type?: string | null
           name?: string
           notes?: string | null
           project_id?: string
@@ -620,6 +641,86 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_revenues_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_taxes: {
+        Row: {
+          base_amount: number | null
+          base_unit: string | null
+          calculated_amount: number | null
+          calculation_hypothesis: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_day: number | null
+          id: string
+          is_active: boolean | null
+          is_recurring: boolean | null
+          name: string
+          notes: string | null
+          project_id: string
+          rate_type: string
+          rate_unit: string | null
+          rate_value: number
+          recipient: string
+          recurrence_period: string | null
+          tax_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_amount?: number | null
+          base_unit?: string | null
+          calculated_amount?: number | null
+          calculation_hypothesis?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_day?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          name: string
+          notes?: string | null
+          project_id: string
+          rate_type?: string
+          rate_unit?: string | null
+          rate_value?: number
+          recipient: string
+          recurrence_period?: string | null
+          tax_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_amount?: number | null
+          base_unit?: string | null
+          calculated_amount?: number | null
+          calculation_hypothesis?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_day?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          name?: string
+          notes?: string | null
+          project_id?: string
+          rate_type?: string
+          rate_unit?: string | null
+          rate_value?: number
+          recipient?: string
+          recurrence_period?: string | null
+          tax_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_taxes_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
