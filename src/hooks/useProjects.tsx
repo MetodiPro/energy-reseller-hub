@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Project {
   id: string;
@@ -14,6 +15,7 @@ export const useProjects = (userId: string | undefined) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const fetchProjects = useCallback(async () => {
     if (!userId) {
@@ -105,6 +107,78 @@ export const useProjects = (userId: string | undefined) => {
     }
   }, [userId]);
 
+  const updateProject = useCallback(async (id: string, name: string, description: string | null) => {
+    const { error } = await supabase
+      .from('projects')
+      .update({ name, description, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile aggiornare il progetto.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    // Update local state
+    setProjects(prev => prev.map(p => 
+      p.id === id ? { ...p, name, description, updated_at: new Date().toISOString() } : p
+    ));
+    
+    if (currentProject?.id === id) {
+      setCurrentProject(prev => prev ? { ...prev, name, description } : null);
+    }
+
+    toast({
+      title: 'Progetto aggiornato',
+      description: 'Le modifiche sono state salvate.',
+    });
+  }, [currentProject, toast]);
+
+  const deleteProject = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile eliminare il progetto.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    // Update local state
+    const newProjects = projects.filter(p => p.id !== id);
+    setProjects(newProjects);
+    
+    // If deleted project was current, switch to another one
+    if (currentProject?.id === id) {
+      if (newProjects.length > 0) {
+        setCurrentProject(newProjects[0]);
+        if (userId) {
+          localStorage.setItem(`resbuilder_current_project_${userId}`, newProjects[0].id);
+        }
+      } else {
+        setCurrentProject(null);
+        if (userId) {
+          localStorage.removeItem(`resbuilder_current_project_${userId}`);
+        }
+      }
+    }
+
+    toast({
+      title: 'Progetto eliminato',
+      description: 'Il progetto è stato eliminato definitivamente.',
+    });
+  }, [currentProject, projects, userId, toast]);
+
   const refreshProjects = useCallback(() => {
     fetchProjects();
   }, [fetchProjects]);
@@ -115,6 +189,8 @@ export const useProjects = (userId: string | undefined) => {
     loading,
     selectProject,
     addProject,
+    updateProject,
+    deleteProject,
     refreshProjects,
     hasProjects: projects.length > 0,
   };

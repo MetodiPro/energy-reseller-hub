@@ -49,6 +49,8 @@ const Index = () => {
     loading: projectsLoading, 
     selectProject, 
     addProject,
+    updateProject,
+    deleteProject,
     hasProjects 
   } = useProjects(user?.id);
 
@@ -144,6 +146,8 @@ const Index = () => {
                 loading={projectsLoading}
                 onSelectProject={selectProject}
                 onNewProject={handleOpenWizard}
+                onUpdateProject={updateProject}
+                onDeleteProject={deleteProject}
               />
             </div>
 
