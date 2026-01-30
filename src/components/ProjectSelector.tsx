@@ -9,9 +9,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, FolderOpen, Plus, Check, Building2 } from 'lucide-react';
+import { ChevronDown, FolderOpen, Plus, Check, Building2, Settings } from 'lucide-react';
 import type { Project } from '@/hooks/useProjects';
 import { cn } from '@/lib/utils';
+import { ProjectEditDialog } from './ProjectEditDialog';
 
 interface ProjectSelectorProps {
   projects: Project[];
@@ -19,6 +20,8 @@ interface ProjectSelectorProps {
   loading: boolean;
   onSelectProject: (project: Project) => void;
   onNewProject: () => void;
+  onUpdateProject: (id: string, name: string, description: string | null) => Promise<void>;
+  onDeleteProject: (id: string) => Promise<void>;
 }
 
 export const ProjectSelector = ({
@@ -27,8 +30,19 @@ export const ProjectSelector = ({
   loading,
   onSelectProject,
   onNewProject,
+  onUpdateProject,
+  onDeleteProject,
 }: ProjectSelectorProps) => {
   const [open, setOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+
+  const handleEditProject = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProjectToEdit(project);
+    setEditDialogOpen(true);
+    setOpen(false);
+  };
 
   if (loading) {
     return (
@@ -54,87 +68,105 @@ export const ProjectSelector = ({
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-white/10 gap-2 max-w-[280px]"
+    <>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10 gap-2 max-w-[280px]"
+          >
+            <Building2 className="h-4 w-4 shrink-0" />
+            <span className="truncate font-medium">
+              {currentProject?.name || 'Seleziona Progetto'}
+            </span>
+            <Badge variant="secondary" className="ml-1 text-xs bg-white/20 text-white shrink-0">
+              {projects.length}
+            </Badge>
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="start" 
+          className="w-[300px] z-50 bg-popover border shadow-lg"
+          sideOffset={8}
         >
-          <Building2 className="h-4 w-4 shrink-0" />
-          <span className="truncate font-medium">
-            {currentProject?.name || 'Seleziona Progetto'}
-          </span>
-          <Badge variant="secondary" className="ml-1 text-xs bg-white/20 text-white shrink-0">
-            {projects.length}
-          </Badge>
-          <ChevronDown className="h-4 w-4 shrink-0" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="start" 
-        className="w-[300px] z-50 bg-popover border shadow-lg"
-        sideOffset={8}
-      >
-        <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
-          I tuoi Progetti
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        
-        {projects.length === 0 ? (
-          <div className="px-2 py-4 text-center text-muted-foreground text-sm">
-            Nessun progetto creato
-          </div>
-        ) : (
-          <div className="max-h-[300px] overflow-y-auto">
-            {projects.map((project) => (
-              <DropdownMenuItem
-                key={project.id}
-                onClick={() => {
-                  onSelectProject(project);
-                  setOpen(false);
-                }}
-                className={cn(
-                  'flex items-start gap-3 px-3 py-3 cursor-pointer',
-                  currentProject?.id === project.id && 'bg-primary/10'
-                )}
-              >
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Building2 className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium truncate">{project.name}</span>
-                    {currentProject?.id === project.id && (
-                      <Check className="h-4 w-4 text-primary shrink-0" />
-                    )}
-                  </div>
-                  {project.description && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      {project.description}
-                    </p>
+          <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+            I tuoi Progetti
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          
+          {projects.length === 0 ? (
+            <div className="px-2 py-4 text-center text-muted-foreground text-sm">
+              Nessun progetto creato
+            </div>
+          ) : (
+            <div className="max-h-[300px] overflow-y-auto">
+              {projects.map((project) => (
+                <DropdownMenuItem
+                  key={project.id}
+                  onClick={() => {
+                    onSelectProject(project);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    'flex items-start gap-3 px-3 py-3 cursor-pointer group',
+                    currentProject?.id === project.id && 'bg-primary/10'
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Creato il {new Date(project.created_at).toLocaleDateString('it-IT')}
-                  </p>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </div>
-        )}
-        
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            onNewProject();
-            setOpen(false);
-          }}
-          className="gap-2 text-primary cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="font-medium">Nuovo Progetto</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+                >
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">{project.name}</span>
+                      {currentProject?.id === project.id && (
+                        <Check className="h-4 w-4 text-primary shrink-0" />
+                      )}
+                    </div>
+                    {project.description && (
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        {project.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Creato il {new Date(project.created_at).toLocaleDateString('it-IT')}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    onClick={(e) => handleEditProject(project, e)}
+                  >
+                    <Settings className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuItem>
+              ))}
+            </div>
+          )}
+          
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              onNewProject();
+              setOpen(false);
+            }}
+            className="gap-2 text-primary cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="font-medium">Nuovo Progetto</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ProjectEditDialog
+        project={projectToEdit}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={onUpdateProject}
+        onDelete={onDeleteProject}
+      />
+    </>
   );
 };
