@@ -12,6 +12,7 @@ import { BusinessPlanEditor } from "@/components/BusinessPlanEditor";
 import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
 import { FinancialDashboard } from "@/components/FinancialDashboard";
 import { ProjectWizard } from "@/components/ProjectWizard";
+import { ProjectSelector } from "@/components/ProjectSelector";
 import { FAQ } from "@/components/FAQ";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
@@ -19,6 +20,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useExportPDF } from "@/hooks/useExportPDF";
 import { useTeamAnalytics } from "@/hooks/useTeamAnalytics";
+import { useProjects } from "@/hooks/useProjects";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -26,7 +28,6 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
-  const [forceRefresh, setForceRefresh] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,7 +42,25 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const { stepProgress } = useStepProgress(user?.id);
+  // Projects management
+  const { 
+    projects, 
+    currentProject, 
+    loading: projectsLoading, 
+    selectProject, 
+    addProject,
+    hasProjects 
+  } = useProjects(user?.id);
+
+  // Current project ID
+  const currentProjectId = currentProject?.id ?? null;
+
+  // Step progress for current project
+  const { stepProgress, loading: progressLoading } = useStepProgress({
+    userId: user?.id,
+    projectId: currentProjectId,
+  });
+
   const { settings: notificationSettings } = useNotificationSettings(user?.id);
   const { notifications, unreadCount, markAsRead, clearAll } = useNotifications(
     user?.id,
@@ -49,19 +68,32 @@ const Index = () => {
     notificationSettings
   );
   const { exportToPDF } = useExportPDF();
-  const { analytics, loading: analyticsLoading, currentProjectId } = useTeamAnalytics(user?.id, stepProgress);
+  const { analytics, loading: analyticsLoading } = useTeamAnalytics(user?.id, stepProgress);
 
-  // Show wizard when user has no project (after analytics finishes loading)
+  // Show wizard when user has no projects (after loading completes)
   useEffect(() => {
-    if (!analyticsLoading && user && currentProjectId === null) {
+    if (!projectsLoading && user && !hasProjects) {
       setShowWizard(true);
     }
-  }, [analyticsLoading, user, currentProjectId, forceRefresh]);
+  }, [projectsLoading, user, hasProjects]);
 
-  const handleProjectCreated = (projectId: string) => {
+  const handleProjectCreated = async (projectId: string) => {
     setShowWizard(false);
-    // Force refresh analytics to pick up the new project
-    setForceRefresh((r) => r + 1);
+    
+    // Fetch the newly created project and add it
+    const { data: newProject } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+    
+    if (newProject) {
+      addProject(newProject);
+    }
+  };
+
+  const handleOpenWizard = () => {
+    setShowWizard(true);
   };
 
   const handleSignOut = async () => {
@@ -82,27 +114,41 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Project Wizard for first-time users */}
+      {/* Project Wizard */}
       <ProjectWizard
         userId={user.id}
         open={showWizard}
         onClose={() => setShowWizard(false)}
         onProjectCreated={handleProjectCreated}
       />
+
       {/* Hero Header */}
       <header className="bg-gradient-hero border-b shadow-lg">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center">
                 <Zap className="h-7 w-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">Metodi ResBuilder</h1>
-                <p className="text-white/80 text-sm">Reseller Energia Elettrica - Percorso Operativo 2025/2026</p>
+                <h1 className="text-2xl font-bold text-white">Metodi ResBuilder</h1>
+                <p className="text-white/80 text-xs">Reseller Energia - Percorso Operativo</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Project Selector - Center */}
+            <div className="flex-1 flex justify-center px-4">
+              <ProjectSelector
+                projects={projects}
+                currentProject={currentProject}
+                loading={projectsLoading}
+                onSelectProject={selectProject}
+                onNewProject={handleOpenWizard}
+              />
+            </div>
+
+            {/* Actions - Right */}
+            <div className="flex items-center gap-2">
               <NotificationCenter
                 notifications={notifications}
                 unreadCount={unreadCount}
@@ -116,7 +162,7 @@ const Index = () => {
                 className="text-white hover:bg-white/10"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Esporta PDF
+                <span className="hidden md:inline">Esporta</span>
               </Button>
               <Button
                 variant="ghost"
@@ -125,7 +171,7 @@ const Index = () => {
                 className="text-white hover:bg-white/10"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Esci
+                <span className="hidden md:inline">Esci</span>
               </Button>
             </div>
           </div>
@@ -134,6 +180,34 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* No Project Warning */}
+        {!currentProject && !projectsLoading && (
+          <div className="mb-6 p-4 bg-warning/10 border border-warning/20 rounded-lg flex items-center justify-between">
+            <div>
+              <p className="font-medium text-warning">Nessun progetto selezionato</p>
+              <p className="text-sm text-muted-foreground">Crea o seleziona un progetto per iniziare a lavorare</p>
+            </div>
+            <Button onClick={handleOpenWizard} variant="outline" size="sm">
+              Crea Progetto
+            </Button>
+          </div>
+        )}
+
+        {/* Current Project Badge */}
+        {currentProject && (
+          <div className="mb-6 p-3 bg-primary/5 border border-primary/20 rounded-lg flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Zap className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-sm">Progetto Attivo: <span className="text-primary">{currentProject.name}</span></p>
+              {currentProject.description && (
+                <p className="text-xs text-muted-foreground">{currentProject.description}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
@@ -181,7 +255,7 @@ const Index = () => {
                 <p className="text-muted-foreground">Segui step-by-step tutte le attività necessarie</p>
               </div>
             </div>
-            <ProcessTracker />
+            <ProcessTracker projectId={currentProjectId ?? undefined} />
           </TabsContent>
 
           <TabsContent value="team" className="space-y-6">
@@ -202,7 +276,7 @@ const Index = () => {
             {currentProjectId ? (
               <FinancialDashboard 
                 projectId={currentProjectId} 
-                projectName="Progetto Corrente"
+                projectName={currentProject?.name || "Progetto Corrente"}
               />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
