@@ -403,59 +403,116 @@ export const processSteps: ProcessStep[] = [
   {
     id: 'step-4-3',
     phase: 4,
-    title: 'Accreditamento Portali Distributori Locali',
-    description: 'Registrazione e accesso ai portali dei distributori locali per gestione pratiche',
-    category: 'technical',
-    estimatedDays: 20,
+    title: 'Iscrizione Agenzia Dogane e Monopoli (Accise)',
+    description: 'Registrazione come operatore accise presso l\'Agenzia delle Dogane per la vendita di energia elettrica e gas naturale',
+    category: 'administrative',
+    estimatedDays: 30,
     priority: 'high',
-    dependencies: ['step-4-2'],
+    dependencies: ['step-3-2'],
     documents: [
-      'Richieste accreditamento per ogni distributore',
-      'Contratti di trasporto e distribuzione',
-      'Credenziali accesso portali',
-      'Procedure operative distributore'
+      'Istanza di registrazione accise energia elettrica',
+      'Istanza di registrazione accise gas naturale',
+      'Visura camerale aggiornata',
+      'Documenti identità legale rappresentante',
+      'Dichiarazione inizio attività',
+      'Modello di garanzia (se richiesto)'
     ],
     costs: {
-      min: 1000,
-      max: 3000,
-      description: 'Costi amministrativi e setup per distributore'
+      min: 500,
+      max: 2000,
+      description: 'Costi amministrativi e consulenza fiscale accise'
     },
     notes: [
-      'Ogni distributore ha proprio portale (E-Distribuzione, Unareti, Areti, ecc.)',
-      'Necessario per gestione contatori, letture, interventi',
-      'Alcuni distributori richiedono fideiussioni specifiche',
-      'Tempi variabili per accreditamento (15-30 giorni)'
+      'Obbligatoria per tutti i venditori di energia elettrica e gas naturale',
+      'Codice accise necessario per la fatturazione con addebito accise al cliente finale',
+      'Dichiarazioni periodiche obbligatorie (mensili/annuali)',
+      'Il reseller applica e versa le accise per conto dello Stato',
+      'Sanzioni severe per inadempimenti (fino a 5 volte l\'imposta evasa)'
     ],
     checklist: [
-      'Mappatura distributori nelle aree operative target',
-      'Richiesta accreditamento E-Distribuzione',
-      'Richiesta accreditamento altri distributori locali',
-      'Sottoscrizione contratti di trasporto',
-      'Attivazione credenziali portali',
-      'Test accesso e funzionalità portali',
-      'Formazione personale su procedure specifiche',
-      'Documentazione procedure per ogni distributore'
+      'Richiesta credenziali portale Agenzia Dogane',
+      'Compilazione istanza registrazione energia elettrica',
+      'Compilazione istanza registrazione gas naturale',
+      'Predisposizione documentazione societaria',
+      'Invio telematico istanze',
+      'Ottenimento codice accise energia elettrica',
+      'Ottenimento codice accise gas naturale',
+      'Setup procedure dichiarazioni periodiche',
+      'Formazione personale su normativa accise'
     ],
     officialLinks: [
       {
-        name: 'E-Distribuzione',
-        url: 'https://e-distribuzione.it/operatori.html',
-        description: 'Portale operatori Enel Distribuzione'
+        name: 'Agenzia Dogane e Monopoli',
+        url: 'https://www.adm.gov.it',
+        description: 'Portale Agenzia delle Dogane e dei Monopoli'
+      },
+      {
+        name: 'Accise Energia Elettrica',
+        url: 'https://www.adm.gov.it/portale/energia-elettrica',
+        description: 'Sezione dedicata accise energia elettrica'
+      },
+      {
+        name: 'Accise Gas Naturale',
+        url: 'https://www.adm.gov.it/portale/gas-naturale',
+        description: 'Sezione dedicata accise gas naturale'
+      },
+      {
+        name: 'Servizi Online ADM',
+        url: 'https://www.adm.gov.it/portale/servizi-online',
+        description: 'Accesso ai servizi telematici'
+      }
+    ]
+  },
+  {
+    id: 'step-4-4',
+    phase: 4,
+    title: 'Familiarizzazione Portali Distributori (via Grossista)',
+    description: 'Conoscenza dei principali portali distributori per monitoraggio pratiche gestite dal grossista',
+    category: 'technical',
+    estimatedDays: 10,
+    priority: 'medium',
+    dependencies: ['step-4-2'],
+    documents: [
+      'Documentazione procedure grossista',
+      'Guida portali distributori (consultazione)',
+      'Procedure escalation problematiche'
+    ],
+    costs: {
+      min: 0,
+      max: 500,
+      description: 'Eventuale formazione aggiuntiva'
+    },
+    notes: [
+      'IMPORTANTE: Come reseller, i contratti di trasporto e distribuzione sono gestiti dal grossista',
+      'Il reseller NON ha rapporti diretti contrattuali con i distributori',
+      'Il grossista gestisce: switching, volture, subentri, letture, interventi tecnici',
+      'Il reseller può avere accesso in sola lettura per monitoraggio stato pratiche',
+      'Comunicazione con distributori avviene tramite il grossista'
+    ],
+    checklist: [
+      'Comprendere ruolo distributori nella filiera',
+      'Conoscere principali distributori nelle zone operative',
+      'Studiare tempi standard pratiche (switching 21gg, ecc.)',
+      'Definire procedure escalation con grossista',
+      'Formazione su lettura esiti pratiche SII',
+      'Setup alert per pratiche critiche',
+      'Documentare flussi comunicazione con grossista'
+    ],
+    officialLinks: [
+      {
+        name: 'E-Distribuzione (Enel)',
+        url: 'https://www.e-distribuzione.it',
+        description: 'Principale distributore nazionale'
       },
       {
         name: 'Unareti (A2A)',
-        url: 'https://www.unareti.it/portale/operatori',
-        description: 'Portale operatori Milano/Brescia'
+        url: 'https://www.unareti.it',
+        description: 'Distributore Milano/Brescia'
       },
       {
         name: 'Areti (ACEA)',
-        url: 'https://www.areti.it/operatori',
-        description: 'Portale operatori Roma e Lazio'
-      },
-      {
-        name: 'Ireti (IREN)',
-        url: 'https://www.gruppoiren.it/ireti',
-        description: 'Portale operatori Genova/Torino/Emilia'
+        url: 'https://www.areti.it',
+        description: 'Distributore Roma e Lazio'
       }
     ]
   },
