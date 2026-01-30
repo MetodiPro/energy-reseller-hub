@@ -105,15 +105,20 @@ export const useStepProgress = (userId: string | undefined) => {
     if (!userId) return;
 
     try {
-      const { error } = await supabase.from("step_progress").upsert({
-        user_id: userId,
-        step_id: stepId,
-        completed: progress.completed,
-        notes: progress.notes,
-        checklist_progress: progress.checklistProgress,
-        start_date: progress.startDate,
-        completion_date: progress.completionDate,
-      });
+      const { error } = await supabase.from("step_progress").upsert(
+        {
+          user_id: userId,
+          step_id: stepId,
+          completed: progress.completed,
+          notes: progress.notes,
+          checklist_progress: progress.checklistProgress,
+          start_date: progress.startDate,
+          completion_date: progress.completionDate,
+        },
+        {
+          onConflict: "user_id,step_id",
+        }
+      );
 
       if (error) throw error;
     } catch (error: any) {
