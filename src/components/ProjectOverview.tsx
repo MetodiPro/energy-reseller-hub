@@ -50,12 +50,15 @@ interface ProjectOverviewProps {
   onProjectUpdate: (project: Project) => void;
 }
 
-const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  draft: { label: 'Bozza', color: 'text-muted-foreground', bgColor: 'bg-muted' },
-  setup: { label: 'In Setup', color: 'text-warning', bgColor: 'bg-warning/10' },
-  active: { label: 'Attivo', color: 'text-success', bgColor: 'bg-success/10' },
-  paused: { label: 'In Pausa', color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
-  closed: { label: 'Chiuso', color: 'text-destructive', bgColor: 'bg-destructive/10' },
+const statusConfig: Record<string, { label: string; color: string; bgColor: string; description: string }> = {
+  draft: { label: 'Bozza', color: 'text-muted-foreground', bgColor: 'bg-muted', description: 'Progetto in fase di definizione iniziale' },
+  in_authorization: { label: 'In Autorizzazione', color: 'text-blue-500', bgColor: 'bg-blue-500/10', description: 'In attesa di licenze e autorizzazioni' },
+  setup: { label: 'In Setup', color: 'text-warning', bgColor: 'bg-warning/10', description: 'Configurazione sistemi e procedure' },
+  active: { label: 'Attivo', color: 'text-success', bgColor: 'bg-success/10', description: 'Progetto operativo e funzionante' },
+  operational: { label: 'Operativo', color: 'text-emerald-600', bgColor: 'bg-emerald-600/10', description: 'Piena operatività commerciale' },
+  paused: { label: 'In Pausa', color: 'text-orange-500', bgColor: 'bg-orange-500/10', description: 'Temporaneamente sospeso' },
+  suspended: { label: 'Sospeso', color: 'text-red-500', bgColor: 'bg-red-500/10', description: 'Sospeso per motivi regolatori o altri' },
+  closed: { label: 'Chiuso', color: 'text-destructive', bgColor: 'bg-destructive/10', description: 'Progetto terminato definitivamente' },
 };
 
 const marketTypeLabels: Record<string, string> = {

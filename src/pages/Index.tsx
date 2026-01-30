@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign, HelpCircle, Building2, Calendar, Link } from "lucide-react";
+import { Zap, LayoutDashboard, ListTodo, FileText, TrendingUp, LogOut, Download, Users, FolderOpen, DollarSign, HelpCircle, Building2, Calendar, Link, BarChart3, Rocket, FileBarChart } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
@@ -17,14 +17,19 @@ import { ProjectOverview } from "@/components/ProjectOverview";
 import { RegulatoryCalendar } from "@/components/RegulatoryCalendar";
 import { StepDocuments } from "@/components/StepDocuments";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
+import { GanttTimeline } from "@/components/GanttTimeline";
+import { PreLaunchChecklist } from "@/components/PreLaunchChecklist";
 import { FAQ } from "@/components/FAQ";
 import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useExportPDF } from "@/hooks/useExportPDF";
+import { useExportProjectReportPDF } from "@/hooks/useExportProjectReportPDF";
 import { useTeamAnalytics } from "@/hooks/useTeamAnalytics";
 import { useProjects } from "@/hooks/useProjects";
+import { useProjectFinancials } from "@/hooks/useProjectFinancials";
+import { useDeadlineNotifications } from "@/hooks/useDeadlineNotifications";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -32,6 +37,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
+  const [regulatoryDeadlines, setRegulatoryDeadlines] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,7 +80,34 @@ const Index = () => {
     notificationSettings
   );
   const { exportToPDF } = useExportPDF();
+  const { exportProjectReportPDF } = useExportProjectReportPDF();
   const { analytics, loading: analyticsLoading } = useTeamAnalytics(user?.id, stepProgress);
+  
+  // Project financials for report
+  const { costs, revenues, summary: financialSummary } = useProjectFinancials(currentProjectId);
+
+  // Deadline notifications
+  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId);
+
+  // Fetch regulatory deadlines for notifications
+  useEffect(() => {
+    const fetchDeadlines = async () => {
+      if (!currentProjectId) {
+        setRegulatoryDeadlines([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('regulatory_deadlines')
+        .select('*')
+        .eq('project_id', currentProjectId)
+        .order('due_date', { ascending: true });
+
+      setRegulatoryDeadlines(data || []);
+    };
+
+    fetchDeadlines();
+  }, [currentProjectId]);
 
   // Show wizard when user has no projects (after loading completes)
   useEffect(() => {
@@ -258,6 +291,14 @@ const Index = () => {
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Marketing</span>
             </TabsTrigger>
+            <TabsTrigger value="gantt" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Timeline</span>
+            </TabsTrigger>
+            <TabsTrigger value="prelaunch" className="gap-2">
+              <Rocket className="h-4 w-4" />
+              <span className="hidden sm:inline">Pre-Launch</span>
+            </TabsTrigger>
             <TabsTrigger value="faq" className="gap-2">
               <HelpCircle className="h-4 w-4" />
               <span className="hidden sm:inline">FAQ</span>
@@ -326,6 +367,24 @@ const Index = () => {
               userId={user.id} 
               projectId={currentProjectId} 
               stepProgress={stepProgress}
+            />
+          </TabsContent>
+
+          <TabsContent value="gantt" className="space-y-6">
+            <GanttTimeline 
+              stepProgress={stepProgress}
+              projectStartDate={(currentProject as any)?.created_at}
+              goLiveDate={(currentProject as any)?.go_live_date}
+            />
+          </TabsContent>
+
+          <TabsContent value="prelaunch" className="space-y-6">
+            <PreLaunchChecklist 
+              stepProgress={stepProgress}
+              project={currentProject as any}
+              hasDocuments={false}
+              hasCosts={costs.length > 0}
+              hasTeamMembers={true}
             />
           </TabsContent>
 
