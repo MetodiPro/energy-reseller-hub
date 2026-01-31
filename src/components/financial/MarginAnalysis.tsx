@@ -36,21 +36,21 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       name: 'Margine Lordo',
       value: summary.grossMargin,
       percent: summary.grossMarginPercent,
-      description: 'Ricavi - Costi Diretti (materiali, manodopera, commodity)',
+      description: 'Fatturato - Costi Passanti (energia, distribuzione, oneri)',
       icon: Target,
     },
     {
       name: 'Margine di Contribuzione',
       value: summary.contributionMargin,
       percent: summary.contributionMarginPercent,
-      description: 'Ricavi - Costi Diretti - Costi Commerciali (acquisizione clienti)',
+      description: 'Margine Lordo - Costi Commerciali (acquisizione clienti)',
       icon: Calculator,
     },
     {
-      name: 'Margine Netto',
+      name: 'Margine Netto Operativo',
       value: summary.netMargin,
       percent: summary.netMarginPercent,
-      description: 'Ricavi - Tutti i Costi Operativi (escluse imposte passanti)',
+      description: 'Fatturato - Tutti i Costi (passanti + operativi)',
       icon: DollarSign,
     },
   ];
@@ -71,10 +71,10 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ricavi Totali</CardTitle>
+            <CardTitle className="text-sm font-medium">Fatturato Lordo</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -82,29 +82,44 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
               {formatCurrency(summary.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Fatturato lordo emesso ai clienti
+              Totale emesso ai clienti finali
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Costi Totali</CardTitle>
+            <CardTitle className="text-sm font-medium">Costi Passanti</CardTitle>
+            <ArrowDownRight className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(summary.passthroughCosts)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Grossista + distribuzione + oneri
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Costi Operativi</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {formatCurrency(summary.totalCosts)}
+              {formatCurrency(summary.operationalCosts)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Costi operativi + passanti
+              Personale, software, marketing, ecc.
             </p>
           </CardContent>
         </Card>
 
         <Card className={summary.netMargin >= 0 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Risultato Netto</CardTitle>
+            <CardTitle className="text-sm font-medium">Margine Netto</CardTitle>
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -120,7 +135,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
               <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
                 {formatPercent(summary.netMarginPercent)}
               </span>
-              <span className="text-muted-foreground">sui ricavi</span>
+              <span className="text-muted-foreground">del fatturato</span>
             </div>
           </CardContent>
         </Card>

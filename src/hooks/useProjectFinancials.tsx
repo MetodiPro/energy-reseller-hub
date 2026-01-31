@@ -53,6 +53,8 @@ export interface ProjectRevenue {
 export interface FinancialSummary {
   totalRevenue: number;
   totalCosts: number;
+  passthroughCosts: number;
+  operationalCosts: number;
   grossMargin: number;
   grossMarginPercent: number;
   costsByType: {
@@ -276,6 +278,10 @@ export const useProjectFinancials = (projectId: string | null) => {
   const calculateSummary = (): FinancialSummary => {
     const totalRevenue = revenues.reduce((sum, r) => sum + (r.amount * r.quantity), 0);
     
+    // Separate passthrough costs from operational costs
+    let passthroughCosts = 0;
+    let operationalCosts = 0;
+    
     const costsByType = {
       commercial: 0,
       structural: 0,
@@ -285,23 +291,37 @@ export const useProjectFinancials = (projectId: string | null) => {
 
     costs.forEach(cost => {
       const total = cost.amount * cost.quantity;
-      costsByType[cost.cost_type] += total;
+      
+      // Check if cost is passthrough (from database field)
+      const isPassthrough = (cost as any).is_passthrough === true;
+      
+      if (isPassthrough) {
+        passthroughCosts += total;
+      } else {
+        operationalCosts += total;
+        costsByType[cost.cost_type] += total;
+      }
     });
 
-    const totalCosts = Object.values(costsByType).reduce((a, b) => a + b, 0);
-    const directCosts = costsByType.direct;
-    const grossMargin = totalRevenue - directCosts;
+    const totalCosts = passthroughCosts + operationalCosts;
+    
+    // Gross Margin = Revenue - Passthrough Costs (what you keep before operational expenses)
+    const grossMargin = totalRevenue - passthroughCosts;
     const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
     
-    const contributionMargin = totalRevenue - directCosts - costsByType.commercial;
+    // Contribution Margin = Gross Margin - Commercial Costs
+    const contributionMargin = grossMargin - costsByType.commercial;
     const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
     
+    // Net Margin = Revenue - All Costs (passthrough + operational)
     const netMargin = totalRevenue - totalCosts;
     const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
 
     return {
       totalRevenue,
       totalCosts,
+      passthroughCosts,
+      operationalCosts,
       grossMargin,
       grossMarginPercent,
       costsByType,

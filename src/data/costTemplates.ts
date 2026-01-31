@@ -32,7 +32,7 @@ export interface RevenueTemplateItem {
   revenue_type: string;
   status: string;
   // New fields
-  margin_type?: 'fixed' | 'per_client' | 'per_kwh' | 'percentage';
+  margin_type?: 'fixed' | 'per_client' | 'per_kwh' | 'per_smc' | 'percentage';
   calculation_basis?: string;
   calculation_params?: {
     num_clients?: number;
@@ -41,6 +41,8 @@ export interface RevenueTemplateItem {
     margin_per_smc?: number;
     consumption_kwh?: number;
     consumption_smc?: number;
+    price_per_kwh?: number;
+    price_per_smc?: number;
     percentage?: number;
   };
 }
@@ -744,31 +746,31 @@ export const projectTemplates: ProjectTemplate[] = [
         calculation_params: { base_value: 4000 }
       },
     ],
-    // RICAVI - Solo marginalità, non fatturato lordo
+    // RICAVI - Fatturato LORDO emesso ai clienti (include commodity + distribuzione + margine)
     revenues: [
       { 
-        name: 'Margine Energia Elettrica', 
-        description: 'Margine netto su vendita energia a clienti residenziali (spread su commodity)',
-        amount: 8, 
-        quantity: 500, 
-        unit: 'cliente/mese', 
-        revenue_type: 'recurring', 
+        name: 'Fatturato Energia Elettrica', 
+        description: 'Fatturato lordo energia emesso ai clienti finali (commodity + distribuzione + oneri + margine)',
+        amount: 0.25, 
+        quantity: 150000, 
+        unit: 'kWh/mese', 
+        revenue_type: 'energia_elettrica', 
         status: 'expected',
-        margin_type: 'per_client',
-        calculation_basis: '500 clienti × €8 margine medio/cliente/mese. Margine = differenza tra prezzo vendita e costo acquisto + distribuzione',
-        calculation_params: { num_clients: 500, margin_per_client: 8 }
+        margin_type: 'per_kwh',
+        calculation_basis: '500 clienti × 300 kWh/mese × €0,25/kWh prezzo vendita finale',
+        calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.25 }
       },
       { 
-        name: 'Margine Gas Naturale', 
-        description: 'Margine netto su vendita gas a clienti residenziali',
-        amount: 12, 
-        quantity: 300, 
-        unit: 'cliente/mese', 
-        revenue_type: 'recurring', 
+        name: 'Fatturato Gas Naturale', 
+        description: 'Fatturato lordo gas emesso ai clienti finali (commodity + distribuzione + oneri + margine)',
+        amount: 1.20, 
+        quantity: 50000, 
+        unit: 'Smc/mese', 
+        revenue_type: 'gas_naturale', 
         status: 'expected',
-        margin_type: 'per_client',
-        calculation_basis: '300 clienti gas × €12 margine medio/cliente/mese. Margine gas tipicamente più alto del luce',
-        calculation_params: { num_clients: 300, margin_per_client: 12 }
+        margin_type: 'per_smc',
+        calculation_basis: '300 clienti × 166 Smc/mese × €1,20/Smc prezzo vendita finale',
+        calculation_params: { num_clients: 300, consumption_smc: 166, price_per_smc: 1.20 }
       },
       { 
         name: 'Fee Attivazione Nuovi Contratti', 
@@ -776,10 +778,10 @@ export const projectTemplates: ProjectTemplate[] = [
         amount: 30, 
         quantity: 100, 
         unit: 'contratto', 
-        revenue_type: 'one_time', 
+        revenue_type: 'servizi_accessori', 
         status: 'expected',
         margin_type: 'fixed',
-        calculation_basis: '100 nuovi contratti anno 1 × €30 fee attivazione (ove applicabile)',
+        calculation_basis: '100 nuovi contratti anno 1 × €30 fee attivazione',
         calculation_params: { num_clients: 100, margin_per_client: 30 }
       },
     ],
@@ -1299,30 +1301,31 @@ export const projectTemplates: ProjectTemplate[] = [
         calculation_params: { base_value: 1500, num_clients: 3 }
       },
     ],
+    // RICAVI - Fatturato LORDO emesso ai clienti business
     revenues: [
       { 
-        name: 'Margine Energia Elettrica Business', 
-        description: 'Margine netto su vendita energia a clienti business (spread più basso ma volumi maggiori)',
-        amount: 0.008, 
+        name: 'Fatturato Energia Elettrica Business', 
+        description: 'Fatturato lordo energia emesso a clienti business (commodity + distribuzione + oneri + margine)',
+        amount: 0.19, 
         quantity: 400000, 
         unit: 'kWh/mese', 
-        revenue_type: 'recurring', 
+        revenue_type: 'energia_elettrica', 
         status: 'expected',
         margin_type: 'per_kwh',
-        calculation_basis: '400.000 kWh/mese × €0,008/kWh margine. Margine unitario più basso ma volumi compensano',
-        calculation_params: { consumption_kwh: 400000, margin_per_kwh: 0.008 }
+        calculation_basis: '100 clienti business × 4.000 kWh/mese × €0,19/kWh prezzo vendita finale',
+        calculation_params: { num_clients: 100, consumption_kwh: 4000, price_per_kwh: 0.19 }
       },
       { 
-        name: 'Margine Gas Naturale Business', 
-        description: 'Margine netto su vendita gas a clienti business',
-        amount: 0.03, 
+        name: 'Fatturato Gas Naturale Business', 
+        description: 'Fatturato lordo gas emesso a clienti business',
+        amount: 1.08, 
         quantity: 80000, 
         unit: 'Smc/mese', 
-        revenue_type: 'recurring', 
+        revenue_type: 'gas_naturale', 
         status: 'expected',
-        margin_type: 'per_kwh',
-        calculation_basis: '80.000 Smc/mese × €0,03/Smc margine',
-        calculation_params: { consumption_smc: 80000, margin_per_kwh: 0.03 }
+        margin_type: 'per_smc',
+        calculation_basis: '50 clienti gas business × 1.600 Smc/mese × €1,08/Smc prezzo vendita finale',
+        calculation_params: { num_clients: 50, consumption_smc: 1600, price_per_smc: 1.08 }
       },
       { 
         name: 'Fee Gestione Grandi Clienti', 
@@ -1330,7 +1333,7 @@ export const projectTemplates: ProjectTemplate[] = [
         amount: 100, 
         quantity: 20, 
         unit: 'cliente/mese', 
-        revenue_type: 'recurring', 
+        revenue_type: 'servizi_accessori', 
         status: 'expected',
         margin_type: 'per_client',
         calculation_basis: '20 clienti premium con fee gestione €100/mese per reporting e ottimizzazione',
@@ -1453,54 +1456,55 @@ export const projectTemplates: ProjectTemplate[] = [
       { name: 'Hardware + Arredo', description: 'Dotazione ufficio', amount: 7500, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false, calculation_basis: '4 postazioni + sala riunioni', calculation_params: { base_value: 7500 } },
       { name: 'Deposito Cauzionale', description: 'Cauzione affitto', amount: 3300, quantity: 1, unit: 'forfait', cost_type: 'structural', is_recurring: false, calculation_basis: '€1.100 × 3 mesi', calculation_params: { base_value: 1100, num_clients: 3 } },
     ],
+    // RICAVI - Fatturato LORDO emesso ai clienti (mix residenziale + business)
     revenues: [
       { 
-        name: 'Margine Energia Residenziale', 
-        description: 'Margine clienti domestici',
-        amount: 8, 
-        quantity: 300, 
-        unit: 'cliente/mese', 
-        revenue_type: 'recurring', 
+        name: 'Fatturato Energia Residenziale', 
+        description: 'Fatturato lordo energia clienti domestici',
+        amount: 0.25, 
+        quantity: 90000, 
+        unit: 'kWh/mese', 
+        revenue_type: 'energia_elettrica', 
         status: 'expected',
-        margin_type: 'per_client',
-        calculation_basis: '300 clienti residenziali × €8/mese',
-        calculation_params: { num_clients: 300, margin_per_client: 8 }
+        margin_type: 'per_kwh',
+        calculation_basis: '300 clienti residenziali × 300 kWh/mese × €0,25/kWh',
+        calculation_params: { num_clients: 300, consumption_kwh: 300, price_per_kwh: 0.25 }
       },
       { 
-        name: 'Margine Gas Residenziale', 
-        description: 'Margine gas domestici',
-        amount: 12, 
-        quantity: 200, 
-        unit: 'cliente/mese', 
-        revenue_type: 'recurring', 
+        name: 'Fatturato Gas Residenziale', 
+        description: 'Fatturato lordo gas clienti domestici',
+        amount: 1.20, 
+        quantity: 30000, 
+        unit: 'Smc/mese', 
+        revenue_type: 'gas_naturale', 
         status: 'expected',
-        margin_type: 'per_client',
-        calculation_basis: '200 clienti gas residenziali × €12/mese',
-        calculation_params: { num_clients: 200, margin_per_client: 12 }
+        margin_type: 'per_smc',
+        calculation_basis: '200 clienti gas residenziali × 150 Smc/mese × €1,20/Smc',
+        calculation_params: { num_clients: 200, consumption_smc: 150, price_per_smc: 1.20 }
       },
       { 
-        name: 'Margine Energia Business', 
-        description: 'Margine clienti aziende (€/kWh)',
-        amount: 0.007, 
+        name: 'Fatturato Energia Business', 
+        description: 'Fatturato lordo energia clienti aziende',
+        amount: 0.19, 
         quantity: 175000, 
         unit: 'kWh/mese', 
-        revenue_type: 'recurring', 
+        revenue_type: 'energia_elettrica', 
         status: 'expected',
         margin_type: 'per_kwh',
-        calculation_basis: '50 clienti business × 3.500 kWh × €0,007/kWh',
-        calculation_params: { consumption_kwh: 175000, margin_per_kwh: 0.007 }
+        calculation_basis: '50 clienti business × 3.500 kWh/mese × €0,19/kWh',
+        calculation_params: { num_clients: 50, consumption_kwh: 3500, price_per_kwh: 0.19 }
       },
       { 
-        name: 'Margine Gas Business', 
-        description: 'Margine gas aziende (€/Smc)',
-        amount: 0.025, 
+        name: 'Fatturato Gas Business', 
+        description: 'Fatturato lordo gas clienti aziende',
+        amount: 1.08, 
         quantity: 21000, 
         unit: 'Smc/mese', 
-        revenue_type: 'recurring', 
+        revenue_type: 'gas_naturale', 
         status: 'expected',
-        margin_type: 'per_kwh',
-        calculation_basis: '30 clienti gas business × 700 Smc × €0,025/Smc',
-        calculation_params: { consumption_smc: 21000, margin_per_kwh: 0.025 }
+        margin_type: 'per_smc',
+        calculation_basis: '30 clienti gas business × 700 Smc/mese × €1,08/Smc',
+        calculation_params: { num_clients: 30, consumption_smc: 700, price_per_smc: 1.08 }
       },
     ],
     taxes: standardTaxTemplates.map(tax => ({

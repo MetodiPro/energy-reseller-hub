@@ -97,9 +97,9 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
 
       if (projectError) throw projectError;
 
-      // If a template is selected, create costs and revenues
+      // If a template is selected, create costs, passthrough costs, and revenues
       if (selectedTemplate && project) {
-        // Insert costs
+        // Insert operational costs
         if (selectedTemplate.costs.length > 0) {
           const costsToInsert = selectedTemplate.costs.map((cost) => ({
             project_id: project.id,
@@ -111,6 +111,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
             cost_type: cost.cost_type,
             is_recurring: cost.is_recurring,
             recurrence_period: cost.recurrence_period || null,
+            is_passthrough: false,
             created_by: userId,
           }));
 
@@ -121,7 +122,32 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
           if (costsError) console.error('Error inserting costs:', costsError);
         }
 
-        // Insert revenues
+        // Insert passthrough costs (energia, distribuzione, etc.)
+        if (selectedTemplate.passthrough_costs && selectedTemplate.passthrough_costs.length > 0) {
+          const passthroughToInsert = selectedTemplate.passthrough_costs.map((cost) => ({
+            project_id: project.id,
+            name: cost.name,
+            description: cost.description,
+            amount: cost.amount,
+            quantity: cost.quantity,
+            unit: cost.unit,
+            cost_type: cost.cost_type,
+            is_recurring: cost.is_recurring,
+            recurrence_period: cost.recurrence_period || null,
+            is_passthrough: true,
+            passthrough_recipient: cost.passthrough_recipient || null,
+            calculation_basis: cost.calculation_basis || null,
+            created_by: userId,
+          }));
+
+          const { error: passthroughError } = await supabase
+            .from('project_costs')
+            .insert(passthroughToInsert);
+
+          if (passthroughError) console.error('Error inserting passthrough costs:', passthroughError);
+        }
+
+        // Insert revenues (now gross turnover, not margins)
         if (selectedTemplate.revenues.length > 0) {
           const revenuesToInsert = selectedTemplate.revenues.map((revenue) => ({
             project_id: project.id,
@@ -132,6 +158,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
             unit: revenue.unit,
             revenue_type: revenue.revenue_type,
             status: revenue.status,
+            calculation_basis: revenue.calculation_basis || null,
             created_by: userId,
           }));
 
