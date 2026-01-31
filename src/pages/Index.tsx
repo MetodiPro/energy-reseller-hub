@@ -170,7 +170,7 @@ const Index = () => {
                 <Zap className="h-7 w-7 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">Metodi ResBuilder</h1>
+                <h1 className="text-2xl font-bold text-white">Power Reseller Start Up</h1>
                 <p className="text-white/80 text-xs">Reseller Energia - Percorso Operativo</p>
               </div>
             </div>

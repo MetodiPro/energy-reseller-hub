@@ -34,7 +34,7 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
 
         toast({
           title: "Accesso effettuato",
-          description: "Benvenuto in Metodi ResBuilder!",
+          description: "Benvenuto in Power Reseller Start Up!",
         });
         onSuccess();
       } else {
@@ -77,7 +77,7 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
               <Zap className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <CardTitle className="text-2xl">Metodi ResBuilder</CardTitle>
+              <CardTitle className="text-2xl">Power Reseller Start Up</CardTitle>
             </div>
           </div>
           <CardDescription>
