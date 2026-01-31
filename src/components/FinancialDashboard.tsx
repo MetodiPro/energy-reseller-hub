@@ -15,7 +15,8 @@ import {
   Target,
   Percent,
   FileDown,
-  Receipt
+  Receipt,
+  Calculator
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
@@ -29,6 +30,7 @@ import { FinancialTimeline } from '@/components/financial/FinancialTimeline';
 import { CostCategorySummary } from '@/components/financial/CostCategorySummary';
 import { TaxesManager } from '@/components/financial/TaxesManager';
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
+import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -133,14 +135,10 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
-          </TabsTrigger>
-          <TabsTrigger value="simulation" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Simulazione
           </TabsTrigger>
           <TabsTrigger value="costs" className="flex items-center gap-2">
             <TrendingDown className="h-4 w-4" />
@@ -148,11 +146,19 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           </TabsTrigger>
           <TabsTrigger value="revenues" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
+            Ricavi
+          </TabsTrigger>
+          <TabsTrigger value="margins" className="flex items-center gap-2">
+            <Calculator className="h-4 w-4" />
             Margini
           </TabsTrigger>
           <TabsTrigger value="taxes" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
             Imposte
+          </TabsTrigger>
+          <TabsTrigger value="simulation" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Simulazione
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -356,14 +362,6 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           <BreakEvenAnalysis summary={summary} />
         </TabsContent>
 
-        <TabsContent value="simulation" className="space-y-6">
-          {/* What-If Simulator */}
-          <WhatIfSimulator summary={summary} />
-          
-          {/* Break-Even Analysis */}
-          <BreakEvenAnalysis summary={summary} />
-        </TabsContent>
-
         <TabsContent value="costs" className="space-y-6">
           {/* Passthrough costs card - separated from operating costs */}
           <PassthroughCostsCard costs={costs} />
@@ -382,12 +380,11 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
 
         <TabsContent value="revenues">
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-1">Nota per Reseller Energia</h3>
-              <p className="text-sm text-blue-700 dark:text-blue-400">
-                I ricavi qui indicati rappresentano il <strong>margine netto</strong> trattenuto dal reseller, 
-                non il fatturato lordo. La differenza tra prezzo di vendita al cliente e costo di acquisto 
-                dal grossista costituisce il vero ricavo operativo.
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <h3 className="font-medium text-green-800 dark:text-green-300 mb-1">💰 Ricavi = Fatturato Emesso</h3>
+              <p className="text-sm text-green-700 dark:text-green-400">
+                Qui registri il <strong>fatturato lordo</strong> emesso ai clienti finali. 
+                Il margine viene calcolato automaticamente nella tab "Margini" come differenza tra i ricavi inseriti qui e i costi.
               </p>
             </div>
             <CostRevenueManager
@@ -402,8 +399,20 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           </div>
         </TabsContent>
 
+        <TabsContent value="margins" className="space-y-6">
+          <MarginAnalysis summary={summary} />
+        </TabsContent>
+
         <TabsContent value="taxes">
           <TaxesManager projectId={projectId} />
+        </TabsContent>
+
+        <TabsContent value="simulation" className="space-y-6">
+          {/* What-If Simulator */}
+          <WhatIfSimulator summary={summary} />
+          
+          {/* Break-Even Analysis */}
+          <BreakEvenAnalysis summary={summary} />
         </TabsContent>
 
         <TabsContent value="history">
