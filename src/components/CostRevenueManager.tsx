@@ -42,9 +42,11 @@ const COST_TYPE_OPTIONS = [
 ];
 
 const REVENUE_TYPE_OPTIONS = [
+  { value: 'energia_elettrica', label: 'Energia Elettrica', description: 'Fatturato vendita kWh' },
+  { value: 'gas_naturale', label: 'Gas Naturale', description: 'Fatturato vendita Smc' },
+  { value: 'servizi_accessori', label: 'Servizi Accessori', description: 'Manutenzione, consulenza, ecc.' },
   { value: 'one_time', label: 'Una Tantum', description: 'Pagamento unico' },
   { value: 'recurring', label: 'Ricorrente', description: 'Pagamento periodico' },
-  { value: 'milestone', label: 'Milestone', description: 'Pagamento a traguardi' },
 ];
 
 const REVENUE_STATUS_OPTIONS = [
@@ -74,10 +76,10 @@ export const CostRevenueManager = ({
   const [formData, setFormData] = useState<any>({});
 
   const isCosts = type === 'costs';
-  const title = isCosts ? 'Gestione Costi' : 'Gestione Ricavi';
+  const title = isCosts ? 'Gestione Costi' : 'Gestione Ricavi (Fatturato)';
   const description = isCosts 
     ? 'Inserisci e gestisci le voci di costo del progetto' 
-    : 'Inserisci e gestisci le voci di ricavo del progetto';
+    : 'Fatturato LORDO emesso ai clienti finali (energia + distribuzione + oneri + margine)';
 
   const resetForm = () => {
     setFormData({
@@ -297,36 +299,52 @@ export const CostRevenueManager = ({
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Importo (€) *</Label>
+                  <Label htmlFor="amount">
+                    {isCosts ? 'Importo (€) *' : 'Prezzo Unitario (€) *'}
+                  </Label>
                   <Input
                     id="amount"
                     type="number"
                     step="0.01"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder="0.00"
+                    placeholder={isCosts ? '0.00' : 'es. 0.25 €/kWh'}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantità</Label>
+                  <Label htmlFor="quantity">
+                    {isCosts ? 'Quantità' : 'Volume Venduto'}
+                  </Label>
                   <Input
                     id="quantity"
                     type="number"
                     step="0.01"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    placeholder={isCosts ? '1' : 'es. 100000 kWh'}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="unit">Unità</Label>
+                  <Label htmlFor="unit">Unità di Misura</Label>
                   <Input
                     id="unit"
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    placeholder="es. pz, ore, m²"
+                    placeholder={isCosts ? 'es. pz, ore' : 'es. kWh, Smc, clienti'}
                   />
                 </div>
               </div>
+
+              {!isCosts && (
+                <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                  <p className="font-medium text-muted-foreground">
+                    💡 Totale Fatturato: {formatCurrency((parseFloat(formData.amount) || 0) * (parseFloat(formData.quantity) || 0))}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Inserisci il fatturato LORDO emesso ai clienti (include passanti + margine)
+                  </p>
+                </div>
+              )}
 
               {isCosts && (
                 <div className="space-y-2">
