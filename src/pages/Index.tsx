@@ -324,7 +324,13 @@ const Index = () => {
           onProjectCreated={handleProjectCreated}
         />
 
-        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <AppSidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          userEmail={user?.email}
+          userName={user?.user_metadata?.full_name}
+          onSignOut={handleSignOut}
+        />
 
         <SidebarInset>
           {/* Header */}
