@@ -40,7 +40,8 @@ import {
   Save,
   Loader2,
   ChevronDown,
-  Receipt
+  Receipt,
+  Download
 } from 'lucide-react';
 import {
   AreaChart,
@@ -58,6 +59,8 @@ import { useRevenueSimulation, type RevenueSimulationParams } from '@/hooks/useR
 import { InvoiceComponentsInput } from './InvoiceComponentsInput';
 import { InvoiceBreakdownTable } from './InvoiceBreakdownTable';
 import { TariffsSummaryPanel } from './TariffsSummaryPanel';
+import { exportSimulationToExcel } from '@/lib/exportSimulationExcel';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * MODELLO COMPLETO FATTURA ENERGIA ELETTRICA
@@ -158,6 +161,7 @@ const formatCurrencyDecimal = (value: number) => {
 };
 
 export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulatorProps) => {
+  const { toast } = useToast();
   const { 
     data, 
     loading, 
@@ -369,13 +373,40 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
       {/* Header con spiegazione */}
       <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-600" />
-            Simulatore Fatturazione Reseller Energia
-          </CardTitle>
-          <CardDescription className="text-blue-700 dark:text-blue-300">
-            Modello completo: fattura cliente → componenti passanti → margine reseller → incasso
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-600" />
+                Simulatore Fatturazione Reseller Energia
+              </CardTitle>
+              <CardDescription className="text-blue-700 dark:text-blue-300">
+                Modello completo: fattura cliente → componenti passanti → margine reseller → incasso
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                try {
+                  exportSimulationToExcel('Progetto', projection, params, totals);
+                  toast({
+                    title: 'Export completato',
+                    description: 'Il file Excel è stato scaricato',
+                  });
+                } catch (error) {
+                  toast({
+                    title: 'Errore export',
+                    description: 'Impossibile esportare i dati',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
