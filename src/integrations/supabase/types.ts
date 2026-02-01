@@ -1155,6 +1155,45 @@ export type Database = {
           },
         ]
       }
+      user_notification_preferences: {
+        Row: {
+          created_at: string
+          deadline_reminders: boolean
+          email_notifications: boolean
+          financial_alerts: boolean
+          id: string
+          reminder_days_before: number
+          step_completion_alerts: boolean
+          team_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_reminders?: boolean
+          email_notifications?: boolean
+          financial_alerts?: boolean
+          id?: string
+          reminder_days_before?: number
+          step_completion_alerts?: boolean
+          team_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deadline_reminders?: boolean
+          email_notifications?: boolean
+          financial_alerts?: boolean
+          id?: string
+          reminder_days_before?: number
+          step_completion_alerts?: boolean
+          team_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
