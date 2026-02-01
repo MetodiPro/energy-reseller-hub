@@ -52,6 +52,11 @@ export const ProcessGanttTimeline = ({
 
   const visibleSteps = processSteps.filter(filterStep);
 
+  // Calculate minimum required days based on step estimates
+  const minimumRequiredDays = useMemo(() => {
+    return visibleSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
+  }, [visibleSteps]);
+
   // Calculate timeline data - distribute steps proportionally within the date range
   const timelineData = useMemo(() => {
     if (!projectStartDate || !projectEndDate) return null;
@@ -133,14 +138,37 @@ export const ProcessGanttTimeline = ({
       costByMonth[monthKey] = (costByMonth[monthKey] || 0) + cost;
     });
 
+    // Calculate compression ratio
+    const compressionRatio = totalProjectDays / totalEstimatedDays;
+
     return {
       steps: stepsWithDates,
       totalDays: totalProjectDays,
       totalCost,
       completedSteps,
       costByMonth,
+      compressionRatio,
+      totalEstimatedDays,
     };
   }, [projectStartDate, projectEndDate, visibleSteps, stepProgress, getCostAmount]);
+
+  // Validation: check if the date range is feasible
+  const isFeasible = useMemo(() => {
+    if (!projectStartDate || !projectEndDate) return true;
+    const totalProjectDays = differenceInDays(projectEndDate, projectStartDate);
+    // Consider feasible if at least 30% of estimated time (aggressive but possible)
+    // Below 10% is definitely not feasible
+    return totalProjectDays >= minimumRequiredDays * 0.1;
+  }, [projectStartDate, projectEndDate, minimumRequiredDays]);
+
+  const compressionWarning = useMemo(() => {
+    if (!timelineData) return null;
+    const ratio = timelineData.compressionRatio;
+    if (ratio >= 0.8) return null; // No warning if 80%+ of original time
+    if (ratio >= 0.5) return 'moderate'; // 50-80%: moderate compression
+    if (ratio >= 0.2) return 'high'; // 20-50%: high compression
+    return 'extreme'; // <20%: extreme compression
+  }, [timelineData]);
 
   if (!projectStartDate || !projectEndDate) {
     return (
@@ -149,6 +177,31 @@ export const ProcessGanttTimeline = ({
           <AlertTriangle className="h-8 w-8 text-warning mx-auto mb-3" />
           <p className="text-muted-foreground">
             Imposta le date di inizio e fine progetto per visualizzare la timeline
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Durata minima stimata: <strong>{minimumRequiredDays} giorni</strong>
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show error if dates are not feasible
+  if (!isFeasible || !timelineData) {
+    const actualDays = differenceInDays(projectEndDate, projectStartDate);
+    return (
+      <Card className="border-destructive/50 bg-destructive/5">
+        <CardContent className="py-8 text-center">
+          <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-3" />
+          <p className="font-medium text-destructive">
+            Range di date non realistico
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Hai impostato <strong>{actualDays} giorni</strong>, ma il processo richiede 
+            almeno <strong>{minimumRequiredDays} giorni</strong> secondo le stime.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Estendi la data di fine o anticipa la data di inizio per un piano realistico.
           </p>
         </CardContent>
       </Card>
@@ -161,8 +214,53 @@ export const ProcessGanttTimeline = ({
   const daysRemaining = differenceInDays(projectEndDate, today);
   const progressPercentage = Math.round((timelineData.completedSteps / timelineData.steps.length) * 100);
 
+  const getCompressionBadge = () => {
+    if (!compressionWarning) return null;
+    const config = {
+      moderate: { label: 'Compressione moderata', className: 'bg-warning/10 text-warning border-warning/30' },
+      high: { label: 'Compressione alta', className: 'bg-orange-500/10 text-orange-600 border-orange-500/30' },
+      extreme: { label: 'Compressione estrema', className: 'bg-destructive/10 text-destructive border-destructive/30' },
+    };
+    const c = config[compressionWarning];
+    return (
+      <Badge variant="outline" className={cn("text-xs", c.className)}>
+        {c.label} ({Math.round(timelineData.compressionRatio * 100)}% del tempo stimato)
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
+      {/* Compression Warning Banner */}
+      {compressionWarning && (
+        <Card className={cn(
+          "border",
+          compressionWarning === 'moderate' && "border-warning/50 bg-warning/5",
+          compressionWarning === 'high' && "border-orange-500/50 bg-orange-500/5",
+          compressionWarning === 'extreme' && "border-destructive/50 bg-destructive/5"
+        )}>
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className={cn(
+                "h-5 w-5 flex-shrink-0 mt-0.5",
+                compressionWarning === 'moderate' && "text-warning",
+                compressionWarning === 'high' && "text-orange-500",
+                compressionWarning === 'extreme' && "text-destructive"
+              )} />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-sm">Timeline compressa</span>
+                  {getCompressionBadge()}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Il range di {timelineData.totalDays} giorni è inferiore alla durata stimata di {timelineData.totalEstimatedDays} giorni. 
+                  Gli step saranno compressi proporzionalmente. Valuta se è realistico.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
