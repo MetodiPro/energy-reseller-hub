@@ -103,6 +103,7 @@ interface MonthData {
   newContracts: number;
   sentToWholesaler: number;
   activatedCustomers: number;
+  churnedCustomers: number;
   activeCustomers: number;
   invoicedCustomers: number;
   
@@ -221,12 +222,19 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
         ? Math.round((m - 2 < 12 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) 
         : 0;
       
-      cumulativeActiveCustomers += activatedCustomers;
+      // Calcola churn (switch-out) - applicato ai clienti già attivi dal mese precedente
+      // Il churn si applica solo ai clienti già in fornitura (dal mese 3 in poi hanno clienti attivi)
+      const churnedCustomers = m >= 3 
+        ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100))
+        : 0;
+      
+      // Aggiorna clienti attivi: nuovi meno churned
+      cumulativeActiveCustomers = Math.max(0, cumulativeActiveCustomers + activatedCustomers - churnedCustomers);
       
       // Clienti da fatturare = tutti i clienti attivi al mese precedente
       // Prima fattura arriva al mese X+3 (1 mese dopo attivazione)
       const invoicedCustomers = m >= 3 
-        ? cumulativeActiveCustomers - activatedCustomers
+        ? Math.max(0, cumulativeActiveCustomers)
         : 0;
       
       // Calcolo fattura totale per questo mese
@@ -281,6 +289,7 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
         newContracts,
         sentToWholesaler,
         activatedCustomers,
+        churnedCustomers,
         activeCustomers: cumulativeActiveCustomers,
         invoicedCustomers,
         
@@ -322,6 +331,7 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
     const lastMonth = projection[projection.length - 1];
     return {
       totalContracts: projection.reduce((sum, m) => sum + m.newContracts, 0),
+      totalChurned: projection.reduce((sum, m) => sum + m.churnedCustomers, 0),
       totalActiveCustomers: lastMonth?.activeCustomers || 0,
       totalFatturato: projection.reduce((sum, m) => sum + m.fatturaTotale, 0),
       totalMargine: projection.reduce((sum, m) => sum + m.margineTotale, 0),
@@ -512,6 +522,32 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
                   onChange={(e) => updateParams('activationRate', parseFloat(e.target.value) || 0)}
                 />
               </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label>Switch-out mensile (%)</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                      <TooltipContent>
+                        <p>Percentuale di clienti che abbandonano ogni mese</p>
+                        <p className="text-xs text-muted-foreground">Tipico mercato libero: 1-3%</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={params.monthlyChurnRate}
+                  onChange={(e) => updateParams('monthlyChurnRate', parseFloat(e.target.value) || 0)}
+                />
+                <p className="text-xs text-muted-foreground text-orange-600">
+                  = ~{Math.round((1 - Math.pow(1 - params.monthlyChurnRate/100, 12)) * 100)}% abbandono annuo
+                </p>
+              </div>
             </div>
 
             <Separator />
@@ -692,12 +728,21 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
 
               <TabsContent value="overview" className="space-y-6">
                 {/* KPI Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <Card>
                     <CardContent className="pt-4">
                       <p className="text-sm text-muted-foreground">Contratti Totali</p>
                       <p className="text-2xl font-bold">{totals.totalContracts}</p>
                       <p className="text-xs text-muted-foreground">in 14 mesi</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-red-50 dark:bg-red-950/20">
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-red-700 dark:text-red-300">Switch-out</p>
+                      <p className="text-2xl font-bold text-red-600">-{totals.totalChurned}</p>
+                      <p className="text-xs text-red-600">
+                        Clienti finali: {totals.totalActiveCustomers}
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
@@ -814,6 +859,7 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
                         <TableHead>Mese</TableHead>
                         <TableHead className="text-right">Contratti</TableHead>
                         <TableHead className="text-right">Attivati</TableHead>
+                        <TableHead className="text-right">Switch-out</TableHead>
                         <TableHead className="text-right">Clienti Attivi</TableHead>
                         <TableHead className="text-right">Fatturato</TableHead>
                         <TableHead className="text-right">Incasso</TableHead>
@@ -829,6 +875,13 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
                             {month.activatedCustomers > 0 ? (
                               <Badge variant="outline" className="text-green-600">
                                 +{month.activatedCustomers}
+                              </Badge>
+                            ) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {month.churnedCustomers > 0 ? (
+                              <Badge variant="outline" className="text-red-600">
+                                -{month.churnedCustomers}
                               </Badge>
                             ) : '-'}
                           </TableCell>
