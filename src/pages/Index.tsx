@@ -331,8 +331,8 @@ const Index = () => {
           <header className="bg-gradient-hero border-b shadow-lg sticky top-0 z-10">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-white hover:bg-white/10" />
-                <div className="h-px w-6 bg-white/20 rotate-90" />
+                <SidebarTrigger className="text-white hover:bg-white/20 h-9 w-9 rounded-md transition-colors" />
+                <div className="h-px w-6 bg-white/20 rotate-90 hidden sm:block" />
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-white" />
                   <span className="text-white font-semibold hidden sm:inline">Power Reseller Start Up</span>
