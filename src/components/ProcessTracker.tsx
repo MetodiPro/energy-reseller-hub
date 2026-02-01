@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   CheckCircle2, 
   Circle, 
@@ -21,7 +23,9 @@ import {
   TrendingUp,
   Calculator,
   Wallet,
-  Download
+  Download,
+  CalendarDays,
+  Play
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
@@ -33,17 +37,29 @@ import { StepCostDetails } from "@/components/StepCostDetails";
 import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
+import { ProcessGanttTimeline } from "@/components/ProcessGanttTimeline";
+import { format, parseISO } from "date-fns";
+import { it } from "date-fns/locale";
 
 interface ProcessTrackerProps {
   projectId?: string | null;
   commodityType?: string | null;
   projectName?: string;
+  projectStartDate?: string | null;
+  onUpdateProjectStartDate?: (date: Date | null) => void;
 }
 
-export const ProcessTracker = ({ projectId, commodityType, projectName = 'Progetto' }: ProcessTrackerProps) => {
+export const ProcessTracker = ({ 
+  projectId, 
+  commodityType, 
+  projectName = 'Progetto',
+  projectStartDate,
+  onUpdateProjectStartDate 
+}: ProcessTrackerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
+  const [startDateOpen, setStartDateOpen] = useState(false);
   const { stepProgress, loading, updateProgress } = useStepProgress({
     userId,
     projectId: projectId ?? null,
@@ -52,8 +68,17 @@ export const ProcessTracker = ({ projectId, commodityType, projectName = 'Proget
   const { getStepTotal, getCostAmount } = useStepCosts(projectId ?? null);
   const { exportToPDF } = useExportProcessCostsPDF();
 
+  const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
+
   const handleExportPDF = () => {
     exportToPDF(projectName, commodityType ?? null, getCostAmount);
+  };
+
+  const handleStartDateSelect = (date: Date | undefined) => {
+    if (onUpdateProjectStartDate) {
+      onUpdateProjectStartDate(date || null);
+    }
+    setStartDateOpen(false);
   };
 
   // Calculate total costs by category across all visible steps
@@ -205,89 +230,56 @@ export const ProcessTracker = ({ projectId, commodityType, projectName = 'Proget
 
   return (
     <div className="space-y-6">
-      {/* Sync Status */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {userId ? (
-          <>
-            <Cloud className="h-4 w-4 text-success" />
-            <span>Sincronizzazione automatica attiva</span>
-          </>
-        ) : (
-          <>
-            <CloudOff className="h-4 w-4 text-warning" />
-            <span>Accedi per salvare i progressi</span>
-          </>
-        )}
-      </div>
-
-      {/* Cost Summary Card */}
-      <Card className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20 shadow-custom-lg">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Wallet className="h-5 w-5 text-primary" />
-              Riepilogo Costi di Avvio
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPDF}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Esporta PDF
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
-              <p className="text-3xl font-bold text-primary">
-                €{costSummary.grandTotal.toLocaleString('it-IT')}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Step con costi</p>
-              <p className="text-xl font-semibold">{costSummary.stepsWithCosts}</p>
-            </div>
-          </div>
-
-          {costSummary.topCategories.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-4 w-4" />
-                Principali Categorie di Spesa
-              </p>
-              <div className="space-y-2">
-                {costSummary.topCategories.map(([category, amount]) => {
-                  const config = costCategoryLabels[category as StepCostCategory];
-                  const percentage = (amount / costSummary.grandTotal) * 100;
-                  return (
-                    <div key={category} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className={cn("font-medium", config.color)}>
-                          {config.label}
-                        </span>
-                        <span className="font-mono">
-                          €{amount.toLocaleString('it-IT')}
-                        </span>
-                      </div>
-                      <Progress value={percentage} className="h-1.5" />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+      {/* Header with Sync Status and Start Date */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {userId ? (
+            <>
+              <Cloud className="h-4 w-4 text-success" />
+              <span>Sincronizzazione automatica attiva</span>
+            </>
+          ) : (
+            <>
+              <CloudOff className="h-4 w-4 text-warning" />
+              <span>Accedi per salvare i progressi</span>
+            </>
           )}
+        </div>
 
-          <p className="text-xs text-muted-foreground pt-2 border-t">
-            <Calculator className="h-3 w-3 inline mr-1" />
-            I costi sono stime indicative e possono variare in base alle specifiche esigenze del progetto. 
-            Clicca su ogni step per personalizzare i valori.
-          </p>
-        </CardContent>
-      </Card>
+        {/* Project Start Date Picker */}
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Data Inizio Attività:</span>
+          <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "gap-2 font-normal",
+                  !parsedStartDate && "text-muted-foreground"
+                )}
+              >
+                <Play className="h-4 w-4" />
+                {parsedStartDate ? (
+                  format(parsedStartDate, "d MMM yyyy", { locale: it })
+                ) : (
+                  "Imposta data"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={parsedStartDate || undefined}
+                onSelect={handleStartDateSelect}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
 
       {/* Phase Filters */}
       <div className="flex flex-wrap gap-2">
@@ -560,6 +552,91 @@ export const ProcessTracker = ({ projectId, commodityType, projectName = 'Proget
           );
         })}
       </div>
+
+      {/* Cost Summary Card - Now at the bottom */}
+      <Card className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20 shadow-custom-lg">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wallet className="h-5 w-5 text-primary" />
+              Riepilogo Costi di Avvio
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPDF}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Esporta PDF
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
+              <p className="text-3xl font-bold text-primary">
+                €{costSummary.grandTotal.toLocaleString('it-IT')}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Step con costi</p>
+              <p className="text-xl font-semibold">{costSummary.stepsWithCosts}</p>
+            </div>
+          </div>
+
+          {costSummary.topCategories.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="h-4 w-4" />
+                Principali Categorie di Spesa
+              </p>
+              <div className="space-y-2">
+                {costSummary.topCategories.map(([category, amount]) => {
+                  const config = costCategoryLabels[category as StepCostCategory];
+                  const percentage = (amount / costSummary.grandTotal) * 100;
+                  return (
+                    <div key={category} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className={cn("font-medium", config.color)}>
+                          {config.label}
+                        </span>
+                        <span className="font-mono">
+                          €{amount.toLocaleString('it-IT')}
+                        </span>
+                      </div>
+                      <Progress value={percentage} className="h-1.5" />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground pt-2 border-t">
+            <Calculator className="h-3 w-3 inline mr-1" />
+            I costi sono stime indicative e possono variare in base alle specifiche esigenze del progetto.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Gantt Timeline - At the very bottom */}
+      <ProcessGanttTimeline
+        projectStartDate={parsedStartDate}
+        stepProgress={Object.fromEntries(
+          Object.entries(stepProgress).map(([key, value]) => [
+            key,
+            {
+              completed: value.completed,
+              plannedStartDate: (value as any).plannedStartDate,
+              plannedEndDate: (value as any).plannedEndDate,
+            }
+          ])
+        )}
+        commodityType={commodityType ?? null}
+        getCostAmount={getCostAmount}
+      />
     </div>
   );
 };

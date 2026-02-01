@@ -64,6 +64,7 @@ const Index = () => {
     selectProject, 
     addProject,
     updateProject,
+    updateProjectStartDate,
     deleteProject,
     hasProjects 
   } = useProjects(user?.id);
@@ -201,6 +202,12 @@ const Index = () => {
             projectId={currentProjectId ?? undefined}
             commodityType={(currentProject as any)?.commodity_type}
             projectName={(currentProject as any)?.name}
+            projectStartDate={(currentProject as any)?.planned_start_date}
+            onUpdateProjectStartDate={(date) => {
+              if (currentProjectId) {
+                updateProjectStartDate(currentProjectId, date);
+              }
+            }}
           />
         );
       case "deadlines":

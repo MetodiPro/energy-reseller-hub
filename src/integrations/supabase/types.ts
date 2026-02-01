@@ -778,6 +778,7 @@ export type Database = {
           market_type: string | null
           name: string
           owner_id: string
+          planned_start_date: string | null
           regions: string[] | null
           status: string | null
           updated_at: string | null
@@ -797,6 +798,7 @@ export type Database = {
           market_type?: string | null
           name: string
           owner_id: string
+          planned_start_date?: string | null
           regions?: string[] | null
           status?: string | null
           updated_at?: string | null
@@ -816,6 +818,7 @@ export type Database = {
           market_type?: string | null
           name?: string
           owner_id?: string
+          planned_start_date?: string | null
           regions?: string[] | null
           status?: string | null
           updated_at?: string | null
@@ -1000,6 +1003,8 @@ export type Database = {
           created_at: string | null
           id: string
           notes: string | null
+          planned_end_date: string | null
+          planned_start_date: string | null
           project_id: string | null
           start_date: string | null
           step_id: string
@@ -1013,6 +1018,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
+          planned_end_date?: string | null
+          planned_start_date?: string | null
           project_id?: string | null
           start_date?: string | null
           step_id: string
@@ -1026,6 +1033,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
+          planned_end_date?: string | null
+          planned_start_date?: string | null
           project_id?: string | null
           start_date?: string | null
           step_id?: string

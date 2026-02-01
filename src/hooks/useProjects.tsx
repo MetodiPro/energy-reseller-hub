@@ -184,6 +184,40 @@ export const useProjects = (userId: string | undefined) => {
     fetchProjects();
   }, [fetchProjects]);
 
+  const updateProjectStartDate = useCallback(async (id: string, startDate: Date | null) => {
+    const { error } = await supabase
+      .from('projects')
+      .update({ 
+        planned_start_date: startDate ? startDate.toISOString().split('T')[0] : null,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating project start date:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile aggiornare la data di inizio.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    // Update local state
+    setProjects(prev => prev.map(p => 
+      p.id === id ? { ...p, planned_start_date: startDate ? startDate.toISOString().split('T')[0] : null } : p
+    ));
+    
+    if (currentProject?.id === id) {
+      setCurrentProject(prev => prev ? { ...prev, planned_start_date: startDate ? startDate.toISOString().split('T')[0] : null } as any : null);
+    }
+
+    toast({
+      title: 'Data inizio aggiornata',
+      description: 'La pianificazione del progetto è stata aggiornata.',
+    });
+  }, [currentProject, toast]);
+
   return {
     projects,
     currentProject,
@@ -191,6 +225,7 @@ export const useProjects = (userId: string | undefined) => {
     selectProject,
     addProject,
     updateProject,
+    updateProjectStartDate,
     deleteProject,
     refreshProjects,
     hasProjects: projects.length > 0,
