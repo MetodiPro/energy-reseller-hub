@@ -328,7 +328,7 @@ export const processSteps: ProcessStep[] = [
       'Il reseller NON ha contratti di trasporto/distribuzione diretti',
       'Il grossista gestisce: bilanciamento, dispacciamento, switching, volture',
       'Il reseller gestisce: contratti clienti, fatturazione, customer care, marketing',
-      'Obblighi comuni: EVE/EVG, ARERA, accise ADM, CSEA, privacy',
+      'Obblighi comuni: EVE/EVG, ARERA, accise ADM, privacy (oneri CSEA gestiti come partite di giro)',
       'Il reseller è responsabile della fatturazione e incasso verso il cliente finale'
     ],
     checklist: [
@@ -560,50 +560,50 @@ export const processSteps: ProcessStep[] = [
   {
     id: 'step-3-6',
     phase: 3,
-    title: 'Contributi CSEA (Cassa Servizi Energetici)',
-    description: 'Registrazione e adempimenti verso CSEA per contributi e oneri di sistema',
+    title: 'Gestione Oneri di Sistema (CSEA)',
+    description: 'Comprensione del meccanismo oneri di sistema gestiti come partite di giro attraverso i Distributori',
     category: 'administrative',
-    estimatedDays: 15,
-    priority: 'high',
+    estimatedDays: 5,
+    priority: 'medium',
     dependencies: ['step-3-2'],
     documents: [
-      'Registrazione portale CSEA',
-      'Documentazione per contributi',
-      'Procedure versamento oneri'
+      'Contratto con grossista (sezione oneri)',
+      'Schema flussi oneri di sistema',
+      'Procedure contabili partite di giro'
     ],
     costs: {
       min: 0,
-      max: 0,
-      description: 'Registrazione gratuita - contributi proporzionali ai volumi'
+      max: 500,
+      description: 'Eventuale consulenza per setup procedure contabili'
     },
     notes: [
-      'CSEA gestisce i flussi finanziari degli oneri di sistema',
-      'Il reseller incassa gli oneri in bolletta e li riversa a CSEA',
-      'Dichiarazioni periodiche obbligatorie',
-      'Contributo annuale operatori (proporzionale ai clienti serviti)',
-      'Gestione bonus sociali (erogazione/recupero)',
-      'Sanzioni per ritardi nei versamenti'
+      'IMPORTANTE: Per i reseller puri, gli oneri CSEA sono PARTITE DI GIRO',
+      'Il reseller incassa gli oneri in bolletta dai clienti finali',
+      'Il reseller riversa gli oneri ai Distributori (DSO), NON direttamente a CSEA',
+      'I Distributori gestiscono il rapporto diretto con CSEA',
+      'Il reseller NON ha obblighi di versamento diretto a CSEA',
+      'Necessario setup corretto delle procedure contabili per tracciare i flussi',
+      'Verificare nel contratto con il grossista le modalità di gestione oneri'
     ],
     checklist: [
-      'Registrazione portale CSEA',
-      'Ottenimento credenziali accesso',
-      'Comprensione meccanismo oneri di sistema',
-      'Setup procedure dichiarazioni periodiche',
-      'Configurazione flussi contabili oneri',
-      'Procedure gestione bonus sociali',
-      'Calendario scadenze versamenti',
-      'Formazione personale amministrativo'
+      'Comprendere il meccanismo oneri di sistema nella filiera reseller',
+      'Verificare clausole oneri nel contratto con grossista',
+      'Configurare piano dei conti per partite di giro',
+      'Setup procedure fatturazione con componenti oneri',
+      'Definire flussi contabili incasso-riversamento',
+      'Verificare tempistiche riversamento ai distributori',
+      'Formazione personale amministrativo su gestione oneri'
     ],
     officialLinks: [
       {
         name: 'CSEA - Cassa per i Servizi Energetici',
         url: 'https://www.csea.it',
-        description: 'Portale Cassa Servizi Energetici e Ambientali'
+        description: 'Informazioni generali oneri di sistema (per consultazione)'
       },
       {
-        name: 'Area Operatori CSEA',
-        url: 'https://www.csea.it/area-operatori',
-        description: 'Accesso operatori e dichiarazioni'
+        name: 'ARERA - Oneri di Sistema',
+        url: 'https://www.arera.it/consumatori/elettricita/composizione-bolletta',
+        description: 'Spiegazione componenti tariffarie e oneri'
       }
     ]
   },
