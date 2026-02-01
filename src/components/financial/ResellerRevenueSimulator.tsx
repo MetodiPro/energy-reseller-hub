@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Save,
+  Loader2
 } from 'lucide-react';
 import {
   AreaChart,
@@ -45,6 +47,7 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
+import { useRevenueSimulation, type RevenueSimulationParams, type MonthlyContractsTarget } from '@/hooks/useRevenueSimulation';
 
 /**
  * MODELLO RICAVI RESELLER ENERGIA ELETTRICA
@@ -65,71 +68,37 @@ import {
  * - Altro: Servizi aggiuntivi
  */
 
-interface RevenueParams {
-  // Clienti e volumi
-  avgMonthlyConsumption: number;         // Consumo medio mensile per POD (kWh)
-  
-  // Tassi di conversione
-  activationRate: number;                // % contratti che diventano attivi (dopo scarti SII)
-  
-  // Componenti prezzo controllabili
-  ccvMonthly: number;                    // CCV - Commercializzazione €/mese per cliente
-  spreadPerKwh: number;                  // Spread su PUN €/kWh
-  otherServicesMonthly: number;          // Altri servizi €/mese
-  
-  // Tassi di incasso
-  collectionMonth0: number;              // % incasso alla scadenza (mese fattura + 15gg)
-  collectionMonth1: number;              // % incasso entro 30gg dopo scadenza
-  collectionMonth2: number;              // % incasso entro 60gg dopo scadenza
-  collectionMonth3Plus: number;          // % incasso oltre 60gg
-  uncollectibleRate: number;             // % insoluti definitivi
+interface ResellerRevenueSimulatorProps {
+  projectId: string;
 }
-
-// Array di 10 mesi con numero clienti target
-type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number, number, number];
 
 interface MonthData {
   month: number;
   label: string;
   
   // Contratti
-  newContracts: number;                  // Contratti firmati questo mese
-  sentToWholesaler: number;              // Inviati al grossista (contratti mese precedente)
-  activatedCustomers: number;            // Clienti attivi da questo mese
-  activeCustomers: number;               // Totale clienti attivi cumulativo
+  newContracts: number;
+  sentToWholesaler: number;
+  activatedCustomers: number;
+  activeCustomers: number;
   
   // Fatturazione
-  invoicedAmount: number;                // Fatturato emesso questo mese
-  invoicedCustomers: number;             // Clienti fatturati questo mese
+  invoicedAmount: number;
+  invoicedCustomers: number;
   
   // Componenti fattura
-  revenueCCV: number;                    // Ricavo da CCV
-  revenueSpread: number;                 // Ricavo da Spread
-  revenueOther: number;                  // Ricavo da Altri servizi
+  revenueCCV: number;
+  revenueSpread: number;
+  revenueOther: number;
   
   // Incassi
-  expectedCollection: number;            // Incasso previsto questo mese
-  cumulativeCollection: number;          // Incasso cumulativo
-  cumulativeUncollected: number;         // Insoluti cumulativi
+  expectedCollection: number;
+  cumulativeCollection: number;
+  cumulativeUncollected: number;
   
-  // DSO (Days Sales Outstanding)
-  pendingReceivables: number;            // Crediti in sospeso
+  // DSO
+  pendingReceivables: number;
 }
-
-const DEFAULT_PARAMS: RevenueParams = {
-  avgMonthlyConsumption: 200,            // kWh/mese per cliente residenziale
-  activationRate: 85,                     // 85% dei contratti diventano attivi
-  ccvMonthly: 8.50,                       // €/mese CCV tipico mercato libero
-  spreadPerKwh: 0.015,                    // 1.5 cent/kWh di spread su PUN
-  otherServicesMonthly: 0,                // Altri servizi opzionali
-  collectionMonth0: 70,                   // 70% paga alla scadenza
-  collectionMonth1: 18,                   // 18% paga entro 30gg dopo
-  collectionMonth2: 7,                    // 7% paga entro 60gg dopo
-  collectionMonth3Plus: 3,                // 3% paga oltre
-  uncollectibleRate: 2,                   // 2% insoluti definitivi
-};
-
-const DEFAULT_MONTHLY_CONTRACTS: MonthlyContractsTarget = [30, 40, 50, 60, 70, 80, 90, 100, 100, 100, 100, 100];
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
@@ -151,22 +120,18 @@ const formatCurrencyDecimal = (value: number) => {
   }).format(value);
 };
 
-export const ResellerRevenueSimulator = () => {
-  const [params, setParams] = useState<RevenueParams>(DEFAULT_PARAMS);
-  const [startDate, setStartDate] = useState<Date>(new Date(2026, 0, 1)); // 1 Gen 2026
-  const [monthlyContracts, setMonthlyContracts] = useState<MonthlyContractsTarget>(DEFAULT_MONTHLY_CONTRACTS);
-  
-  const updateParam = (key: keyof RevenueParams, value: number) => {
-    setParams(prev => ({ ...prev, [key]: value }));
-  };
+export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulatorProps) => {
+  const { 
+    data, 
+    loading, 
+    saving, 
+    updateParams, 
+    updateMonthlyContract, 
+    updateStartDate, 
+    saveSimulation 
+  } = useRevenueSimulation(projectId);
 
-  const updateMonthlyContract = (monthIndex: number, value: number) => {
-    setMonthlyContracts(prev => {
-      const updated = [...prev] as MonthlyContractsTarget;
-      updated[monthIndex] = value;
-      return updated;
-    });
-  };
+  const { startDate, monthlyContracts, params } = data;
 
   // Derive startMonth and startYear from startDate
   const startMonth = startDate.getMonth();
@@ -312,6 +277,17 @@ export const ResellerRevenueSimulator = () => {
     { name: 'Altri Servizi', value: projection.reduce((s, m) => s + m.revenueOther, 0), color: 'hsl(var(--chart-3))' },
   ];
 
+  if (loading) {
+    return (
+      <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-muted-foreground">Caricamento configurazione...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header con spiegazione */}
@@ -381,7 +357,7 @@ export const ResellerRevenueSimulator = () => {
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     value={startDate.getMonth()}
-                    onChange={(e) => setStartDate(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
+                    onChange={(e) => updateStartDate(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
                   >
                     {MONTHS_IT.map((m, i) => (
                       <option key={i} value={i}>{m}</option>
@@ -395,7 +371,7 @@ export const ResellerRevenueSimulator = () => {
                     min="2024"
                     max="2035"
                     value={startDate.getFullYear()}
-                    onChange={(e) => setStartDate(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
+                    onChange={(e) => updateStartDate(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
                   />
                 </div>
               </div>
@@ -461,7 +437,7 @@ export const ResellerRevenueSimulator = () => {
                 <Input
                   type="number"
                   value={params.avgMonthlyConsumption}
-                  onChange={(e) => updateParam('avgMonthlyConsumption', parseInt(e.target.value) || 0)}
+                  onChange={(e) => updateParams('avgMonthlyConsumption', parseInt(e.target.value) || 0)}
                 />
               </div>
               
@@ -483,7 +459,7 @@ export const ResellerRevenueSimulator = () => {
                   min="0"
                   max="100"
                   value={params.activationRate}
-                  onChange={(e) => updateParam('activationRate', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => updateParams('activationRate', parseFloat(e.target.value) || 0)}
                 />
               </div>
             </div>
@@ -514,7 +490,7 @@ export const ResellerRevenueSimulator = () => {
                   type="number"
                   step="0.01"
                   value={params.ccvMonthly}
-                  onChange={(e) => updateParam('ccvMonthly', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => updateParams('ccvMonthly', parseFloat(e.target.value) || 0)}
                 />
               </div>
               
@@ -535,7 +511,7 @@ export const ResellerRevenueSimulator = () => {
                   type="number"
                   step="0.001"
                   value={params.spreadPerKwh}
-                  onChange={(e) => updateParam('spreadPerKwh', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => updateParams('spreadPerKwh', parseFloat(e.target.value) || 0)}
                 />
                 <p className="text-xs text-muted-foreground">
                   = {formatCurrencyDecimal(params.spreadPerKwh * params.avgMonthlyConsumption)}/mese per cliente
@@ -548,7 +524,7 @@ export const ResellerRevenueSimulator = () => {
                   type="number"
                   step="0.01"
                   value={params.otherServicesMonthly}
-                  onChange={(e) => updateParam('otherServicesMonthly', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => updateParams('otherServicesMonthly', parseFloat(e.target.value) || 0)}
                 />
               </div>
               
@@ -580,7 +556,7 @@ export const ResellerRevenueSimulator = () => {
                       min="0"
                       max="100"
                       value={params.collectionMonth0}
-                      onChange={(e) => updateParam('collectionMonth0', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateParams('collectionMonth0', parseFloat(e.target.value) || 0)}
                       className="h-8"
                     />
                     <span className="text-sm">%</span>
@@ -594,7 +570,7 @@ export const ResellerRevenueSimulator = () => {
                       min="0"
                       max="100"
                       value={params.collectionMonth1}
-                      onChange={(e) => updateParam('collectionMonth1', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateParams('collectionMonth1', parseFloat(e.target.value) || 0)}
                       className="h-8"
                     />
                     <span className="text-sm">%</span>
@@ -608,7 +584,7 @@ export const ResellerRevenueSimulator = () => {
                       min="0"
                       max="100"
                       value={params.collectionMonth2}
-                      onChange={(e) => updateParam('collectionMonth2', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateParams('collectionMonth2', parseFloat(e.target.value) || 0)}
                       className="h-8"
                     />
                     <span className="text-sm">%</span>
@@ -622,7 +598,7 @@ export const ResellerRevenueSimulator = () => {
                       min="0"
                       max="100"
                       value={params.collectionMonth3Plus}
-                      onChange={(e) => updateParam('collectionMonth3Plus', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateParams('collectionMonth3Plus', parseFloat(e.target.value) || 0)}
                       className="h-8"
                     />
                     <span className="text-sm">%</span>
@@ -640,7 +616,7 @@ export const ResellerRevenueSimulator = () => {
                   min="0"
                   max="100"
                   value={params.uncollectibleRate}
-                  onChange={(e) => updateParam('uncollectibleRate', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => updateParams('uncollectibleRate', parseFloat(e.target.value) || 0)}
                 />
               </div>
               
@@ -650,6 +626,27 @@ export const ResellerRevenueSimulator = () => {
                 </div>
               )}
             </div>
+
+            <Separator />
+
+            {/* Pulsante Salva */}
+            <Button 
+              onClick={saveSimulation} 
+              disabled={saving || loading}
+              className="w-full"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvataggio...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salva Configurazione
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
 
