@@ -1,0 +1,348 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  Zap, 
+  Truck, 
+  Receipt,
+  Info,
+  Building2
+} from 'lucide-react';
+import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
+
+interface InvoiceComponentsInputProps {
+  params: RevenueSimulationParams;
+  onUpdate: (key: keyof RevenueSimulationParams, value: number | string) => void;
+}
+
+const formatCurrencyDecimal = (value: number) => {
+  return new Intl.NumberFormat('it-IT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(value);
+};
+
+export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsInputProps) => {
+  // Calcola costo mensile componenti passanti per singolo cliente
+  const monthlyPassthrough = {
+    energia: (params.punPerKwh + params.dispacciamentoPerKwh) * params.avgMonthlyConsumption,
+    trasporto: (params.trasportoQuotaFissaAnno / 12) + 
+               (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw / 12) +
+               (params.trasportoQuotaEnergiaKwh * params.avgMonthlyConsumption),
+    oneri: (params.oneriAsosKwh + params.oneriArimKwh) * params.avgMonthlyConsumption,
+    accise: params.acciseKwh * params.avgMonthlyConsumption,
+  };
+  
+  const imponibile = monthlyPassthrough.energia + monthlyPassthrough.trasporto + 
+                     monthlyPassthrough.oneri + monthlyPassthrough.accise +
+                     params.ccvMonthly + (params.spreadPerKwh * params.avgMonthlyConsumption) + 
+                     params.otherServicesMonthly;
+  
+  const iva = imponibile * (params.ivaPercent / 100);
+  const totaleFattura = imponibile + iva;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Receipt className="h-4 w-4" />
+          Componenti Fattura Cliente
+        </CardTitle>
+        <CardDescription>
+          Parametri per il calcolo della fattura completa al cliente finale
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Tipologia Cliente */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            <Label>Tipologia Cliente</Label>
+          </div>
+          <Select 
+            value={params.clientType} 
+            onValueChange={(v) => onUpdate('clientType', v)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="domestico">Domestico (IVA 10%)</SelectItem>
+              <SelectItem value="pmi">PMI (IVA 22%)</SelectItem>
+              <SelectItem value="business">Business (IVA 22%)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Separator />
+
+        {/* Materia Energia */}
+        <div className="space-y-3">
+          <h4 className="font-medium flex items-center gap-2 text-sm">
+            <Zap className="h-4 w-4 text-yellow-500" />
+            Materia Energia
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">PUN (€/kWh)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent>
+                      <p>Prezzo Unico Nazionale - costo materia prima energia</p>
+                      <p className="text-xs text-muted-foreground">Valore attuale ~0.12-0.14 €/kWh</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                step="0.001"
+                className="h-8"
+                value={params.punPerKwh}
+                onChange={(e) => onUpdate('punPerKwh', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Dispacciamento (€/kWh)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent>
+                      <p>Costo bilanciamento rete</p>
+                      <p className="text-xs text-muted-foreground">Tipico: 0.008-0.012 €/kWh</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                step="0.001"
+                className="h-8"
+                value={params.dispacciamentoPerKwh}
+                onChange={(e) => onUpdate('dispacciamentoPerKwh', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Costo energia: {formatCurrencyDecimal(monthlyPassthrough.energia)}/mese/cliente
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Trasporto e Distribuzione */}
+        <div className="space-y-3">
+          <h4 className="font-medium flex items-center gap-2 text-sm">
+            <Truck className="h-4 w-4 text-blue-500" />
+            Trasporto e Distribuzione
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Quota fissa (€/anno)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                className="h-8"
+                value={params.trasportoQuotaFissaAnno}
+                onChange={(e) => onUpdate('trasportoQuotaFissaAnno', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Quota potenza (€/kW/anno)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                className="h-8"
+                value={params.trasportoQuotaPotenzaKwAnno}
+                onChange={(e) => onUpdate('trasportoQuotaPotenzaKwAnno', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Quota energia (€/kWh)</Label>
+              <Input
+                type="number"
+                step="0.001"
+                className="h-8"
+                value={params.trasportoQuotaEnergiaKwh}
+                onChange={(e) => onUpdate('trasportoQuotaEnergiaKwh', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Potenza impegnata (kW)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                className="h-8"
+                value={params.potenzaImpegnataKw}
+                onChange={(e) => onUpdate('potenzaImpegnataKw', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Costo trasporto: {formatCurrencyDecimal(monthlyPassthrough.trasporto)}/mese/cliente
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Oneri di Sistema */}
+        <div className="space-y-3">
+          <h4 className="font-medium flex items-center gap-2 text-sm">
+            <Receipt className="h-4 w-4 text-purple-500" />
+            Oneri di Sistema
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">ASOS (€/kWh)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sostegno alle energie rinnovabili</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                step="0.001"
+                className="h-8"
+                value={params.oneriAsosKwh}
+                onChange={(e) => onUpdate('oneriAsosKwh', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">ARIM (€/kWh)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent>
+                      <p>Altri oneri rimanenti</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                step="0.001"
+                className="h-8"
+                value={params.oneriArimKwh}
+                onChange={(e) => onUpdate('oneriArimKwh', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Costo oneri: {formatCurrencyDecimal(monthlyPassthrough.oneri)}/mese/cliente
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Imposte */}
+        <div className="space-y-3">
+          <h4 className="font-medium flex items-center gap-2 text-sm">
+            <Receipt className="h-4 w-4 text-red-500" />
+            Imposte
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Accise (€/kWh)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent>
+                      <p>Domestico: 0.0227 €/kWh (esenti primi 150 kWh/mese)</p>
+                      <p className="text-xs text-muted-foreground">Business: variabile</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="number"
+                step="0.0001"
+                className="h-8"
+                value={params.acciseKwh}
+                onChange={(e) => onUpdate('acciseKwh', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">IVA (%)</Label>
+              <Input
+                type="number"
+                step="1"
+                className="h-8"
+                value={params.ivaPercent}
+                onChange={(e) => onUpdate('ivaPercent', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Accise: {formatCurrencyDecimal(monthlyPassthrough.accise)}/mese/cliente
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Riepilogo Fattura Cliente */}
+        <div className="p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-lg space-y-2">
+          <p className="text-sm font-medium">Fattura Mensile per Cliente</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            <span className="text-muted-foreground">Materia energia:</span>
+            <span className="text-right">{formatCurrencyDecimal(monthlyPassthrough.energia)}</span>
+            
+            <span className="text-muted-foreground">Trasporto:</span>
+            <span className="text-right">{formatCurrencyDecimal(monthlyPassthrough.trasporto)}</span>
+            
+            <span className="text-muted-foreground">Oneri sistema:</span>
+            <span className="text-right">{formatCurrencyDecimal(monthlyPassthrough.oneri)}</span>
+            
+            <span className="text-muted-foreground">Accise:</span>
+            <span className="text-right">{formatCurrencyDecimal(monthlyPassthrough.accise)}</span>
+            
+            <span className="text-muted-foreground">Commerciale (reseller):</span>
+            <span className="text-right font-medium text-green-600">
+              {formatCurrencyDecimal(params.ccvMonthly + (params.spreadPerKwh * params.avgMonthlyConsumption) + params.otherServicesMonthly)}
+            </span>
+            
+            <div className="col-span-2 border-t my-1"></div>
+            
+            <span className="text-muted-foreground">Imponibile:</span>
+            <span className="text-right">{formatCurrencyDecimal(imponibile)}</span>
+            
+            <span className="text-muted-foreground">IVA {params.ivaPercent}%:</span>
+            <span className="text-right">{formatCurrencyDecimal(iva)}</span>
+            
+            <span className="font-medium">TOTALE FATTURA:</span>
+            <span className="text-right font-bold text-lg">{formatCurrencyDecimal(totaleFattura)}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
