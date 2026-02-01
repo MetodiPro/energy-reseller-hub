@@ -2,18 +2,40 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface RevenueSimulationParams {
-  avgMonthlyConsumption: number;
-  activationRate: number;
-  ccvMonthly: number;
-  spreadPerKwh: number;
-  otherServicesMonthly: number;
-  collectionMonth0: number;
-  collectionMonth1: number;
-  collectionMonth2: number;
-  collectionMonth3Plus: number;
-  uncollectibleRate: number;
+// Parametri componenti commerciali reseller
+export interface ResellerParams {
+  ccvMonthly: number;          // CCV - Commercializzazione e Vendita €/mese
+  spreadPerKwh: number;        // Spread su PUN €/kWh
+  otherServicesMonthly: number; // Altri servizi €/mese
 }
+
+// Parametri componenti fattura (passanti)
+export interface InvoiceComponentParams {
+  punPerKwh: number;                    // PUN - Prezzo Unico Nazionale €/kWh
+  dispacciamentoPerKwh: number;         // Dispacciamento €/kWh
+  trasportoQuotaFissaAnno: number;      // Trasporto quota fissa €/anno
+  trasportoQuotaPotenzaKwAnno: number;  // Trasporto quota potenza €/kW/anno
+  trasportoQuotaEnergiaKwh: number;     // Trasporto quota energia €/kWh
+  potenzaImpegnataKw: number;           // Potenza impegnata media kW
+  oneriAsosKwh: number;                 // ASOS (rinnovabili) €/kWh
+  oneriArimKwh: number;                 // ARIM (rimanenti) €/kWh
+  acciseKwh: number;                    // Accise €/kWh
+  ivaPercent: number;                   // IVA %
+  clientType: 'domestico' | 'business' | 'pmi';
+}
+
+// Parametri clienti e incasso
+export interface ClientParams {
+  avgMonthlyConsumption: number;  // Consumo medio kWh/mese
+  activationRate: number;         // Tasso attivazione %
+  collectionMonth0: number;       // Incasso alla scadenza %
+  collectionMonth1: number;       // Incasso entro 30gg %
+  collectionMonth2: number;       // Incasso entro 60gg %
+  collectionMonth3Plus: number;   // Incasso oltre 60gg %
+  uncollectibleRate: number;      // Insoluti definitivi %
+}
+
+export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams {}
 
 export type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number, number, number];
 
@@ -25,11 +47,27 @@ export interface RevenueSimulationData {
 }
 
 const DEFAULT_PARAMS: RevenueSimulationParams = {
-  avgMonthlyConsumption: 200,
-  activationRate: 85,
+  // Componenti commerciali reseller
   ccvMonthly: 8.50,
   spreadPerKwh: 0.015,
   otherServicesMonthly: 0,
+  
+  // Componenti fattura (passanti)
+  punPerKwh: 0.12,
+  dispacciamentoPerKwh: 0.01,
+  trasportoQuotaFissaAnno: 23.00,
+  trasportoQuotaPotenzaKwAnno: 22.00,
+  trasportoQuotaEnergiaKwh: 0.008,
+  potenzaImpegnataKw: 3.0,
+  oneriAsosKwh: 0.025,
+  oneriArimKwh: 0.007,
+  acciseKwh: 0.0227,
+  ivaPercent: 10,
+  clientType: 'domestico',
+  
+  // Clienti e incasso
+  avgMonthlyConsumption: 200,
+  activationRate: 85,
   collectionMonth0: 70,
   collectionMonth1: 18,
   collectionMonth2: 7,
@@ -76,11 +114,27 @@ export const useRevenueSimulation = (projectId: string | null) => {
             ? monthlyContracts as MonthlyContractsTarget 
             : DEFAULT_MONTHLY_CONTRACTS,
           params: {
-            avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
-            activationRate: Number(simulation.activation_rate),
+            // Componenti commerciali
             ccvMonthly: Number(simulation.ccv_monthly),
             spreadPerKwh: Number(simulation.spread_per_kwh),
             otherServicesMonthly: Number(simulation.other_services_monthly),
+            
+            // Componenti fattura (con fallback a default)
+            punPerKwh: Number(simulation.pun_per_kwh ?? DEFAULT_PARAMS.punPerKwh),
+            dispacciamentoPerKwh: Number(simulation.dispacciamento_per_kwh ?? DEFAULT_PARAMS.dispacciamentoPerKwh),
+            trasportoQuotaFissaAnno: Number(simulation.trasporto_quota_fissa_anno ?? DEFAULT_PARAMS.trasportoQuotaFissaAnno),
+            trasportoQuotaPotenzaKwAnno: Number(simulation.trasporto_quota_potenza_kw_anno ?? DEFAULT_PARAMS.trasportoQuotaPotenzaKwAnno),
+            trasportoQuotaEnergiaKwh: Number(simulation.trasporto_quota_energia_kwh ?? DEFAULT_PARAMS.trasportoQuotaEnergiaKwh),
+            potenzaImpegnataKw: Number(simulation.potenza_impegnata_kw ?? DEFAULT_PARAMS.potenzaImpegnataKw),
+            oneriAsosKwh: Number(simulation.oneri_asos_kwh ?? DEFAULT_PARAMS.oneriAsosKwh),
+            oneriArimKwh: Number(simulation.oneri_arim_kwh ?? DEFAULT_PARAMS.oneriArimKwh),
+            acciseKwh: Number(simulation.accise_kwh ?? DEFAULT_PARAMS.acciseKwh),
+            ivaPercent: Number(simulation.iva_percent ?? DEFAULT_PARAMS.ivaPercent),
+            clientType: (simulation.client_type as 'domestico' | 'business' | 'pmi') ?? DEFAULT_PARAMS.clientType,
+            
+            // Clienti e incasso
+            avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
+            activationRate: Number(simulation.activation_rate),
             collectionMonth0: Number(simulation.collection_month_0),
             collectionMonth1: Number(simulation.collection_month_1),
             collectionMonth2: Number(simulation.collection_month_2),
@@ -117,16 +171,34 @@ export const useRevenueSimulation = (projectId: string | null) => {
         project_id: projectId,
         start_date: data.startDate.toISOString().split('T')[0],
         monthly_contracts: data.monthlyContracts,
-        avg_monthly_consumption: data.params.avgMonthlyConsumption,
-        activation_rate: data.params.activationRate,
+        
+        // Componenti commerciali
         ccv_monthly: data.params.ccvMonthly,
         spread_per_kwh: data.params.spreadPerKwh,
         other_services_monthly: data.params.otherServicesMonthly,
+        
+        // Componenti fattura
+        pun_per_kwh: data.params.punPerKwh,
+        dispacciamento_per_kwh: data.params.dispacciamentoPerKwh,
+        trasporto_quota_fissa_anno: data.params.trasportoQuotaFissaAnno,
+        trasporto_quota_potenza_kw_anno: data.params.trasportoQuotaPotenzaKwAnno,
+        trasporto_quota_energia_kwh: data.params.trasportoQuotaEnergiaKwh,
+        potenza_impegnata_kw: data.params.potenzaImpegnataKw,
+        oneri_asos_kwh: data.params.oneriAsosKwh,
+        oneri_arim_kwh: data.params.oneriArimKwh,
+        accise_kwh: data.params.acciseKwh,
+        iva_percent: data.params.ivaPercent,
+        client_type: data.params.clientType,
+        
+        // Clienti e incasso
+        avg_monthly_consumption: data.params.avgMonthlyConsumption,
+        activation_rate: data.params.activationRate,
         collection_month_0: data.params.collectionMonth0,
         collection_month_1: data.params.collectionMonth1,
         collection_month_2: data.params.collectionMonth2,
         collection_month_3_plus: data.params.collectionMonth3Plus,
         uncollectible_rate: data.params.uncollectibleRate,
+        
         created_by: user.id,
       };
 
@@ -168,7 +240,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
   }, [projectId, data, toast]);
 
   // Update params
-  const updateParams = useCallback((key: keyof RevenueSimulationParams, value: number) => {
+  const updateParams = useCallback((key: keyof RevenueSimulationParams, value: number | string) => {
     setData(prev => ({
       ...prev,
       params: { ...prev.params, [key]: value },

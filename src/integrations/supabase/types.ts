@@ -571,59 +571,92 @@ export type Database = {
       }
       project_revenue_simulations: {
         Row: {
+          accise_kwh: number | null
           activation_rate: number
           avg_monthly_consumption: number
           ccv_monthly: number
+          client_type: string | null
           collection_month_0: number
           collection_month_1: number
           collection_month_2: number
           collection_month_3_plus: number
           created_at: string
           created_by: string
+          dispacciamento_per_kwh: number | null
           id: string
+          iva_percent: number | null
           monthly_contracts: Json
+          oneri_arim_kwh: number | null
+          oneri_asos_kwh: number | null
           other_services_monthly: number
+          potenza_impegnata_kw: number | null
           project_id: string
+          pun_per_kwh: number | null
           spread_per_kwh: number
           start_date: string
+          trasporto_quota_energia_kwh: number | null
+          trasporto_quota_fissa_anno: number | null
+          trasporto_quota_potenza_kw_anno: number | null
           uncollectible_rate: number
           updated_at: string
         }
         Insert: {
+          accise_kwh?: number | null
           activation_rate?: number
           avg_monthly_consumption?: number
           ccv_monthly?: number
+          client_type?: string | null
           collection_month_0?: number
           collection_month_1?: number
           collection_month_2?: number
           collection_month_3_plus?: number
           created_at?: string
           created_by: string
+          dispacciamento_per_kwh?: number | null
           id?: string
+          iva_percent?: number | null
           monthly_contracts?: Json
+          oneri_arim_kwh?: number | null
+          oneri_asos_kwh?: number | null
           other_services_monthly?: number
+          potenza_impegnata_kw?: number | null
           project_id: string
+          pun_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
+          trasporto_quota_energia_kwh?: number | null
+          trasporto_quota_fissa_anno?: number | null
+          trasporto_quota_potenza_kw_anno?: number | null
           uncollectible_rate?: number
           updated_at?: string
         }
         Update: {
+          accise_kwh?: number | null
           activation_rate?: number
           avg_monthly_consumption?: number
           ccv_monthly?: number
+          client_type?: string | null
           collection_month_0?: number
           collection_month_1?: number
           collection_month_2?: number
           collection_month_3_plus?: number
           created_at?: string
           created_by?: string
+          dispacciamento_per_kwh?: number | null
           id?: string
+          iva_percent?: number | null
           monthly_contracts?: Json
+          oneri_arim_kwh?: number | null
+          oneri_asos_kwh?: number | null
           other_services_monthly?: number
+          potenza_impegnata_kw?: number | null
           project_id?: string
+          pun_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
+          trasporto_quota_energia_kwh?: number | null
+          trasporto_quota_fissa_anno?: number | null
+          trasporto_quota_potenza_kw_anno?: number | null
           uncollectible_rate?: number
           updated_at?: string
         }
