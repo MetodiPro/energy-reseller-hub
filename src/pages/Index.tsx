@@ -348,9 +348,14 @@ const Index = () => {
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="text-white hover:bg-white/20 h-9 w-9 rounded-md transition-colors" />
                 <div className="h-px w-6 bg-white/20 rotate-90 hidden sm:block" />
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-white" />
-                  <span className="text-white font-semibold hidden sm:inline">Power Reseller Start Up</span>
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/30">
+                    <Zap className="h-4 w-4 text-white drop-shadow-sm" fill="white" />
+                  </div>
+                  <div className="hidden sm:flex flex-col">
+                    <span className="text-white font-bold text-sm tracking-tight leading-tight">Power Reseller</span>
+                    <span className="text-amber-400 text-xs font-medium leading-tight">START UP</span>
+                  </div>
                 </div>
               </div>
 
