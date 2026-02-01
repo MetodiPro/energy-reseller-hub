@@ -1520,4 +1520,401 @@ export const projectTemplates: ProjectTemplate[] = [
       calculation_hypothesis: 'Stima per portafoglio misto residenziale + business',
     })),
   },
+  // ============================================
+  // TEMPLATE: RESELLER ELETTRICO RESIDENZIALE
+  // Solo energia elettrica per mercato domestico
+  // ============================================
+  {
+    id: 'reseller-elettrico-residenziale',
+    name: 'Reseller Elettrico Residenziale',
+    description: 'Vendita esclusiva di energia elettrica a famiglie e utenze domestiche. Modello semplificato senza gas, ideale per chi vuole concentrarsi su un unico commodity.',
+    icon: 'Zap',
+    color: 'hsl(45, 90%, 50%)',
+    // COSTI PASSANTI - Solo energia elettrica
+    passthrough_costs: [
+      { 
+        name: 'Energia Acquistata da Grossista', 
+        description: 'Costo all\'ingrosso energia elettrica - componente commodity da rifatturare ai clienti',
+        amount: 0.12, 
+        quantity: 150000, 
+        unit: 'kWh/mese', 
+        cost_type: 'direct', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        is_passthrough: true,
+        passthrough_recipient: 'Grossista',
+        calculation_basis: '500 clienti × 300 kWh/mese × €0,12/kWh',
+        calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.12 }
+      },
+      { 
+        name: 'Corrispettivi Trasporto e Distribuzione', 
+        description: 'Tariffe di trasporto e distribuzione stabilite da ARERA, versate al distributore locale',
+        amount: 0.035, 
+        quantity: 150000, 
+        unit: 'kWh/mese', 
+        cost_type: 'direct', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        is_passthrough: true,
+        passthrough_recipient: 'Distributore locale',
+        calculation_basis: '150.000 kWh/mese × €0,035/kWh (tariffa TD media)',
+        calculation_params: { consumption_kwh: 150000, price_per_kwh: 0.035 }
+      },
+    ],
+    // COSTI OPERATIVI - Impattano il margine del reseller
+    costs: [
+      // Costi Strutturali - Setup Iniziale
+      { 
+        name: 'Costituzione Società', 
+        description: 'Notaio, Camera di Commercio, pratiche iniziali', 
+        amount: 3500, 
+        quantity: 1, 
+        unit: 'forfait', 
+        cost_type: 'structural', 
+        is_recurring: false,
+        calculation_basis: 'Stima notarile SRL semplificata + diritti CCIAA',
+        calculation_params: { base_value: 3500 }
+      },
+      { 
+        name: 'Consulenza Legale Iniziale', 
+        description: 'Redazione contratti tipo, condizioni generali, privacy GDPR', 
+        amount: 3500, 
+        quantity: 1, 
+        unit: 'consulenza', 
+        cost_type: 'structural', 
+        is_recurring: false,
+        calculation_basis: 'Studio legale specializzato settore energia: 18-22 ore × €160-180/ora (solo luce, meno complesso)',
+        calculation_params: { base_value: 3500 }
+      },
+      { 
+        name: 'Consulenza Regolatoria ARERA', 
+        description: 'Assistenza iscrizione Elenco Venditori Energia (EVE), compliance normativa', 
+        amount: 6000, 
+        quantity: 1, 
+        unit: 'consulenza', 
+        cost_type: 'structural', 
+        is_recurring: false,
+        calculation_basis: 'Consulente regolatorio: preparazione documentazione EVE sola luce + accompagnamento pratiche',
+        calculation_params: { base_value: 6000 }
+      },
+      { 
+        name: 'Garanzie Bancarie per Grossista', 
+        description: 'Fideiussione bancaria a favore del grossista per approvvigionamento energia',
+        amount: 20000, 
+        quantity: 1, 
+        unit: 'garanzia', 
+        cost_type: 'structural', 
+        is_recurring: false,
+        calculation_basis: 'Fideiussione pari a 2-3 mesi di fornitura stimata. 500 clienti × €40/mese fattura media luce = €20.000',
+        calculation_params: { num_clients: 500, price_per_client: 40, base_value: 20000 }
+      },
+      { 
+        name: 'Rinnovo Fideiussioni', 
+        description: 'Commissione annuale mantenimento garanzie bancarie (1,5-2,5% del valore)',
+        amount: 400, 
+        quantity: 1, 
+        unit: 'anno', 
+        cost_type: 'structural', 
+        is_recurring: true, 
+        recurrence_period: 'yearly',
+        calculation_basis: '€20.000 fideiussione × 2% commissione annuale',
+        calculation_params: { base_value: 20000, percentage: 2 }
+      },
+      { 
+        name: 'Assicurazione RC Professionale', 
+        description: 'Polizza responsabilità civile professionale', 
+        amount: 2000, 
+        quantity: 1, 
+        unit: 'anno', 
+        cost_type: 'structural', 
+        is_recurring: true, 
+        recurrence_period: 'yearly',
+        calculation_basis: 'Polizza RC con massimale €500.000, premio ridotto per solo luce',
+        calculation_params: { base_value: 2000 }
+      },
+      
+      // Software e Sistemi SII
+      { 
+        name: 'Software Gestione SII', 
+        description: 'Piattaforma per gestione flussi Sistema Informativo Integrato con Acquirente Unico',
+        amount: 400, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'structural', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Licenza SaaS per operatori <1000 POD, solo luce (più economico del dual fuel)',
+        calculation_params: { num_clients: 500, price_per_client: 0.8 }
+      },
+      { 
+        name: 'Software Switching', 
+        description: 'Gestione pratiche switching, volture, subentri, attivazioni',
+        amount: 300, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'structural', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Modulo switching solo luce per ~80 pratiche/mese',
+        calculation_params: { base_value: 300 }
+      },
+      { 
+        name: 'Integrazione SII - Setup', 
+        description: 'Configurazione iniziale flussi XML con Acquirente Unico e distributori',
+        amount: 4000, 
+        quantity: 1, 
+        unit: 'progetto', 
+        cost_type: 'structural', 
+        is_recurring: false,
+        calculation_basis: 'Setup tecnico solo luce: configurazione più rapida (1-2 settimane)',
+        calculation_params: { base_value: 4000 }
+      },
+      { 
+        name: 'Licenza Software CRM', 
+        description: 'CRM per gestione clienti, contratti e lead commerciali',
+        amount: 120, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'structural', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'CRM cloud per 2-3 utenti (team ridotto solo luce)',
+        calculation_params: { base_value: 120 }
+      },
+      { 
+        name: 'Piattaforma Billing', 
+        description: 'Software fatturazione e generazione bollette conformi ARERA',
+        amount: 250, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'structural', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Sistema billing per ~500 fatture/mese, solo luce. Include TXT2 obbligatorio',
+        calculation_params: { num_clients: 500, price_per_client: 0.5 }
+      },
+      { 
+        name: 'Sito Web e Portale Clienti', 
+        description: 'Sviluppo sito vetrina + area riservata clienti per autoletture e pagamenti',
+        amount: 4500, 
+        quantity: 1, 
+        unit: 'progetto', 
+        cost_type: 'structural', 
+        is_recurring: false,
+        calculation_basis: 'Sviluppo web con integrazione area clienti, versione semplificata solo luce',
+        calculation_params: { base_value: 4500 }
+      },
+      
+      // Costi Commerciali - Acquisizione Clienti
+      { 
+        name: 'Rete Agenti - Provvigioni', 
+        description: 'Commissione per ogni contratto residenziale acquisito tramite agenti',
+        amount: 70, 
+        quantity: 100, 
+        unit: 'contratto', 
+        cost_type: 'commercial', 
+        is_recurring: false,
+        calculation_basis: 'Primo anno: 100 contratti target. Provvigione media €60-80/contratto solo luce',
+        calculation_params: { num_clients: 100, price_per_client: 70 }
+      },
+      { 
+        name: 'Marketing Digitale', 
+        description: 'Campagne Google Ads, Meta Ads per lead generation',
+        amount: 1200, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'commercial', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Budget ads €1.200/mese → ~40 lead/mese a €30/lead → ~12 contratti',
+        calculation_params: { base_value: 1200 }
+      },
+      { 
+        name: 'Materiale Promozionale', 
+        description: 'Brochure, volantini, gadget per agenti e sportelli',
+        amount: 1500, 
+        quantity: 1, 
+        unit: 'lotto', 
+        cost_type: 'commercial', 
+        is_recurring: false,
+        calculation_basis: 'Stampa iniziale: 3.000 brochure + 8.000 volantini + gadget',
+        calculation_params: { base_value: 1500 }
+      },
+      { 
+        name: 'Formazione Agenti', 
+        description: 'Corsi formazione rete vendita su prodotti e normativa',
+        amount: 1200, 
+        quantity: 1, 
+        unit: 'sessione', 
+        cost_type: 'commercial', 
+        is_recurring: false,
+        calculation_basis: '1 sessione formativa per 8-10 agenti, solo prodotto luce',
+        calculation_params: { base_value: 1200 }
+      },
+      
+      // Costi Indiretti - Operatività
+      { 
+        name: 'Personale Back-Office', 
+        description: 'Risorsa dedicata gestione contratti, pratiche SII, assistenza clienti',
+        amount: 2200, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'indirect', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'RAL €26.000-28.000 + contributi (~35%) = costo azienda ~€2.200/mese',
+        calculation_params: { base_value: 2200 }
+      },
+      { 
+        name: 'Commercialista e Consulenza Fiscale', 
+        description: 'Gestione contabilità, bilancio, dichiarazioni fiscali',
+        amount: 350, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'indirect', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Studio commercialista: forfait mensile per SRL operatore energia (solo luce)',
+        calculation_params: { base_value: 350 }
+      },
+      { 
+        name: 'Affitto Ufficio/Sportello', 
+        description: 'Sede operativa o sportello territoriale',
+        amount: 600, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'indirect', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Ufficio 30-40mq in zona semicentrale. Varia molto per città',
+        calculation_params: { base_value: 600 }
+      },
+      { 
+        name: 'Utenze e Cancelleria', 
+        description: 'Luce, internet, telefono, materiale ufficio',
+        amount: 200, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'indirect', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Stima mensile: telefonia €50 + internet €40 + energia €60 + cancelleria €50',
+        calculation_params: { base_value: 200 }
+      },
+      { 
+        name: 'Call Center (outsourcing)', 
+        description: 'Servizio clienti esternalizzato per primo livello',
+        amount: 300, 
+        quantity: 12, 
+        unit: 'mese', 
+        cost_type: 'indirect', 
+        is_recurring: true, 
+        recurrence_period: 'monthly',
+        calculation_basis: 'Pacchetto base call center: ~60 ore/mese a €5/ora per startup',
+        calculation_params: { base_value: 300 }
+      },
+      { 
+        name: 'Gestione Morosità', 
+        description: 'Costo medio per gestione solleciti, messe in mora, pratiche legali',
+        amount: 5, 
+        quantity: 500, 
+        unit: 'cliente/anno', 
+        cost_type: 'indirect', 
+        is_recurring: true, 
+        recurrence_period: 'yearly',
+        calculation_basis: 'Accantonamento €5/cliente/anno per gestione morosità (~3-5% clienti)',
+        calculation_params: { num_clients: 500, price_per_client: 5 }
+      },
+      
+      // Costi Diretti - Oneri Regolatori
+      { 
+        name: 'Contributo Iscrizione EVE', 
+        description: 'Contributo una tantum iscrizione Elenco Venditori Energia',
+        amount: 500, 
+        quantity: 1, 
+        unit: 'pratica', 
+        cost_type: 'direct', 
+        is_recurring: false,
+        calculation_basis: 'Contributo ARERA per iscrizione EVE (solo luce)',
+        calculation_params: { base_value: 500 }
+      },
+      { 
+        name: 'Contributo Annuale ARERA', 
+        description: 'Contributo obbligatorio annuale per operatori settore energetico',
+        amount: 1200, 
+        quantity: 1, 
+        unit: 'anno', 
+        cost_type: 'direct', 
+        is_recurring: true, 
+        recurrence_period: 'yearly',
+        calculation_basis: 'Contributo fisso annuale EVE. Importo base €1.200 per operatori minori',
+        calculation_params: { base_value: 1200 }
+      },
+      { 
+        name: 'Iscrizione ADM - Accise', 
+        description: 'Costi iscrizione e adempimenti Agenzia Dogane per accise energia',
+        amount: 800, 
+        quantity: 1, 
+        unit: 'pratica', 
+        cost_type: 'direct', 
+        is_recurring: false,
+        calculation_basis: 'Pratiche iniziali ADM + consulenza primo anno',
+        calculation_params: { base_value: 800 }
+      },
+    ],
+    
+    // RICAVI - Solo energia elettrica
+    revenues: [
+      { 
+        name: 'Fatturazione Energia Residenziale', 
+        description: 'Ricavi da vendita energia elettrica a clienti domestici (prezzo medio rivendita)',
+        amount: 0.18, 
+        quantity: 150000, 
+        unit: 'kWh/mese', 
+        revenue_type: 'energia_elettrica', 
+        status: 'expected',
+        margin_type: 'per_kwh',
+        calculation_basis: '500 clienti × 300 kWh/mese × €0,18/kWh (prezzo medio residenziale)',
+        calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.18 }
+      },
+      { 
+        name: 'Margine Commerciale Luce', 
+        description: 'Margine effettivo sul kWh dopo costo commodity (spread)',
+        amount: 0.03, 
+        quantity: 150000, 
+        unit: 'kWh/mese', 
+        revenue_type: 'margine', 
+        status: 'expected',
+        margin_type: 'per_kwh',
+        calculation_basis: 'Spread medio €0,03/kWh (vendita €0,18 - acquisto €0,12 - trasporto €0,035)',
+        calculation_params: { num_clients: 500, consumption_kwh: 300, margin_per_kwh: 0.03 }
+      },
+      { 
+        name: 'Contributi Acquisizione Grossista', 
+        description: 'Bonus acquisizione riconosciuti dal grossista per nuovi POD',
+        amount: 30, 
+        quantity: 100, 
+        unit: 'POD', 
+        revenue_type: 'incentivo', 
+        status: 'expected',
+        margin_type: 'per_client',
+        calculation_basis: 'Bonus €25-35/POD per acquisizioni primo anno (negoziabile con grossista)',
+        calculation_params: { num_clients: 100, margin_per_client: 30 }
+      },
+    ],
+    
+    // TASSE - Solo quelle relative all'energia elettrica
+    taxes: standardTaxTemplates
+      .filter(tax => !['accise_gas', 'addizionali_regionali'].includes(tax.tax_type))
+      .map(tax => ({
+        ...tax,
+        base_amount: tax.tax_type === 'accise_energia' ? 150000 :
+                     tax.tax_type === 'addizionali_comunali' ? 150000 :
+                     tax.tax_type === 'iva' ? 27000 :
+                     tax.tax_type === 'csea' ? 150000 :
+                     tax.tax_type === 'oneri_sistema' ? 150000 :
+                     tax.base_amount,
+        calculation_hypothesis: 'Stima per portafoglio 500 clienti residenziali solo luce, 300 kWh/mese consumo medio',
+      })),
+  },
 ];
