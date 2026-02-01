@@ -13,6 +13,16 @@ interface RegulatoryDeadline {
   completed: boolean;
 }
 
+// Map deadline types to commodity - used for filtering
+const deadlineTypeCommodity: Record<string, 'luce' | 'gas' | 'all'> = {
+  eve_renewal: 'luce',
+  evg_renewal: 'gas',
+  arera_data: 'all',
+  csea_payment: 'all',
+  adm_excise: 'all',
+  custom: 'all',
+};
+
 const deadlineTypeLabels: Record<string, { emoji: string; label: string }> = {
   eve_renewal: { emoji: '⚡', label: 'EVE' },
   evg_renewal: { emoji: '🔥', label: 'EVG' },
@@ -22,9 +32,24 @@ const deadlineTypeLabels: Record<string, { emoji: string; label: string }> = {
   custom: { emoji: '📅', label: 'Scadenza' },
 };
 
+// Helper to filter deadlines by commodity type
+const isDeadlineRelevantForCommodity = (deadlineType: string, commodityType?: string | null): boolean => {
+  if (!commodityType) return true; // Show all if no commodity type set
+  
+  const deadlineCommodity = deadlineTypeCommodity[deadlineType] || 'all';
+  
+  if (deadlineCommodity === 'all') return true;
+  if (commodityType === 'dual-fuel') return true;
+  if (commodityType === 'solo-luce' && deadlineCommodity === 'luce') return true;
+  if (commodityType === 'solo-gas' && deadlineCommodity === 'gas') return true;
+  
+  return false;
+};
+
 export const useDeadlineNotifications = (
   deadlines: RegulatoryDeadline[],
-  enabled: boolean = true
+  enabled: boolean = true,
+  commodityType?: string | null
 ) => {
   const notifiedDeadlines = useRef<Set<string>>(new Set());
   const lastCheckTime = useRef<Date>(new Date());
@@ -44,6 +69,8 @@ export const useDeadlineNotifications = (
       deadlines.forEach((deadline) => {
         if (deadline.completed) return;
         
+        // Filter by commodity type - skip notifications for irrelevant deadlines
+        if (!isDeadlineRelevantForCommodity(deadline.deadline_type, commodityType)) return;
         const notificationKey = `${deadline.id}-${deadline.due_date}`;
         if (notifiedDeadlines.current.has(notificationKey)) return;
 
@@ -93,7 +120,7 @@ export const useDeadlineNotifications = (
     const interval = setInterval(checkDeadlines, 60 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [deadlines, enabled]);
+  }, [deadlines, enabled, commodityType]);
 
   // Function to manually trigger notification check
   const triggerNotificationCheck = () => {
