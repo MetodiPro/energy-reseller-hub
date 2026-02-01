@@ -177,6 +177,13 @@ export const ProcessTracker = ({
     updateProgress(stepId, { notes });
   };
 
+  const updateStepDates = (stepId: string, startDate?: string, endDate?: string) => {
+    updateProgress(stepId, {
+      plannedStartDate: startDate,
+      plannedEndDate: endDate,
+    });
+  };
+
   const getCategoryColor = (category: ProcessStep['category']) => {
     const colors = {
       legal: 'bg-primary/10 text-primary border-primary/20',
@@ -629,13 +636,14 @@ export const ProcessTracker = ({
             key,
             {
               completed: value.completed,
-              plannedStartDate: (value as any).plannedStartDate,
-              plannedEndDate: (value as any).plannedEndDate,
+              plannedStartDate: value.plannedStartDate,
+              plannedEndDate: value.plannedEndDate,
             }
           ])
         )}
         commodityType={commodityType ?? null}
         getCostAmount={getCostAmount}
+        onUpdateStepDates={updateStepDates}
       />
     </div>
   );
