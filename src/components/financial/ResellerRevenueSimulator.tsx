@@ -86,7 +86,7 @@ interface RevenueParams {
 }
 
 // Array di 10 mesi con numero clienti target
-type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number];
+type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number, number, number];
 
 interface MonthData {
   month: number;
@@ -129,7 +129,7 @@ const DEFAULT_PARAMS: RevenueParams = {
   uncollectibleRate: 2,                   // 2% insoluti definitivi
 };
 
-const DEFAULT_MONTHLY_CONTRACTS: MonthlyContractsTarget = [30, 40, 50, 60, 70, 80, 90, 100, 100, 100];
+const DEFAULT_MONTHLY_CONTRACTS: MonthlyContractsTarget = [30, 40, 50, 60, 70, 80, 90, 100, 100, 100, 100, 100];
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
@@ -187,14 +187,14 @@ export const ResellerRevenueSimulator = () => {
       const label = `${MONTHS_IT[monthIndex]} ${year}`;
       
       // Contratti: firmati questo mese (dai primi 10 mesi impostati, poi 0)
-      const newContracts = m < 10 ? monthlyContracts[m] : 0;
+      const newContracts = m < 12 ? monthlyContracts[m] : 0;
       
       // Invio grossista: contratti del mese precedente (entro il 10 del mese corrente)
-      const sentToWholesaler = m >= 1 ? (m - 1 < 10 ? monthlyContracts[m - 1] : 0) : 0;
+      const sentToWholesaler = m >= 1 ? (m - 1 < 12 ? monthlyContracts[m - 1] : 0) : 0;
       
       // Attivazioni: clienti che iniziano fornitura (contratti di 2 mesi fa, dopo scrematura SII)
       const activatedCustomers = m >= 2
-        ? Math.round((m - 2 < 10 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) 
+        ? Math.round((m - 2 < 12 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) 
         : 0;
       
       cumulativeActiveCustomers += activatedCustomers;
@@ -202,7 +202,7 @@ export const ResellerRevenueSimulator = () => {
       // Fatturazione: clienti attivi da 1 mese fa (prima fattura emessa mese X+3)
       // I clienti attivati nel mese M vengono fatturati nel mese M+1
       const invoicedCustomers = m >= 3
-        ? Math.round((m - 3 < 10 ? monthlyContracts[m - 3] : 0) * (params.activationRate / 100))
+        ? Math.round((m - 3 < 12 ? monthlyContracts[m - 3] : 0) * (params.activationRate / 100))
         : 0;
       
       // Per il mese 3, fatturiamo i clienti attivati nel mese 2
@@ -410,7 +410,7 @@ export const ResellerRevenueSimulator = () => {
                 Clienti da Attivare per Mese
               </h4>
               <p className="text-xs text-muted-foreground">
-                Imposta il numero di contratti target per ciascuno dei primi 10 mesi
+                Imposta il numero di contratti target per ciascuno dei primi 12 mesi
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {monthlyContracts.map((value, index) => {
