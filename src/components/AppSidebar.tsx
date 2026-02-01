@@ -84,15 +84,15 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, userName, onSign
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-2">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Zap className="h-4 w-4 text-primary" />
+      <SidebarHeader className="border-b border-sidebar-border p-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/30">
+            <Zap className="h-5 w-5 text-white drop-shadow-sm" fill="white" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col overflow-hidden">
-              <span className="font-semibold text-sm truncate">Power Reseller</span>
-              <span className="text-xs text-muted-foreground truncate">Start Up</span>
+              <span className="font-bold text-base text-sidebar-foreground tracking-tight">Power Reseller</span>
+              <span className="text-xs font-medium text-amber-500">START UP</span>
             </div>
           )}
         </div>
