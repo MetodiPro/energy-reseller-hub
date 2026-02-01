@@ -183,11 +183,17 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, userName, onSign
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => onTabChange("settings")}
+                >
                   <User className="mr-2 h-4 w-4" />
                   Profilo
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => onTabChange("settings")}
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   Impostazioni
                 </DropdownMenuItem>
