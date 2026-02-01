@@ -405,7 +405,7 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
             </div>
 
             {/* Simulatore Ricavi Reseller */}
-            <ResellerRevenueSimulator />
+            <ResellerRevenueSimulator projectId={projectId} />
             
             {/* Manager ricavi manuali legacy */}
             <Card>

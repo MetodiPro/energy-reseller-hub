@@ -569,6 +569,74 @@ export type Database = {
           },
         ]
       }
+      project_revenue_simulations: {
+        Row: {
+          activation_rate: number
+          avg_monthly_consumption: number
+          ccv_monthly: number
+          collection_month_0: number
+          collection_month_1: number
+          collection_month_2: number
+          collection_month_3_plus: number
+          created_at: string
+          created_by: string
+          id: string
+          monthly_contracts: Json
+          other_services_monthly: number
+          project_id: string
+          spread_per_kwh: number
+          start_date: string
+          uncollectible_rate: number
+          updated_at: string
+        }
+        Insert: {
+          activation_rate?: number
+          avg_monthly_consumption?: number
+          ccv_monthly?: number
+          collection_month_0?: number
+          collection_month_1?: number
+          collection_month_2?: number
+          collection_month_3_plus?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          monthly_contracts?: Json
+          other_services_monthly?: number
+          project_id: string
+          spread_per_kwh?: number
+          start_date?: string
+          uncollectible_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          activation_rate?: number
+          avg_monthly_consumption?: number
+          ccv_monthly?: number
+          collection_month_0?: number
+          collection_month_1?: number
+          collection_month_2?: number
+          collection_month_3_plus?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          monthly_contracts?: Json
+          other_services_monthly?: number
+          project_id?: string
+          spread_per_kwh?: number
+          start_date?: string
+          uncollectible_rate?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_revenue_simulations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_revenues: {
         Row: {
           amount: number
