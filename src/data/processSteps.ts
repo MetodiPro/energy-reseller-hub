@@ -587,70 +587,7 @@ export const processSteps: ProcessStep[] = [
       'Formazione su procedure operative grossista'
     ]
   },
-  {
-    id: 'step-4-2',
-    phase: 4,
-    title: 'Accreditamento Sistema Informativo Integrato (SII)',
-    description: 'Registrazione e accreditamento presso Acquirente Unico per accesso al SII - gestione flussi switching e volture',
-    category: 'technical',
-    estimatedDays: 30,
-    priority: 'high',
-    dependencies: ['step-4-1'],
-    documents: [
-      'Richiesta accreditamento AU',
-      'Certificati digitali per firma flussi',
-      'Documentazione tecnica sistemi',
-      'Test di conformità superati'
-    ],
-    costs: {
-      min: 5000,
-      max: 15000,
-      description: 'Setup tecnico, certificati, test conformità'
-    },
-    notes: [
-      'NOTA RESELLER: La gestione SII può essere delegata al grossista',
-      'Alcuni grossisti gestiscono il SII per conto del reseller',
-      'Valutare con il grossista chi gestisce l\'accreditamento SII',
-      'Se delegato: il grossista opera i flussi, il reseller ha visibilità',
-      'Se autonomo: necessario accreditamento diretto presso AU',
-      'SII gestisce: switching, volture, subentri, cessazioni',
-      'Flussi XML standardizzati secondo specifiche AU'
-    ],
-    checklist: [
-      'Verificare con grossista chi gestisce SII',
-      'Se autonomo: Richiesta credenziali portale Acquirente Unico',
-      'Acquisizione certificati digitali per firma flussi',
-      'Setup ambiente di test SII',
-      'Configurazione software gestione flussi XML',
-      'Esecuzione test di conformità',
-      'Superamento test switching simulato',
-      'Superamento test volture/subentri',
-      'Richiesta passaggio in produzione',
-      'Attivazione ambiente produzione SII'
-    ],
-    officialLinks: [
-      {
-        name: 'Portale SII - Acquirente Unico',
-        url: 'https://siiportale.acquirenteunico.it/',
-        description: 'Sistema Informativo Integrato'
-      },
-      {
-        name: 'Specifiche Tecniche SII',
-        url: 'https://siiportale.acquirenteunico.it/documentazione',
-        description: 'Documentazione tecnica flussi XML'
-      },
-      {
-        name: 'Switching Gas',
-        url: 'https://siiportale.acquirenteunico.it/processi/settore-gas/switching',
-        description: 'Processo switching settore gas'
-      },
-      {
-        name: 'Area Operatori AU',
-        url: 'https://portale.acquirenteunico.it/',
-        description: 'Accesso operatori accreditati'
-      }
-    ]
-  },
+  // NOTA: L'accreditamento SII è gestito dal grossista/UDD, non dal reseller
   {
     id: 'step-4-3',
     phase: 4,
@@ -723,14 +660,14 @@ export const processSteps: ProcessStep[] = [
     ]
   },
   {
-    id: 'step-4-4',
+    id: 'step-4-3b',
     phase: 4,
-    title: 'Familiarizzazione Portali Distributori (via Grossista)',
-    description: 'Conoscenza dei principali portali distributori per monitoraggio pratiche gestite dal grossista',
+    title: 'Formazione Portale e Procedure Grossista',
+    description: 'Formazione sull\'utilizzo del portale del grossista per monitoraggio pratiche switching, volture e comunicazione con distributori',
     category: 'technical',
     estimatedDays: 10,
     priority: 'medium',
-    dependencies: ['step-4-2'],
+    dependencies: ['step-4-1'],
     documents: [
       'Documentazione procedure grossista',
       'Guida portali distributori (consultazione)',
@@ -777,52 +714,16 @@ export const processSteps: ProcessStep[] = [
   },
 
   // FASE 5: SETUP OPERATIVO E SOFTWARE
+  // NOTA: Il software SII è gestito dal grossista, il reseller usa il portale del grossista
   {
     id: 'step-5-1',
-    phase: 5,
-    title: 'Implementazione Software SII e Switching',
-    description: 'Setup piattaforma gestione flussi SII, switching, volture e subentri',
-    category: 'technical',
-    estimatedDays: 20,
-    priority: 'high',
-    dependencies: ['step-4-2'],
-    documents: [
-      'Contratto software SII',
-      'Documentazione tecnica integrazione',
-      'Procedure operative switching',
-      'Manuale utente'
-    ],
-    costs: {
-      min: 10000,
-      max: 25000,
-      description: 'Licenze software + setup + formazione'
-    },
-    notes: [
-      'Software deve essere certificato per flussi AU',
-      'Integrazione con CRM e billing necessaria',
-      'Gestione automatica esiti e scarti',
-      'Monitoraggio SLA switching (21 giorni)'
-    ],
-    checklist: [
-      'Selezione fornitore software SII',
-      'Installazione e configurazione piattaforma',
-      'Integrazione con sistemi AU',
-      'Configurazione flussi switching in/out',
-      'Configurazione flussi volture/subentri',
-      'Test end-to-end con ambiente AU test',
-      'Formazione operatori su gestione pratiche',
-      'Go-live ambiente produzione'
-    ]
-  },
-  {
-    id: 'step-5-2',
     phase: 5,
     title: 'Infrastruttura CRM e Billing',
     description: 'Setup sistema gestionale, CRM clienti e piattaforma fatturazione',
     category: 'technical',
     estimatedDays: 15,
     priority: 'high',
-    dependencies: ['step-5-1'],
+    dependencies: ['step-4-3b'],
     documents: [
       'Licenze software',
       'Contratti fornitori IT',
@@ -836,12 +737,12 @@ export const processSteps: ProcessStep[] = [
     notes: [
       'CRM per gestione clienti e contratti',
       'Sistema di fatturazione elettronica SDI',
-      'Integrazione con software SII',
+      'Integrazione con portale grossista per monitoraggio pratiche',
       'Conformità GDPR per dati personali'
     ],
     checklist: [
       'Selezione e acquisto CRM',
-      'Integrazione CRM con software SII',
+      'Integrazione CRM con portale grossista',
       'Setup sistema fatturazione elettronica',
       'Configurazione invio SDI',
       'Implementazione portale clienti',
@@ -851,14 +752,14 @@ export const processSteps: ProcessStep[] = [
     ]
   },
   {
-    id: 'step-5-3',
+    id: 'step-5-2',
     phase: 5,
     title: 'Struttura Commerciale e Contact Center',
     description: 'Organizzazione rete vendita e servizio assistenza clienti',
     category: 'operational',
     estimatedDays: 20,
     priority: 'high',
-    dependencies: ['step-5-2'],
+    dependencies: ['step-5-1'],
     documents: [
       'Contratti agenti/venditori',
       'Procedure assistenza clienti',
@@ -989,7 +890,7 @@ export const processSteps: ProcessStep[] = [
     category: 'commercial',
     estimatedDays: 10,
     priority: 'high',
-    dependencies: ['step-5-3'],
+    dependencies: ['step-5-2'],
     documents: [
       'Listino prezzi',
       'Condizioni generali vendita',
