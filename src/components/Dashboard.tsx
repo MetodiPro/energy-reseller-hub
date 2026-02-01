@@ -302,11 +302,18 @@ export const Dashboard = ({
         <Card className="p-6 border-l-4 border-l-warning shadow-custom-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Giorni Stimati Rimanenti</p>
+              <p className="text-sm font-medium text-muted-foreground">Effort Stimato Rimanente</p>
               <h3 className="text-3xl font-bold mt-2 text-warning">
                 {remainingDays}
               </h3>
-              <p className="text-xs text-muted-foreground mt-1">di {totalEstimatedDays} giorni totali</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                di {totalEstimatedDays} giorni-lavoro totali
+              </p>
+              {timeProgress && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  📅 Calendario: {timeProgress.daysRemaining} giorni reali
+                </p>
+              )}
             </div>
             <Clock className="h-8 w-8 text-warning" />
           </div>
