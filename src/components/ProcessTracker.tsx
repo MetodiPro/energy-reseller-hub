@@ -25,7 +25,8 @@ import {
   Wallet,
   Download,
   CalendarDays,
-  Play
+  Play,
+  Flag
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,9 @@ interface ProcessTrackerProps {
   commodityType?: string | null;
   projectName?: string;
   projectStartDate?: string | null;
+  projectEndDate?: string | null;
   onUpdateProjectStartDate?: (date: Date | null) => void;
+  onUpdateProjectEndDate?: (date: Date | null) => void;
 }
 
 export const ProcessTracker = ({ 
@@ -54,12 +57,15 @@ export const ProcessTracker = ({
   commodityType, 
   projectName = 'Progetto',
   projectStartDate,
-  onUpdateProjectStartDate 
+  projectEndDate,
+  onUpdateProjectStartDate,
+  onUpdateProjectEndDate,
 }: ProcessTrackerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
   const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const { stepProgress, loading, updateProgress } = useStepProgress({
     userId,
     projectId: projectId ?? null,
@@ -67,8 +73,8 @@ export const ProcessTracker = ({
   const { settings: notificationSettings, updateSetting, deleteSetting } = useNotificationSettings(userId);
   const { getStepTotal, getCostAmount } = useStepCosts(projectId ?? null);
   const { exportToPDF } = useExportProcessCostsPDF();
-
   const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
+  const parsedEndDate = projectEndDate ? parseISO(projectEndDate) : null;
 
   const handleExportPDF = () => {
     exportToPDF(projectName, commodityType ?? null, getCostAmount);
@@ -79,6 +85,13 @@ export const ProcessTracker = ({
       onUpdateProjectStartDate(date || null);
     }
     setStartDateOpen(false);
+  };
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    if (onUpdateProjectEndDate) {
+      onUpdateProjectEndDate(date || null);
+    }
+    setEndDateOpen(false);
   };
 
   // Calculate total costs by category across all visible steps
@@ -253,38 +266,77 @@ export const ProcessTracker = ({
           )}
         </div>
 
-        {/* Project Start Date Picker */}
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Data Inizio Attività:</span>
-          <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "gap-2 font-normal",
-                  !parsedStartDate && "text-muted-foreground"
-                )}
-              >
-                <Play className="h-4 w-4" />
-                {parsedStartDate ? (
-                  format(parsedStartDate, "d MMM yyyy", { locale: it })
-                ) : (
-                  "Imposta data"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <CalendarComponent
-                mode="single"
-                selected={parsedStartDate || undefined}
-                onSelect={handleStartDateSelect}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
+        {/* Project Date Pickers */}
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Start Date */}
+          <div className="flex items-center gap-2">
+            <Play className="h-4 w-4 text-success" />
+            <span className="text-sm text-muted-foreground">Inizio:</span>
+            <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "gap-2 font-normal",
+                    !parsedStartDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  {parsedStartDate ? (
+                    format(parsedStartDate, "d MMM yyyy", { locale: it })
+                  ) : (
+                    "Imposta"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={parsedStartDate || undefined}
+                  onSelect={handleStartDateSelect}
+                  disabled={(date) => parsedEndDate ? date > parsedEndDate : false}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* End Date / Due Date */}
+          <div className="flex items-center gap-2">
+            <Flag className="h-4 w-4 text-primary" />
+            <span className="text-sm text-muted-foreground">Target:</span>
+            <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "gap-2 font-normal",
+                    !parsedEndDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  {parsedEndDate ? (
+                    format(parsedEndDate, "d MMM yyyy", { locale: it })
+                  ) : (
+                    "Imposta"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={parsedEndDate || undefined}
+                  onSelect={handleEndDateSelect}
+                  disabled={(date) => parsedStartDate ? date < parsedStartDate : false}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
 
@@ -631,6 +683,7 @@ export const ProcessTracker = ({
       {/* Gantt Timeline - At the very bottom */}
       <ProcessGanttTimeline
         projectStartDate={parsedStartDate}
+        projectEndDate={parsedEndDate}
         stepProgress={Object.fromEntries(
           Object.entries(stepProgress).map(([key, value]) => [
             key,
