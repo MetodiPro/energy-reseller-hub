@@ -67,7 +67,6 @@ import {
 
 interface RevenueParams {
   // Clienti e volumi
-  monthlyNewContracts: number;          // Nuovi contratti al mese
   avgMonthlyConsumption: number;         // Consumo medio mensile per POD (kWh)
   
   // Tassi di conversione
@@ -85,6 +84,9 @@ interface RevenueParams {
   collectionMonth3Plus: number;          // % incasso oltre 60gg
   uncollectibleRate: number;             // % insoluti definitivi
 }
+
+// Array di 10 mesi con numero clienti target
+type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number];
 
 interface MonthData {
   month: number;
@@ -115,7 +117,6 @@ interface MonthData {
 }
 
 const DEFAULT_PARAMS: RevenueParams = {
-  monthlyNewContracts: 50,
   avgMonthlyConsumption: 200,            // kWh/mese per cliente residenziale
   activationRate: 85,                     // 85% dei contratti diventano attivi
   ccvMonthly: 8.50,                       // €/mese CCV tipico mercato libero
@@ -127,6 +128,8 @@ const DEFAULT_PARAMS: RevenueParams = {
   collectionMonth3Plus: 3,                // 3% paga oltre
   uncollectibleRate: 2,                   // 2% insoluti definitivi
 };
+
+const DEFAULT_MONTHLY_CONTRACTS: MonthlyContractsTarget = [30, 40, 50, 60, 70, 80, 90, 100, 100, 100];
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
@@ -150,12 +153,24 @@ const formatCurrencyDecimal = (value: number) => {
 
 export const ResellerRevenueSimulator = () => {
   const [params, setParams] = useState<RevenueParams>(DEFAULT_PARAMS);
-  const [startMonth, setStartMonth] = useState(0); // 0 = Gen
-  const [startYear, setStartYear] = useState(2026);
+  const [startDate, setStartDate] = useState<Date>(new Date(2026, 0, 1)); // 1 Gen 2026
+  const [monthlyContracts, setMonthlyContracts] = useState<MonthlyContractsTarget>(DEFAULT_MONTHLY_CONTRACTS);
   
   const updateParam = (key: keyof RevenueParams, value: number) => {
     setParams(prev => ({ ...prev, [key]: value }));
   };
+
+  const updateMonthlyContract = (monthIndex: number, value: number) => {
+    setMonthlyContracts(prev => {
+      const updated = [...prev] as MonthlyContractsTarget;
+      updated[monthIndex] = value;
+      return updated;
+    });
+  };
+
+  // Derive startMonth and startYear from startDate
+  const startMonth = startDate.getMonth();
+  const startYear = startDate.getFullYear();
 
   // Calcola proiezione 14 mesi
   const projection = useMemo(() => {
@@ -171,23 +186,23 @@ export const ResellerRevenueSimulator = () => {
       const year = startYear + Math.floor((startMonth + m) / 12);
       const label = `${MONTHS_IT[monthIndex]} ${year}`;
       
-      // Contratti: firmati questo mese
-      const newContracts = params.monthlyNewContracts;
+      // Contratti: firmati questo mese (dai primi 10 mesi impostati, poi 0)
+      const newContracts = m < 10 ? monthlyContracts[m] : 0;
       
       // Invio grossista: contratti del mese precedente (entro il 10 del mese corrente)
-      const sentToWholesaler = m >= 1 ? params.monthlyNewContracts : 0;
+      const sentToWholesaler = m >= 1 ? (m - 1 < 10 ? monthlyContracts[m - 1] : 0) : 0;
       
       // Attivazioni: clienti che iniziano fornitura (contratti di 2 mesi fa, dopo scrematura SII)
-      const activatedCustomers = m >= 2 
-        ? Math.round(params.monthlyNewContracts * (params.activationRate / 100)) 
+      const activatedCustomers = m >= 2
+        ? Math.round((m - 2 < 10 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) 
         : 0;
       
       cumulativeActiveCustomers += activatedCustomers;
       
       // Fatturazione: clienti attivi da 1 mese fa (prima fattura emessa mese X+3)
       // I clienti attivati nel mese M vengono fatturati nel mese M+1
-      const invoicedCustomers = m >= 3 
-        ? Math.round(params.monthlyNewContracts * (params.activationRate / 100))
+      const invoicedCustomers = m >= 3
+        ? Math.round((m - 3 < 10 ? monthlyContracts[m - 3] : 0) * (params.activationRate / 100))
         : 0;
       
       // Per il mese 3, fatturiamo i clienti attivati nel mese 2
@@ -268,7 +283,7 @@ export const ResellerRevenueSimulator = () => {
     }
     
     return months;
-  }, [params, startMonth, startYear]);
+  }, [params, startMonth, startYear, monthlyContracts]);
 
   // Totali
   const totals = useMemo(() => {
@@ -354,21 +369,81 @@ export const ResellerRevenueSimulator = () => {
             <CardTitle className="text-lg">Parametri Simulazione</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Clienti */}
+            {/* Data Inizio Attività Commerciali */}
+            <div className="space-y-4">
+              <h4 className="font-medium flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Inizio Attività Commerciali
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Mese</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    value={startDate.getMonth()}
+                    onChange={(e) => setStartDate(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
+                  >
+                    {MONTHS_IT.map((m, i) => (
+                      <option key={i} value={i}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Anno</Label>
+                  <Input
+                    type="number"
+                    min="2024"
+                    max="2035"
+                    value={startDate.getFullYear()}
+                    onChange={(e) => setStartDate(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Pianificazione Clienti per Mese */}
             <div className="space-y-4">
               <h4 className="font-medium flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Acquisizione Clienti
+                Clienti da Attivare per Mese
               </h4>
-              
-              <div className="space-y-2">
-                <Label>Nuovi contratti/mese</Label>
-                <Input
-                  type="number"
-                  value={params.monthlyNewContracts}
-                  onChange={(e) => updateParam('monthlyNewContracts', parseInt(e.target.value) || 0)}
-                />
+              <p className="text-xs text-muted-foreground">
+                Imposta il numero di contratti target per ciascuno dei primi 10 mesi
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {monthlyContracts.map((value, index) => {
+                  const monthIndex = (startMonth + index) % 12;
+                  const year = startYear + Math.floor((startMonth + index) / 12);
+                  return (
+                    <div key={index} className="space-y-1">
+                      <Label className="text-xs">{MONTHS_IT[monthIndex]} {year}</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        className="h-8"
+                        value={value}
+                        onChange={(e) => updateMonthlyContract(index, parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                  );
+                })}
               </div>
+              <div className="p-2 bg-muted rounded-lg text-sm">
+                <span className="font-medium">Totale contratti target: </span>
+                {monthlyContracts.reduce((a, b) => a + b, 0)}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Clienti */}
+            <div className="space-y-4">
+              <h4 className="font-medium flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Parametri Consumo
+              </h4>
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
