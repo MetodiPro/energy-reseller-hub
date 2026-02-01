@@ -65,6 +65,7 @@ const Index = () => {
     addProject,
     updateProject,
     updateProjectStartDate,
+    updateProjectEndDate,
     deleteProject,
     hasProjects 
   } = useProjects(user?.id);
@@ -203,9 +204,15 @@ const Index = () => {
             commodityType={(currentProject as any)?.commodity_type}
             projectName={(currentProject as any)?.name}
             projectStartDate={(currentProject as any)?.planned_start_date}
+            projectEndDate={(currentProject as any)?.go_live_date}
             onUpdateProjectStartDate={(date) => {
               if (currentProjectId) {
                 updateProjectStartDate(currentProjectId, date);
+              }
+            }}
+            onUpdateProjectEndDate={(date) => {
+              if (currentProjectId) {
+                updateProjectEndDate(currentProjectId, date);
               }
             }}
           />

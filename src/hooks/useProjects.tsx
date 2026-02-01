@@ -8,6 +8,8 @@ export interface Project {
   description: string | null;
   owner_id: string;
   commodity_type: string | null;
+  planned_start_date: string | null;
+  go_live_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -209,12 +211,46 @@ export const useProjects = (userId: string | undefined) => {
     ));
     
     if (currentProject?.id === id) {
-      setCurrentProject(prev => prev ? { ...prev, planned_start_date: startDate ? startDate.toISOString().split('T')[0] : null } as any : null);
+      setCurrentProject(prev => prev ? { ...prev, planned_start_date: startDate ? startDate.toISOString().split('T')[0] : null } : null);
     }
 
     toast({
       title: 'Data inizio aggiornata',
       description: 'La pianificazione del progetto è stata aggiornata.',
+    });
+  }, [currentProject, toast]);
+
+  const updateProjectEndDate = useCallback(async (id: string, endDate: Date | null) => {
+    const { error } = await supabase
+      .from('projects')
+      .update({ 
+        go_live_date: endDate ? endDate.toISOString().split('T')[0] : null,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating project end date:', error);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile aggiornare la data di fine.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    // Update local state
+    setProjects(prev => prev.map(p => 
+      p.id === id ? { ...p, go_live_date: endDate ? endDate.toISOString().split('T')[0] : null } : p
+    ));
+    
+    if (currentProject?.id === id) {
+      setCurrentProject(prev => prev ? { ...prev, go_live_date: endDate ? endDate.toISOString().split('T')[0] : null } : null);
+    }
+
+    toast({
+      title: 'Data fine aggiornata',
+      description: 'La data target del progetto è stata aggiornata.',
     });
   }, [currentProject, toast]);
 
@@ -226,6 +262,7 @@ export const useProjects = (userId: string | undefined) => {
     addProject,
     updateProject,
     updateProjectStartDate,
+    updateProjectEndDate,
     deleteProject,
     refreshProjects,
     hasProjects: projects.length > 0,

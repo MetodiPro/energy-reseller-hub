@@ -7,7 +7,10 @@ import {
   Clock, 
   CheckCircle2,
   AlertTriangle,
-  Edit2
+  Edit2,
+  Flag,
+  TrendingUp,
+  TrendingDown
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
@@ -24,6 +27,7 @@ interface StepProgressData {
 
 interface ProcessGanttTimelineProps {
   projectStartDate: Date | null;
+  projectEndDate: Date | null;
   stepProgress: Record<string, StepProgressData>;
   commodityType: string | null;
   getCostAmount: (stepId: string, costItemId: string) => number;
@@ -32,6 +36,7 @@ interface ProcessGanttTimelineProps {
 
 export const ProcessGanttTimeline = ({
   projectStartDate,
+  projectEndDate,
   stepProgress,
   commodityType,
   getCostAmount,
@@ -144,11 +149,17 @@ export const ProcessGanttTimeline = ({
   if (!timelineData) return null;
 
   const today = new Date();
+  
+  // Calculate difference between target and estimated end dates
+  const daysMargin = projectEndDate 
+    ? differenceInDays(projectEndDate, timelineData.projectEndDate) 
+    : null;
+  const isOnTrack = daysMargin === null || daysMargin >= 0;
 
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -163,11 +174,50 @@ export const ProcessGanttTimeline = ({
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <Clock className="h-4 w-4" />
-              <span>Data Fine Prevista</span>
+              <span>Fine Stimata</span>
             </div>
             <p className="text-lg font-bold mt-1">
               {format(timelineData.projectEndDate, 'd MMM yyyy', { locale: it })}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Target Date Card */}
+        <Card className={cn(
+          projectEndDate && !isOnTrack && "border-destructive/50 bg-destructive/5"
+        )}>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Flag className={cn("h-4 w-4", projectEndDate ? "text-primary" : "")} />
+              <span>Target</span>
+            </div>
+            {projectEndDate ? (
+              <div>
+                <p className="text-lg font-bold mt-1">
+                  {format(projectEndDate, 'd MMM yyyy', { locale: it })}
+                </p>
+                {daysMargin !== null && (
+                  <div className={cn(
+                    "flex items-center gap-1 text-xs mt-1",
+                    isOnTrack ? "text-success" : "text-destructive"
+                  )}>
+                    {isOnTrack ? (
+                      <>
+                        <TrendingUp className="h-3 w-3" />
+                        <span>+{daysMargin} giorni di margine</span>
+                      </>
+                    ) : (
+                      <>
+                        <TrendingDown className="h-3 w-3" />
+                        <span>{Math.abs(daysMargin)} giorni in ritardo</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-1">Non impostato</p>
+            )}
           </CardContent>
         </Card>
         
@@ -187,7 +237,7 @@ export const ProcessGanttTimeline = ({
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <span className="text-primary font-bold">€</span>
-              <span>Investimento Totale</span>
+              <span>Investimento</span>
             </div>
             <p className="text-2xl font-bold mt-1 text-primary">
               €{timelineData.totalCost.toLocaleString('it-IT')}
