@@ -20,7 +20,8 @@ import {
   ExternalLink,
   TrendingUp,
   Calculator,
-  Wallet
+  Wallet,
+  Download
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
@@ -31,13 +32,15 @@ import { NotificationSettingsDialog } from "@/components/NotificationSettingsDia
 import { StepCostDetails } from "@/components/StepCostDetails";
 import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
+import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
 
 interface ProcessTrackerProps {
   projectId?: string | null;
   commodityType?: string | null;
+  projectName?: string;
 }
 
-export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps) => {
+export const ProcessTracker = ({ projectId, commodityType, projectName = 'Progetto' }: ProcessTrackerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
@@ -47,6 +50,11 @@ export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps
   });
   const { settings: notificationSettings, updateSetting, deleteSetting } = useNotificationSettings(userId);
   const { getStepTotal, getCostAmount } = useStepCosts(projectId ?? null);
+  const { exportToPDF } = useExportProcessCostsPDF();
+
+  const handleExportPDF = () => {
+    exportToPDF(projectName, commodityType ?? null, getCostAmount);
+  };
 
   // Calculate total costs by category across all visible steps
   const costSummary = useMemo(() => {
@@ -215,10 +223,21 @@ export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps
       {/* Cost Summary Card */}
       <Card className="bg-gradient-to-br from-primary/5 via-background to-accent/5 border-primary/20 shadow-custom-lg">
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Wallet className="h-5 w-5 text-primary" />
-            Riepilogo Costi di Avvio
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wallet className="h-5 w-5 text-primary" />
+              Riepilogo Costi di Avvio
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPDF}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Esporta PDF
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">

@@ -200,6 +200,7 @@ const Index = () => {
           <ProcessTracker 
             projectId={currentProjectId ?? undefined}
             commodityType={(currentProject as any)?.commodity_type}
+            projectName={(currentProject as any)?.name}
           />
         );
       case "deadlines":
