@@ -404,29 +404,8 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
               </div>
             </div>
 
-            {/* Simulatore Ricavi Reseller */}
+            {/* Simulatore Ricavi Reseller - Fonte unica dei ricavi */}
             <ResellerRevenueSimulator projectId={projectId} />
-            
-            {/* Manager ricavi manuali legacy */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Ricavi Manuali</CardTitle>
-                <CardDescription>
-                  Inserisci ricavi aggiuntivi non coperti dal simulatore (una tantum, servizi speciali, ecc.)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CostRevenueManager
-                  type="revenues"
-                  projectId={projectId}
-                  items={revenues}
-                  categories={categories}
-                  onAdd={addRevenue}
-                  onUpdate={updateRevenue}
-                  onDelete={deleteRevenue}
-                />
-              </CardContent>
-            </Card>
           </div>
         </TabsContent>
 
