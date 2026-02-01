@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Rocket, Home, Building2, Zap, ArrowRight, ArrowLeft, Check, Sparkles, Info, Users, Landmark, Shield } from 'lucide-react';
+import { Rocket, Home, Building2, Zap, ArrowRight, ArrowLeft, Check, Sparkles, Info, Users, Landmark, Shield, Flame, Plug } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { projectTemplates, type ProjectTemplate } from '@/data/costTemplates';
 import { toast } from '@/hooks/use-toast';
@@ -24,6 +24,44 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Building2,
   Zap,
 };
+
+type MarketType = 'solo-luce' | 'solo-gas' | 'dual-fuel' | null;
+
+interface MarketTypeOption {
+  id: MarketType;
+  name: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  templateFilter: (template: ProjectTemplate) => boolean;
+}
+
+const marketTypeOptions: MarketTypeOption[] = [
+  {
+    id: 'solo-luce',
+    name: 'Solo Energia Elettrica',
+    description: 'Vendita esclusiva di energia elettrica. Modello semplificato, ideale per iniziare.',
+    icon: Zap,
+    color: 'hsl(45, 90%, 50%)',
+    templateFilter: (t) => t.id.includes('elettrico') || t.id === 'reseller-residenziale' || t.id === 'reseller-business',
+  },
+  {
+    id: 'solo-gas',
+    name: 'Solo Gas Naturale',
+    description: 'Vendita esclusiva di gas naturale per riscaldamento e usi domestici.',
+    icon: Flame,
+    color: 'hsl(25, 90%, 55%)',
+    templateFilter: (t) => t.id.includes('gas') || t.id === 'reseller-residenziale' || t.id === 'reseller-business',
+  },
+  {
+    id: 'dual-fuel',
+    name: 'Luce + Gas (Dual Fuel)',
+    description: 'Offerta completa luce e gas. Maggiore complessità ma più opportunità commerciali.',
+    icon: Plug,
+    color: 'hsl(260, 70%, 60%)',
+    templateFilter: () => true, // All templates available for dual fuel
+  },
+];
 
 interface TemplateRequirements {
   garanzie: string;
@@ -51,16 +89,45 @@ const templateRequirements: Record<string, TemplateRequirements> = {
     investimento: '€200.000 - €280.000 primo anno',
     complessita: 'Alta',
   },
+  'reseller-elettrico-residenziale': {
+    garanzie: '€20.000 - Fideiussioni ridotte (solo luce)',
+    personale: '1-2 risorse: 1 back-office multifunzione',
+    investimento: '€50.000 - €80.000 primo anno',
+    complessita: 'Bassa',
+  },
 };
 
 export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: ProjectWizardProps) => {
   const [step, setStep] = useState(1);
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
+  const [selectedMarketType, setSelectedMarketType] = useState<MarketType>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  const totalSteps = 3;
+  const totalSteps = 4;
+
+  // Filter templates based on selected market type
+  const filteredTemplates = useMemo(() => {
+    if (!selectedMarketType) return projectTemplates;
+    const marketOption = marketTypeOptions.find(m => m.id === selectedMarketType);
+    if (!marketOption) return projectTemplates;
+    return projectTemplates.filter(marketOption.templateFilter);
+  }, [selectedMarketType]);
+
+  // Get recommended template based on market type
+  const recommendedTemplateId = useMemo(() => {
+    switch (selectedMarketType) {
+      case 'solo-luce':
+        return 'reseller-elettrico-residenziale';
+      case 'solo-gas':
+        return 'reseller-residenziale'; // Will need a gas-only template in the future
+      case 'dual-fuel':
+        return 'reseller-residenziale';
+      default:
+        return null;
+    }
+  }, [selectedMarketType]);
 
   const handleNext = () => {
     if (step === 1 && !projectName.trim()) {
@@ -71,11 +138,25 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
       });
       return;
     }
+    if (step === 2 && !selectedMarketType) {
+      toast({
+        title: 'Tipo di mercato richiesto',
+        description: 'Seleziona il tipo di mercato per il tuo progetto',
+        variant: 'destructive',
+      });
+      return;
+    }
     setStep((s) => Math.min(s + 1, totalSteps));
   };
 
   const handleBack = () => {
     setStep((s) => Math.max(s - 1, 1));
+  };
+
+  const handleMarketTypeSelect = (marketType: MarketType) => {
+    setSelectedMarketType(marketType);
+    // Reset template selection when market type changes
+    setSelectedTemplate(null);
   };
 
   const handleCreateProject = async () => {
@@ -184,6 +265,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
       setStep(1);
       setProjectName('');
       setProjectDescription('');
+      setSelectedMarketType(null);
       setSelectedTemplate(null);
     } catch (error: any) {
       console.error('Error creating project:', error);
@@ -199,7 +281,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center gap-2 mb-6">
-      {[1, 2, 3].map((s) => (
+      {[1, 2, 3, 4].map((s) => (
         <div
           key={s}
           className={cn(
@@ -257,6 +339,62 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
     <div className="space-y-6">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+          <Plug className="h-8 w-8 text-primary" />
+        </div>
+        <h3 className="text-xl font-semibold">Tipo di Mercato</h3>
+        <p className="text-muted-foreground mt-2">
+          Quale commodity vuoi vendere? Questo determinerà i template disponibili.
+        </p>
+      </div>
+
+      <div className="grid gap-4">
+        {marketTypeOptions.map((option) => {
+          const IconComponent = option.icon;
+          const isSelected = selectedMarketType === option.id;
+
+          return (
+            <Card
+              key={option.id}
+              className={cn(
+                'cursor-pointer transition-all hover:shadow-md',
+                isSelected && 'ring-2 ring-primary bg-primary/5'
+              )}
+              onClick={() => handleMarketTypeSelect(option.id)}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-12 h-12 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${option.color}20` }}
+                  >
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      {option.name}
+                      {isSelected && (
+                        <Badge variant="default" className="text-xs">
+                          Selezionato
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      {option.description}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <Sparkles className="h-8 w-8 text-primary" />
         </div>
         <h3 className="text-xl font-semibold">Scegli un template</h3>
@@ -267,10 +405,11 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
 
       <TooltipProvider delayDuration={300}>
         <div className="grid gap-4">
-          {projectTemplates.map((template) => {
+          {filteredTemplates.map((template) => {
             const IconComponent = iconMap[template.icon] || Zap;
             const isSelected = selectedTemplate?.id === template.id;
             const requirements = templateRequirements[template.id];
+            const isRecommended = template.id === recommendedTemplateId;
 
             return (
               <Card
@@ -293,8 +432,13 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
                       />
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="text-base flex items-center gap-2 flex-wrap">
                         {template.name}
+                        {isRecommended && !isSelected && (
+                          <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            Consigliato
+                          </Badge>
+                        )}
                         {isSelected && (
                           <Badge variant="default" className="text-xs">
                             Selezionato
@@ -400,7 +544,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
     </div>
   );
 
-  const renderStep3 = () => (
+  const renderStep4 = () => (
     <div className="space-y-6">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
@@ -420,6 +564,12 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
           )}
         </CardHeader>
         <CardContent className="space-y-3">
+          <div className="flex items-center justify-between py-2 border-b">
+            <span className="text-sm text-muted-foreground">Tipo di mercato</span>
+            <span className="text-sm font-medium">
+              {marketTypeOptions.find(m => m.id === selectedMarketType)?.name || 'Non specificato'}
+            </span>
+          </div>
           <div className="flex items-center justify-between py-2 border-b">
             <span className="text-sm text-muted-foreground">Template</span>
             <span className="text-sm font-medium">
@@ -458,6 +608,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
+        {step === 4 && renderStep4()}
 
         <div className="flex justify-between mt-6 pt-4 border-t">
           <Button
