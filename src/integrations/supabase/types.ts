@@ -303,15 +303,7 @@ export type Database = {
           project_id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "financial_audit_log_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       marketing_plans: {
         Row: {
