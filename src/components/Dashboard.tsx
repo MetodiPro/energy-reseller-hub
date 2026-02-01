@@ -3,6 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Tooltip as ShadcnTooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { 
   CheckCircle2, 
   Circle, 
   Clock, 
@@ -13,11 +19,12 @@ import {
   Target,
   AlertTriangle,
   Flag,
-  Activity
+  Activity,
+  HelpCircle
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { StepProgress } from "@/hooks/useStepProgress";
 import { format, differenceInDays, parseISO, isAfter, isBefore } from "date-fns";
 import { it } from "date-fns/locale";
@@ -191,6 +198,7 @@ export const Dashboard = ({
   };
 
   return (
+    <TooltipProvider>
     <div className="space-y-6">
       {/* Time Progress Banner (if dates are set) */}
       {timeProgress && (
@@ -302,7 +310,29 @@ export const Dashboard = ({
         <Card className="p-6 border-l-4 border-l-warning shadow-custom-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Effort Stimato Rimanente</p>
+              <ShadcnTooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1 cursor-help">
+                    Lavoro Stimato Rimanente
+                    <HelpCircle className="h-3 w-3" />
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="font-semibold mb-1">Giorni-lavoro vs Giorni calendario</p>
+                  <p className="text-xs">
+                    <strong>Giorni-lavoro ({remainingDays})</strong>: somma delle durate stimate di ogni attività. 
+                    Rappresenta il carico di lavoro totale.
+                  </p>
+                  <p className="text-xs mt-1">
+                    <strong>Giorni calendario ({timeProgress?.daysRemaining ?? '–'})</strong>: tempo reale 
+                    disponibile fino alla data di fine progetto.
+                  </p>
+                  <p className="text-xs mt-1 text-muted-foreground">
+                    Se i giorni-lavoro superano i giorni calendario, dovrai lavorare in parallelo 
+                    su più attività o coinvolgere più persone.
+                  </p>
+                </TooltipContent>
+              </ShadcnTooltip>
               <h3 className="text-3xl font-bold mt-2 text-warning">
                 {remainingDays}
               </h3>
@@ -360,7 +390,7 @@ export const Dashboard = ({
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="name" className="text-xs" angle={-45} textAnchor="end" height={80} />
                 <YAxis className="text-xs" />
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
@@ -403,7 +433,7 @@ export const Dashboard = ({
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
@@ -432,7 +462,7 @@ export const Dashboard = ({
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="name" className="text-xs" angle={-45} textAnchor="end" height={80} />
               <YAxis className="text-xs" />
-              <Tooltip 
+              <RechartsTooltip 
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--background))',
                   border: '1px solid hsl(var(--border))',
@@ -546,5 +576,6 @@ export const Dashboard = ({
         </div>
       </Card>
     </div>
+    </TooltipProvider>
   );
 };
