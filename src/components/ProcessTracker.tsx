@@ -28,9 +28,10 @@ import { NotificationSettingsDialog } from "@/components/NotificationSettingsDia
 
 interface ProcessTrackerProps {
   projectId?: string | null;
+  commodityType?: string | null;
 }
 
-export const ProcessTracker = ({ projectId }: ProcessTrackerProps) => {
+export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | undefined>();
@@ -99,9 +100,30 @@ export const ProcessTracker = ({ projectId }: ProcessTrackerProps) => {
     return colors[category];
   };
 
-  const filteredSteps = selectedPhase
-    ? processSteps.filter(step => step.phase === selectedPhase)
-    : processSteps;
+  // Filter steps based on commodity type
+  const filterStepByCommodity = (step: ProcessStep): boolean => {
+    if (!step.commodityType || step.commodityType === 'all') return true;
+    if (!commodityType) return true; // Show all if project has no type set
+    
+    // dual-fuel includes both luce and gas steps
+    if (commodityType === 'dual-fuel') return true;
+    
+    // solo-luce: show steps with 'solo-luce' or no commodity type
+    if (commodityType === 'solo-luce') {
+      return step.commodityType === 'solo-luce';
+    }
+    
+    // solo-gas: show steps with 'solo-gas' or no commodity type
+    if (commodityType === 'solo-gas') {
+      return step.commodityType === 'solo-gas';
+    }
+    
+    return true;
+  };
+
+  const filteredSteps = processSteps
+    .filter(filterStepByCommodity)
+    .filter(step => selectedPhase === null || step.phase === selectedPhase);
 
   const getStepChecklistProgress = (step: ProcessStep) => {
     const progress = stepProgress[step.id];

@@ -196,7 +196,12 @@ const Index = () => {
       case "dashboard":
         return <Dashboard stepProgress={stepProgress} />;
       case "process":
-        return <ProcessTracker projectId={currentProjectId ?? undefined} />;
+        return (
+          <ProcessTracker 
+            projectId={currentProjectId ?? undefined}
+            commodityType={(currentProject as any)?.commodity_type}
+          />
+        );
       case "deadlines":
         return (
           <RegulatoryCalendar 
