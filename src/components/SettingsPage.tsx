@@ -7,10 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Bell, Shield, Palette, Save, Check, Sun, Moon, Monitor } from "lucide-react";
+import { User, Bell, Shield, Palette, Save, Check, Sun, Moon, Monitor, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 
 interface SettingsPageProps {
   userId?: string;
@@ -23,13 +24,13 @@ export function SettingsPage({ userId, userEmail, userName }: SettingsPageProps)
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   
-  // Notification preferences
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [deadlineReminders, setDeadlineReminders] = useState(true);
-  const [stepCompletionAlerts, setStepCompletionAlerts] = useState(true);
-  const [financialAlerts, setFinancialAlerts] = useState(true);
-  const [teamUpdates, setTeamUpdates] = useState(true);
-  const [reminderDaysBefore, setReminderDaysBefore] = useState(3);
+  // Notification preferences from database
+  const { 
+    preferences: notificationPrefs, 
+    loading: notificationLoading, 
+    saving: notificationSaving,
+    updatePreferences 
+  } = useNotificationPreferences(userId);
 
   // Load user profile
   useEffect(() => {
@@ -165,102 +166,117 @@ export function SettingsPage({ userId, userEmail, userName }: SettingsPageProps)
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5 text-primary" />
             <CardTitle>Notifiche</CardTitle>
+            {notificationSaving && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            )}
           </div>
           <CardDescription>Configura come e quando ricevere le notifiche</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Notifiche email</Label>
-                <p className="text-sm text-muted-foreground">
-                  Ricevi aggiornamenti importanti via email
-                </p>
-              </div>
-              <Switch
-                checked={emailNotifications}
-                onCheckedChange={setEmailNotifications}
-              />
+          {notificationLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Promemoria scadenze</Label>
-                <p className="text-sm text-muted-foreground">
-                  Ricevi avvisi per le scadenze in avvicinamento
-                </p>
-              </div>
-              <Switch
-                checked={deadlineReminders}
-                onCheckedChange={setDeadlineReminders}
-              />
-            </div>
-
-            {deadlineReminders && (
-              <div className="ml-6 grid gap-2">
-                <Label htmlFor="reminderDays">Giorni di anticipo</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="reminderDays"
-                    type="number"
-                    min={1}
-                    max={30}
-                    value={reminderDaysBefore}
-                    onChange={(e) => setReminderDaysBefore(Number(e.target.value))}
-                    className="w-20"
-                  />
-                  <span className="text-sm text-muted-foreground">giorni prima della scadenza</span>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Notifiche email</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Ricevi aggiornamenti importanti via email
+                  </p>
                 </div>
+                <Switch
+                  checked={notificationPrefs.emailNotifications}
+                  onCheckedChange={(checked) => updatePreferences({ emailNotifications: checked })}
+                  disabled={notificationSaving}
+                />
               </div>
-            )}
 
-            <Separator />
+              <Separator />
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Completamento step</Label>
-                <p className="text-sm text-muted-foreground">
-                  Notifiche quando uno step del processo viene completato
-                </p>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Promemoria scadenze</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Ricevi avvisi per le scadenze in avvicinamento
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationPrefs.deadlineReminders}
+                  onCheckedChange={(checked) => updatePreferences({ deadlineReminders: checked })}
+                  disabled={notificationSaving}
+                />
               </div>
-              <Switch
-                checked={stepCompletionAlerts}
-                onCheckedChange={setStepCompletionAlerts}
-              />
+
+              {notificationPrefs.deadlineReminders && (
+                <div className="ml-6 grid gap-2">
+                  <Label htmlFor="reminderDays">Giorni di anticipo</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="reminderDays"
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={notificationPrefs.reminderDaysBefore}
+                      onChange={(e) => updatePreferences({ reminderDaysBefore: Number(e.target.value) })}
+                      className="w-20"
+                      disabled={notificationSaving}
+                    />
+                    <span className="text-sm text-muted-foreground">giorni prima della scadenza</span>
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Completamento step</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notifiche quando uno step del processo viene completato
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationPrefs.stepCompletionAlerts}
+                  onCheckedChange={(checked) => updatePreferences({ stepCompletionAlerts: checked })}
+                  disabled={notificationSaving}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Alert finanziari</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Avvisi per variazioni significative nei dati finanziari
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationPrefs.financialAlerts}
+                  onCheckedChange={(checked) => updatePreferences({ financialAlerts: checked })}
+                  disabled={notificationSaving}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Aggiornamenti team</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notifiche quando un membro del team modifica qualcosa
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationPrefs.teamUpdates}
+                  onCheckedChange={(checked) => updatePreferences({ teamUpdates: checked })}
+                  disabled={notificationSaving}
+                />
+              </div>
             </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Alert finanziari</Label>
-                <p className="text-sm text-muted-foreground">
-                  Avvisi per variazioni significative nei dati finanziari
-                </p>
-              </div>
-              <Switch
-                checked={financialAlerts}
-                onCheckedChange={setFinancialAlerts}
-              />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Aggiornamenti team</Label>
-                <p className="text-sm text-muted-foreground">
-                  Notifiche quando un membro del team modifica qualcosa
-                </p>
-              </div>
-              <Switch
-                checked={teamUpdates}
-                onCheckedChange={setTeamUpdates}
-              />
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
