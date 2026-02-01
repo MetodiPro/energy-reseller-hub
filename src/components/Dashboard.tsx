@@ -198,7 +198,7 @@ export const Dashboard = ({
   };
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
     <div className="space-y-6">
       {/* Time Progress Banner (if dates are set) */}
       {timeProgress && (

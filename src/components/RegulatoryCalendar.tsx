@@ -160,7 +160,9 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
   const initializeDefaultDeadlines = async () => {
     if (!projectId) return;
 
-    const currentYear = new Date().getFullYear();
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1; // 1-indexed
     
     // Filter deadlines based on commodity type
     const relevantDeadlines = defaultDeadlines.filter((d) => {
@@ -172,17 +174,28 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
       return false;
     });
 
-    const deadlinesToCreate = relevantDeadlines.map((d) => ({
-      project_id: projectId,
-      deadline_type: d.deadline_type,
-      title: d.title,
-      description: d.description,
-      due_date: new Date(currentYear, d.default_month - 1, d.default_day).toISOString().split('T')[0],
-      reminder_days: d.reminder_days,
-      is_recurring: d.is_recurring,
-      recurrence_pattern: d.recurrence_pattern,
-      completed: false,
-    }));
+    const deadlinesToCreate = relevantDeadlines.map((d) => {
+      // Calculate the due date: if the default date is in the past this year, use next year
+      let dueYear = currentYear;
+      const defaultDate = new Date(currentYear, d.default_month - 1, d.default_day);
+      
+      // If the deadline would be in the past, schedule it for next year
+      if (isBefore(defaultDate, today)) {
+        dueYear = currentYear + 1;
+      }
+      
+      return {
+        project_id: projectId,
+        deadline_type: d.deadline_type,
+        title: d.title,
+        description: d.description,
+        due_date: new Date(dueYear, d.default_month - 1, d.default_day).toISOString().split('T')[0],
+        reminder_days: d.reminder_days,
+        is_recurring: d.is_recurring,
+        recurrence_pattern: d.recurrence_pattern,
+        completed: false,
+      };
+    });
 
     try {
       const { error } = await supabase
