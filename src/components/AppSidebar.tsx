@@ -65,6 +65,7 @@ const navigationItems = [
 
 const helpItems = [
   { id: "faq", title: "FAQ", icon: HelpCircle },
+  { id: "settings", title: "Impostazioni", icon: Settings },
 ];
 
 export function AppSidebar({ activeTab, onTabChange, userEmail, userName, onSignOut }: AppSidebarProps) {

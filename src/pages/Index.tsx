@@ -20,6 +20,7 @@ import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { GanttTimeline } from "@/components/GanttTimeline";
 import { PreLaunchChecklist } from "@/components/PreLaunchChecklist";
 import { FAQ } from "@/components/FAQ";
+import { SettingsPage } from "@/components/SettingsPage";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -292,6 +293,14 @@ const Index = () => {
         );
       case "faq":
         return <FAQ />;
+      case "settings":
+        return (
+          <SettingsPage 
+            userId={user?.id}
+            userEmail={user?.email}
+            userName={user?.user_metadata?.full_name}
+          />
+        );
       default:
         return (
           <ProjectOverview 
