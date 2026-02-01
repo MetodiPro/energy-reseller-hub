@@ -557,56 +557,6 @@ export const processSteps: ProcessStep[] = [
       }
     ]
   },
-  {
-    id: 'step-3-6',
-    phase: 3,
-    title: 'Gestione Oneri di Sistema (CSEA)',
-    description: 'Comprensione del meccanismo oneri di sistema gestiti come partite di giro attraverso i Distributori',
-    category: 'administrative',
-    estimatedDays: 5,
-    priority: 'medium',
-    dependencies: ['step-3-2'],
-    documents: [
-      'Contratto con grossista (sezione oneri)',
-      'Schema flussi oneri di sistema',
-      'Procedure contabili partite di giro'
-    ],
-    costs: {
-      min: 0,
-      max: 500,
-      description: 'Eventuale consulenza per setup procedure contabili'
-    },
-    notes: [
-      'IMPORTANTE: Per i reseller puri, gli oneri CSEA sono PARTITE DI GIRO',
-      'Il reseller incassa gli oneri in bolletta dai clienti finali',
-      'Il reseller riversa gli oneri ai Distributori (DSO), NON direttamente a CSEA',
-      'I Distributori gestiscono il rapporto diretto con CSEA',
-      'Il reseller NON ha obblighi di versamento diretto a CSEA',
-      'Necessario setup corretto delle procedure contabili per tracciare i flussi',
-      'Verificare nel contratto con il grossista le modalità di gestione oneri'
-    ],
-    checklist: [
-      'Comprendere il meccanismo oneri di sistema nella filiera reseller',
-      'Verificare clausole oneri nel contratto con grossista',
-      'Configurare piano dei conti per partite di giro',
-      'Setup procedure fatturazione con componenti oneri',
-      'Definire flussi contabili incasso-riversamento',
-      'Verificare tempistiche riversamento ai distributori',
-      'Formazione personale amministrativo su gestione oneri'
-    ],
-    officialLinks: [
-      {
-        name: 'CSEA - Cassa per i Servizi Energetici',
-        url: 'https://www.csea.it',
-        description: 'Informazioni generali oneri di sistema (per consultazione)'
-      },
-      {
-        name: 'ARERA - Oneri di Sistema',
-        url: 'https://www.arera.it/consumatori/elettricita/composizione-bolletta',
-        description: 'Spiegazione componenti tariffarie e oneri'
-      }
-    ]
-  },
 
   // FASE 4: ACCORDO CON GROSSISTA E ACCESSO SII
   {
