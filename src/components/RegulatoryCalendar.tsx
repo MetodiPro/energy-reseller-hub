@@ -47,6 +47,7 @@ interface RegulatoryCalendarProps {
   projectId: string | null;
   eveLicenseDate: string | null;
   evgLicenseDate: string | null;
+  commodityType?: string | null;
 }
 
 const deadlineTypeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -68,6 +69,18 @@ const defaultDeadlines = [
     recurrence_pattern: 'yearly',
     default_month: 1, // January
     default_day: 31,
+    commodity: 'luce', // Only for electricity
+  },
+  {
+    deadline_type: 'evg_renewal',
+    title: 'Rinnovo Autocertificazione EVG',
+    description: 'Rinnovo annuale autocertificazione Elenco Venditori Gas presso MASE',
+    reminder_days: 30,
+    is_recurring: true,
+    recurrence_pattern: 'yearly',
+    default_month: 1, // January
+    default_day: 31,
+    commodity: 'gas', // Only for gas
   },
   {
     deadline_type: 'arera_data',
@@ -78,6 +91,7 @@ const defaultDeadlines = [
     recurrence_pattern: 'yearly',
     default_month: 3, // March
     default_day: 31,
+    commodity: 'all', // Both luce and gas
   },
   {
     deadline_type: 'csea_payment',
@@ -88,6 +102,7 @@ const defaultDeadlines = [
     recurrence_pattern: 'quarterly',
     default_month: 1,
     default_day: 20,
+    commodity: 'all', // Both luce and gas
   },
   {
     deadline_type: 'adm_excise',
@@ -98,10 +113,11 @@ const defaultDeadlines = [
     recurrence_pattern: 'yearly',
     default_month: 3,
     default_day: 31,
+    commodity: 'all', // Both luce and gas
   },
 ];
 
-export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate }: RegulatoryCalendarProps) => {
+export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, commodityType }: RegulatoryCalendarProps) => {
   const [deadlines, setDeadlines] = useState<RegulatoryDeadline[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -145,7 +161,18 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate }
     if (!projectId) return;
 
     const currentYear = new Date().getFullYear();
-    const deadlinesToCreate = defaultDeadlines.map((d) => ({
+    
+    // Filter deadlines based on commodity type
+    const relevantDeadlines = defaultDeadlines.filter((d) => {
+      if (d.commodity === 'all') return true;
+      if (!commodityType) return true; // Show all if commodity type not set
+      if (commodityType === 'solo-luce' && d.commodity === 'luce') return true;
+      if (commodityType === 'solo-gas' && d.commodity === 'gas') return true;
+      if (commodityType === 'dual-fuel') return true; // Dual fuel gets all deadlines
+      return false;
+    });
+
+    const deadlinesToCreate = relevantDeadlines.map((d) => ({
       project_id: projectId,
       deadline_type: d.deadline_type,
       title: d.title,

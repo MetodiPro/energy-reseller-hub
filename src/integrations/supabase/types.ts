@@ -723,6 +723,7 @@ export type Database = {
       projects: {
         Row: {
           arera_code: string | null
+          commodity_type: string | null
           created_at: string | null
           description: string | null
           eve_license_date: string | null
@@ -741,6 +742,7 @@ export type Database = {
         }
         Insert: {
           arera_code?: string | null
+          commodity_type?: string | null
           created_at?: string | null
           description?: string | null
           eve_license_date?: string | null
@@ -759,6 +761,7 @@ export type Database = {
         }
         Update: {
           arera_code?: string | null
+          commodity_type?: string | null
           created_at?: string | null
           description?: string | null
           eve_license_date?: string | null

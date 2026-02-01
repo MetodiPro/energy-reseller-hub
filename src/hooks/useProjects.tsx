@@ -7,6 +7,7 @@ export interface Project {
   name: string;
   description: string | null;
   owner_id: string;
+  commodity_type: string | null;
   created_at: string;
   updated_at: string;
 }

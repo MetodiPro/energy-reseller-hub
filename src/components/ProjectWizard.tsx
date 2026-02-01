@@ -165,13 +165,14 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
     setIsCreating(true);
 
     try {
-      // Create the project
+      // Create the project with commodity type
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert({
           name: projectName.trim(),
           description: projectDescription.trim() || null,
           owner_id: userId,
+          commodity_type: selectedMarketType,
         })
         .select()
         .single();

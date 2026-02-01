@@ -346,7 +346,10 @@ const Index = () => {
           <TabsContent value="overview" className="space-y-6">
             <ProjectOverview 
               project={currentProject as any} 
-              onProjectUpdate={(p) => updateProject(p.id, p.name, p.description || undefined)}
+              onProjectUpdate={(p) => {
+                // Refresh projects list to get latest data including commodity_type
+                selectProject(p as any);
+              }}
             />
           </TabsContent>
 
@@ -363,6 +366,7 @@ const Index = () => {
               projectId={currentProjectId}
               eveLicenseDate={(currentProject as any)?.eve_license_date}
               evgLicenseDate={(currentProject as any)?.evg_license_date}
+              commodityType={(currentProject as any)?.commodity_type}
             />
           </TabsContent>
 
