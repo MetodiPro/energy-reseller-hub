@@ -297,6 +297,69 @@ export const processSteps: ProcessStep[] = [
     ]
   },
   {
+    id: 'step-3-1c',
+    phase: 3,
+    title: 'Formazione su Normativa Reseller',
+    description: 'Formazione specifica sulle differenze operative tra reseller e Utenti del Dispacciamento (UDD), ruoli e responsabilità nella filiera energetica',
+    category: 'legal',
+    estimatedDays: 5,
+    priority: 'high',
+    dependencies: ['step-3-1', 'step-3-1b'],
+    documents: [
+      'Dispensa normativa reseller vs UDD',
+      'Schema filiera energetica italiana',
+      'Matrice responsabilità reseller/grossista',
+      'FAQ operative reseller'
+    ],
+    costs: {
+      min: 500,
+      max: 2000,
+      description: 'Corso formativo o consulenza specializzata'
+    },
+    notes: [
+      'RESELLER: acquista energia da un grossista (UDD) e la rivende ai clienti finali',
+      'UDD (Utente del Dispacciamento): ha rapporti diretti con Terna, GME e distributori',
+      'Il reseller NON è iscritto al SII - opera tramite il grossista',
+      'Il reseller NON ha contratti di trasporto/distribuzione diretti',
+      'Il grossista gestisce: bilanciamento, dispacciamento, switching, volture',
+      'Il reseller gestisce: contratti clienti, fatturazione, customer care, marketing',
+      'Obblighi comuni: EVE/EVG, ARERA, accise ADM, CSEA, privacy',
+      'Il reseller è responsabile della fatturazione e incasso verso il cliente finale'
+    ],
+    checklist: [
+      'Comprendere la differenza tra reseller e UDD',
+      'Studiare la filiera energetica italiana (produzione → dispacciamento → distribuzione → vendita)',
+      'Capire il ruolo del grossista nella gestione operativa',
+      'Conoscere quali attività sono delegate al grossista',
+      'Identificare le responsabilità esclusive del reseller',
+      'Documentare i flussi operativi reseller-grossista',
+      'Formare il management sulla normativa di settore',
+      'Creare documentazione interna su ruoli e responsabilità'
+    ],
+    officialLinks: [
+      {
+        name: 'ARERA - Struttura del mercato elettrico',
+        url: 'https://www.arera.it/consumatori/elettricita/la-struttura-del-mercato',
+        description: 'Spiegazione della filiera elettrica italiana'
+      },
+      {
+        name: 'ARERA - Struttura del mercato gas',
+        url: 'https://www.arera.it/consumatori/gas/la-struttura-del-mercato',
+        description: 'Spiegazione della filiera gas italiana'
+      },
+      {
+        name: 'GME - Mercato Elettrico',
+        url: 'https://www.mercatoelettrico.org',
+        description: 'Gestore Mercati Energetici - Funzionamento mercato all\'ingrosso'
+      },
+      {
+        name: 'Terna - Dispacciamento',
+        url: 'https://www.terna.it/it/sistema-elettrico/dispacciamento',
+        description: 'Informazioni sul sistema di dispacciamento (gestito dal grossista)'
+      }
+    ]
+  },
+  {
     id: 'step-3-2',
     phase: 3,
     title: 'Registrazione Anagrafica Operatori ARERA',
