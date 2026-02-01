@@ -753,6 +753,111 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
                     <li>• I crediti maturano su un orizzonte di <strong>3-4 mesi</strong> dalla fatturazione</li>
                   </ul>
                 </div>
+
+                {/* Dettaglio Formazione Fatturato */}
+                <Card className="border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Formazione Fatturato Mese per Mese
+                    </CardTitle>
+                    <CardDescription>
+                      Come si calcola il fatturato di {formatCurrency(totals.totalInvoiced)} per {totals.totalActiveCustomers} clienti
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Formula spiegata */}
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm space-y-2">
+                      <p className="font-medium text-blue-800 dark:text-blue-300">Formula fatturato mensile:</p>
+                      <p className="font-mono text-xs bg-white dark:bg-gray-900 p-2 rounded">
+                        Fatturato = N° Clienti Fatturabili × (CCV + Spread×Consumo + Altro)
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-400">
+                        Con i parametri attuali: {formatCurrency(params.ccvMonthly)} + ({formatCurrencyDecimal(params.spreadPerKwh)} × {params.avgMonthlyConsumption} kWh) + {formatCurrency(params.otherServicesMonthly)} = <strong>{formatCurrency(params.ccvMonthly + (params.spreadPerKwh * params.avgMonthlyConsumption) + params.otherServicesMonthly)}/cliente/mese</strong>
+                      </p>
+                    </div>
+
+                    {/* Tabella dettagliata */}
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead>Mese</TableHead>
+                            <TableHead className="text-right">Clienti Fatturabili</TableHead>
+                            <TableHead className="text-right">CCV</TableHead>
+                            <TableHead className="text-right">Spread</TableHead>
+                            <TableHead className="text-right">Altro</TableHead>
+                            <TableHead className="text-right font-bold">Fatturato Mese</TableHead>
+                            <TableHead className="text-right font-bold">Cumulato</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {projection.map((month, idx) => {
+                            const cumulativeInvoiced = projection
+                              .slice(0, idx + 1)
+                              .reduce((sum, m) => sum + m.invoicedAmount, 0);
+                            
+                            return (
+                              <TableRow 
+                                key={month.month}
+                                className={month.invoicedAmount > 0 ? '' : 'text-muted-foreground'}
+                              >
+                                <TableCell className="font-medium">{month.label}</TableCell>
+                                <TableCell className="text-right">
+                                  {month.invoicedCustomers > 0 ? month.invoicedCustomers : '-'}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {month.revenueCCV > 0 ? formatCurrency(month.revenueCCV) : '-'}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {month.revenueSpread > 0 ? formatCurrency(month.revenueSpread) : '-'}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {month.revenueOther > 0 ? formatCurrency(month.revenueOther) : '-'}
+                                </TableCell>
+                                <TableCell className="text-right font-medium">
+                                  {month.invoicedAmount > 0 ? (
+                                    <Badge variant="outline" className="font-mono">
+                                      {formatCurrency(month.invoicedAmount)}
+                                    </Badge>
+                                  ) : '-'}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-primary">
+                                  {cumulativeInvoiced > 0 ? formatCurrency(cumulativeInvoiced) : '-'}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          {/* Riga totale */}
+                          <TableRow className="bg-primary/10 font-bold">
+                            <TableCell>TOTALE</TableCell>
+                            <TableCell className="text-right">-</TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(projection.reduce((s, m) => s + m.revenueCCV, 0))}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(projection.reduce((s, m) => s + m.revenueSpread, 0))}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(projection.reduce((s, m) => s + m.revenueOther, 0))}
+                            </TableCell>
+                            <TableCell className="text-right">-</TableCell>
+                            <TableCell className="text-right text-primary text-lg">
+                              {formatCurrency(totals.totalInvoiced)}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Nota esplicativa */}
+                    <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+                      <p><strong>Clienti Fatturabili:</strong> Clienti già attivi al mese precedente (la prima fattura arriva 1 mese dopo l'attivazione)</p>
+                      <p><strong>CCV:</strong> Quota fissa × N° clienti = {formatCurrency(params.ccvMonthly)} × clienti</p>
+                      <p><strong>Spread:</strong> {formatCurrencyDecimal(params.spreadPerKwh)}/kWh × {params.avgMonthlyConsumption} kWh × clienti</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="table">
