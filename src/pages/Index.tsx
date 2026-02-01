@@ -363,7 +363,10 @@ const Index = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => exportToPDF(stepProgress)}
+                  onClick={() => exportToPDF(stepProgress, {
+                    projectName: currentProject?.name,
+                    commodityType: (currentProject as any)?.commodity_type
+                  })}
                   className="text-white hover:bg-white/10"
                 >
                   <Download className="h-4 w-4 mr-2" />
