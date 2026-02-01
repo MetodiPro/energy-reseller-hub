@@ -31,6 +31,7 @@ import { useExportProjectReportPDF } from "@/hooks/useExportProjectReportPDF";
 import { useTeamAnalytics } from "@/hooks/useTeamAnalytics";
 import { useProjects } from "@/hooks/useProjects";
 import { useProjectFinancials } from "@/hooks/useProjectFinancials";
+import { useStepCosts } from "@/hooks/useStepCosts";
 import { useDeadlineNotifications } from "@/hooks/useDeadlineNotifications";
 import { DollarSign } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
@@ -91,6 +92,9 @@ const Index = () => {
   
   // Project financials for report
   const { costs, revenues, summary: financialSummary } = useProjectFinancials(currentProjectId);
+  
+  // Step costs for dashboard
+  const { getCostAmount } = useStepCosts(currentProjectId);
 
   // Deadline notifications
   useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId);
@@ -196,7 +200,15 @@ const Index = () => {
           />
         );
       case "dashboard":
-        return <Dashboard stepProgress={stepProgress} />;
+        return (
+          <Dashboard 
+            stepProgress={stepProgress}
+            commodityType={(currentProject as any)?.commodity_type}
+            projectStartDate={(currentProject as any)?.planned_start_date}
+            projectEndDate={(currentProject as any)?.go_live_date}
+            getCostAmount={getCostAmount}
+          />
+        );
       case "process":
         return (
           <ProcessTracker 
