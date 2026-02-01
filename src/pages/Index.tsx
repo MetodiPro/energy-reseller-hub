@@ -97,8 +97,8 @@ const Index = () => {
   // Step costs for dashboard
   const { getCostAmount } = useStepCosts(currentProjectId);
 
-  // Deadline notifications
-  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId);
+  // Deadline notifications - filtered by commodity type
+  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, (currentProject as any)?.commodity_type);
 
   // Fetch regulatory deadlines for notifications
   useEffect(() => {
