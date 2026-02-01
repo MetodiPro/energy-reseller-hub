@@ -102,6 +102,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
     setFormData({
       status: project.status,
       market_type: project.market_type,
+      commodity_type: project.commodity_type,
       expected_volumes: project.expected_volumes,
       regions: project.regions,
       wholesaler_name: project.wholesaler_name,
@@ -127,6 +128,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
         .update({
           status: formData.status,
           market_type: formData.market_type,
+          commodity_type: formData.commodity_type,
           expected_volumes: formData.expected_volumes,
           regions: formData.regions,
           wholesaler_name: formData.wholesaler_name,
@@ -232,18 +234,34 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
             <CardTitle className="text-sm text-muted-foreground">Tipo Fornitura</CardTitle>
           </CardHeader>
           <CardContent>
-            {(() => {
-              const commodityConfig = project.commodity_type ? commodityTypeConfig[project.commodity_type] : null;
-              const CommodityIcon = commodityConfig?.icon || Plug;
-              return (
-                <div className="flex items-center gap-2">
-                  <CommodityIcon className={cn("h-5 w-5", commodityConfig?.color || 'text-muted-foreground')} />
-                  <span className="font-medium">
-                    {commodityConfig?.label || 'Non definito'}
-                  </span>
-                </div>
-              );
-            })()}
+            {isEditing ? (
+              <Select 
+                value={formData.commodity_type || ''} 
+                onValueChange={(v) => setFormData({ ...formData, commodity_type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="solo-luce">Solo Energia Elettrica</SelectItem>
+                  <SelectItem value="solo-gas">Solo Gas Naturale</SelectItem>
+                  <SelectItem value="dual-fuel">Luce + Gas (Dual Fuel)</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              (() => {
+                const commodityConfig = project.commodity_type ? commodityTypeConfig[project.commodity_type] : null;
+                const CommodityIcon = commodityConfig?.icon || Plug;
+                return (
+                  <div className="flex items-center gap-2">
+                    <CommodityIcon className={cn("h-5 w-5", commodityConfig?.color || 'text-muted-foreground')} />
+                    <span className="font-medium">
+                      {commodityConfig?.label || 'Non definito'}
+                    </span>
+                  </div>
+                );
+              })()
+            )}
           </CardContent>
         </Card>
 
