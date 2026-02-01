@@ -1,17 +1,20 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Calendar as CalendarIcon, 
   Clock, 
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Edit2
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays, addDays, isAfter, isBefore, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
+import { StepDatePicker } from "@/components/StepDatePicker";
 
 interface StepProgressData {
   completed: boolean;
@@ -24,6 +27,7 @@ interface ProcessGanttTimelineProps {
   stepProgress: Record<string, StepProgressData>;
   commodityType: string | null;
   getCostAmount: (stepId: string, costItemId: string) => number;
+  onUpdateStepDates?: (stepId: string, startDate?: string, endDate?: string) => void;
 }
 
 export const ProcessGanttTimeline = ({
@@ -31,6 +35,7 @@ export const ProcessGanttTimeline = ({
   stepProgress,
   commodityType,
   getCostAmount,
+  onUpdateStepDates,
 }: ProcessGanttTimelineProps) => {
   // Filter steps by commodity type
   const filterStep = (step: ProcessStep) => {
@@ -214,10 +219,11 @@ export const ProcessGanttTimeline = ({
             </div>
 
             {/* Steps */}
-            {timelineData.steps.map(({ step, startDate, endDate, cost, completed }, index) => {
+            {timelineData.steps.map(({ step, startDate, endDate, cost, completed, hasCustomDates }, index) => {
               const phaseConfig = phases.find(p => p.id === step.phase);
               const isLate = !completed && isBefore(endDate, today);
               const isActive = !completed && isBefore(startDate, today) && isAfter(endDate, today);
+              const progress = stepProgress[step.id];
               
               // Calculate position
               const startOffset = differenceInDays(startDate, projectStartDate);
@@ -227,29 +233,59 @@ export const ProcessGanttTimeline = ({
               const widthPercent = Math.max((duration / totalDuration) * 100, 2);
 
               return (
-                <div key={step.id} className="flex items-center gap-2 py-1 min-w-[600px]">
+                <div key={step.id} className="flex items-center gap-2 py-1.5 min-w-[800px] group">
                   {/* Step name */}
-                  <div className="w-48 flex-shrink-0 text-sm truncate pr-2">
+                  <div className="w-40 flex-shrink-0 text-sm truncate pr-2">
                     <div className="flex items-center gap-1">
                       {completed && <CheckCircle2 className="h-3 w-3 text-success flex-shrink-0" />}
-                      <span className={cn(completed && "text-muted-foreground line-through")}>
-                        {step.title.length > 25 ? step.title.substring(0, 25) + '...' : step.title}
+                      <span className={cn(completed && "text-muted-foreground line-through", "text-xs")}>
+                        {step.title.length > 20 ? step.title.substring(0, 20) + '...' : step.title}
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Date Pickers */}
+                  {onUpdateStepDates && (
+                    <div className="flex items-center gap-1 w-44 flex-shrink-0">
+                      <StepDatePicker
+                        label="Inizio"
+                        date={progress?.plannedStartDate || undefined}
+                        onDateChange={(date) => 
+                          onUpdateStepDates(step.id, date, progress?.plannedEndDate || undefined)
+                        }
+                        minDate={projectStartDate || undefined}
+                        maxDate={progress?.plannedEndDate ? parseISO(progress.plannedEndDate) : undefined}
+                      />
+                      <span className="text-muted-foreground text-xs">→</span>
+                      <StepDatePicker
+                        label="Fine"
+                        date={progress?.plannedEndDate || undefined}
+                        onDateChange={(date) => 
+                          onUpdateStepDates(step.id, progress?.plannedStartDate || undefined, date)
+                        }
+                        minDate={progress?.plannedStartDate ? parseISO(progress.plannedStartDate) : projectStartDate || undefined}
+                      />
+                      {hasCustomDates && (
+                        <Badge variant="outline" className="text-[10px] h-5 px-1">
+                          <Edit2 className="h-2.5 w-2.5" />
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   
                   {/* Gantt bar */}
                   <div className="flex-1 h-8 bg-muted/30 rounded relative">
                     <div
                       className={cn(
-                        "absolute h-full rounded flex items-center justify-end pr-2 text-xs font-medium text-white",
+                        "absolute h-full rounded flex items-center justify-end pr-2 text-xs font-medium text-white transition-all",
                         completed && "bg-success",
                         isLate && "bg-destructive",
                         isActive && "bg-primary",
-                        !completed && !isLate && !isActive && "bg-primary/60"
+                        !completed && !isLate && !isActive && "bg-primary/60",
+                        hasCustomDates && "ring-2 ring-primary/30 ring-offset-1"
                       )}
                       style={{
-                        left: `${leftPercent}%`,
+                        left: `${Math.max(0, leftPercent)}%`,
                         width: `${widthPercent}%`,
                         minWidth: '50px',
                       }}

@@ -9,6 +9,8 @@ export interface StepProgress {
   checklistProgress: boolean[];
   startDate?: string;
   completionDate?: string;
+  plannedStartDate?: string;
+  plannedEndDate?: string;
 }
 
 interface UseStepProgressOptions {
@@ -75,6 +77,8 @@ export const useStepProgress = (
             checklistProgress: (item.checklist_progress as boolean[]) || [],
             startDate: item.start_date || undefined,
             completionDate: item.completion_date || undefined,
+            plannedStartDate: item.planned_start_date || undefined,
+            plannedEndDate: item.planned_end_date || undefined,
           };
         });
 
@@ -126,6 +130,8 @@ export const useStepProgress = (
                 checklistProgress: (item.checklist_progress as boolean[]) || [],
                 startDate: item.start_date || undefined,
                 completionDate: item.completion_date || undefined,
+                plannedStartDate: item.planned_start_date || undefined,
+                plannedEndDate: item.planned_end_date || undefined,
               },
             }));
           } else if (payload.eventType === "DELETE") {
@@ -157,6 +163,8 @@ export const useStepProgress = (
         checklist_progress: progress.checklistProgress,
         start_date: progress.startDate,
         completion_date: progress.completionDate,
+        planned_start_date: progress.plannedStartDate || null,
+        planned_end_date: progress.plannedEndDate || null,
       };
 
       // Include project_id if provided
