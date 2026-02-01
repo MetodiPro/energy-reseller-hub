@@ -7,9 +7,10 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Bell, Shield, Palette, Save, Check } from "lucide-react";
+import { User, Bell, Shield, Palette, Save, Check, Sun, Moon, Monitor } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 
 interface SettingsPageProps {
   userId?: string;
@@ -300,26 +301,66 @@ export function SettingsPage({ userId, userEmail, userName }: SettingsPageProps)
       </Card>
 
       {/* Appearance Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary" />
-            <CardTitle>Aspetto</CardTitle>
-          </div>
-          <CardDescription>Personalizza l'aspetto dell'applicazione</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Tema scuro</Label>
-              <p className="text-sm text-muted-foreground">
-                Attiva la modalità scura per ridurre l'affaticamento visivo
-              </p>
-            </div>
-            <Badge variant="outline">Prossimamente</Badge>
-          </div>
-        </CardContent>
-      </Card>
+      <AppearanceSection />
     </div>
+  );
+}
+
+function AppearanceSection() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Palette className="h-5 w-5 text-primary" />
+          <CardTitle>Aspetto</CardTitle>
+        </div>
+        <CardDescription>Personalizza l'aspetto dell'applicazione</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-3">
+          <Label>Tema</Label>
+          <div className="grid grid-cols-3 gap-3">
+            <Button
+              variant={theme === "light" ? "default" : "outline"}
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={() => setTheme("light")}
+            >
+              <Sun className="h-5 w-5" />
+              <span className="text-xs">Chiaro</span>
+            </Button>
+            <Button
+              variant={theme === "dark" ? "default" : "outline"}
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={() => setTheme("dark")}
+            >
+              <Moon className="h-5 w-5" />
+              <span className="text-xs">Scuro</span>
+            </Button>
+            <Button
+              variant={theme === "system" ? "default" : "outline"}
+              className="flex flex-col items-center gap-2 h-auto py-4"
+              onClick={() => setTheme("system")}
+            >
+              <Monitor className="h-5 w-5" />
+              <span className="text-xs">Sistema</span>
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            La preferenza del tema viene salvata automaticamente
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
