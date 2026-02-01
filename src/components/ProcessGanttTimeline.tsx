@@ -8,9 +8,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Edit2,
-  Flag,
-  TrendingUp,
-  TrendingDown
+  Flag
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
@@ -54,9 +52,15 @@ export const ProcessGanttTimeline = ({
 
   const visibleSteps = processSteps.filter(filterStep);
 
-  // Calculate timeline data
+  // Calculate timeline data - distribute steps proportionally within the date range
   const timelineData = useMemo(() => {
-    if (!projectStartDate) return null;
+    if (!projectStartDate || !projectEndDate) return null;
+
+    const totalProjectDays = differenceInDays(projectEndDate, projectStartDate);
+    if (totalProjectDays <= 0) return null;
+
+    // Calculate total estimated days for proportional distribution
+    const totalEstimatedDays = visibleSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
 
     let currentDate = projectStartDate;
     const stepsWithDates: Array<{
@@ -66,6 +70,8 @@ export const ProcessGanttTimeline = ({
       cost: number;
       completed: boolean;
       hasCustomDates: boolean;
+      originalDays: number;
+      scaledDays: number;
     }> = [];
 
     visibleSteps.forEach(step => {
@@ -84,13 +90,19 @@ export const ProcessGanttTimeline = ({
       const hasCustomDates = !!(progress?.plannedStartDate && progress?.plannedEndDate);
       let startDate: Date;
       let endDate: Date;
+      let scaledDays: number;
 
       if (hasCustomDates) {
         startDate = parseISO(progress.plannedStartDate!);
         endDate = parseISO(progress.plannedEndDate!);
+        scaledDays = differenceInDays(endDate, startDate);
       } else {
+        // Proportionally scale the step duration to fit within the project range
+        const proportion = step.estimatedDays / totalEstimatedDays;
+        scaledDays = Math.max(1, Math.round(totalProjectDays * proportion));
+        
         startDate = currentDate;
-        endDate = addDays(currentDate, step.estimatedDays);
+        endDate = addDays(currentDate, scaledDays);
         currentDate = endDate;
       }
 
@@ -101,6 +113,8 @@ export const ProcessGanttTimeline = ({
         cost: stepCost,
         completed: progress?.completed || false,
         hasCustomDates,
+        originalDays: step.estimatedDays,
+        scaledDays,
       });
 
       if (!hasCustomDates) {
@@ -109,10 +123,6 @@ export const ProcessGanttTimeline = ({
     });
 
     // Calculate totals
-    const totalDays = differenceInDays(
-      stepsWithDates[stepsWithDates.length - 1]?.endDate || projectStartDate,
-      projectStartDate
-    );
     const totalCost = stepsWithDates.reduce((sum, s) => sum + s.cost, 0);
     const completedSteps = stepsWithDates.filter(s => s.completed).length;
 
@@ -125,21 +135,20 @@ export const ProcessGanttTimeline = ({
 
     return {
       steps: stepsWithDates,
-      totalDays,
+      totalDays: totalProjectDays,
       totalCost,
       completedSteps,
       costByMonth,
-      projectEndDate: stepsWithDates[stepsWithDates.length - 1]?.endDate || projectStartDate,
     };
-  }, [projectStartDate, visibleSteps, stepProgress, getCostAmount]);
+  }, [projectStartDate, projectEndDate, visibleSteps, stepProgress, getCostAmount]);
 
-  if (!projectStartDate) {
+  if (!projectStartDate || !projectEndDate) {
     return (
       <Card className="border-dashed border-warning/50 bg-warning/5">
         <CardContent className="py-8 text-center">
           <AlertTriangle className="h-8 w-8 text-warning mx-auto mb-3" />
           <p className="text-muted-foreground">
-            Imposta una data di inizio progetto per visualizzare la timeline
+            Imposta le date di inizio e fine progetto per visualizzare la timeline
           </p>
         </CardContent>
       </Card>
@@ -149,12 +158,8 @@ export const ProcessGanttTimeline = ({
   if (!timelineData) return null;
 
   const today = new Date();
-  
-  // Calculate difference between target and estimated end dates
-  const daysMargin = projectEndDate 
-    ? differenceInDays(projectEndDate, timelineData.projectEndDate) 
-    : null;
-  const isOnTrack = daysMargin === null || daysMargin >= 0;
+  const daysRemaining = differenceInDays(projectEndDate, today);
+  const progressPercentage = Math.round((timelineData.completedSteps / timelineData.steps.length) * 100);
 
   return (
     <div className="space-y-6">
@@ -164,59 +169,37 @@ export const ProcessGanttTimeline = ({
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <CalendarIcon className="h-4 w-4" />
-              <span>Durata Stimata</span>
+              <span>Inizio</span>
             </div>
-            <p className="text-2xl font-bold mt-1">{timelineData.totalDays} giorni</p>
+            <p className="text-lg font-bold mt-1">
+              {format(projectStartDate, 'd MMM yyyy', { locale: it })}
+            </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <Clock className="h-4 w-4" />
-              <span>Fine Stimata</span>
+              <Flag className="h-4 w-4 text-primary" />
+              <span>Due Date</span>
             </div>
             <p className="text-lg font-bold mt-1">
-              {format(timelineData.projectEndDate, 'd MMM yyyy', { locale: it })}
+              {format(projectEndDate, 'd MMM yyyy', { locale: it })}
             </p>
           </CardContent>
         </Card>
 
-        {/* Target Date Card */}
-        <Card className={cn(
-          projectEndDate && !isOnTrack && "border-destructive/50 bg-destructive/5"
-        )}>
+        <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <Flag className={cn("h-4 w-4", projectEndDate ? "text-primary" : "")} />
-              <span>Target</span>
+              <Clock className="h-4 w-4" />
+              <span>Durata</span>
             </div>
-            {projectEndDate ? (
-              <div>
-                <p className="text-lg font-bold mt-1">
-                  {format(projectEndDate, 'd MMM yyyy', { locale: it })}
-                </p>
-                {daysMargin !== null && (
-                  <div className={cn(
-                    "flex items-center gap-1 text-xs mt-1",
-                    isOnTrack ? "text-success" : "text-destructive"
-                  )}>
-                    {isOnTrack ? (
-                      <>
-                        <TrendingUp className="h-3 w-3" />
-                        <span>+{daysMargin} giorni di margine</span>
-                      </>
-                    ) : (
-                      <>
-                        <TrendingDown className="h-3 w-3" />
-                        <span>{Math.abs(daysMargin)} giorni in ritardo</span>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground mt-1">Non impostato</p>
+            <p className="text-2xl font-bold mt-1">{timelineData.totalDays} giorni</p>
+            {daysRemaining > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {daysRemaining} giorni rimanenti
+              </p>
             )}
           </CardContent>
         </Card>
@@ -230,6 +213,7 @@ export const ProcessGanttTimeline = ({
             <p className="text-2xl font-bold mt-1">
               {timelineData.completedSteps}/{timelineData.steps.length}
             </p>
+            <p className="text-xs text-muted-foreground mt-1">{progressPercentage}% completato</p>
           </CardContent>
         </Card>
         
