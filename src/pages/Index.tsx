@@ -113,21 +113,28 @@ const Index = () => {
 
   // Show wizard when user has no projects, or startup dialog if they have projects but none selected
   useEffect(() => {
-    if (!projectsLoading && user) {
-      if (!hasProjects) {
-        // No projects - show wizard to create first one
-        setShowWizard(true);
-        setShowStartupDialog(false);
-      } else if (!currentProject) {
-        // Has projects but none selected - show startup dialog
-        setShowStartupDialog(true);
-        setShowWizard(false);
-      } else {
-        // Has projects and one is selected - hide all dialogs
-        setShowStartupDialog(false);
-      }
+    // Wait until projects are fully loaded before making any dialog decisions
+    if (projectsLoading || !user) {
+      return;
     }
-  }, [projectsLoading, user, hasProjects, currentProject]);
+
+    // Use projects.length directly for more reliable check
+    const userHasProjects = projects.length > 0;
+
+    if (!userHasProjects) {
+      // No projects exist - show wizard to create first one
+      setShowWizard(true);
+      setShowStartupDialog(false);
+    } else if (!currentProject) {
+      // Has projects but none selected - show startup dialog to select one
+      setShowStartupDialog(true);
+      setShowWizard(false);
+    } else {
+      // Has projects and one is selected - hide all dialogs
+      setShowWizard(false);
+      setShowStartupDialog(false);
+    }
+  }, [projectsLoading, user, projects.length, currentProject]);
 
   const handleProjectCreated = async (projectId: string) => {
     setShowWizard(false);
