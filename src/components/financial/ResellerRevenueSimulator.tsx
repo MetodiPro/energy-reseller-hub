@@ -57,6 +57,7 @@ import {
 import { useRevenueSimulation, type RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 import { InvoiceComponentsInput } from './InvoiceComponentsInput';
 import { InvoiceBreakdownTable } from './InvoiceBreakdownTable';
+import { TariffsSummaryPanel } from './TariffsSummaryPanel';
 
 /**
  * MODELLO COMPLETO FATTURA ENERGIA ELETTRICA
@@ -681,7 +682,8 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
                   <ChevronDown className={`h-4 w-4 transition-transform ${showInvoiceParams ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
-              <CollapsibleContent className="pt-4">
+              <CollapsibleContent className="pt-4 space-y-4">
+                <TariffsSummaryPanel params={params} onUpdate={updateParams} />
                 <InvoiceComponentsInput params={params} onUpdate={updateParams} />
               </CollapsibleContent>
             </Collapsible>
