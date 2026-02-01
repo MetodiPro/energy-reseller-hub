@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +17,11 @@ import {
   FileDown,
   Receipt,
   Calculator,
-  Zap
+  Zap,
+  Users
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
+import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostRevenueManager } from '@/components/CostRevenueManager';
 import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
@@ -79,9 +81,55 @@ const formatPercent = (value: number) => {
 };
 
 export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboardProps) => {
-  const { costs, revenues, categories, loading, summary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
+  const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
+  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Integrated summary using simulation data for revenues
+  const summary = useMemo(() => {
+    // Use simulation revenue as the source of truth
+    const totalRevenue = simulationSummary.hasData ? simulationSummary.totalFatturato : costSummary.totalRevenue;
+    const resellerMargin = simulationSummary.hasData ? simulationSummary.totalMargine : 0;
+    const passthroughCosts = simulationSummary.hasData ? simulationSummary.totalPassanti + simulationSummary.totalIva : costSummary.passthroughCosts;
+    
+    // Operational costs from cost manager
+    const operationalCosts = costSummary.operationalCosts;
+    const totalCosts = passthroughCosts + operationalCosts;
+    
+    // Gross Margin = Fatturato - Passanti (what you keep before operational expenses)
+    const grossMargin = totalRevenue - passthroughCosts;
+    const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+    
+    // Contribution Margin = Gross Margin - Commercial Costs
+    const contributionMargin = grossMargin - costSummary.costsByType.commercial;
+    const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
+    
+    // Net Margin = Revenue - All Costs (passthrough + operational)
+    const netMargin = totalRevenue - totalCosts;
+    const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
+
+    return {
+      totalRevenue,
+      totalCosts,
+      passthroughCosts,
+      operationalCosts,
+      grossMargin,
+      grossMarginPercent,
+      costsByType: costSummary.costsByType,
+      netMargin,
+      netMarginPercent,
+      contributionMargin,
+      contributionMarginPercent,
+      // Additional simulation data
+      resellerMargin,
+      clientiAttivi: simulationSummary.clientiAttivi,
+      contrattiTotali: simulationSummary.contrattiTotali,
+      totalIncassato: simulationSummary.totalIncassato,
+      totalInsoluti: simulationSummary.totalInsoluti,
+      hasSimulationData: simulationSummary.hasData,
+    };
+  }, [costSummary, simulationSummary]);
 
   const handleExportPDF = () => {
     exportToPDF(projectName, costs, revenues, summary);
@@ -173,29 +221,55 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
           <FinancialAlerts summary={summary} />
 
           {/* KPI Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ricavi Totali</CardTitle>
+                <CardTitle className="text-sm font-medium">Fatturato Totale</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-primary">{formatCurrency(summary.totalRevenue)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {revenues.length} voci di ricavo
+                  {summary.hasSimulationData ? 'Da simulatore (14 mesi)' : 'Nessun dato simulazione'}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Costi Totali</CardTitle>
+                <CardTitle className="text-sm font-medium">Margine Reseller</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.resellerMargin)}</div>
+                <p className="text-xs text-muted-foreground">
+                  CCV + Spread + Altro
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Clienti Attivi</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{summary.clientiAttivi}</div>
+                <p className="text-xs text-muted-foreground">
+                  su {summary.contrattiTotali} contratti
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Costi Operativi</CardTitle>
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-destructive">{formatCurrency(summary.totalCosts)}</div>
+                <div className="text-2xl font-bold text-destructive">{formatCurrency(summary.operationalCosts)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {costs.length} voci di costo
+                  {costs.filter(c => !(c as any).is_passthrough).length} voci
                 </p>
               </CardContent>
             </Card>
@@ -246,6 +320,36 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
               </CardContent>
             </Card>
           </div>
+
+          {/* Cash Flow Summary if simulation data available */}
+          {summary.hasSimulationData && (
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card className="bg-green-50 dark:bg-green-950/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Incassato</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-orange-50 dark:bg-orange-950/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">Passanti (da girare)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50 dark:bg-red-950/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">Insoluti</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-red-600">{formatCurrency(summary.totalInsoluti)}</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Charts */}
           <div className="grid gap-6 md:grid-cols-2">
