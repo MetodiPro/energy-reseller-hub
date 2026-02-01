@@ -4,6 +4,8 @@ export interface OfficialLink {
   description?: string;
 }
 
+export type CommodityType = 'solo-luce' | 'solo-gas' | 'dual-fuel' | 'all';
+
 export interface ProcessStep {
   id: string;
   phase: number;
@@ -22,6 +24,7 @@ export interface ProcessStep {
   notes: string[];
   checklist: string[];
   officialLinks?: OfficialLink[];
+  commodityType?: CommodityType; // 'all' or undefined = applies to all types
 }
 
 export const processSteps: ProcessStep[] = [
@@ -230,7 +233,8 @@ export const processSteps: ProcessStep[] = [
         url: 'https://www.mase.gov.it/portale/vendita',
         description: 'Informazioni e decreti vendita energia'
       }
-    ]
+    ],
+    commodityType: 'solo-luce' // Also shown for dual-fuel (handled in filter logic)
   },
   {
     id: 'step-3-1b',
@@ -294,7 +298,8 @@ export const processSteps: ProcessStep[] = [
         url: 'https://www.arera.it/atti-e-provvedimenti/dettaglio/24/70-24',
         description: 'Condizioni di accesso EVG'
       }
-    ]
+    ],
+    commodityType: 'solo-gas' // Also shown for dual-fuel (handled in filter logic)
   },
   {
     id: 'step-3-1c',
