@@ -28,6 +28,7 @@ export interface InvoiceComponentParams {
 export interface ClientParams {
   avgMonthlyConsumption: number;  // Consumo medio kWh/mese
   activationRate: number;         // Tasso attivazione %
+  monthlyChurnRate: number;       // Tasso switch-out mensile %
   collectionMonth0: number;       // Incasso alla scadenza %
   collectionMonth1: number;       // Incasso entro 30gg %
   collectionMonth2: number;       // Incasso entro 60gg %
@@ -68,6 +69,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   // Clienti e incasso
   avgMonthlyConsumption: 200,
   activationRate: 85,
+  monthlyChurnRate: 1.5,
   collectionMonth0: 70,
   collectionMonth1: 18,
   collectionMonth2: 7,
@@ -135,6 +137,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             // Clienti e incasso
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
             activationRate: Number(simulation.activation_rate),
+            monthlyChurnRate: Number((simulation as any).monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
             collectionMonth0: Number(simulation.collection_month_0),
             collectionMonth1: Number(simulation.collection_month_1),
             collectionMonth2: Number(simulation.collection_month_2),
@@ -193,6 +196,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         // Clienti e incasso
         avg_monthly_consumption: data.params.avgMonthlyConsumption,
         activation_rate: data.params.activationRate,
+        monthly_churn_rate: data.params.monthlyChurnRate,
         collection_month_0: data.params.collectionMonth0,
         collection_month_1: data.params.collectionMonth1,
         collection_month_2: data.params.collectionMonth2,

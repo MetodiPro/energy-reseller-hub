@@ -585,6 +585,7 @@ export type Database = {
           dispacciamento_per_kwh: number | null
           id: string
           iva_percent: number | null
+          monthly_churn_rate: number | null
           monthly_contracts: Json
           oneri_arim_kwh: number | null
           oneri_asos_kwh: number | null
@@ -615,6 +616,7 @@ export type Database = {
           dispacciamento_per_kwh?: number | null
           id?: string
           iva_percent?: number | null
+          monthly_churn_rate?: number | null
           monthly_contracts?: Json
           oneri_arim_kwh?: number | null
           oneri_asos_kwh?: number | null
@@ -645,6 +647,7 @@ export type Database = {
           dispacciamento_per_kwh?: number | null
           id?: string
           iva_percent?: number | null
+          monthly_churn_rate?: number | null
           monthly_contracts?: Json
           oneri_arim_kwh?: number | null
           oneri_asos_kwh?: number | null
