@@ -640,6 +640,50 @@ export type Database = {
           },
         ]
       }
+      project_step_costs: {
+        Row: {
+          amount: number
+          cost_item_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          notes: string | null
+          project_id: string
+          step_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          cost_item_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          notes?: string | null
+          project_id: string
+          step_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          cost_item_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          notes?: string | null
+          project_id?: string
+          step_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_step_costs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_taxes: {
         Row: {
           base_amount: number | null
