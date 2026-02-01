@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -20,8 +22,13 @@ import {
   Truck, 
   Receipt,
   Info,
-  Building2
+  Building2,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { fetchCurrentPunPrice } from '@/lib/api/punPrice';
 import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 
 interface InvoiceComponentsInputProps {
@@ -39,6 +46,11 @@ const formatCurrencyDecimal = (value: number) => {
 };
 
 export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsInputProps) => {
+  const { toast } = useToast();
+  const [loadingPun, setLoadingPun] = useState(false);
+  const [punSource, setPunSource] = useState<string | null>(null);
+  const [punDate, setPunDate] = useState<string | null>(null);
+
   // Calcola costo mensile componenti passanti per singolo cliente
   const monthlyPassthrough = {
     energia: (params.punPerKwh + params.dispacciamentoPerKwh) * params.avgMonthlyConsumption,
@@ -56,6 +68,49 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
   
   const iva = imponibile * (params.ivaPercent / 100);
   const totaleFattura = imponibile + iva;
+
+  const handleFetchPun = async () => {
+    setLoadingPun(true);
+    try {
+      const response = await fetchCurrentPunPrice();
+      
+      if (response.success && response.data) {
+        onUpdate('punPerKwh', response.data.averagePriceKwh);
+        setPunSource(response.data.source);
+        setPunDate(response.data.date);
+        
+        toast({
+          title: 'PUN Aggiornato',
+          description: (
+            <div className="space-y-1">
+              <p>Prezzo medio: {response.data.averagePrice.toFixed(2)} €/MWh</p>
+              <p className="text-xs text-muted-foreground">
+                Min: {response.data.minPrice.toFixed(2)} - Max: {response.data.maxPrice.toFixed(2)} €/MWh
+              </p>
+              <p className="text-xs text-muted-foreground">Fonte: {response.data.source}</p>
+            </div>
+          ),
+        });
+        
+        if (response.warning) {
+          toast({
+            title: 'Avviso',
+            description: response.warning,
+            variant: 'destructive',
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching PUN:', error);
+      toast({
+        title: 'Errore',
+        description: error.message || 'Impossibile recuperare il prezzo PUN',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingPun(false);
+    }
+  };
 
   return (
     <Card>
@@ -108,18 +163,48 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
                     <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
                     <TooltipContent>
                       <p>Prezzo Unico Nazionale - costo materia prima energia</p>
-                      <p className="text-xs text-muted-foreground">Valore attuale ~0.12-0.14 €/kWh</p>
+                      <p className="text-xs text-muted-foreground">Clicca "Aggiorna" per recuperare il valore attuale dal GME</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <Input
-                type="number"
-                step="0.001"
-                className="h-8"
-                value={params.punPerKwh}
-                onChange={(e) => onUpdate('punPerKwh', parseFloat(e.target.value) || 0)}
-              />
+              <div className="flex gap-1">
+                <Input
+                  type="number"
+                  step="0.001"
+                  className="h-8"
+                  value={params.punPerKwh}
+                  onChange={(e) => onUpdate('punPerKwh', parseFloat(e.target.value) || 0)}
+                />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-2"
+                        onClick={handleFetchPun}
+                        disabled={loadingPun}
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${loadingPun ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Recupera PUN attuale dal GME</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              {punSource && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {punSource.includes('GME') ? (
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3 text-yellow-500" />
+                  )}
+                  <span>{punDate}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-1">

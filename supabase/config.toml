@@ -2,3 +2,6 @@ project_id = "okflhzpjopqhdbhbmwxl"
 
 [functions.generate-marketing-suggestions]
 verify_jwt = false
+
+[functions.fetch-pun-price]
+verify_jwt = false
