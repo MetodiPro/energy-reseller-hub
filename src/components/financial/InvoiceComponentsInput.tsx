@@ -25,10 +25,12 @@ import {
   Building2,
   RefreshCw,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchCurrentPunPrice } from '@/lib/api/punPrice';
+import { fetchAreraTariffs } from '@/lib/api/areraTariffs';
 import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 
 interface InvoiceComponentsInputProps {
@@ -50,6 +52,9 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
   const [loadingPun, setLoadingPun] = useState(false);
   const [punSource, setPunSource] = useState<string | null>(null);
   const [punDate, setPunDate] = useState<string | null>(null);
+  const [loadingArera, setLoadingArera] = useState(false);
+  const [areraSource, setAreraSource] = useState<string | null>(null);
+  const [areraDate, setAreraDate] = useState<string | null>(null);
 
   // Calcola costo mensile componenti passanti per singolo cliente
   const monthlyPassthrough = {
@@ -109,6 +114,60 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
       });
     } finally {
       setLoadingPun(false);
+    }
+  };
+
+  const handleFetchArera = async () => {
+    setLoadingArera(true);
+    try {
+      const response = await fetchAreraTariffs(params.clientType);
+      
+      if (response.success && response.data) {
+        // Aggiorna tutte le tariffe ARERA
+        onUpdate('trasportoQuotaFissaAnno', response.data.trasporto.quotaFissaAnno);
+        onUpdate('trasportoQuotaPotenzaKwAnno', response.data.trasporto.quotaPotenzaKwAnno);
+        onUpdate('trasportoQuotaEnergiaKwh', response.data.trasporto.quotaEnergiaKwh);
+        onUpdate('oneriAsosKwh', response.data.oneri.asosKwh);
+        onUpdate('oneriArimKwh', response.data.oneri.arimKwh);
+        onUpdate('acciseKwh', response.data.acciseApplicate);
+        onUpdate('ivaPercent', response.data.ivaPercent);
+        
+        setAreraSource(response.data.source);
+        setAreraDate(`${response.data.quarter} ${response.data.year}`);
+        
+        toast({
+          title: 'Tariffe ARERA Aggiornate',
+          description: (
+            <div className="space-y-1">
+              <p>Trimestre: {response.data.quarter} {response.data.year}</p>
+              <p className="text-xs text-muted-foreground">
+                Trasporto: €{response.data.trasporto.quotaFissaAnno}/anno + €{response.data.trasporto.quotaEnergiaKwh.toFixed(4)}/kWh
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Oneri: ASOS €{response.data.oneri.asosKwh.toFixed(4)}/kWh + ARIM €{response.data.oneri.arimKwh.toFixed(4)}/kWh
+              </p>
+              <p className="text-xs text-muted-foreground">Fonte: {response.data.source}</p>
+            </div>
+          ),
+        });
+        
+        if (response.warning) {
+          toast({
+            title: 'Avviso',
+            description: response.warning,
+            variant: 'destructive',
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching ARERA tariffs:', error);
+      toast({
+        title: 'Errore',
+        description: error.message || 'Impossibile recuperare le tariffe ARERA',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingArera(false);
     }
   };
 
@@ -237,10 +296,42 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
 
         {/* Trasporto e Distribuzione */}
         <div className="space-y-3">
-          <h4 className="font-medium flex items-center gap-2 text-sm">
-            <Truck className="h-4 w-4 text-blue-500" />
-            Trasporto e Distribuzione
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium flex items-center gap-2 text-sm">
+              <Truck className="h-4 w-4 text-blue-500" />
+              Trasporto e Distribuzione
+            </h4>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={handleFetchArera}
+                    disabled={loadingArera}
+                  >
+                    <Download className={`h-3 w-3 ${loadingArera ? 'animate-spin' : ''}`} />
+                    Aggiorna ARERA
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Recupera tariffe ufficiali ARERA per trasporto, oneri e accise</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          {areraSource && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+              {areraSource.includes('ARERA') ? (
+                <CheckCircle2 className="h-3 w-3 text-green-500" />
+              ) : (
+                <AlertCircle className="h-3 w-3 text-yellow-500" />
+              )}
+              <span>{areraSource} - {areraDate}</span>
+            </div>
+          )}
           
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">

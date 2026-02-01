@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fetch-pun-price]
 verify_jwt = false
+
+[functions.fetch-arera-tariffs]
+verify_jwt = false
