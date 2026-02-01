@@ -25,6 +25,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { NotificationSettingsDialog } from "@/components/NotificationSettingsDialog";
+import { StepCostDetails } from "@/components/StepCostDetails";
+import { stepCostsData } from "@/types/stepCosts";
+import { useStepCosts } from "@/hooks/useStepCosts";
 
 interface ProcessTrackerProps {
   projectId?: string | null;
@@ -40,6 +43,7 @@ export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps
     projectId: projectId ?? null,
   });
   const { settings: notificationSettings, updateSetting, deleteSetting } = useNotificationSettings(userId);
+  const { getStepTotal } = useStepCosts(projectId ?? null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -246,7 +250,13 @@ export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps
                         <Calendar className="h-4 w-4" />
                         <span>{step.estimatedDays} giorni</span>
                       </div>
-                      {step.costs && (
+                      {stepCostsData[step.id] && (
+                        <div className="flex items-center gap-1">
+                          <Euro className="h-4 w-4" />
+                          <span>€{getStepTotal(step.id).toLocaleString('it-IT')}</span>
+                        </div>
+                      )}
+                      {!stepCostsData[step.id] && step.costs && (
                         <div className="flex items-center gap-1">
                           <Euro className="h-4 w-4" />
                           <span>€{step.costs.min.toLocaleString()} - €{step.costs.max.toLocaleString()}</span>
@@ -274,6 +284,20 @@ export const ProcessTracker = ({ projectId, commodityType }: ProcessTrackerProps
               {/* Expanded Content */}
               {isExpanded && (
                 <div className="border-t bg-muted/20 p-6 space-y-6">
+                  {/* Cost Details */}
+                  {stepCostsData[step.id] && (
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <Euro className="h-5 w-5 text-primary" />
+                        Dettaglio Costi
+                      </h4>
+                      <StepCostDetails 
+                        stepId={step.id} 
+                        projectId={projectId ?? null} 
+                      />
+                    </div>
+                  )}
+
                   {/* Checklist */}
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2">
