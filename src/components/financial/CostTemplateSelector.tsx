@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sun, Wind, Leaf, FileSpreadsheet, Check, Plus } from 'lucide-react';
+import { Sun, Wind, Leaf, FileSpreadsheet, Check, Plus, Zap, Home, Building } from 'lucide-react';
 import { projectTemplates, ProjectTemplate, CostTemplateItem, RevenueTemplateItem } from '@/data/costTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Sun,
   Wind,
   Leaf,
+  Zap,
+  Home,
+  Building,
 };
 
 const formatCurrency = (value: number) => {
