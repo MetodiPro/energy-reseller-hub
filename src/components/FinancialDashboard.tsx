@@ -16,7 +16,8 @@ import {
   Percent,
   FileDown,
   Receipt,
-  Calculator
+  Calculator,
+  Zap
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
@@ -31,6 +32,7 @@ import { CostCategorySummary } from '@/components/financial/CostCategorySummary'
 import { TaxesManager } from '@/components/financial/TaxesManager';
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
+import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -379,23 +381,52 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
         </TabsContent>
 
         <TabsContent value="revenues">
-          <div className="space-y-4">
-            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <h3 className="font-medium text-green-800 dark:text-green-300 mb-1">💰 Ricavi = Fatturato Emesso</h3>
-              <p className="text-sm text-green-700 dark:text-green-400">
-                Qui registri il <strong>fatturato lordo</strong> emesso ai clienti finali. 
-                Il margine viene calcolato automaticamente nella tab "Margini" come differenza tra i ricavi inseriti qui e i costi.
-              </p>
+          <div className="space-y-6">
+            {/* Spiegazione modello ricavi reseller */}
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Modello Ricavi Reseller Energia
+              </h3>
+              <div className="text-sm text-blue-700 dark:text-blue-400 space-y-2">
+                <p>
+                  Il <strong>fatturato</strong> di un reseller è dato dalla somma delle bollette emesse ai clienti finali.
+                  Solo 3 componenti della fattura sono controllabili dal reseller:
+                </p>
+                <ul className="list-disc list-inside ml-2 space-y-1">
+                  <li><strong>CCV</strong> - Componente Commercializzazione e Vendita (€/mese fisso)</li>
+                  <li><strong>Spread</strong> - Ricarico variabile su PUN/PSV (€/kWh o €/Smc)</li>
+                  <li><strong>Altro</strong> - Servizi aggiuntivi opzionali</li>
+                </ul>
+                <p className="text-xs mt-2 text-blue-600 dark:text-blue-500">
+                  Tutte le altre componenti (energia, trasporto, distribuzione, oneri) sono passanti verso il grossista/distributore.
+                </p>
+              </div>
             </div>
-            <CostRevenueManager
-              type="revenues"
-              projectId={projectId}
-              items={revenues}
-              categories={categories}
-              onAdd={addRevenue}
-              onUpdate={updateRevenue}
-              onDelete={deleteRevenue}
-            />
+
+            {/* Simulatore Ricavi Reseller */}
+            <ResellerRevenueSimulator />
+            
+            {/* Manager ricavi manuali legacy */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Ricavi Manuali</CardTitle>
+                <CardDescription>
+                  Inserisci ricavi aggiuntivi non coperti dal simulatore (una tantum, servizi speciali, ecc.)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CostRevenueManager
+                  type="revenues"
+                  projectId={projectId}
+                  items={revenues}
+                  categories={categories}
+                  onAdd={addRevenue}
+                  onUpdate={updateRevenue}
+                  onDelete={deleteRevenue}
+                />
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
