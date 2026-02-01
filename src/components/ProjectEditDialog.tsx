@@ -151,7 +151,10 @@ export const ProjectEditDialog = ({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Annulla</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

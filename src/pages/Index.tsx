@@ -13,6 +13,7 @@ import { MarketingPlanEditor } from "@/components/MarketingPlanEditor";
 import { FinancialDashboard } from "@/components/FinancialDashboard";
 import { ProjectWizard } from "@/components/ProjectWizard";
 import { ProjectSelector } from "@/components/ProjectSelector";
+import { ProjectStartupDialog } from "@/components/ProjectStartupDialog";
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { RegulatoryCalendar } from "@/components/RegulatoryCalendar";
 import { StepDocuments } from "@/components/StepDocuments";
@@ -37,6 +38,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
+  const [showStartupDialog, setShowStartupDialog] = useState(false);
   const [regulatoryDeadlines, setRegulatoryDeadlines] = useState<any[]>([]);
 
   useEffect(() => {
@@ -109,15 +111,27 @@ const Index = () => {
     fetchDeadlines();
   }, [currentProjectId]);
 
-  // Show wizard when user has no projects (after loading completes)
+  // Show wizard when user has no projects, or startup dialog if they have projects but none selected
   useEffect(() => {
-    if (!projectsLoading && user && !hasProjects) {
-      setShowWizard(true);
+    if (!projectsLoading && user) {
+      if (!hasProjects) {
+        // No projects - show wizard to create first one
+        setShowWizard(true);
+        setShowStartupDialog(false);
+      } else if (!currentProject) {
+        // Has projects but none selected - show startup dialog
+        setShowStartupDialog(true);
+        setShowWizard(false);
+      } else {
+        // Has projects and one is selected - hide all dialogs
+        setShowStartupDialog(false);
+      }
     }
-  }, [projectsLoading, user, hasProjects]);
+  }, [projectsLoading, user, hasProjects, currentProject]);
 
   const handleProjectCreated = async (projectId: string) => {
     setShowWizard(false);
+    setShowStartupDialog(false);
     
     // Fetch the newly created project and add it
     const { data: newProject } = await supabase
@@ -132,7 +146,15 @@ const Index = () => {
   };
 
   const handleOpenWizard = () => {
+    setShowStartupDialog(false);
     setShowWizard(true);
+  };
+
+  const handleSelectProjectFromStartup = (project: typeof currentProject) => {
+    if (project) {
+      selectProject(project);
+      setShowStartupDialog(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -153,7 +175,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Project Wizard */}
+      {/* Project Startup Dialog - for selecting existing projects */}
+      <ProjectStartupDialog
+        open={showStartupDialog}
+        projects={projects}
+        loading={projectsLoading}
+        onSelectProject={handleSelectProjectFromStartup}
+        onCreateNew={handleOpenWizard}
+      />
+
+      {/* Project Wizard - for creating new projects */}
       <ProjectWizard
         userId={user.id}
         open={showWizard}
