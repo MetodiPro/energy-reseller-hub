@@ -1,6 +1,15 @@
 import { useMemo } from 'react';
 import { useRevenueSimulation } from './useRevenueSimulation';
 
+export interface MonthlyDepositData {
+  month: number;
+  monthLabel: string;
+  clientiAttivi: number;
+  fatturatoMensileStimato: number;
+  depositoRichiesto: number;
+  deltaDeposito: number;
+}
+
 export interface SimulationSummary {
   // Fatturato totale (IVA inclusa)
   totalFatturato: number;
@@ -26,6 +35,15 @@ export interface SimulationSummary {
   marginePercent: number;
   // Se i dati sono caricati
   hasData: boolean;
+  // Costi grossista
+  costoGestionePodTotale: number;
+  costoEnergiaTotale: number;
+  // Deposito cauzionale
+  depositoIniziale: number;
+  depositoFinale: number;
+  depositoMassimo: number;
+  // Serie mensile depositi per grafico
+  depositiMensili: MonthlyDepositData[];
 }
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
@@ -49,11 +67,21 @@ export const useSimulationSummary = (projectId: string | null) => {
         switchOutTotali: 0,
         marginePercent: 0,
         hasData: false,
+        costoGestionePodTotale: 0,
+        costoEnergiaTotale: 0,
+        depositoIniziale: 0,
+        depositoFinale: 0,
+        depositoMassimo: 0,
+        depositiMensili: [],
       };
     }
 
     const startMonth = startDate.getMonth();
     const startYear = startDate.getFullYear();
+    
+    // Get deposit config from simulation params (with defaults)
+    const depositoMesi = (data as any).depositoMesi ?? 3;
+    const gestionePodPerPod = (data as any).gestionePodPerPod ?? 2.5;
     
     const invoicesToCollect: { month: number; amount: number }[] = [];
     let cumulativeActiveCustomers = 0;
@@ -90,6 +118,15 @@ export const useSimulationSummary = (projectId: string | null) => {
     let totalIva = 0;
     let totalChurned = 0;
     let totalContracts = 0;
+    let costoGestionePodTotale = 0;
+    let costoEnergiaTotale = 0;
+    
+    // Deposito cauzionale tracking
+    const depositiMensili: MonthlyDepositData[] = [];
+    let depositoIniziale = 0;
+    let depositoFinale = 0;
+    let depositoMassimo = 0;
+    let previousDeposito = 0;
     
     for (let m = 0; m < 14; m++) {
       // Contratti firmati questo mese
@@ -135,6 +172,45 @@ export const useSimulationSummary = (projectId: string | null) => {
       totalPassanti += materiaEnergia + trasporto + oneriSistema + accise;
       totalIva += iva;
       
+      // Costi grossista
+      if (m >= 2) {
+        // Gestione POD: pagato per ogni cliente attivo
+        const gestionePodMese = cumulativeActiveCustomers * gestionePodPerPod;
+        costoGestionePodTotale += gestionePodMese;
+        
+        // Costo energia: PUN + spread per consumo
+        const costoEnergiaMese = cumulativeActiveCustomers * kWh * (params.punPerKwh + params.spreadPerKwh);
+        costoEnergiaTotale += costoEnergiaMese;
+      }
+      
+      // Calcolo deposito cauzionale mensile
+      // Il deposito è calcolato sul fatturato stimato dei clienti attivi
+      const fatturatoMensileStimato = cumulativeActiveCustomers * fatturaPerCliente;
+      const depositoRichiesto = fatturatoMensileStimato * depositoMesi;
+      const deltaDeposito = depositoRichiesto - previousDeposito;
+      
+      // Calcola etichetta mese
+      const monthIndex = (startMonth + m) % 12;
+      const yearOffset = Math.floor((startMonth + m) / 12);
+      const monthLabel = `${MONTHS_IT[monthIndex]} ${startYear + yearOffset}`;
+      
+      depositiMensili.push({
+        month: m,
+        monthLabel,
+        clientiAttivi: cumulativeActiveCustomers,
+        fatturatoMensileStimato,
+        depositoRichiesto,
+        deltaDeposito,
+      });
+      
+      if (m === 2) {
+        depositoIniziale = depositoRichiesto;
+      }
+      if (depositoRichiesto > depositoMassimo) {
+        depositoMassimo = depositoRichiesto;
+      }
+      previousDeposito = depositoRichiesto;
+      
       // Calcola incassi
       if (fatturaTotale > 0) {
         invoicesToCollect.push({ month: m, amount: fatturaTotale });
@@ -161,6 +237,10 @@ export const useSimulationSummary = (projectId: string | null) => {
     const totalInvoiced = invoicesToCollect.reduce((sum, inv) => sum + inv.amount, 0);
     const pendingReceivables = Math.max(0, totalInvoiced - cumulativeCollection - cumulativeUncollected);
     
+    depositoFinale = depositiMensili.length > 0 
+      ? depositiMensili[depositiMensili.length - 1].depositoRichiesto 
+      : 0;
+    
     return {
       totalFatturato,
       totalMargine,
@@ -174,8 +254,14 @@ export const useSimulationSummary = (projectId: string | null) => {
       switchOutTotali: totalChurned,
       marginePercent: totalFatturato > 0 ? (totalMargine / totalFatturato) * 100 : 0,
       hasData: totalContracts > 0,
+      costoGestionePodTotale,
+      costoEnergiaTotale,
+      depositoIniziale,
+      depositoFinale,
+      depositoMassimo,
+      depositiMensili,
     };
-  }, [projectId, loading, startDate, monthlyContracts, params]);
+  }, [projectId, loading, startDate, monthlyContracts, params, data]);
 
   return {
     summary,
