@@ -548,7 +548,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               punOverride: null,
               punAutoUpdate: true,
               spreadGrossistaPerKwh: simulationData?.params?.spreadGrossistaPerKwh ?? 0.008,
-              spreadResellerPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
               gestionePodPerPod: simulationData?.params?.gestionePodPerPod ?? 2.50,
               depositoMesi: 3,
               depositoPercentualeAttivazione: simulationData?.params?.activationRate || 85,
@@ -558,9 +557,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             onConfigChange={(updates) => {
               if (updates.spreadGrossistaPerKwh !== undefined) {
                 updateSimParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
-              }
-              if (updates.spreadResellerPerKwh !== undefined) {
-                updateSimParams('spreadPerKwh', updates.spreadResellerPerKwh);
               }
               if (updates.punPerKwh !== undefined) {
                 updateSimParams('punPerKwh', updates.punPerKwh);
