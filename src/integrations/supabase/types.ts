@@ -765,6 +765,62 @@ export type Database = {
           },
         ]
       }
+      project_sales_channels: {
+        Row: {
+          activation_rate: number
+          channel_name: string
+          channel_type: string
+          commission_amount: number
+          commission_type: string
+          contract_share: number
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          activation_rate?: number
+          channel_name: string
+          channel_type?: string
+          commission_amount?: number
+          commission_type?: string
+          contract_share?: number
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          project_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          activation_rate?: number
+          channel_name?: string
+          channel_type?: string
+          commission_amount?: number
+          commission_type?: string
+          contract_share?: number
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_sales_channels_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_step_costs: {
         Row: {
           amount: number

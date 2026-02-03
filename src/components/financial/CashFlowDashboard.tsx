@@ -59,7 +59,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
     return cashFlowData.monthlyData.map(d => ({
       ...d,
       // For display purposes, invert outflows to show them as negative
-      costiTotali: -(d.costiPassanti + d.costiOperativi + (d.deltaDeposito > 0 ? d.deltaDeposito : 0) + d.investimentiIniziali),
+      costiTotali: -(d.costiPassanti + d.costiOperativi + d.costiCommerciali + (d.deltaDeposito > 0 ? d.deltaDeposito : 0) + d.investimentiIniziali),
     }));
   }, [cashFlowData.monthlyData]);
 
@@ -246,7 +246,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
       </Card>
 
       {/* Summary Cards Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
@@ -282,6 +282,18 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <TrendingDown className="h-4 w-4 text-pink-600" />
+              Costi Commerciali
+            </div>
+            <p className="text-xl font-bold text-pink-600">
+              {formatCurrency(cashFlowData.totaleCostiCommerciali)}
+            </p>
+          </CardContent>
+        </Card>
         
         <Card>
           <CardContent className="pt-4">
@@ -310,10 +322,12 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
               <TableHeader>
                 <TableRow>
                   <TableHead className="sticky left-0 bg-background">Mese</TableHead>
+                  <TableHead className="text-right">Contratti</TableHead>
                   <TableHead className="text-right">Clienti</TableHead>
                   <TableHead className="text-right text-green-600">Incassi</TableHead>
                   <TableHead className="text-right text-orange-600">Passanti</TableHead>
                   <TableHead className="text-right text-blue-600">Operativi</TableHead>
+                  <TableHead className="text-right text-pink-600">Commerciali</TableHead>
                   <TableHead className="text-right text-purple-600">Deposito Δ</TableHead>
                   <TableHead className="text-right">Investimento</TableHead>
                   <TableHead className="text-right font-semibold">Flusso Netto</TableHead>
@@ -326,6 +340,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
                     <TableCell className="sticky left-0 bg-background font-medium">
                       {row.monthLabel}
                     </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {row.contrattiNuovi > 0 ? `+${row.contrattiNuovi}` : '-'}
+                    </TableCell>
                     <TableCell className="text-right">{row.clientiAttivi}</TableCell>
                     <TableCell className="text-right text-green-600">
                       {formatCurrency(row.incassi)}
@@ -335,6 +352,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
                     </TableCell>
                     <TableCell className="text-right text-blue-600">
                       {formatCurrency(row.costiOperativi)}
+                    </TableCell>
+                    <TableCell className="text-right text-pink-600">
+                      {row.costiCommerciali > 0 ? formatCurrency(row.costiCommerciali) : '-'}
                     </TableCell>
                     <TableCell className={`text-right ${row.deltaDeposito > 0 ? 'text-purple-600' : 'text-green-600'}`}>
                       {row.deltaDeposito !== 0 ? formatCurrency(row.deltaDeposito) : '-'}
