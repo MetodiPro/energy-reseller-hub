@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useSimulationSummary, MonthlyDepositData } from './useSimulationSummary';
 import { useRevenueSimulation } from './useRevenueSimulation';
 import { stepCostsData } from '@/types/stepCosts';
+import { stepTimingConfig } from '@/lib/costTimingConfig';
+import { useStepCosts } from './useStepCosts';
 
 export interface MonthlyCashFlowData {
   month: number;
@@ -40,22 +42,30 @@ export interface CashFlowSummary {
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
-// Calculate initial investment from step costs templates
-const calculateInitialInvestment = (): number => {
-  let total = 0;
-  Object.values(stepCostsData).forEach(step => {
-    step.items.forEach(item => {
-      total += item.defaultAmount;
-    });
+// Calculate investment per month based on step timing config
+const calculateMonthlyInvestments = (
+  getStepTotal: (stepId: string) => number
+): number[] => {
+  const monthlyTotals = new Array(14).fill(0);
+  
+  // Iterate through all steps and assign to their designated month
+  Object.keys(stepCostsData).forEach(stepId => {
+    const month = stepTimingConfig[stepId] ?? 0;
+    const stepTotal = getStepTotal(stepId);
+    if (month >= 0 && month < 14) {
+      monthlyTotals[month] += stepTotal;
+    }
   });
-  return total;
+  
+  return monthlyTotals;
 };
 
 export const useCashFlowAnalysis = (projectId: string | null) => {
   const { summary: simSummary, loading: simLoading } = useSimulationSummary(projectId);
   const { data: simData, loading: revenueLoading } = useRevenueSimulation(projectId);
+  const { getStepTotal, loading: stepCostsLoading } = useStepCosts(projectId);
 
-  const loading = simLoading || revenueLoading;
+  const loading = simLoading || revenueLoading || stepCostsLoading;
 
   const cashFlowData = useMemo((): CashFlowSummary => {
     if (!projectId || loading || !simSummary.hasData) {
@@ -84,13 +94,14 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     const depositoMesi = (simData as any).depositoMesi ?? 3;
     const gestionePodPerPod = (simData as any).gestionePodPerPod ?? 2.5;
     
-    // Initial investment from templates (month 0)
-    const investimentoIniziale = calculateInitialInvestment();
+    // Calculate monthly investments based on step timing
+    const monthlyInvestments = calculateMonthlyInvestments(getStepTotal);
+    const investimentoIniziale = monthlyInvestments.reduce((sum, val) => sum + val, 0);
     
     // Monthly calculations
     const monthlyData: MonthlyCashFlowData[] = [];
     let cumulativeActiveCustomers = 0;
-    let saldoCumulativo = -investimentoIniziale; // Start negative with investment
+    let saldoCumulativo = 0; // Start at 0, investments will be subtracted month by month
     let minSaldo = saldoCumulativo;
     let meseMinSaldo = '';
     let mesePrimoPositivo: string | null = null;
@@ -189,8 +200,8 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       const deltaDeposito = depositoRichiesto - previousDeposito;
       previousDeposito = depositoRichiesto;
       
-      // Initial investment only in month 0
-      const investimentiMese = m === 0 ? investimentoIniziale : 0;
+      // Investment costs for this month (distributed based on step timing)
+      const investimentiMese = monthlyInvestments[m] ?? 0;
       
       // Net cash flow
       const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - deltaDeposito - investimentiMese;
@@ -241,7 +252,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       totaleDepositi: Math.round(totaleDepositi),
       hasData: monthlyData.length > 0,
     };
-  }, [projectId, loading, simSummary, simData]);
+  }, [projectId, loading, simSummary, simData, getStepTotal]);
 
   return {
     cashFlowData,
