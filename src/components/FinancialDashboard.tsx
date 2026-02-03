@@ -549,10 +549,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               punAutoUpdate: true,
               spreadGrossistaPerKwh: simulationData?.params?.spreadGrossistaPerKwh ?? 0.008,
               gestionePodPerPod: simulationData?.params?.gestionePodPerPod ?? 2.50,
-              depositoMesi: 3,
-              depositoPercentualeAttivazione: simulationData?.params?.activationRate || 85,
             }}
-            clientiAttivi={summary.clientiAttivi || 0}
             consumoMedioMensile={simulationData?.params?.avgMonthlyConsumption || 200}
             onConfigChange={(updates) => {
               if (updates.spreadGrossistaPerKwh !== undefined) {
@@ -567,10 +564,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               // Auto-save after config change
               setTimeout(() => saveSimulation(), 500);
             }}
-            depositiMensili={simulationSummary.depositiMensili}
-            depositoIniziale={simulationSummary.depositoIniziale}
-            depositoFinale={simulationSummary.depositoFinale}
-            depositoMassimo={simulationSummary.depositoMassimo}
+            costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
+            costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
+            clientiAttiviFinale={summary.clientiAttivi || 0}
           />
           
           {/* Costs organized by category tabs */}
