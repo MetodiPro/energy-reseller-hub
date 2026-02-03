@@ -516,7 +516,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               punOverride: null,
               punAutoUpdate: true,
               spreadPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
-              gestionePodPerPod: 2.50,
+              gestionePodPerPod: simulationData?.params?.gestionePodPerPod ?? 2.50,
               depositoMesi: 3,
               depositoPercentualeAttivazione: simulationData?.params?.activationRate || 85,
             }}
@@ -529,6 +529,11 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               if (updates.punPerMwh !== undefined) {
                 updateSimParams('punPerKwh', updates.punPerMwh / 1000);
               }
+              if (updates.gestionePodPerPod !== undefined) {
+                updateSimParams('gestionePodPerPod', updates.gestionePodPerPod);
+              }
+              // Auto-save after config change
+              setTimeout(() => saveSimulation(), 500);
             }}
             depositiMensili={simulationSummary.depositiMensili}
             depositoIniziale={simulationSummary.depositoIniziale}
