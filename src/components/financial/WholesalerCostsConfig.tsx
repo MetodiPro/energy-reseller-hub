@@ -45,7 +45,6 @@ interface WholesalerConfig {
   punOverride: number | null;
   punAutoUpdate: boolean;
   spreadGrossistaPerKwh: number;  // Spread pagato al grossista (COSTO)
-  spreadResellerPerKwh: number;   // Spread applicato al cliente (RICAVO)
   gestionePodPerPod: number;
   depositoMesi: 3 | 6;
   depositoPercentualeAttivazione: number;
@@ -97,10 +96,6 @@ export const WholesalerCostsConfig = ({
   const punEffective = config.punOverride ?? config.punPerKwh;
   // Costo per il reseller = PUN + spread grossista
   const costoAcquistoPerKwh = punEffective + config.spreadGrossistaPerKwh;
-  // Prezzo di vendita al cliente = PUN + spread reseller  
-  const prezzoVenditaPerKwh = punEffective + config.spreadResellerPerKwh;
-  // Margine energia = differenza tra i due spread
-  const margineEnergiaPerKwh = config.spreadResellerPerKwh - config.spreadGrossistaPerKwh;
   
   const costoEnergiaMensile = clientiAttivi * consumoMedioMensile * costoAcquistoPerKwh;
   const costoGestionePodMensile = clientiAttivi * config.gestionePodPerPod;
@@ -260,72 +255,6 @@ export const WholesalerCostsConfig = ({
               </div>
             </div>
             
-            {/* Spread Reseller e Margine */}
-            <div className="grid grid-cols-3 gap-4 pt-2 border-t">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  Spread Reseller (€/kWh)
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-3 w-3 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Spread applicato dal reseller al cliente finale (è un RICAVO)</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </Label>
-                <Input
-                  type="number"
-                  step="0.001"
-                  value={config.spreadResellerPerKwh}
-                  onChange={(e) => onConfigChange({ spreadResellerPerKwh: parseFloat(e.target.value) || 0 })}
-                  className="font-mono"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Prezzo Vendita (€/kWh)</Label>
-                <div className="h-10 px-3 py-2 bg-green-100 dark:bg-green-950 rounded-md flex items-center font-mono font-semibold text-green-700 dark:text-green-300">
-                  €{prezzoVenditaPerKwh.toFixed(4)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  PUN + Spread Reseller
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Margine Energia (€/kWh)</Label>
-                <div className={`h-10 px-3 py-2 rounded-md flex items-center font-mono font-semibold ${
-                  margineEnergiaPerKwh >= 0 
-                    ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' 
-                    : 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300'
-                }`}>
-                  €{margineEnergiaPerKwh.toFixed(4)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Spread Reseller - Spread Grossista
-                </p>
-              </div>
-            </div>
-            
-            <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  Costo acquisto energia mensile ({clientiAttivi} clienti × {consumoMedioMensile} kWh)
-                </span>
-                <span className="font-bold text-red-600">{formatCurrencyFull(costoEnergiaMensile)}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">
-                  Margine energia mensile stimato
-                </span>
-                <span className={`font-semibold ${margineEnergiaPerKwh >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrencyFull(clientiAttivi * consumoMedioMensile * margineEnergiaPerKwh)}
-                </span>
-              </div>
-            </div>
           </div>
           
           <Separator />
@@ -437,12 +366,6 @@ export const WholesalerCostsConfig = ({
                 <span>Totale Costi Grossista Mensili</span>
                 <span className="font-mono text-red-600">
                   {formatCurrencyFull(costoEnergiaMensile + costoGestionePodMensile)}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm pt-2 border-t">
-                <span className="text-muted-foreground">Margine Energia Mensile (Spread Reseller - Spread Grossista)</span>
-                <span className={`font-mono font-semibold ${margineEnergiaPerKwh >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrencyFull(clientiAttivi * consumoMedioMensile * margineEnergiaPerKwh)}
                 </span>
               </div>
             </div>
