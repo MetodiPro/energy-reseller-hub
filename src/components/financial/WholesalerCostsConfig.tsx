@@ -41,7 +41,7 @@ import {
 } from 'recharts';
 
 interface WholesalerConfig {
-  punPerMwh: number;
+  punPerKwh: number;  // Cambiato da MWh a kWh
   punOverride: number | null;
   punAutoUpdate: boolean;
   spreadPerKwh: number;
@@ -92,8 +92,8 @@ export const WholesalerCostsConfig = ({
   const [punData, setPunData] = useState<PunPriceData | null>(null);
   const [loadingPun, setLoadingPun] = useState(false);
   
-  // Calculate derived values
-  const punEffective = config.punOverride ?? (punData?.averagePriceKwh ?? config.punPerMwh / 1000);
+  // Calculate derived values - tutto in €/kWh
+  const punEffective = config.punOverride ?? config.punPerKwh;
   const costoEnergiaPerKwh = punEffective + config.spreadPerKwh;
   const costoEnergiaMensile = clientiAttivi * consumoMedioMensile * costoEnergiaPerKwh;
   const costoGestionePodMensile = clientiAttivi * config.gestionePodPerPod;
@@ -106,11 +106,12 @@ export const WholesalerCostsConfig = ({
       if (result.success) {
         setPunData(result.data);
         if (config.punAutoUpdate && !config.punOverride) {
-          onConfigChange({ punPerMwh: result.data.averagePrice });
+          // Salva in €/kWh direttamente
+          onConfigChange({ punPerKwh: result.data.averagePriceKwh });
         }
         toast({
           title: 'PUN aggiornato',
-          description: `Prezzo medio: €${result.data.averagePrice.toFixed(2)}/MWh`,
+          description: `Prezzo medio: €${result.data.averagePriceKwh.toFixed(4)}/kWh`,
         });
       }
     } catch (error: any) {
@@ -172,7 +173,7 @@ export const WholesalerCostsConfig = ({
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  PUN (€/MWh)
+                  PUN (€/kWh)
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -187,8 +188,8 @@ export const WholesalerCostsConfig = ({
                 <div className="flex gap-2">
                   <Input
                     type="number"
-                    step="0.01"
-                    value={config.punOverride ?? config.punPerMwh}
+                    step="0.0001"
+                    value={config.punOverride ?? config.punPerKwh}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       onConfigChange({ 

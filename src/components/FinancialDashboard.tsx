@@ -544,7 +544,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           {/* Wholesaler costs configuration with deposit evolution */}
           <WholesalerCostsConfig
             config={{
-              punPerMwh: simulationData?.params?.punPerKwh ? simulationData.params.punPerKwh * 1000 : 120,
+              punPerKwh: simulationData?.params?.punPerKwh || 0.12,
               punOverride: null,
               punAutoUpdate: true,
               spreadPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
@@ -558,8 +558,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               if (updates.spreadPerKwh !== undefined) {
                 updateSimParams('spreadPerKwh', updates.spreadPerKwh);
               }
-              if (updates.punPerMwh !== undefined) {
-                updateSimParams('punPerKwh', updates.punPerMwh / 1000);
+              if (updates.punPerKwh !== undefined) {
+                updateSimParams('punPerKwh', updates.punPerKwh);
               }
               if (updates.gestionePodPerPod !== undefined) {
                 updateSimParams('gestionePodPerPod', updates.gestionePodPerPod);
