@@ -79,7 +79,7 @@ const TAX_PAYMENT_CONFIG = {
   trasportoPaymentDelay: 1, // months delay
 };
 
-export const useTaxFlows = (projectId: string | null) => {
+export const useTaxFlows = (projectId: string | null, ivaRegime: 'monthly' | 'quarterly' = 'monthly') => {
   const { data: simData, loading: simLoading } = useRevenueSimulation(projectId);
   const { summary: simSummary, loading: summaryLoading } = useSimulationSummary(projectId);
 
@@ -183,17 +183,40 @@ export const useTaxFlows = (projectId: string | null) => {
       const ivaCredito = stimaCostiConIva * IVA_RATES.costiOperativi;
       totaleIvaCredito += ivaCredito;
       
-      // === IVA PAYMENT (F24 - previous month's net IVA) ===
+      // === IVA PAYMENT (F24 - monthly or quarterly based on regime) ===
       let ivaPayment = 0;
-      const ivaToPayIndex = m - TAX_PAYMENT_CONFIG.ivaPaymentDelay;
-      if (ivaToPayIndex >= 0) {
-        const pendingEntry = pendingIva.find(p => p.month === ivaToPayIndex);
-        if (pendingEntry) {
-          // Net position: debito - credito
-          const previousCredito = ivaToPayIndex >= 3 
-            ? (m >= 4 ? cumulativeActiveCustomers : 0) * marginePerCliente * 0.3 * IVA_RATES.costiOperativi
-            : 0;
-          ivaPayment = Math.max(0, pendingEntry.amount - previousCredito);
+      
+      if (ivaRegime === 'monthly') {
+        // Monthly F24: pay previous month's net IVA
+        const ivaToPayIndex = m - TAX_PAYMENT_CONFIG.ivaPaymentDelay;
+        if (ivaToPayIndex >= 0) {
+          const pendingEntry = pendingIva.find(p => p.month === ivaToPayIndex);
+          if (pendingEntry) {
+            const previousCredito = ivaToPayIndex >= 3 
+              ? (m >= 4 ? cumulativeActiveCustomers : 0) * marginePerCliente * 0.3 * IVA_RATES.costiOperativi
+              : 0;
+            ivaPayment = Math.max(0, pendingEntry.amount - previousCredito);
+            totaleIvaVersamenti += ivaPayment;
+          }
+        }
+      } else {
+        // Quarterly F24: pay on specific months (May, Aug, Nov, Feb/Mar)
+        // Q1 (Jan-Mar) -> May 16, Q2 (Apr-Jun) -> Aug 20, Q3 (Jul-Sep) -> Nov 16, Q4 (Oct-Dec) -> Mar 16
+        const quarterlyPaymentMonths = [4, 7, 10, 2]; // May, Aug, Nov, Mar (next year for Q4)
+        if (quarterlyPaymentMonths.includes(monthIndex)) {
+          // Sum previous quarter's IVA
+          const quarterStart = m - 4; // 3 months of quarter + 1 month delay
+          const quarterlyTotal = pendingIva
+            .filter(p => p.month > quarterStart && p.month <= m - 1)
+            .reduce((sum, p) => sum + p.amount, 0);
+          
+          const quarterlyCredito = pendingIva
+            .filter(p => p.month > quarterStart && p.month <= m - 1)
+            .length * (cumulativeActiveCustomers * marginePerCliente * 0.3 * IVA_RATES.costiOperativi / 3);
+          
+          ivaPayment = Math.max(0, quarterlyTotal - quarterlyCredito);
+          // Add 1% interest for quarterly regime
+          ivaPayment = ivaPayment * 1.01;
           totaleIvaVersamenti += ivaPayment;
         }
       }
@@ -285,7 +308,7 @@ export const useTaxFlows = (projectId: string | null) => {
       totaleTaxOutflows: Math.round(totaleTaxOutflows),
       hasData: monthlyData.length > 0,
     };
-  }, [projectId, loading, simSummary, simData]);
+  }, [projectId, loading, simSummary, simData, ivaRegime]);
 
   return {
     taxFlows,

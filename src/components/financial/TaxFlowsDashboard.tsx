@@ -14,6 +14,7 @@ import {
   Info
 } from 'lucide-react';
 import { useTaxFlows } from '@/hooks/useTaxFlows';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
@@ -21,6 +22,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { TaxRegimeConfig } from './TaxRegimeConfig';
+import { TaxDeadlinesAlert } from './TaxDeadlinesAlert';
 
 interface TaxFlowsDashboardProps {
   projectId: string | null;
@@ -45,9 +48,17 @@ const formatCurrencyDecimal = (value: number) => {
 };
 
 export const TaxFlowsDashboard = ({ projectId }: TaxFlowsDashboardProps) => {
-  const { taxFlows, loading } = useTaxFlows(projectId);
+  const { data: simData, loading: simLoading, updateParams, saveSimulation } = useRevenueSimulation(projectId);
+  const ivaRegime = simData.params.ivaPaymentRegime;
+  const { taxFlows, loading } = useTaxFlows(projectId, ivaRegime);
 
-  if (loading) {
+  const handleIvaRegimeChange = async (regime: 'monthly' | 'quarterly') => {
+    updateParams('ivaPaymentRegime', regime);
+    // Auto-save after a short delay
+    setTimeout(() => saveSimulation(), 500);
+  };
+
+  if (loading || simLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-32 w-full" />
@@ -212,6 +223,19 @@ export const TaxFlowsDashboard = ({ projectId }: TaxFlowsDashboardProps) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tax Deadlines Alert */}
+      <TaxDeadlinesAlert 
+        projectId={projectId} 
+        startDate={simData.startDate} 
+        ivaRegime={ivaRegime} 
+      />
+
+      {/* Tax Regime Configuration */}
+      <TaxRegimeConfig 
+        ivaRegime={ivaRegime} 
+        onIvaRegimeChange={handleIvaRegimeChange} 
+      />
 
       {/* Detailed Tabs */}
       <Tabs defaultValue="monthly" className="w-full">

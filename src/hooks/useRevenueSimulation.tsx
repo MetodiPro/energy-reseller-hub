@@ -36,7 +36,12 @@ export interface ClientParams {
   uncollectibleRate: number;      // Insoluti definitivi %
 }
 
-export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams {}
+// Parametri fiscali
+export interface TaxRegimeParams {
+  ivaPaymentRegime: 'monthly' | 'quarterly';
+}
+
+export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams, TaxRegimeParams {}
 
 export type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number, number, number];
 
@@ -75,6 +80,9 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   collectionMonth2: 7,
   collectionMonth3Plus: 3,
   uncollectibleRate: 2,
+  
+  // Regime fiscale
+  ivaPaymentRegime: 'monthly',
 };
 
 const DEFAULT_MONTHLY_CONTRACTS: MonthlyContractsTarget = [30, 40, 50, 60, 70, 80, 90, 100, 100, 100, 100, 100];
@@ -133,6 +141,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             acciseKwh: Number(simulation.accise_kwh ?? DEFAULT_PARAMS.acciseKwh),
             ivaPercent: Number(simulation.iva_percent ?? DEFAULT_PARAMS.ivaPercent),
             clientType: (simulation.client_type as 'domestico' | 'business' | 'pmi') ?? DEFAULT_PARAMS.clientType,
+            ivaPaymentRegime: ((simulation as any).iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
             
             // Clienti e incasso
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
@@ -192,6 +201,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         accise_kwh: data.params.acciseKwh,
         iva_percent: data.params.ivaPercent,
         client_type: data.params.clientType,
+        iva_payment_regime: data.params.ivaPaymentRegime,
         
         // Clienti e incasso
         avg_monthly_consumption: data.params.avgMonthlyConsumption,

@@ -590,6 +590,7 @@ export type Database = {
           dispacciamento_per_kwh: number | null
           gestione_pod_per_pod: number | null
           id: string
+          iva_payment_regime: string | null
           iva_percent: number | null
           monthly_churn_rate: number | null
           monthly_contracts: Json
@@ -626,6 +627,7 @@ export type Database = {
           dispacciamento_per_kwh?: number | null
           gestione_pod_per_pod?: number | null
           id?: string
+          iva_payment_regime?: string | null
           iva_percent?: number | null
           monthly_churn_rate?: number | null
           monthly_contracts?: Json
@@ -662,6 +664,7 @@ export type Database = {
           dispacciamento_per_kwh?: number | null
           gestione_pod_per_pod?: number | null
           id?: string
+          iva_payment_regime?: string | null
           iva_percent?: number | null
           monthly_churn_rate?: number | null
           monthly_contracts?: Json
