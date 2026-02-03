@@ -41,6 +41,7 @@ import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenue
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
+import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -563,6 +564,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               setShowCostDialog(true);
             }}
           />
+
+          {/* Sales Channels Configuration */}
+          <SalesChannelsConfig projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="revenues">

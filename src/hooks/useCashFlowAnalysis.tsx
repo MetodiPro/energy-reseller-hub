@@ -4,6 +4,7 @@ import { useRevenueSimulation } from './useRevenueSimulation';
 import { stepCostsData } from '@/types/stepCosts';
 import { stepTimingConfig } from '@/lib/costTimingConfig';
 import { useStepCosts } from './useStepCosts';
+import { useSalesChannels } from './useSalesChannels';
 
 export interface MonthlyCashFlowData {
   month: number;
@@ -13,6 +14,7 @@ export interface MonthlyCashFlowData {
   // Outflows
   costiPassanti: number;
   costiOperativi: number;
+  costiCommerciali: number; // Commission costs for acquired customers
   deltaDeposito: number;
   investimentiIniziali: number;
   // Net
@@ -20,6 +22,7 @@ export interface MonthlyCashFlowData {
   saldoCumulativo: number;
   // Context
   clientiAttivi: number;
+  contrattiNuovi: number;
   fatturato: number;
 }
 
@@ -35,6 +38,7 @@ export interface CashFlowSummary {
   totaleIncassi: number;
   totaleCostiPassanti: number;
   totaleCostiOperativi: number;
+  totaleCostiCommerciali: number;
   totaleDepositi: number;
   // Flags
   hasData: boolean;
@@ -64,8 +68,9 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
   const { summary: simSummary, loading: simLoading } = useSimulationSummary(projectId);
   const { data: simData, loading: revenueLoading } = useRevenueSimulation(projectId);
   const { getStepTotal, loading: stepCostsLoading } = useStepCosts(projectId);
+  const { channels, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
 
-  const loading = simLoading || revenueLoading || stepCostsLoading;
+  const loading = simLoading || revenueLoading || stepCostsLoading || channelsLoading;
 
   const cashFlowData = useMemo((): CashFlowSummary => {
     if (!projectId || loading || !simSummary.hasData) {
@@ -79,6 +84,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         totaleIncassi: 0,
         totaleCostiPassanti: 0,
         totaleCostiOperativi: 0,
+        totaleCostiCommerciali: 0,
         totaleDepositi: 0,
         hasData: false,
       };
@@ -138,6 +144,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     let totaleIncassi = 0;
     let totaleCostiPassanti = 0;
     let totaleCostiOperativi = 0;
+    let totaleCostiCommerciali = 0;
     let totaleDepositi = 0;
     
     for (let m = 0; m < 14; m++) {
@@ -203,8 +210,12 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       // Investment costs for this month (distributed based on step timing)
       const investimentiMese = monthlyInvestments[m] ?? 0;
       
+      // Commercial costs (sales channel commissions)
+      // Commissions are paid when contracts are signed or when customers activate
+      const costiCommercialiMese = calculateCommissionCosts(newContracts, activatedCustomers);
+      
       // Net cash flow
-      const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - deltaDeposito - investimentiMese;
+      const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - costiCommercialiMese - deltaDeposito - investimentiMese;
       saldoCumulativo += flussoNetto;
       
       // Track min balance and first positive month
@@ -220,6 +231,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       totaleIncassi += incassiMese;
       totaleCostiPassanti += costiPassantiMese;
       totaleCostiOperativi += costiOperativiMese;
+      totaleCostiCommerciali += costiCommercialiMese;
       if (deltaDeposito > 0) {
         totaleDepositi += deltaDeposito;
       }
@@ -230,11 +242,13 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         incassi: Math.round(incassiMese),
         costiPassanti: Math.round(costiPassantiMese),
         costiOperativi: Math.round(costiOperativiMese),
+        costiCommerciali: Math.round(costiCommercialiMese),
         deltaDeposito: Math.round(deltaDeposito),
         investimentiIniziali: Math.round(investimentiMese),
         flussoNetto: Math.round(flussoNetto),
         saldoCumulativo: Math.round(saldoCumulativo),
         clientiAttivi: cumulativeActiveCustomers,
+        contrattiNuovi: newContracts,
         fatturato: Math.round(fatturatoMese),
       });
     }
@@ -249,10 +263,11 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       totaleIncassi: Math.round(totaleIncassi),
       totaleCostiPassanti: Math.round(totaleCostiPassanti),
       totaleCostiOperativi: Math.round(totaleCostiOperativi),
+      totaleCostiCommerciali: Math.round(totaleCostiCommerciali),
       totaleDepositi: Math.round(totaleDepositi),
       hasData: monthlyData.length > 0,
     };
-  }, [projectId, loading, simSummary, simData, getStepTotal]);
+  }, [projectId, loading, simSummary, simData, getStepTotal, calculateCommissionCosts]);
 
   return {
     cashFlowData,
