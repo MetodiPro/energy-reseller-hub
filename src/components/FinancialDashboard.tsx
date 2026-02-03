@@ -18,11 +18,13 @@ import {
   Receipt,
   Calculator,
   Zap,
-  Users
+  Users,
+  Wallet
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostRevenueManager } from '@/components/CostRevenueManager';
 import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
@@ -38,6 +40,7 @@ import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
+import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -88,6 +91,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId);
   const { data: simulationData, updateParams: updateSimParams, saveSimulation } = useRevenueSimulation(projectId);
+  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
   const [editingCost, setEditingCost] = useState<any>(null);
@@ -225,7 +229,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
@@ -241,6 +245,10 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <TabsTrigger value="margins" className="flex items-center gap-2">
             <Calculator className="h-4 w-4" />
             Margini
+          </TabsTrigger>
+          <TabsTrigger value="liquidity" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            Liquidità
           </TabsTrigger>
           <TabsTrigger value="taxes" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
@@ -588,6 +596,13 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
         <TabsContent value="margins" className="space-y-6">
           <MarginAnalysis summary={summary} />
+        </TabsContent>
+
+        <TabsContent value="liquidity" className="space-y-6">
+          <CashFlowDashboard 
+            cashFlowData={cashFlowData} 
+            loading={cashFlowLoading} 
+          />
         </TabsContent>
 
         <TabsContent value="taxes">
