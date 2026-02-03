@@ -95,13 +95,13 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <Building2 className="h-4 w-4" />
-              Investimento Iniziale
+              Investimento Totale
             </div>
             <p className="text-2xl font-bold text-destructive">
               {formatCurrency(cashFlowData.investimentoIniziale)}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Licenze, garanzie, setup
+              Distribuito su 6 mesi
             </p>
           </CardContent>
         </Card>
