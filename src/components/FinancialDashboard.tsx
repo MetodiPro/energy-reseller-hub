@@ -31,7 +31,7 @@ import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart'
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
 import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
-import { CostCategorySummary } from '@/components/financial/CostCategorySummary';
+
 
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
@@ -498,8 +498,40 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             </CardContent>
           </Card>
 
-          {/* Cost Category Summary */}
-          <CostCategorySummary costs={costs} />
+          {/* Riepilogo Costi Simulazione - integrato con i dati del simulatore */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Riepilogo Costi dal Simulatore
+              </CardTitle>
+              <CardDescription>Costi calcolati in base alla base clienti e consumi previsti</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Costo Energia Grossista</p>
+                  <p className="text-xl font-bold">{formatCurrency(simulationSummary.costoEnergiaTotale)}</p>
+                  <p className="text-xs text-muted-foreground">14 mesi simulati</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Fee Gestione POD</p>
+                  <p className="text-xl font-bold">{formatCurrency(simulationSummary.costoGestionePodTotale)}</p>
+                  <p className="text-xs text-muted-foreground">14 mesi simulati</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Depositi Cauzionali</p>
+                  <p className="text-xl font-bold">{formatCurrency(simulationSummary.depositoMassimo)}</p>
+                  <p className="text-xs text-muted-foreground">Picco massimo</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Costi Operativi</p>
+                  <p className="text-xl font-bold">{formatCurrency(summary.totalCosts - summary.passthroughCosts)}</p>
+                  <p className="text-xs text-muted-foreground">Da gestione manuale</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Trend Chart with Forecast */}
           <FinancialTrendChart costs={costs} revenues={revenues} summary={summary} />
