@@ -36,12 +36,17 @@ export interface ClientParams {
   uncollectibleRate: number;      // Insoluti definitivi %
 }
 
+// Parametri costi grossista
+export interface WholesalerParams {
+  gestionePodPerPod: number;      // Fee gestione POD €/POD/mese
+}
+
 // Parametri fiscali
 export interface TaxRegimeParams {
   ivaPaymentRegime: 'monthly' | 'quarterly';
 }
 
-export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams, TaxRegimeParams {}
+export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams, WholesalerParams, TaxRegimeParams {}
 
 export type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number, number, number];
 
@@ -80,6 +85,9 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   collectionMonth2: 7,
   collectionMonth3Plus: 3,
   uncollectibleRate: 2,
+  
+  // Costi grossista
+  gestionePodPerPod: 2.50,
   
   // Regime fiscale
   ivaPaymentRegime: 'monthly',
@@ -152,6 +160,9 @@ export const useRevenueSimulation = (projectId: string | null) => {
             collectionMonth2: Number(simulation.collection_month_2),
             collectionMonth3Plus: Number(simulation.collection_month_3_plus),
             uncollectibleRate: Number(simulation.uncollectible_rate),
+            
+            // Costi grossista
+            gestionePodPerPod: Number(simulation.gestione_pod_per_pod ?? DEFAULT_PARAMS.gestionePodPerPod),
           },
         });
       } else {
@@ -212,6 +223,9 @@ export const useRevenueSimulation = (projectId: string | null) => {
         collection_month_2: data.params.collectionMonth2,
         collection_month_3_plus: data.params.collectionMonth3Plus,
         uncollectible_rate: data.params.uncollectibleRate,
+        
+        // Costi grossista
+        gestione_pod_per_pod: data.params.gestionePodPerPod,
         
         created_by: user.id,
       };
