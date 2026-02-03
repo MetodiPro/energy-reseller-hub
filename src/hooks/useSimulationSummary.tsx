@@ -172,14 +172,15 @@ export const useSimulationSummary = (projectId: string | null) => {
       totalPassanti += materiaEnergia + trasporto + oneriSistema + accise;
       totalIva += iva;
       
-      // Costi grossista
+      // Costi grossista - il reseller paga PUN + spread grossista (NON lo spread reseller!)
       if (m >= 2) {
         // Gestione POD: pagato per ogni cliente attivo
         const gestionePodMese = cumulativeActiveCustomers * gestionePodPerPod;
         costoGestionePodTotale += gestionePodMese;
         
-        // Costo energia: PUN + spread per consumo
-        const costoEnergiaMese = cumulativeActiveCustomers * kWh * (params.punPerKwh + params.spreadPerKwh);
+        // Costo energia: PUN + spread GROSSISTA (non spread reseller)
+        const spreadGrossista = (data as any).params?.spreadGrossistaPerKwh ?? 0.008;
+        const costoEnergiaMese = cumulativeActiveCustomers * kWh * (params.punPerKwh + spreadGrossista);
         costoEnergiaTotale += costoEnergiaMese;
       }
       

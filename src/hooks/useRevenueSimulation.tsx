@@ -4,9 +4,10 @@ import { useToast } from '@/hooks/use-toast';
 
 // Parametri componenti commerciali reseller
 export interface ResellerParams {
-  ccvMonthly: number;          // CCV - Commercializzazione e Vendita €/mese
-  spreadPerKwh: number;        // Spread su PUN €/kWh
-  otherServicesMonthly: number; // Altri servizi €/mese
+  ccvMonthly: number;              // CCV - Commercializzazione e Vendita €/mese
+  spreadPerKwh: number;            // Spread applicato dal reseller al cliente €/kWh (RICAVO)
+  spreadGrossistaPerKwh: number;   // Spread applicato dal grossista al reseller €/kWh (COSTO)
+  otherServicesMonthly: number;    // Altri servizi €/mese
 }
 
 // Parametri componenti fattura (passanti)
@@ -60,7 +61,8 @@ export interface RevenueSimulationData {
 const DEFAULT_PARAMS: RevenueSimulationParams = {
   // Componenti commerciali reseller
   ccvMonthly: 8.50,
-  spreadPerKwh: 0.015,
+  spreadPerKwh: 0.015,            // Spread al cliente (RICAVO)
+  spreadGrossistaPerKwh: 0.008,   // Spread dal grossista (COSTO)
   otherServicesMonthly: 0,
   
   // Componenti fattura (passanti)
@@ -135,6 +137,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             // Componenti commerciali
             ccvMonthly: Number(simulation.ccv_monthly),
             spreadPerKwh: Number(simulation.spread_per_kwh),
+            spreadGrossistaPerKwh: Number((simulation as any).spread_grossista_per_kwh ?? DEFAULT_PARAMS.spreadGrossistaPerKwh),
             otherServicesMonthly: Number(simulation.other_services_monthly),
             
             // Componenti fattura (con fallback a default)
@@ -198,6 +201,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         // Componenti commerciali
         ccv_monthly: data.params.ccvMonthly,
         spread_per_kwh: data.params.spreadPerKwh,
+        spread_grossista_per_kwh: data.params.spreadGrossistaPerKwh,
         other_services_monthly: data.params.otherServicesMonthly,
         
         // Componenti fattura

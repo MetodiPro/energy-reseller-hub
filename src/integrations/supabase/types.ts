@@ -602,6 +602,7 @@ export type Database = {
           pun_auto_update: boolean | null
           pun_override: number | null
           pun_per_kwh: number | null
+          spread_grossista_per_kwh: number | null
           spread_per_kwh: number
           start_date: string
           trasporto_quota_energia_kwh: number | null
@@ -639,6 +640,7 @@ export type Database = {
           pun_auto_update?: boolean | null
           pun_override?: number | null
           pun_per_kwh?: number | null
+          spread_grossista_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
           trasporto_quota_energia_kwh?: number | null
@@ -676,6 +678,7 @@ export type Database = {
           pun_auto_update?: boolean | null
           pun_override?: number | null
           pun_per_kwh?: number | null
+          spread_grossista_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
           trasporto_quota_energia_kwh?: number | null
