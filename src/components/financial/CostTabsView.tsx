@@ -29,7 +29,8 @@ interface SimulatedPassthroughCosts {
   clientiAttivi: number;
   consumoMedioMensile: number;
   punPerKwh: number;
-  spreadPerKwh: number;
+  spreadGrossistaPerKwh: number;  // Spread pagato al grossista (COSTO)
+  spreadResellerPerKwh: number;   // Spread al cliente (per info)
   gestionePodPerPod: number;
 }
 
@@ -277,23 +278,27 @@ export const CostTabsView = ({
       clientiAttivi, 
       consumoMedioMensile,
       punPerKwh,
+      spreadGrossistaPerKwh,
       gestionePodPerPod 
     } = simulatedPassthrough;
 
     // Calcola consumo totale su 14 mesi (semplificato)
     const consumoTotaleKwh = clientiAttivi * consumoMedioMensile * 14;
+    const costoAcquistoPerKwh = punPerKwh + spreadGrossistaPerKwh;
 
     const passthroughItems = [
       {
         name: 'Energia Acquistata dal Grossista',
-        description: `PUN €${(punPerKwh * 1000).toFixed(2)}/MWh × ${consumoTotaleKwh.toLocaleString('it-IT')} kWh (14 mesi)`,
+        description: `(PUN €${punPerKwh.toFixed(4)} + Spread Grossista €${spreadGrossistaPerKwh.toFixed(4)}) × ${consumoTotaleKwh.toLocaleString('it-IT')} kWh`,
+        subDescription: `= €${costoAcquistoPerKwh.toFixed(4)}/kWh × consumo totale`,
         amount: costoEnergiaTotale,
         icon: Zap,
         iconColor: 'text-yellow-500',
       },
       {
         name: 'Fee Gestione POD',
-        description: `€${gestionePodPerPod.toFixed(2)}/POD/mese × ${clientiAttivi} clienti attivi`,
+        description: `€${gestionePodPerPod.toFixed(2)}/POD/mese × ${clientiAttivi} clienti attivi × 14 mesi`,
+        subDescription: null,
         amount: costoGestionePodTotale,
         icon: Settings,
         iconColor: 'text-blue-500',
@@ -335,17 +340,22 @@ export const CostTabsView = ({
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="flex items-center gap-1">
-                          {item.description}
-                          <Info className="h-3 w-3" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Valore calcolato dinamicamente dal simulatore</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div className="space-y-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex items-center gap-1 text-left">
+                            {item.description}
+                            <Info className="h-3 w-3 flex-shrink-0" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Valore calcolato dinamicamente dal simulatore</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      {item.subDescription && (
+                        <p className="text-xs text-muted-foreground/70">{item.subDescription}</p>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right font-semibold text-lg">
                     {formatCurrency(item.amount)}

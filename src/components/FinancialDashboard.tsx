@@ -547,7 +547,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               punPerKwh: simulationData?.params?.punPerKwh || 0.12,
               punOverride: null,
               punAutoUpdate: true,
-              spreadPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
+              spreadGrossistaPerKwh: simulationData?.params?.spreadGrossistaPerKwh ?? 0.008,
+              spreadResellerPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
               gestionePodPerPod: simulationData?.params?.gestionePodPerPod ?? 2.50,
               depositoMesi: 3,
               depositoPercentualeAttivazione: simulationData?.params?.activationRate || 85,
@@ -555,8 +556,11 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             clientiAttivi={summary.clientiAttivi || 0}
             consumoMedioMensile={simulationData?.params?.avgMonthlyConsumption || 200}
             onConfigChange={(updates) => {
-              if (updates.spreadPerKwh !== undefined) {
-                updateSimParams('spreadPerKwh', updates.spreadPerKwh);
+              if (updates.spreadGrossistaPerKwh !== undefined) {
+                updateSimParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
+              }
+              if (updates.spreadResellerPerKwh !== undefined) {
+                updateSimParams('spreadPerKwh', updates.spreadResellerPerKwh);
               }
               if (updates.punPerKwh !== undefined) {
                 updateSimParams('punPerKwh', updates.punPerKwh);
@@ -598,7 +602,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               clientiAttivi: simulationSummary.clientiAttivi,
               consumoMedioMensile: simulationData?.params?.avgMonthlyConsumption || 200,
               punPerKwh: simulationData?.params?.punPerKwh || 0.12,
-              spreadPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
+              spreadGrossistaPerKwh: simulationData?.params?.spreadGrossistaPerKwh ?? 0.008,
+              spreadResellerPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
               gestionePodPerPod: simulationData?.params?.gestionePodPerPod || 2.50,
             }}
           />
