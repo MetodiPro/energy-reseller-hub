@@ -591,6 +591,16 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               setEditingCost(null);
               setShowCostDialog(true);
             }}
+            simulatedPassthrough={{
+              costoEnergiaTotale: simulationSummary.costoEnergiaTotale,
+              costoGestionePodTotale: simulationSummary.costoGestionePodTotale,
+              totalPassanti: simulationSummary.totalPassanti,
+              clientiAttivi: simulationSummary.clientiAttivi,
+              consumoMedioMensile: simulationData?.params?.avgMonthlyConsumption || 200,
+              punPerKwh: simulationData?.params?.punPerKwh || 0.12,
+              spreadPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
+              gestionePodPerPod: simulationData?.params?.gestionePodPerPod || 2.50,
+            }}
           />
 
           {/* Sales Channels Configuration */}

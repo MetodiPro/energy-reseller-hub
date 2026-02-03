@@ -13,9 +13,25 @@ import {
   Edit,
   Plus,
   Zap,
-  Flame
+  Flame,
+  Calculator,
+  Info
 } from 'lucide-react';
 import { ProjectCost, CostCategory } from '@/hooks/useProjectFinancials';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Dati costi passanti dal simulatore
+interface SimulatedPassthroughCosts {
+  costoEnergiaTotale: number;
+  costoGestionePodTotale: number;
+  totalPassanti: number;
+  // Dettagli per calcolo
+  clientiAttivi: number;
+  consumoMedioMensile: number;
+  punPerKwh: number;
+  spreadPerKwh: number;
+  gestionePodPerPod: number;
+}
 
 interface CostTabsViewProps {
   costs: ProjectCost[];
@@ -24,12 +40,14 @@ interface CostTabsViewProps {
   onEdit: (cost: ProjectCost) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
+  // Nuovi props per costi simulati
+  simulatedPassthrough?: SimulatedPassthroughCosts;
 }
 
 const COST_CATEGORIES = {
   passthrough: {
     label: 'Passanti',
-    description: 'Costi da girare a grossista/distributore (energia, trasporto, oneri)',
+    description: 'Costi calcolati dal simulatore (energia, trasporto, oneri)',
     icon: ArrowLeftRight,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
@@ -96,14 +114,20 @@ const filterByCommodity = (cost: ProjectCost, commodityType: string | null): boo
   return true;
 };
 
-// Categorize cost into one of the four tabs
-const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES => {
-  // Passthrough costs
+// Categorize cost into one of the four tabs - EXCLUDE passthrough from manual costs
+const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES | null => {
+  // Skip passthrough costs - they come from simulator now
   if ((cost as any).is_passthrough === true) {
-    return 'passthrough';
+    return null; // Will be filtered out
   }
   
   const name = cost.name.toLowerCase();
+  
+  // Skip energy-related costs (handled by simulator)
+  const energyPatterns = ['energia acquistata', 'trasporto e distribuzione', 'corrispettivi trasporto', 'oneri di sistema'];
+  if (energyPatterns.some(p => name.includes(p))) {
+    return null; // Will be filtered out
+  }
   
   // Commercial costs
   const commercialPatterns = ['agent', 'provvigion', 'marketing', 'promozion', 'vendita', 'acquisizione', 'lead', 'campagna'];
@@ -128,13 +152,14 @@ export const CostTabsView = ({
   onEdit,
   onDelete,
   onAdd,
+  simulatedPassthrough,
 }: CostTabsViewProps) => {
-  // Filter and categorize costs
+  // Filter and categorize costs - excluding passthrough
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
     
     const result: Record<keyof typeof COST_CATEGORIES, { costs: ProjectCost[]; total: number }> = {
-      passthrough: { costs: [], total: 0 },
+      passthrough: { costs: [], total: 0 }, // Will use simulated data instead
       operational: { costs: [], total: 0 },
       commercial: { costs: [], total: 0 },
       infrastructure: { costs: [], total: 0 },
@@ -142,13 +167,20 @@ export const CostTabsView = ({
     
     filtered.forEach(cost => {
       const category = categorizeCost(cost);
+      if (category === null) return; // Skip passthrough costs
+      
       const amount = cost.amount * cost.quantity;
       result[category].costs.push(cost);
       result[category].total += amount;
     });
     
+    // Use simulated passthrough total
+    if (simulatedPassthrough) {
+      result.passthrough.total = simulatedPassthrough.costoEnergiaTotale + simulatedPassthrough.costoGestionePodTotale;
+    }
+    
     return result;
-  }, [costs, commodityType]);
+  }, [costs, commodityType, simulatedPassthrough]);
   
   const totalCosts = Object.values(categorizedCosts).reduce((sum, cat) => sum + cat.total, 0);
   
@@ -227,16 +259,123 @@ export const CostTabsView = ({
       </Table>
     );
   };
+
+  // Render simulated passthrough costs
+  const renderSimulatedPassthrough = () => {
+    if (!simulatedPassthrough) {
+      return (
+        <div className="text-center py-8 text-muted-foreground">
+          <Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p>Configura il simulatore ricavi per vedere i costi passanti calcolati</p>
+        </div>
+      );
+    }
+
+    const { 
+      costoEnergiaTotale, 
+      costoGestionePodTotale, 
+      clientiAttivi, 
+      consumoMedioMensile,
+      punPerKwh,
+      gestionePodPerPod 
+    } = simulatedPassthrough;
+
+    // Calcola consumo totale su 14 mesi (semplificato)
+    const consumoTotaleKwh = clientiAttivi * consumoMedioMensile * 14;
+
+    const passthroughItems = [
+      {
+        name: 'Energia Acquistata dal Grossista',
+        description: `PUN €${(punPerKwh * 1000).toFixed(2)}/MWh × ${consumoTotaleKwh.toLocaleString('it-IT')} kWh (14 mesi)`,
+        amount: costoEnergiaTotale,
+        icon: Zap,
+        iconColor: 'text-yellow-500',
+      },
+      {
+        name: 'Fee Gestione POD',
+        description: `€${gestionePodPerPod.toFixed(2)}/POD/mese × ${clientiAttivi} clienti attivi`,
+        amount: costoGestionePodTotale,
+        icon: Settings,
+        iconColor: 'text-blue-500',
+      },
+    ];
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+          <div className="flex items-start gap-2">
+            <Calculator className="h-5 w-5 text-orange-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-orange-800 dark:text-orange-300">Costi Calcolati dal Simulatore</h4>
+              <p className="text-sm text-orange-700 dark:text-orange-400 mt-1">
+                Questi costi sono derivati automaticamente dai parametri del simulatore ricavi 
+                (clienti attivi: {clientiAttivi}, consumo medio: {consumoMedioMensile} kWh/mese).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Voce</TableHead>
+              <TableHead>Calcolo</TableHead>
+              <TableHead className="text-right">Totale 14 mesi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {passthroughItems.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <TableRow key={idx}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Icon className={`h-4 w-4 ${item.iconColor}`} />
+                      {item.name}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center gap-1">
+                          {item.description}
+                          <Info className="h-3 w-3" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Valore calcolato dinamicamente dal simulatore</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold text-lg">
+                    {formatCurrency(item.amount)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            <TableRow className="bg-muted/50">
+              <TableCell colSpan={2} className="font-bold">
+                Totale Costi Passanti
+              </TableCell>
+              <TableCell className="text-right font-bold text-xl">
+                {formatCurrency(costoEnergiaTotale + costoGestionePodTotale)}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
   
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Gestione Costi per Categoria</CardTitle>
-          <CardDescription>
-            Totale costi: {formatCurrency(totalCosts)}
+          <CardDescription className="flex items-center gap-2">
+            <span>Totale costi: {formatCurrency(totalCosts)}</span>
             {commodityType && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary">
                 {commodityType === 'solo-luce' ? 'Solo Energia Elettrica' : 
                  commodityType === 'solo-gas' ? 'Solo Gas' : 'Dual Fuel'}
               </Badge>
@@ -254,12 +393,13 @@ export const CostTabsView = ({
             {Object.entries(COST_CATEGORIES).map(([key, config]) => {
               const Icon = config.icon;
               const category = categorizedCosts[key as keyof typeof COST_CATEGORIES];
+              const count = key === 'passthrough' && simulatedPassthrough ? 2 : category.costs.length;
               return (
                 <TabsTrigger key={key} value={key} className="flex items-center gap-2">
                   <Icon className={`h-4 w-4 ${config.color}`} />
                   <span className="hidden sm:inline">{config.label}</span>
                   <Badge variant="secondary" className="ml-1">
-                    {category.costs.length}
+                    {count}
                   </Badge>
                 </TabsTrigger>
               );
@@ -269,6 +409,8 @@ export const CostTabsView = ({
           {Object.entries(COST_CATEGORIES).map(([key, config]) => {
             const Icon = config.icon;
             const category = categorizedCosts[key as keyof typeof COST_CATEGORIES];
+            const isPassthrough = key === 'passthrough';
+            
             return (
               <TabsContent key={key} value={key} className="mt-4">
                 <div className="mb-4 flex items-center justify-between">
@@ -284,12 +426,14 @@ export const CostTabsView = ({
                   <div className="text-right">
                     <p className="text-2xl font-bold">{formatCurrency(category.total)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {category.costs.length} {category.costs.length === 1 ? 'voce' : 'voci'}
+                      {isPassthrough && simulatedPassthrough 
+                        ? '2 voci (dal simulatore)' 
+                        : `${category.costs.length} ${category.costs.length === 1 ? 'voce' : 'voci'}`}
                     </p>
                   </div>
                 </div>
                 
-                {renderCostTable(category.costs)}
+                {isPassthrough ? renderSimulatedPassthrough() : renderCostTable(category.costs)}
               </TabsContent>
             );
           })}
