@@ -509,7 +509,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </TabsContent>
 
         <TabsContent value="costs" className="space-y-6">
-          {/* Wholesaler costs configuration */}
+          {/* Wholesaler costs configuration with deposit evolution */}
           <WholesalerCostsConfig
             config={{
               punPerMwh: simulationData?.params?.punPerKwh ? simulationData.params.punPerKwh * 1000 : 120,
@@ -530,6 +530,10 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
                 updateSimParams('punPerKwh', updates.punPerMwh / 1000);
               }
             }}
+            depositiMensili={simulationSummary.depositiMensili}
+            depositoIniziale={simulationSummary.depositoIniziale}
+            depositoFinale={simulationSummary.depositoFinale}
+            depositoMassimo={simulationSummary.depositoMassimo}
           />
           
           {/* Costs organized by category tabs */}
