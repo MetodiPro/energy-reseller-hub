@@ -250,6 +250,7 @@ const Index = () => {
           <FinancialDashboard 
             projectId={currentProjectId} 
             projectName={currentProject?.name || "Progetto Corrente"}
+            commodityType={currentProject?.commodity_type}
           />
         ) : (
           <div className="text-center py-12 text-muted-foreground">

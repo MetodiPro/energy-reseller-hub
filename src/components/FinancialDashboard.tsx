@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostRevenueManager } from '@/components/CostRevenueManager';
 import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
@@ -35,6 +36,8 @@ import { TaxesManager } from '@/components/financial/TaxesManager';
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
+import { CostTabsView } from '@/components/financial/CostTabsView';
+import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -51,6 +54,7 @@ import {
 interface FinancialDashboardProps {
   projectId: string;
   projectName: string;
+  commodityType?: string | null;
 }
 
 const COLORS = {
@@ -80,11 +84,47 @@ const formatPercent = (value: number) => {
   return `${value.toFixed(1)}%`;
 };
 
-export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboardProps) => {
+export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId);
+  const { data: simulationData, updateParams: updateSimParams, saveSimulation } = useRevenueSimulation(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
+  const [editingCost, setEditingCost] = useState<any>(null);
+  const [showCostDialog, setShowCostDialog] = useState(false);
+  
+  // Filter costs by commodity type
+  const filteredCosts = useMemo(() => {
+    return costs.filter(cost => {
+      const costName = cost.name.toLowerCase();
+      const commodityFilter = (cost as any).commodity_filter;
+      
+      // If cost has explicit filter, use it
+      if (commodityFilter) {
+        if (commodityType === 'solo-luce' && commodityFilter === 'gas') return false;
+        if (commodityType === 'solo-gas' && commodityFilter === 'luce') return false;
+      }
+      
+      // Pattern-based filtering
+      const gasPatterns = ['gas', 'smc', 'evg', 'metano'];
+      const lucePatterns = ['energia elettrica', 'kwh', 'eve'];
+      
+      const isGasRelated = gasPatterns.some(p => costName.includes(p)) && !costName.includes('energia');
+      const isLuceRelated = lucePatterns.some(p => costName.includes(p));
+      
+      // If it's clearly gas-related and project is solo-luce, hide it
+      if (commodityType === 'solo-luce' && isGasRelated && !isLuceRelated) {
+        return false;
+      }
+      
+      // If it's clearly luce-related and project is solo-gas, hide it
+      if (commodityType === 'solo-gas' && isLuceRelated && !isGasRelated) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [costs, commodityType]);
 
   // Integrated summary using simulation data for revenues
   const summary = useMemo(() => {
@@ -469,18 +509,47 @@ export const FinancialDashboard = ({ projectId, projectName }: FinancialDashboar
         </TabsContent>
 
         <TabsContent value="costs" className="space-y-6">
-          {/* Passthrough costs card - separated from operating costs */}
-          <PassthroughCostsCard costs={costs} />
+          {/* Wholesaler costs configuration */}
+          <WholesalerCostsConfig
+            config={{
+              punPerMwh: simulationData?.params?.punPerKwh ? simulationData.params.punPerKwh * 1000 : 120,
+              punOverride: null,
+              punAutoUpdate: true,
+              spreadPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
+              gestionePodPerPod: 2.50,
+              depositoMesi: 3,
+              depositoPercentualeAttivazione: simulationData?.params?.activationRate || 85,
+            }}
+            clientiAttivi={summary.clientiAttivi || 0}
+            consumoMedioMensile={simulationData?.params?.avgMonthlyConsumption || 200}
+            onConfigChange={(updates) => {
+              if (updates.spreadPerKwh !== undefined) {
+                updateSimParams('spreadPerKwh', updates.spreadPerKwh);
+              }
+              if (updates.punPerMwh !== undefined) {
+                updateSimParams('punPerKwh', updates.punPerMwh / 1000);
+              }
+            }}
+          />
           
-          {/* Operating costs manager */}
-          <CostRevenueManager
-            type="costs"
-            projectId={projectId}
-            items={costs.filter(c => !(c as any).is_passthrough)}
+          {/* Costs organized by category tabs */}
+          <CostTabsView
+            costs={filteredCosts}
             categories={categories}
-            onAdd={addCost}
-            onUpdate={updateCost}
-            onDelete={deleteCost}
+            commodityType={commodityType || null}
+            onEdit={(cost) => {
+              setEditingCost(cost);
+              setShowCostDialog(true);
+            }}
+            onDelete={async (id) => {
+              if (confirm('Sei sicuro di voler eliminare questo costo?')) {
+                await deleteCost(id);
+              }
+            }}
+            onAdd={() => {
+              setEditingCost(null);
+              setShowCostDialog(true);
+            }}
           />
         </TabsContent>
 

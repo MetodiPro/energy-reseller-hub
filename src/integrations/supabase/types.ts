@@ -418,6 +418,7 @@ export type Database = {
           calculation_basis: string | null
           calculation_params: Json | null
           category_id: string | null
+          commodity_filter: string | null
           cost_type: Database["public"]["Enums"]["cost_type"]
           created_at: string | null
           created_by: string
@@ -440,6 +441,7 @@ export type Database = {
           calculation_basis?: string | null
           calculation_params?: Json | null
           category_id?: string | null
+          commodity_filter?: string | null
           cost_type?: Database["public"]["Enums"]["cost_type"]
           created_at?: string | null
           created_by: string
@@ -462,6 +464,7 @@ export type Database = {
           calculation_basis?: string | null
           calculation_params?: Json | null
           category_id?: string | null
+          commodity_filter?: string | null
           cost_type?: Database["public"]["Enums"]["cost_type"]
           created_at?: string | null
           created_by?: string
@@ -582,7 +585,10 @@ export type Database = {
           collection_month_3_plus: number
           created_at: string
           created_by: string
+          deposito_cauzionale_mesi: number | null
+          deposito_percentuale_attivazione: number | null
           dispacciamento_per_kwh: number | null
+          gestione_pod_per_pod: number | null
           id: string
           iva_percent: number | null
           monthly_churn_rate: number | null
@@ -592,6 +598,8 @@ export type Database = {
           other_services_monthly: number
           potenza_impegnata_kw: number | null
           project_id: string
+          pun_auto_update: boolean | null
+          pun_override: number | null
           pun_per_kwh: number | null
           spread_per_kwh: number
           start_date: string
@@ -613,7 +621,10 @@ export type Database = {
           collection_month_3_plus?: number
           created_at?: string
           created_by: string
+          deposito_cauzionale_mesi?: number | null
+          deposito_percentuale_attivazione?: number | null
           dispacciamento_per_kwh?: number | null
+          gestione_pod_per_pod?: number | null
           id?: string
           iva_percent?: number | null
           monthly_churn_rate?: number | null
@@ -623,6 +634,8 @@ export type Database = {
           other_services_monthly?: number
           potenza_impegnata_kw?: number | null
           project_id: string
+          pun_auto_update?: boolean | null
+          pun_override?: number | null
           pun_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
@@ -644,7 +657,10 @@ export type Database = {
           collection_month_3_plus?: number
           created_at?: string
           created_by?: string
+          deposito_cauzionale_mesi?: number | null
+          deposito_percentuale_attivazione?: number | null
           dispacciamento_per_kwh?: number | null
+          gestione_pod_per_pod?: number | null
           id?: string
           iva_percent?: number | null
           monthly_churn_rate?: number | null
@@ -654,6 +670,8 @@ export type Database = {
           other_services_monthly?: number
           potenza_impegnata_kw?: number | null
           project_id?: string
+          pun_auto_update?: boolean | null
+          pun_override?: number | null
           pun_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
@@ -678,6 +696,7 @@ export type Database = {
           amount: number
           calculation_basis: string | null
           calculation_params: Json | null
+          commodity_filter: string | null
           created_at: string | null
           created_by: string
           date: string | null
@@ -698,6 +717,7 @@ export type Database = {
           amount?: number
           calculation_basis?: string | null
           calculation_params?: Json | null
+          commodity_filter?: string | null
           created_at?: string | null
           created_by: string
           date?: string | null
@@ -718,6 +738,7 @@ export type Database = {
           amount?: number
           calculation_basis?: string | null
           calculation_params?: Json | null
+          commodity_filter?: string | null
           created_at?: string | null
           created_by?: string
           date?: string | null
