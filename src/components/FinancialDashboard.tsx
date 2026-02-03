@@ -28,13 +28,11 @@ import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostRevenueManager } from '@/components/CostRevenueManager';
 import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
-import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
-import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
-import { FinancialTimeline } from '@/components/financial/FinancialTimeline';
+import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
 import { CostCategorySummary } from '@/components/financial/CostCategorySummary';
-import { TaxesManager } from '@/components/financial/TaxesManager';
+
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
@@ -231,7 +229,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
@@ -255,18 +253,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <TabsTrigger value="taxflows" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
             Flussi Fiscali
-          </TabsTrigger>
-          <TabsTrigger value="taxes" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            Imposte
-          </TabsTrigger>
-          <TabsTrigger value="simulation" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Simulazione
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Storico
           </TabsTrigger>
         </TabsList>
 
@@ -618,21 +604,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <TaxFlowsDashboard projectId={projectId} />
         </TabsContent>
 
-        <TabsContent value="taxes">
-          <TaxesManager projectId={projectId} />
-        </TabsContent>
-
-        <TabsContent value="simulation" className="space-y-6">
-          {/* What-If Simulator */}
-          <WhatIfSimulator summary={summary} />
-          
-          {/* Break-Even Analysis */}
-          <BreakEvenAnalysis summary={summary} />
-        </TabsContent>
-
-        <TabsContent value="history">
-          <FinancialTimeline projectId={projectId} />
-        </TabsContent>
       </Tabs>
     </div>
   );
