@@ -5,6 +5,7 @@ import { stepCostsData } from '@/types/stepCosts';
 import { stepTimingConfig } from '@/lib/costTimingConfig';
 import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
+import { useTaxFlows } from './useTaxFlows';
 
 export interface MonthlyCashFlowData {
   month: number;
@@ -15,6 +16,7 @@ export interface MonthlyCashFlowData {
   costiPassanti: number;
   costiOperativi: number;
   costiCommerciali: number; // Commission costs for acquired customers
+  flussiFiscali: number;   // Tax outflows (IVA F24, accise, oneri)
   deltaDeposito: number;
   investimentiIniziali: number;
   // Net
@@ -39,6 +41,7 @@ export interface CashFlowSummary {
   totaleCostiPassanti: number;
   totaleCostiOperativi: number;
   totaleCostiCommerciali: number;
+  totaleFlussiFiscali: number;
   totaleDepositi: number;
   // Flags
   hasData: boolean;
@@ -69,8 +72,9 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
   const { data: simData, loading: revenueLoading } = useRevenueSimulation(projectId);
   const { getStepTotal, loading: stepCostsLoading } = useStepCosts(projectId);
   const { channels, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
+  const { taxFlows, loading: taxFlowsLoading } = useTaxFlows(projectId);
 
-  const loading = simLoading || revenueLoading || stepCostsLoading || channelsLoading;
+  const loading = simLoading || revenueLoading || stepCostsLoading || channelsLoading || taxFlowsLoading;
 
   const cashFlowData = useMemo((): CashFlowSummary => {
     if (!projectId || loading || !simSummary.hasData) {
@@ -85,6 +89,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         totaleCostiPassanti: 0,
         totaleCostiOperativi: 0,
         totaleCostiCommerciali: 0,
+        totaleFlussiFiscali: 0,
         totaleDepositi: 0,
         hasData: false,
       };
@@ -145,6 +150,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     let totaleCostiPassanti = 0;
     let totaleCostiOperativi = 0;
     let totaleCostiCommerciali = 0;
+    let totaleFlussiFiscali = 0;
     let totaleDepositi = 0;
     
     for (let m = 0; m < 14; m++) {
@@ -214,8 +220,13 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       // Commissions are paid when contracts are signed or when customers activate
       const costiCommercialiMese = calculateCommissionCosts(newContracts, activatedCustomers);
       
-      // Net cash flow
-      const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - costiCommercialiMese - deltaDeposito - investimentiMese;
+      // Tax flows (IVA F24, accise, oneri) - get from tax flows hook
+      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] 
+        ? taxFlows.monthlyData[m].totaleTaxOutflows 
+        : 0;
+      
+      // Net cash flow (including tax outflows)
+      const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - costiCommercialiMese - flussiFiscaliMese - deltaDeposito - investimentiMese;
       saldoCumulativo += flussoNetto;
       
       // Track min balance and first positive month
@@ -232,6 +243,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       totaleCostiPassanti += costiPassantiMese;
       totaleCostiOperativi += costiOperativiMese;
       totaleCostiCommerciali += costiCommercialiMese;
+      totaleFlussiFiscali += flussiFiscaliMese;
       if (deltaDeposito > 0) {
         totaleDepositi += deltaDeposito;
       }
@@ -243,6 +255,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         costiPassanti: Math.round(costiPassantiMese),
         costiOperativi: Math.round(costiOperativiMese),
         costiCommerciali: Math.round(costiCommercialiMese),
+        flussiFiscali: Math.round(flussiFiscaliMese),
         deltaDeposito: Math.round(deltaDeposito),
         investimentiIniziali: Math.round(investimentiMese),
         flussoNetto: Math.round(flussoNetto),
@@ -264,10 +277,11 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       totaleCostiPassanti: Math.round(totaleCostiPassanti),
       totaleCostiOperativi: Math.round(totaleCostiOperativi),
       totaleCostiCommerciali: Math.round(totaleCostiCommerciali),
+      totaleFlussiFiscali: Math.round(totaleFlussiFiscali),
       totaleDepositi: Math.round(totaleDepositi),
       hasData: monthlyData.length > 0,
     };
-  }, [projectId, loading, simSummary, simData, getStepTotal, calculateCommissionCosts]);
+  }, [projectId, loading, simSummary, simData, getStepTotal, calculateCommissionCosts, taxFlows]);
 
   return {
     cashFlowData,

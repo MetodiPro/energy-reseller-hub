@@ -59,7 +59,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
     return cashFlowData.monthlyData.map(d => ({
       ...d,
       // For display purposes, invert outflows to show them as negative
-      costiTotali: -(d.costiPassanti + d.costiOperativi + d.costiCommerciali + (d.deltaDeposito > 0 ? d.deltaDeposito : 0) + d.investimentiIniziali),
+      costiTotali: -(d.costiPassanti + d.costiOperativi + d.costiCommerciali + d.flussiFiscali + (d.deltaDeposito > 0 ? d.deltaDeposito : 0) + d.investimentiIniziali),
     }));
   }, [cashFlowData.monthlyData]);
 
@@ -246,7 +246,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
       </Card>
 
       {/* Summary Cards Row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
@@ -294,6 +294,19 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Receipt className="h-4 w-4 text-amber-600" />
+              Flussi Fiscali
+            </div>
+            <p className="text-xl font-bold text-amber-600">
+              {formatCurrency(cashFlowData.totaleFlussiFiscali)}
+            </p>
+            <p className="text-xs text-muted-foreground">IVA, Accise, Oneri</p>
+          </CardContent>
+        </Card>
         
         <Card>
           <CardContent className="pt-4">
@@ -328,6 +341,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
                   <TableHead className="text-right text-orange-600">Passanti</TableHead>
                   <TableHead className="text-right text-blue-600">Operativi</TableHead>
                   <TableHead className="text-right text-pink-600">Commerciali</TableHead>
+                  <TableHead className="text-right text-amber-600">Fiscali</TableHead>
                   <TableHead className="text-right text-purple-600">Deposito Δ</TableHead>
                   <TableHead className="text-right">Investimento</TableHead>
                   <TableHead className="text-right font-semibold">Flusso Netto</TableHead>
@@ -355,6 +369,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
                     </TableCell>
                     <TableCell className="text-right text-pink-600">
                       {row.costiCommerciali > 0 ? formatCurrency(row.costiCommerciali) : '-'}
+                    </TableCell>
+                    <TableCell className="text-right text-amber-600">
+                      {row.flussiFiscali > 0 ? formatCurrency(row.flussiFiscali) : '-'}
                     </TableCell>
                     <TableCell className={`text-right ${row.deltaDeposito > 0 ? 'text-purple-600' : 'text-green-600'}`}>
                       {row.deltaDeposito !== 0 ? formatCurrency(row.deltaDeposito) : '-'}

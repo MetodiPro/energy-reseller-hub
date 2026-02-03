@@ -42,6 +42,7 @@ import { CostTabsView } from '@/components/financial/CostTabsView';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
+import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -230,7 +231,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
@@ -250,6 +251,10 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <TabsTrigger value="liquidity" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             Liquidità
+          </TabsTrigger>
+          <TabsTrigger value="taxflows" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Flussi Fiscali
           </TabsTrigger>
           <TabsTrigger value="taxes" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
@@ -607,6 +612,10 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             cashFlowData={cashFlowData} 
             loading={cashFlowLoading} 
           />
+        </TabsContent>
+
+        <TabsContent value="taxflows" className="space-y-6">
+          <TaxFlowsDashboard projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="taxes">
