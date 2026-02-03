@@ -21,6 +21,7 @@ export interface CostTemplateItem {
   };
   is_passthrough?: boolean; // True if cost goes to wholesaler/distributor
   passthrough_recipient?: string; // grossista, distributore, erario, etc.
+  commodity_filter?: 'luce' | 'gas' | null; // Filter by commodity type
 }
 
 export interface RevenueTemplateItem {
@@ -45,6 +46,7 @@ export interface RevenueTemplateItem {
     price_per_smc?: number;
     percentage?: number;
   };
+  commodity_filter?: 'luce' | 'gas' | null; // Filter by commodity type
 }
 
 export interface TaxTemplateItem {
@@ -211,7 +213,8 @@ export const projectTemplates: ProjectTemplate[] = [
         is_passthrough: true,
         passthrough_recipient: 'Grossista',
         calculation_basis: '500 clienti × 300 kWh/mese × €0,12/kWh',
-        calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.12 }
+        calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.12 },
+        commodity_filter: 'luce'
       },
       { 
         name: 'Gas Acquistato da Grossista', 
@@ -225,7 +228,8 @@ export const projectTemplates: ProjectTemplate[] = [
         is_passthrough: true,
         passthrough_recipient: 'Grossista',
         calculation_basis: '300 clienti gas × 166 Smc/mese × €0,80/Smc',
-        calculation_params: { num_clients: 300, consumption_smc: 166, price_per_smc: 0.80 }
+        calculation_params: { num_clients: 300, consumption_smc: 166, price_per_smc: 0.80 },
+        commodity_filter: 'gas'
       },
       { 
         name: 'Corrispettivi Trasporto e Distribuzione', 
@@ -239,7 +243,8 @@ export const projectTemplates: ProjectTemplate[] = [
         is_passthrough: true,
         passthrough_recipient: 'Distributore locale',
         calculation_basis: '150.000 kWh/mese × €0,035/kWh (tariffa TD media)',
-        calculation_params: { consumption_kwh: 150000, price_per_kwh: 0.035 }
+        calculation_params: { consumption_kwh: 150000, price_per_kwh: 0.035 },
+        commodity_filter: 'luce'
       },
       { 
         name: 'Corrispettivi Distribuzione Gas', 
@@ -253,7 +258,8 @@ export const projectTemplates: ProjectTemplate[] = [
         is_passthrough: true,
         passthrough_recipient: 'Distributore locale',
         calculation_basis: '50.000 Smc/mese × €0,18/Smc (tariffa distribuzione media)',
-        calculation_params: { consumption_smc: 50000, price_per_smc: 0.18 }
+        calculation_params: { consumption_smc: 50000, price_per_smc: 0.18 },
+        commodity_filter: 'gas'
       },
     ],
     // COSTI OPERATIVI - Impattano il margine del reseller
