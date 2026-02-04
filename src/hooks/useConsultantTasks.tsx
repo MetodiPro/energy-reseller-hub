@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { consultantTaskTemplates, type ConsultantTaskTemplate } from '@/data/consultantTasks';
+import { consultantTaskTemplates, type ConsultantTaskTemplate, type ConsultantType } from '@/data/consultantTasks';
 
 export interface ConsultantTask {
   id: string;
   projectId: string;
-  consultantType: 'commercialista' | 'legale' | 'entrambi';
+  consultantType: ConsultantType;
   category: string;
   subcategory: string | null;
   title: string;
@@ -287,6 +287,9 @@ export const useConsultantTasks = (projectId: string | null) => {
     pending: tasks.filter(t => !t.isCompleted).length,
     commercialista: tasks.filter(t => t.consultantType === 'commercialista').length,
     legale: tasks.filter(t => t.consultantType === 'legale').length,
+    formazione: tasks.filter(t => t.consultantType === 'formazione').length,
+    it_software: tasks.filter(t => t.consultantType === 'it_software').length,
+    operativo: tasks.filter(t => t.consultantType === 'operativo').length,
     estimatedCostTotal: tasks.reduce((sum, t) => sum + t.estimatedCost, 0),
     actualCostTotal: tasks.reduce((sum, t) => sum + (t.actualCost || 0), 0),
     overdue: tasks.filter(t => !t.isCompleted && t.dueDate && new Date(t.dueDate) < new Date()).length,

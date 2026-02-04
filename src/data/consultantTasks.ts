@@ -1,7 +1,7 @@
 // Consultant tasks templates for energy reseller startups
-// Organized by consultant type (commercialista, legale) and phase (startup, operational, ongoing)
+// Organized by consultant type and phase (startup, operational, ongoing)
 
-export type ConsultantType = 'commercialista' | 'legale' | 'entrambi';
+export type ConsultantType = 'commercialista' | 'legale' | 'formazione' | 'it_software' | 'operativo' | 'entrambi' | 'tutti';
 export type TaskPhase = 'startup' | 'operational' | 'ongoing';
 export type TaskPriority = 'high' | 'medium' | 'low';
 export type RecurrencePattern = 'monthly' | 'quarterly' | 'yearly' | null;
@@ -21,6 +21,17 @@ export interface ConsultantTaskTemplate {
   reminderDays: number;
   sortOrder: number;
 }
+
+// Mapping for display names
+export const consultantTypeLabels: Record<ConsultantType, string> = {
+  commercialista: 'Commercialista',
+  legale: 'Legale',
+  formazione: 'Formazione',
+  it_software: 'IT / Software',
+  operativo: 'Operativo / On-Site',
+  entrambi: 'Comm. + Legale',
+  tutti: 'Tutti',
+};
 
 // ============================================
 // COMMERCIALISTA - ATTIVITÀ FASE STARTUP
@@ -658,6 +669,447 @@ const legaleOngoing: ConsultantTaskTemplate[] = [
   },
 ];
 
+// ============================================
+// FORMAZIONE - ATTIVITÀ DI TRAINING
+// ============================================
+const formazioneStartup: ConsultantTaskTemplate[] = [
+  {
+    id: 'form-startup-001',
+    consultantType: 'formazione',
+    category: 'Formazione Normativa',
+    subcategory: 'Base',
+    title: 'Corso base mercato energia',
+    description: 'Formazione su funzionamento mercato libero energia, differenze reseller/UDD, ruoli (GSE, ARERA, Terna, distributori)',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 1500,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 1,
+  },
+  {
+    id: 'form-startup-002',
+    consultantType: 'formazione',
+    category: 'Formazione Normativa',
+    subcategory: 'ARERA',
+    title: 'Corso regolazione ARERA',
+    description: 'Formazione su delibere ARERA, TIQV, codice di condotta commerciale, obblighi informativi e trasparenza',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 1200,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 2,
+  },
+  {
+    id: 'form-startup-003',
+    consultantType: 'formazione',
+    category: 'Formazione Commerciale',
+    subcategory: 'Vendita',
+    title: 'Training tecniche di vendita energia',
+    description: 'Formazione su approccio commerciale, gestione obiezioni, confronto offerte, calcolo risparmio cliente',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 2000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 10,
+    sortOrder: 3,
+  },
+  {
+    id: 'form-startup-004',
+    consultantType: 'formazione',
+    category: 'Formazione Tecnica',
+    subcategory: 'Fatturazione',
+    title: 'Corso lettura bollette e componenti tariffarie',
+    description: 'Formazione dettagliata su struttura bolletta, PUN, dispacciamento, trasporto, oneri di sistema, accise, IVA',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 800,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 7,
+    sortOrder: 4,
+  },
+  {
+    id: 'form-startup-005',
+    consultantType: 'formazione',
+    category: 'Formazione Operativa',
+    subcategory: 'Processi',
+    title: 'Training gestione switching SII',
+    description: 'Formazione su processo di switch, tempistiche SII, gestione scarti, rapporti con distributore',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 1000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 7,
+    sortOrder: 5,
+  },
+  {
+    id: 'form-startup-006',
+    consultantType: 'formazione',
+    category: 'Formazione Software',
+    subcategory: 'CRM',
+    title: 'Training software CRM/billing',
+    description: 'Formazione sull\'utilizzo del gestionale per contratti, fatturazione, incassi e reportistica',
+    phase: 'startup',
+    priority: 'medium',
+    estimatedCost: 1500,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 10,
+    sortOrder: 6,
+  },
+];
+
+const formazioneOngoing: ConsultantTaskTemplate[] = [
+  {
+    id: 'form-ongoing-001',
+    consultantType: 'formazione',
+    category: 'Aggiornamento Normativo',
+    subcategory: 'ARERA',
+    title: 'Aggiornamento annuale delibere ARERA',
+    description: 'Sessione formativa annuale su nuove delibere e modifiche regolatorie del settore energia',
+    phase: 'ongoing',
+    priority: 'medium',
+    estimatedCost: 600,
+    isRecurring: true,
+    recurrencePattern: 'yearly',
+    reminderDays: 30,
+    sortOrder: 20,
+  },
+  {
+    id: 'form-ongoing-002',
+    consultantType: 'formazione',
+    category: 'Formazione Commerciale',
+    subcategory: 'Refresh',
+    title: 'Refresh tecniche vendita e nuovi prodotti',
+    description: 'Aggiornamento periodico su tecniche commerciali e presentazione nuove offerte/servizi',
+    phase: 'ongoing',
+    priority: 'medium',
+    estimatedCost: 800,
+    isRecurring: true,
+    recurrencePattern: 'yearly',
+    reminderDays: 30,
+    sortOrder: 21,
+  },
+  {
+    id: 'form-ongoing-003',
+    consultantType: 'formazione',
+    category: 'Formazione Sicurezza',
+    subcategory: 'D.Lgs 81/08',
+    title: 'Formazione sicurezza lavoratori',
+    description: 'Corso obbligatorio sicurezza generale e specifica per dipendenti (aggiornamento quinquennale)',
+    phase: 'ongoing',
+    priority: 'high',
+    estimatedCost: 300,
+    isRecurring: true,
+    recurrencePattern: 'yearly',
+    reminderDays: 60,
+    sortOrder: 22,
+  },
+];
+
+// ============================================
+// IT / SOFTWARE - CONSULENZA TECNICA
+// ============================================
+const itSoftwareStartup: ConsultantTaskTemplate[] = [
+  {
+    id: 'it-startup-001',
+    consultantType: 'it_software',
+    category: 'Software Gestionale',
+    subcategory: 'Selezione',
+    title: 'Selezione e setup CRM/Billing',
+    description: 'Analisi requisiti, selezione software gestionale per energia, configurazione iniziale e migrazione dati',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 5000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 1,
+  },
+  {
+    id: 'it-startup-002',
+    consultantType: 'it_software',
+    category: 'Integrazioni',
+    subcategory: 'SII',
+    title: 'Integrazione flussi SII/distributori',
+    description: 'Configurazione scambio flussi informativi con SII e distributori locali (switching, misure, fatturazione)',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 8000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 21,
+    sortOrder: 2,
+  },
+  {
+    id: 'it-startup-003',
+    consultantType: 'it_software',
+    category: 'Portale Clienti',
+    subcategory: 'Web',
+    title: 'Sviluppo area clienti online',
+    description: 'Realizzazione portale web per accesso clienti (bollette, consumi, autolettura, richieste)',
+    phase: 'startup',
+    priority: 'medium',
+    estimatedCost: 4000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 21,
+    sortOrder: 3,
+  },
+  {
+    id: 'it-startup-004',
+    consultantType: 'it_software',
+    category: 'Sicurezza IT',
+    subcategory: 'Infrastruttura',
+    title: 'Setup sicurezza informatica e backup',
+    description: 'Configurazione firewall, antivirus, backup automatici, policy accessi e disaster recovery',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 2000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 4,
+  },
+  {
+    id: 'it-startup-005',
+    consultantType: 'it_software',
+    category: 'Firma Digitale',
+    subcategory: 'Contratti',
+    title: 'Setup firma digitale/OTP contratti',
+    description: 'Integrazione sistema di firma digitale remota o OTP per sottoscrizione contratti a distanza',
+    phase: 'startup',
+    priority: 'medium',
+    estimatedCost: 1500,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 10,
+    sortOrder: 5,
+  },
+];
+
+const itSoftwareOperational: ConsultantTaskTemplate[] = [
+  {
+    id: 'it-oper-001',
+    consultantType: 'it_software',
+    category: 'Manutenzione',
+    subcategory: 'Assistenza',
+    title: 'Assistenza tecnica software gestionale',
+    description: 'Supporto tecnico per problematiche software, aggiornamenti, correzione bug e ottimizzazioni',
+    phase: 'operational',
+    priority: 'medium',
+    estimatedCost: 500,
+    isRecurring: true,
+    recurrencePattern: 'monthly',
+    reminderDays: 5,
+    sortOrder: 10,
+  },
+  {
+    id: 'it-oper-002',
+    consultantType: 'it_software',
+    category: 'Integrazioni',
+    subcategory: 'Flussi',
+    title: 'Monitoraggio flussi SII e correzioni',
+    description: 'Verifica quotidiana esiti flussi SII, gestione scarti, ritrasmissioni e anomalie',
+    phase: 'operational',
+    priority: 'high',
+    estimatedCost: 300,
+    isRecurring: true,
+    recurrencePattern: 'monthly',
+    reminderDays: 5,
+    sortOrder: 11,
+  },
+];
+
+// ============================================
+// OPERATIVO / ON-SITE - ASSISTENZA DIRETTA
+// ============================================
+const operativoStartup: ConsultantTaskTemplate[] = [
+  {
+    id: 'oper-startup-001',
+    consultantType: 'operativo',
+    category: 'Setup Operativo',
+    subcategory: 'Processi',
+    title: 'Definizione procedure operative interne',
+    description: 'Mappatura e documentazione processi: acquisizione cliente, attivazione, fatturazione, incasso, reclami',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 3000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 1,
+  },
+  {
+    id: 'oper-startup-002',
+    consultantType: 'operativo',
+    category: 'Setup Operativo',
+    subcategory: 'Template',
+    title: 'Creazione template documentali',
+    description: 'Predisposizione modelli per contratti, comunicazioni clienti, solleciti, risposte reclami',
+    phase: 'startup',
+    priority: 'medium',
+    estimatedCost: 1500,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 10,
+    sortOrder: 2,
+  },
+  {
+    id: 'oper-startup-003',
+    consultantType: 'operativo',
+    category: 'Affiancamento',
+    subcategory: 'On-site',
+    title: 'Affiancamento operativo go-live (5gg)',
+    description: 'Presenza on-site consulente operativo durante prima settimana di attività per supporto staff',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 4000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 7,
+    sortOrder: 3,
+  },
+  {
+    id: 'oper-startup-004',
+    consultantType: 'operativo',
+    category: 'Call Center',
+    subcategory: 'Setup',
+    title: 'Setup servizio clienti / call center',
+    description: 'Organizzazione servizio assistenza clienti: script, FAQ, procedure escalation, KPI',
+    phase: 'startup',
+    priority: 'medium',
+    estimatedCost: 2000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 4,
+  },
+];
+
+const operativoOperational: ConsultantTaskTemplate[] = [
+  {
+    id: 'oper-oper-001',
+    consultantType: 'operativo',
+    category: 'Assistenza On-Site',
+    subcategory: 'Supporto',
+    title: 'Giornata consulenza operativa on-site',
+    description: 'Intervento periodico on-site per verifica processi, formazione staff, risoluzione criticità',
+    phase: 'operational',
+    priority: 'medium',
+    estimatedCost: 600,
+    isRecurring: true,
+    recurrencePattern: 'monthly',
+    reminderDays: 7,
+    sortOrder: 10,
+  },
+  {
+    id: 'oper-oper-002',
+    consultantType: 'operativo',
+    category: 'Quality Check',
+    subcategory: 'Contratti',
+    title: 'Verifica qualità contratti acquisiti',
+    description: 'Controllo a campione qualità documentazione contrattuale, completezza dati, conformità',
+    phase: 'operational',
+    priority: 'medium',
+    estimatedCost: 400,
+    isRecurring: true,
+    recurrencePattern: 'monthly',
+    reminderDays: 10,
+    sortOrder: 11,
+  },
+  {
+    id: 'oper-oper-003',
+    consultantType: 'operativo',
+    category: 'Reportistica',
+    subcategory: 'KPI',
+    title: 'Analisi KPI e report performance',
+    description: 'Elaborazione report mensile su KPI operativi: tasso conversione, tempi attivazione, reclami, churn',
+    phase: 'operational',
+    priority: 'medium',
+    estimatedCost: 300,
+    isRecurring: true,
+    recurrencePattern: 'monthly',
+    reminderDays: 5,
+    sortOrder: 12,
+  },
+];
+
+const operativoOngoing: ConsultantTaskTemplate[] = [
+  {
+    id: 'oper-ongoing-001',
+    consultantType: 'operativo',
+    category: 'Audit Operativo',
+    subcategory: 'Processi',
+    title: 'Audit annuale processi operativi',
+    description: 'Revisione completa procedure operative, identificazione inefficienze, piano miglioramento',
+    phase: 'ongoing',
+    priority: 'medium',
+    estimatedCost: 2000,
+    isRecurring: true,
+    recurrencePattern: 'yearly',
+    reminderDays: 30,
+    sortOrder: 20,
+  },
+  {
+    id: 'oper-ongoing-002',
+    consultantType: 'operativo',
+    category: 'Benchmark',
+    subcategory: 'Mercato',
+    title: 'Analisi benchmark concorrenza',
+    description: 'Studio comparativo offerte, servizi e posizionamento rispetto ai principali competitor',
+    phase: 'ongoing',
+    priority: 'low',
+    estimatedCost: 1500,
+    isRecurring: true,
+    recurrencePattern: 'yearly',
+    reminderDays: 30,
+    sortOrder: 21,
+  },
+];
+
+// ============================================
+// ATTIVITÀ TRASVERSALI (ENTRAMBI)
+// ============================================
+const trasversaliStartup: ConsultantTaskTemplate[] = [
+  {
+    id: 'trasv-startup-001',
+    consultantType: 'entrambi',
+    category: 'Due Diligence',
+    subcategory: 'Avvio',
+    title: 'Due diligence iniziale progetto',
+    description: 'Analisi congiunta commercialista/legale su fattibilità, rischi e requisiti per avvio attività reseller',
+    phase: 'startup',
+    priority: 'high',
+    estimatedCost: 2000,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 14,
+    sortOrder: 0,
+  },
+  {
+    id: 'trasv-startup-002',
+    consultantType: 'entrambi',
+    category: 'Governance',
+    subcategory: 'Organizzazione',
+    title: 'Definizione organigramma e deleghe',
+    description: 'Strutturazione organizzativa, definizione ruoli, deleghe e poteri di firma',
+    phase: 'startup',
+    priority: 'medium',
+    estimatedCost: 800,
+    isRecurring: false,
+    recurrencePattern: null,
+    reminderDays: 10,
+    sortOrder: 1,
+  },
+];
+
 // Export all templates grouped
 export const consultantTaskTemplates: ConsultantTaskTemplate[] = [
   ...commercialistaStartup,
@@ -666,12 +1118,27 @@ export const consultantTaskTemplates: ConsultantTaskTemplate[] = [
   ...legaleStartup,
   ...legaleOperational,
   ...legaleOngoing,
+  ...formazioneStartup,
+  ...formazioneOngoing,
+  ...itSoftwareStartup,
+  ...itSoftwareOperational,
+  ...operativoStartup,
+  ...operativoOperational,
+  ...operativoOngoing,
+  ...trasversaliStartup,
 ];
 
 // Helper to get templates by consultant type
 export const getTemplatesByType = (type: ConsultantType): ConsultantTaskTemplate[] => {
-  if (type === 'entrambi') return consultantTaskTemplates;
-  return consultantTaskTemplates.filter(t => t.consultantType === type);
+  if (type === 'tutti') return consultantTaskTemplates;
+  if (type === 'entrambi') {
+    return consultantTaskTemplates.filter(t => 
+      t.consultantType === 'commercialista' || 
+      t.consultantType === 'legale' || 
+      t.consultantType === 'entrambi'
+    );
+  }
+  return consultantTaskTemplates.filter(t => t.consultantType === type || t.consultantType === 'entrambi');
 };
 
 // Helper to get templates by phase
@@ -688,4 +1155,9 @@ export const getCategories = (type?: ConsultantType): string[] => {
 // Calculate total estimated costs
 export const calculateTotalEstimatedCost = (templates: ConsultantTaskTemplate[]): number => {
   return templates.reduce((sum, t) => sum + t.estimatedCost, 0);
+};
+
+// Get all consultant types for filtering
+export const getAllConsultantTypes = (): ConsultantType[] => {
+  return ['commercialista', 'legale', 'formazione', 'it_software', 'operativo'];
 };

@@ -28,11 +28,22 @@ import {
   TrendingUp,
   Download,
   Loader2,
-  ChevronDown
+  ChevronDown,
+  GraduationCap,
+  Monitor,
+  Users,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useConsultantTasks, type ConsultantTask } from '@/hooks/useConsultantTasks';
-import { consultantTaskTemplates, getTemplatesByType, calculateTotalEstimatedCost } from '@/data/consultantTasks';
+import { 
+  consultantTaskTemplates, 
+  getTemplatesByType, 
+  calculateTotalEstimatedCost,
+  consultantTypeLabels,
+  getAllConsultantTypes,
+  type ConsultantType
+} from '@/data/consultantTasks';
 
 interface ConsultantsManagerProps {
   projectId: string | null;
@@ -62,13 +73,13 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
     deleteTask,
   } = useConsultantTasks(projectId);
 
-  const [activeTab, setActiveTab] = useState<'all' | 'commercialista' | 'legale'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | ConsultantType>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<ConsultantTask | null>(null);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    consultantType: 'commercialista' as const,
+    consultantType: 'commercialista' as ConsultantType,
     category: '',
     estimatedCost: 0,
     dueDate: null as Date | null,
@@ -77,10 +88,28 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
     recurrencePattern: null as string | null,
   });
 
+  // Icons for consultant types
+  const typeIcons: Record<ConsultantType, React.ReactNode> = {
+    commercialista: <Briefcase className="h-4 w-4" />,
+    legale: <Scale className="h-4 w-4" />,
+    formazione: <GraduationCap className="h-4 w-4" />,
+    it_software: <Monitor className="h-4 w-4" />,
+    operativo: <Users className="h-4 w-4" />,
+    entrambi: <Settings className="h-4 w-4" />,
+    tutti: <FileText className="h-4 w-4" />,
+  };
+
   // Filter tasks by active tab
   const filteredTasks = useMemo(() => {
     if (activeTab === 'all') return tasks;
-    return tasks.filter(t => t.consultantType === activeTab);
+    if (activeTab === 'entrambi') {
+      return tasks.filter(t => 
+        t.consultantType === 'commercialista' || 
+        t.consultantType === 'legale' || 
+        t.consultantType === 'entrambi'
+      );
+    }
+    return tasks.filter(t => t.consultantType === activeTab || t.consultantType === 'entrambi');
   }, [tasks, activeTab]);
 
   // Group tasks by category
@@ -95,7 +124,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
   }, [filteredTasks]);
 
   // Handle initialize from templates
-  const handleInitialize = async (type: 'all' | 'commercialista' | 'legale') => {
+  const handleInitialize = async (type: 'all' | ConsultantType) => {
     const templates = type === 'all' 
       ? consultantTaskTemplates 
       : getTemplatesByType(type);
@@ -168,7 +197,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
             Gestione Consulenti Esterni
           </CardTitle>
           <CardDescription>
-            Inizializza le attività tipiche per commercialista e consulente legale
+            Inizializza le attività per consulenti esterni: commercialista, legale, formazione, IT e operativo
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -196,7 +225,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
               </div>
             </Button>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <Button 
                 onClick={() => handleInitialize('commercialista')} 
                 variant="outline"
@@ -204,7 +233,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
               >
                 <div className="text-center">
                   <Briefcase className="h-5 w-5 mx-auto mb-1" />
-                  <p className="font-medium text-sm">Solo Commercialista</p>
+                  <p className="font-medium text-sm">Commercialista</p>
                   <p className="text-xs text-muted-foreground">
                     {getTemplatesByType('commercialista').length} attività
                   </p>
@@ -218,9 +247,51 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
               >
                 <div className="text-center">
                   <Scale className="h-5 w-5 mx-auto mb-1" />
-                  <p className="font-medium text-sm">Solo Legale</p>
+                  <p className="font-medium text-sm">Legale</p>
                   <p className="text-xs text-muted-foreground">
                     {getTemplatesByType('legale').length} attività
+                  </p>
+                </div>
+              </Button>
+
+              <Button 
+                onClick={() => handleInitialize('formazione')} 
+                variant="outline"
+                className="h-auto py-3"
+              >
+                <div className="text-center">
+                  <GraduationCap className="h-5 w-5 mx-auto mb-1" />
+                  <p className="font-medium text-sm">Formazione</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getTemplatesByType('formazione').length} attività
+                  </p>
+                </div>
+              </Button>
+
+              <Button 
+                onClick={() => handleInitialize('it_software')} 
+                variant="outline"
+                className="h-auto py-3"
+              >
+                <div className="text-center">
+                  <Monitor className="h-5 w-5 mx-auto mb-1" />
+                  <p className="font-medium text-sm">IT / Software</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getTemplatesByType('it_software').length} attività
+                  </p>
+                </div>
+              </Button>
+
+              <Button 
+                onClick={() => handleInitialize('operativo')} 
+                variant="outline"
+                className="h-auto py-3"
+              >
+                <div className="text-center">
+                  <Users className="h-5 w-5 mx-auto mb-1" />
+                  <p className="font-medium text-sm">Operativo / On-Site</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getTemplatesByType('operativo').length} attività
                   </p>
                 </div>
               </Button>
@@ -297,7 +368,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
                 Attività Consulenti
               </CardTitle>
               <CardDescription>
-                Gestisci checklist e costi per commercialista e consulente legale
+                Gestisci checklist e costi per tutti i consulenti esterni
               </CardDescription>
             </div>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -334,7 +405,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
                       <Label>Consulente</Label>
                       <Select 
                         value={newTask.consultantType}
-                        onValueChange={v => setNewTask(p => ({ ...p, consultantType: v as any }))}
+                        onValueChange={v => setNewTask(p => ({ ...p, consultantType: v as ConsultantType }))}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -342,6 +413,9 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
                         <SelectContent>
                           <SelectItem value="commercialista">Commercialista</SelectItem>
                           <SelectItem value="legale">Legale</SelectItem>
+                          <SelectItem value="formazione">Formazione</SelectItem>
+                          <SelectItem value="it_software">IT / Software</SelectItem>
+                          <SelectItem value="operativo">Operativo / On-Site</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -411,20 +485,34 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
         <CardContent>
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={v => setActiveTab(v as any)}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="all" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Tutte ({stats.total})
-              </TabsTrigger>
-              <TabsTrigger value="commercialista" className="gap-2">
-                <Briefcase className="h-4 w-4" />
-                Commercialista ({stats.commercialista})
-              </TabsTrigger>
-              <TabsTrigger value="legale" className="gap-2">
-                <Scale className="h-4 w-4" />
-                Legale ({stats.legale})
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="mb-4 flex-wrap h-auto gap-1">
+                <TabsTrigger value="all" className="gap-1.5">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Tutte</span> ({stats.total})
+                </TabsTrigger>
+                <TabsTrigger value="commercialista" className="gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Comm.</span> ({stats.commercialista})
+                </TabsTrigger>
+                <TabsTrigger value="legale" className="gap-1.5">
+                  <Scale className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Legale</span> ({stats.legale})
+                </TabsTrigger>
+                <TabsTrigger value="formazione" className="gap-1.5">
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Form.</span> ({stats.formazione})
+                </TabsTrigger>
+                <TabsTrigger value="it_software" className="gap-1.5">
+                  <Monitor className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">IT</span> ({stats.it_software})
+                </TabsTrigger>
+                <TabsTrigger value="operativo" className="gap-1.5">
+                  <Users className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">On-Site</span> ({stats.operativo})
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value={activeTab} className="mt-0">
               <Accordion type="multiple" defaultValue={Object.keys(tasksByCategory)} className="space-y-2">
