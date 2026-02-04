@@ -13,7 +13,9 @@ import {
   Banknote,
   PiggyBank,
   Receipt,
-  Building2
+  Building2,
+  Shield,
+  Lock
 } from 'lucide-react';
 import {
   AreaChart,
@@ -27,12 +29,16 @@ import {
   ReferenceLine,
   ComposedChart,
   Bar,
+  LineChart,
+  Line,
 } from 'recharts';
 import type { CashFlowSummary, MonthlyCashFlowData } from '@/hooks/useCashFlowAnalysis';
+import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 
 interface CashFlowDashboardProps {
   cashFlowData: CashFlowSummary;
   loading: boolean;
+  projectId: string | null;
 }
 
 const formatCurrency = (value: number) => {
@@ -54,7 +60,9 @@ const formatCompact = (value: number) => {
   return `€${value.toFixed(0)}`;
 };
 
-export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardProps) => {
+export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlowDashboardProps) => {
+  const { summary: simSummary } = useSimulationSummary(projectId);
+  
   const chartData = useMemo(() => {
     return cashFlowData.monthlyData.map(d => ({
       ...d,
@@ -62,6 +70,15 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
       costiTotali: -(d.costiPassanti + d.costiOperativi + d.costiCommerciali + d.flussiFiscali + (d.deltaDeposito > 0 ? d.deltaDeposito : 0) + d.investimentiIniziali),
     }));
   }, [cashFlowData.monthlyData]);
+
+  // Deposit chart data from simulation summary
+  const depositChartData = useMemo(() => {
+    return simSummary.depositiMensili.map(d => ({
+      monthLabel: d.monthLabel,
+      depositoRichiesto: d.depositoRichiesto,
+      deltaDeposito: d.deltaDeposito,
+    }));
+  }, [simSummary.depositiMensili]);
 
   if (loading) {
     return (
@@ -312,14 +329,153 @@ export const CashFlowDashboard = ({ cashFlowData, loading }: CashFlowDashboardPr
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <PiggyBank className="h-4 w-4 text-purple-600" />
-              Depositi Cauzionali
+              Incrementi Deposito
             </div>
             <p className="text-xl font-bold text-purple-600">
               {formatCurrency(cashFlowData.totaleDepositi)}
             </p>
+            <p className="text-xs text-muted-foreground">Uscite di cassa</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Depositi Cauzionali Section - Financial Commitment */}
+      <Card className="border-purple-200 dark:border-purple-900">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-purple-600" />
+                Depositi Cauzionali
+              </CardTitle>
+              <CardDescription>
+                Impegno finanziario verso il grossista (uscita di liquidità, non costo)
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="gap-1 border-purple-300 text-purple-700">
+              <Lock className="h-3 w-3" />
+              Garanzia
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Deposit KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4">
+              <div className="text-sm text-purple-700 dark:text-purple-400 mb-1">Deposito Iniziale</div>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+                {formatCurrency(simSummary.depositoIniziale)}
+              </p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                Al momento dell'attivazione
+              </p>
+            </div>
+            
+            <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4 border-2 border-purple-300 dark:border-purple-700">
+              <div className="text-sm text-purple-700 dark:text-purple-400 mb-1 flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Deposito Massimo
+              </div>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+                {formatCurrency(simSummary.depositoMassimo)}
+              </p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                Picco esposizione
+              </p>
+            </div>
+            
+            <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4">
+              <div className="text-sm text-purple-700 dark:text-purple-400 mb-1">Deposito Finale</div>
+              <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+                {formatCurrency(simSummary.depositoFinale)}
+              </p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                A fine simulazione (14m)
+              </p>
+            </div>
+            
+            <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4">
+              <div className="text-sm text-amber-700 dark:text-amber-400 mb-1">Incrementi Totali</div>
+              <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">
+                {formatCurrency(cashFlowData.totaleDepositi)}
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                Uscite liquidità effettive
+              </p>
+            </div>
+          </div>
+
+          {/* Deposit Evolution Chart */}
+          {depositChartData.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-3">Evoluzione Deposito nel Tempo</h4>
+              <ResponsiveContainer width="100%" height={200}>
+                <ComposedChart data={depositChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="monthLabel" 
+                    tick={{ fontSize: 10 }}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => formatCompact(value)}
+                    tick={{ fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    formatter={(value: number, name: string) => {
+                      const labels: Record<string, string> = {
+                        depositoRichiesto: 'Deposito Totale',
+                        deltaDeposito: 'Incremento Mese',
+                      };
+                      return [formatCurrency(value), labels[name] || name];
+                    }}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Legend 
+                    formatter={(value) => {
+                      const labels: Record<string, string> = {
+                        depositoRichiesto: 'Deposito Totale',
+                        deltaDeposito: 'Incremento',
+                      };
+                      return labels[value] || value;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="depositoRichiesto"
+                    stroke="#9333ea"
+                    fill="#9333ea"
+                    fillOpacity={0.2}
+                    strokeWidth={2}
+                  />
+                  <Bar 
+                    dataKey="deltaDeposito" 
+                    fill="#f59e0b" 
+                    opacity={0.8}
+                    name="deltaDeposito"
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Explanation */}
+          <div className="bg-muted/50 rounded-lg p-4 text-sm">
+            <p className="text-muted-foreground">
+              <strong>Nota:</strong> Il deposito cauzionale è un impegno finanziario richiesto dal grossista 
+              pari a {simSummary.depositiMensili[0]?.fatturatoMensileStimato > 0 ? '3 mesi' : 'N mesi'} di fatturato stimato. 
+              Non è un costo ma liquidità vincolata che verrà restituita alla cessazione del rapporto. 
+              Influisce sulla massima esposizione finanziaria e sul fabbisogno di capitale circolante.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Detail Table */}
       <Card>

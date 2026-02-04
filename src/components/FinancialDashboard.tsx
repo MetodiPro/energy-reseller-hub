@@ -640,7 +640,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         <TabsContent value="liquidity" className="space-y-6">
           <CashFlowDashboard 
             cashFlowData={cashFlowData} 
-            loading={cashFlowLoading} 
+            loading={cashFlowLoading}
+            projectId={projectId}
           />
         </TabsContent>
 
