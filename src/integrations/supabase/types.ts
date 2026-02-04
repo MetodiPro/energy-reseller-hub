@@ -64,6 +64,95 @@ export type Database = {
           },
         ]
       }
+      consultant_tasks: {
+        Row: {
+          actual_cost: number | null
+          category: string
+          completed_at: string | null
+          completed_by: string | null
+          consultant_type: string
+          cost_notes: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          estimated_cost: number | null
+          id: string
+          is_completed: boolean | null
+          is_recurring: boolean | null
+          notes: string | null
+          phase: string | null
+          priority: string | null
+          project_id: string
+          recurrence_pattern: string | null
+          reminder_days: number | null
+          sort_order: number | null
+          subcategory: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_cost?: number | null
+          category: string
+          completed_at?: string | null
+          completed_by?: string | null
+          consultant_type: string
+          cost_notes?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          is_completed?: boolean | null
+          is_recurring?: boolean | null
+          notes?: string | null
+          phase?: string | null
+          priority?: string | null
+          project_id: string
+          recurrence_pattern?: string | null
+          reminder_days?: number | null
+          sort_order?: number | null
+          subcategory?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_cost?: number | null
+          category?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          consultant_type?: string
+          cost_notes?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          is_completed?: boolean | null
+          is_recurring?: boolean | null
+          notes?: string | null
+          phase?: string | null
+          priority?: string | null
+          project_id?: string
+          recurrence_pattern?: string | null
+          reminder_days?: number | null
+          sort_order?: number | null
+          subcategory?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cost_categories: {
         Row: {
           color: string | null

@@ -19,6 +19,7 @@ import { StepDocuments } from "@/components/StepDocuments";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { GanttTimeline } from "@/components/GanttTimeline";
 import { PreLaunchChecklist } from "@/components/PreLaunchChecklist";
+import { ConsultantsManager } from "@/components/ConsultantsManager";
 import { FAQ } from "@/components/FAQ";
 import { SettingsPage } from "@/components/SettingsPage";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -245,6 +246,8 @@ const Index = () => {
         return <ProjectTeamManager projectId={currentProjectId} currentUserId={user?.id} />;
       case "documents":
         return <DocumentManager projectId={currentProjectId} />;
+      case "consultants":
+        return <ConsultantsManager projectId={currentProjectId} />;
       case "financials":
         return currentProjectId ? (
           <FinancialDashboard 

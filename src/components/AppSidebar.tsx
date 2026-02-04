@@ -15,7 +15,8 @@ import {
   Zap,
   Settings,
   LogOut,
-  User
+  User,
+  Briefcase
 } from "lucide-react";
 import {
   Sidebar,
@@ -56,6 +57,7 @@ const navigationItems = [
   { id: "step-docs", title: "Doc/Step", icon: Link },
   { id: "team", title: "Team", icon: Users },
   { id: "documents", title: "Documenti", icon: FolderOpen },
+  { id: "consultants", title: "Consulenti", icon: Briefcase },
   { id: "financials", title: "Finanza", icon: DollarSign },
   { id: "business-plan", title: "Business", icon: FileText },
   { id: "marketing", title: "Marketing", icon: TrendingUp },
