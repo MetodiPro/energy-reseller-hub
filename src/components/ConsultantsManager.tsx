@@ -32,7 +32,8 @@ import {
   GraduationCap,
   Monitor,
   Users,
-  Settings
+   Settings,
+   FileDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useConsultantTasks, type ConsultantTask } from '@/hooks/useConsultantTasks';
@@ -44,6 +45,8 @@ import {
   getAllConsultantTypes,
   type ConsultantType
 } from '@/data/consultantTasks';
+ import { useExportConsultantsPDF } from '@/hooks/useExportConsultantsPDF';
+ import { useToast } from '@/hooks/use-toast';
 
 interface ConsultantsManagerProps {
   projectId: string | null;
@@ -73,6 +76,8 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
     deleteTask,
   } = useConsultantTasks(projectId);
 
+   const { exportToPDF } = useExportConsultantsPDF();
+   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'all' | ConsultantType>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<ConsultantTask | null>(null);
@@ -170,6 +175,23 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
     setEditingTask(null);
   };
 
+   // Handle PDF export
+   const handleExportPDF = () => {
+     try {
+       exportToPDF(tasks, 'Progetto');
+       toast({
+         title: 'PDF esportato',
+         description: 'Il report delle attività consulenti è stato scaricato.',
+       });
+     } catch (error) {
+       toast({
+         title: 'Errore',
+         description: 'Impossibile esportare il PDF.',
+         variant: 'destructive',
+       });
+     }
+   };
+ 
   if (!projectId) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -371,13 +393,18 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
                 Gestisci checklist e costi per tutti i consulenti esterni
               </CardDescription>
             </div>
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Aggiungi Attività
-                </Button>
-              </DialogTrigger>
+             <div className="flex items-center gap-2">
+               <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                 <FileDown className="h-4 w-4 mr-2" />
+                 Esporta PDF
+               </Button>
+               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                 <DialogTrigger asChild>
+                   <Button size="sm">
+                     <Plus className="h-4 w-4 mr-2" />
+                     Aggiungi Attività
+                   </Button>
+                 </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Nuova Attività</DialogTitle>
@@ -480,6 +507,7 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+             </div>
           </div>
         </CardHeader>
         <CardContent>
