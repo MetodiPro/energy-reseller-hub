@@ -73,6 +73,7 @@ interface CostTabsViewProps {
   onDelete: (id: string) => void;
   onAdd: () => void;
   simulatedPassthrough?: SimulatedPassthroughCosts;
+  activeChannelNames?: string[];
 }
 
 const COST_CATEGORIES = {
@@ -162,6 +163,20 @@ const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES | null 
   return 'operational';
 };
 
+// Detect if a commercial cost is a commission entry that duplicates simulated channel costs
+const isCommissionDuplicate = (cost: ProjectCost, activeChannels: string[]): boolean => {
+  if (activeChannels.length === 0) return false;
+  const name = cost.name.toLowerCase();
+  const commissionPatterns = ['provvigion', 'commission', 'rete agenti', 'call center', 'referral', 'sportell'];
+  if (!commissionPatterns.some(p => name.includes(p))) return false;
+  
+  // Check if the cost references a channel that is NOT active
+  const activeNormalized = activeChannels.map(c => c.toLowerCase());
+  const mentionsInactiveChannel = !activeNormalized.some(ch => name.includes(ch.split(' ')[0]));
+  
+  return mentionsInactiveChannel;
+};
+
 export const CostTabsView = ({
   costs,
   categories,
@@ -170,6 +185,7 @@ export const CostTabsView = ({
   onDelete,
   onAdd,
   simulatedPassthrough,
+  activeChannelNames = [],
 }: CostTabsViewProps) => {
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
@@ -199,7 +215,7 @@ export const CostTabsView = ({
   
   const totalCosts = Object.values(categorizedCosts).reduce((sum, cat) => sum + cat.total, 0);
   
-  const renderCostTable = (costList: ProjectCost[]) => {
+  const renderCostTable = (costList: ProjectCost[], checkDuplicates = false) => {
     if (costList.length === 0) {
       return (
         <div className="text-center py-8 text-muted-foreground">
@@ -222,54 +238,69 @@ export const CostTabsView = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {costList.map(cost => (
-            <TableRow key={cost.id}>
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  {cost.name.toLowerCase().includes('gas') || cost.name.toLowerCase().includes('smc') ? (
-                    <Flame className="h-4 w-4 text-orange-500" />
-                  ) : cost.name.toLowerCase().includes('energia') || cost.name.toLowerCase().includes('kwh') ? (
-                    <Zap className="h-4 w-4 text-yellow-500" />
-                  ) : null}
-                  {cost.name}
-                </div>
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
-                {cost.description || '-'}
-              </TableCell>
-              <TableCell className="text-right font-mono">
-                {formatCurrency(cost.amount)}
-              </TableCell>
-              <TableCell className="text-right">
-                {cost.quantity} {cost.unit}
-              </TableCell>
-              <TableCell className="text-right font-semibold">
-                {formatCurrency(cost.amount * cost.quantity)}
-              </TableCell>
-              <TableCell className="text-center">
-                {cost.is_recurring ? (
-                  <Badge variant="outline" className="text-xs">
-                    {cost.recurrence_period === 'monthly' ? 'Mensile' : 
-                     cost.recurrence_period === 'yearly' ? 'Annuale' : 
-                     cost.recurrence_period === 'quarterly' ? 'Trimestrale' : 
-                     'Sì'}
-                  </Badge>
-                ) : (
-                  <span className="text-muted-foreground">-</span>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(cost)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(cost.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {costList.map(cost => {
+            const isDuplicate = checkDuplicates && isCommissionDuplicate(cost, activeChannelNames);
+            return (
+              <TableRow key={cost.id} className={isDuplicate ? 'opacity-50 bg-amber-50/50 dark:bg-amber-950/10' : ''}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {cost.name.toLowerCase().includes('gas') || cost.name.toLowerCase().includes('smc') ? (
+                      <Flame className="h-4 w-4 text-orange-500" />
+                    ) : cost.name.toLowerCase().includes('energia') || cost.name.toLowerCase().includes('kwh') ? (
+                      <Zap className="h-4 w-4 text-yellow-500" />
+                    ) : null}
+                    {cost.name}
+                    {isDuplicate && (
+                      <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <AlertCircle className="h-4 w-4 text-amber-500" />
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-xs">
+                            <p>Questo costo si riferisce a un canale non attivo. I canali attivi sono: {activeChannelNames.join(', ')}. Considera di eliminarlo per evitare duplicazioni.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
+                  {cost.description || '-'}
+                </TableCell>
+                <TableCell className="text-right font-mono">
+                  {formatCurrency(cost.amount)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {cost.quantity} {cost.unit}
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {formatCurrency(cost.amount * cost.quantity)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {cost.is_recurring ? (
+                    <Badge variant="outline" className="text-xs">
+                      {cost.recurrence_period === 'monthly' ? 'Mensile' : 
+                       cost.recurrence_period === 'yearly' ? 'Annuale' : 
+                       cost.recurrence_period === 'quarterly' ? 'Trimestrale' : 
+                       'Sì'}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(cost)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(cost.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     );
@@ -698,7 +729,27 @@ export const CostTabsView = ({
                   </div>
                 </div>
                 
-                {isPassthrough ? renderSimulatedPassthrough() : renderCostTable(category.costs)}
+                {isPassthrough ? renderSimulatedPassthrough() : (
+                  <>
+                    {key === 'commercial' && activeChannelNames.length > 0 && category.costs.some(c => isCommissionDuplicate(c, activeChannelNames)) && (
+                      <div className="mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <p className="font-medium text-amber-800 dark:text-amber-300">
+                              Costi provvigioni non coerenti con i canali attivi
+                            </p>
+                            <p className="text-amber-700 dark:text-amber-400 mt-1">
+                              Hai configurato solo <strong>{activeChannelNames.join(', ')}</strong> come {activeChannelNames.length === 1 ? 'canale attivo' : 'canali attivi'}. 
+                              Le voci evidenziate in basso si riferiscono a canali non attivi e potrebbero essere eliminate per evitare duplicazioni con i costi calcolati dal simulatore.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {renderCostTable(category.costs, key === 'commercial')}
+                  </>
+                )}
               </TabsContent>
             );
           })}

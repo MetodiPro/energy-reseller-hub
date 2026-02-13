@@ -43,6 +43,7 @@ import { CostTabsView } from '@/components/financial/CostTabsView';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
+import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import {
@@ -96,6 +97,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const revenueSimulation = useRevenueSimulation(projectId);
   const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, { data: revenueSimulation.data, loading: revenueSimulation.loading });
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId);
+  const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
   const [editingCost, setEditingCost] = useState<any>(null);
@@ -751,6 +753,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               ivaPercent: revenueSimulation.data?.params?.ivaPercent || 10,
               monthlyBreakdown: simulationSummary.costiMensili,
             }}
+            activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
           />
 
           {/* Sales Channels Configuration */}
