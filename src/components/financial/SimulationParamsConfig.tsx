@@ -355,25 +355,26 @@ export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProp
               </div>
             </div>
 
-            <Separator />
-
-            {/* Componenti Fattura Passanti (collapsible) */}
-            <Collapsible open={showInvoiceParams} onOpenChange={setShowInvoiceParams}>
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span className="flex items-center gap-2">
-                    <Receipt className="h-4 w-4" />
-                    Componenti Fattura Passanti
-                  </span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showInvoiceParams ? 'rotate-180' : ''}`} />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-4 space-y-4">
-                <TariffsSummaryPanel params={params} onUpdate={updateParams} />
-                <InvoiceComponentsInput params={params} onUpdate={updateParams} />
-              </CollapsibleContent>
-            </Collapsible>
           </div>
+        </div>
+
+        {/* Componenti Fattura Passanti - Full width */}
+        <div className="mt-6">
+          <Collapsible open={showInvoiceParams} onOpenChange={setShowInvoiceParams}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <span className="flex items-center gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Componenti Fattura Passanti
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${showInvoiceParams ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 space-y-4">
+              <TariffsSummaryPanel params={params} onUpdate={updateParams} />
+              <InvoiceComponentsInput params={params} onUpdate={updateParams} />
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Save Button */}
