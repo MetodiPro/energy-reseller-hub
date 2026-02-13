@@ -221,7 +221,7 @@ export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProp
                   value={params.monthlyChurnRate}
                   onChange={(e) => updateParams('monthlyChurnRate', parseFloat(e.target.value) || 0)}
                 />
-                <p className="text-xs text-muted-foreground text-orange-600">
+                <p className="text-xs text-destructive">
                   = ~{Math.round((1 - Math.pow(1 - params.monthlyChurnRate/100, 12)) * 100)}% abbandono annuo
                 </p>
               </div>
@@ -231,7 +231,7 @@ export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProp
 
             {/* Margine Reseller */}
             <div className="space-y-4">
-              <h4 className="font-medium flex items-center gap-2 text-green-600">
+              <h4 className="font-medium flex items-center gap-2 text-primary">
                 <TrendingUp className="h-4 w-4" />
                 Margine Reseller
               </h4>
@@ -269,9 +269,9 @@ export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProp
                 />
               </div>
               
-              <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                <p className="text-sm font-medium text-green-700">Margine per cliente/mese</p>
-                <p className="text-xl font-bold text-green-800">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <p className="text-sm font-medium text-primary">Margine per cliente/mese</p>
+                <p className="text-xl font-bold text-primary">
                   {formatCurrency(params.ccvMonthly + (params.spreadPerKwh * params.avgMonthlyConsumption) + params.otherServicesMonthly)}
                 </p>
               </div>
@@ -347,8 +347,8 @@ export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProp
               
               <div className={`p-2 rounded-lg text-xs ${
                 (params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate) === 100
-                  ? 'bg-green-50 dark:bg-green-950/30 text-green-700'
-                  : 'bg-orange-50 dark:bg-orange-950/30 text-orange-700'
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-destructive/10 text-destructive'
               }`}>
                 Totale: {params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate}%
                 {(params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate) !== 100 && ' (dovrebbe essere 100%)'}
