@@ -208,9 +208,10 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       }
       
       // Calcolo deposito cauzionale mensile
-      // Il deposito è calcolato sul fatturato stimato dei clienti attivi
+      // Il deposito è calcolato sul fatturato stimato dei clienti attivi × % attivazione
+      const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
       const fatturatoMensileStimato = cumulativeActiveCustomers * fatturaPerCliente;
-      const depositoRichiesto = fatturatoMensileStimato * depositoMesi;
+      const depositoRichiesto = fatturatoMensileStimato * depositoMesi * depositoPercentuale;
       const deltaDeposito = depositoRichiesto - previousDeposito;
       
       // Calcola etichetta mese
