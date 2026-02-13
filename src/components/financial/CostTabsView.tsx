@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   ArrowLeftRight, 
   Building2, 
@@ -15,10 +16,24 @@ import {
   Zap,
   Flame,
   Calculator,
-  Info
+  Info,
+  TrendingUp,
+  Users,
+  AlertCircle,
+  Truck,
+  Shield
 } from 'lucide-react';
 import { ProjectCost, CostCategory } from '@/hooks/useProjectFinancials';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Monthly breakdown data from simulation
+interface MonthlyBreakdown {
+  month: number;
+  monthLabel: string;
+  clientiAttivi: number;
+  costoEnergia: number;
+  costoPod: number;
+}
 
 // Dati costi passanti dal simulatore
 interface SimulatedPassthroughCosts {
@@ -29,9 +44,21 @@ interface SimulatedPassthroughCosts {
   clientiAttivi: number;
   consumoMedioMensile: number;
   punPerKwh: number;
-  spreadGrossistaPerKwh: number;  // Spread pagato al grossista (COSTO)
-  spreadResellerPerKwh: number;   // Spread al cliente (per info)
+  spreadGrossistaPerKwh: number;
+  spreadResellerPerKwh: number;
   gestionePodPerPod: number;
+  // Dettaglio componenti passanti fattura
+  dispacciamentoPerKwh?: number;
+  trasportoQuotaFissaAnno?: number;
+  trasportoQuotaPotenzaKwAnno?: number;
+  trasportoQuotaEnergiaKwh?: number;
+  potenzaImpegnataKw?: number;
+  oneriAsosKwh?: number;
+  oneriArimKwh?: number;
+  acciseKwh?: number;
+  ivaPercent?: number;
+  // Serie mensile per dettaglio progressivo
+  monthlyBreakdown?: MonthlyBreakdown[];
 }
 
 interface CostTabsViewProps {
@@ -41,7 +68,6 @@ interface CostTabsViewProps {
   onEdit: (cost: ProjectCost) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
-  // Nuovi props per costi simulati
   simulatedPassthrough?: SimulatedPassthroughCosts;
 }
 
@@ -84,65 +110,51 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+const formatCurrencyShort = (value: number) => {
+  return new Intl.NumberFormat('it-IT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 // Filter costs by commodity type
 const filterByCommodity = (cost: ProjectCost, commodityType: string | null): boolean => {
   const costName = cost.name.toLowerCase();
   const commodityFilter = (cost as any).commodity_filter;
   
-  // If cost has explicit filter, use it
   if (commodityFilter) {
     if (commodityType === 'solo-luce' && commodityFilter === 'gas') return false;
     if (commodityType === 'solo-gas' && commodityFilter === 'luce') return false;
   }
   
-  // Pattern-based filtering
   const gasPatterns = ['gas', 'smc', 'evg', 'metano'];
   const lucePatterns = ['energia', 'kwh', 'eve', 'elettric'];
   
   const isGasRelated = gasPatterns.some(p => costName.includes(p));
   const isLuceRelated = lucePatterns.some(p => costName.includes(p));
   
-  // If it's clearly gas-related and project is solo-luce, hide it
-  if (commodityType === 'solo-luce' && isGasRelated && !isLuceRelated) {
-    return false;
-  }
-  
-  // If it's clearly luce-related and project is solo-gas, hide it
-  if (commodityType === 'solo-gas' && isLuceRelated && !isGasRelated) {
-    return false;
-  }
+  if (commodityType === 'solo-luce' && isGasRelated && !isLuceRelated) return false;
+  if (commodityType === 'solo-gas' && isLuceRelated && !isGasRelated) return false;
   
   return true;
 };
 
-// Categorize cost into one of the four tabs - EXCLUDE passthrough from manual costs
+// Categorize cost - EXCLUDE passthrough from manual costs
 const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES | null => {
-  // Skip passthrough costs - they come from simulator now
-  if ((cost as any).is_passthrough === true) {
-    return null; // Will be filtered out
-  }
+  if ((cost as any).is_passthrough === true) return null;
   
   const name = cost.name.toLowerCase();
-  
-  // Skip energy-related costs (handled by simulator)
   const energyPatterns = ['energia acquistata', 'trasporto e distribuzione', 'corrispettivi trasporto', 'oneri di sistema'];
-  if (energyPatterns.some(p => name.includes(p))) {
-    return null; // Will be filtered out
-  }
+  if (energyPatterns.some(p => name.includes(p))) return null;
   
-  // Commercial costs
   const commercialPatterns = ['agent', 'provvigion', 'marketing', 'promozion', 'vendita', 'acquisizione', 'lead', 'campagna'];
-  if (cost.cost_type === 'commercial' || commercialPatterns.some(p => name.includes(p))) {
-    return 'commercial';
-  }
+  if (cost.cost_type === 'commercial' || commercialPatterns.some(p => name.includes(p))) return 'commercial';
   
-  // Infrastructure costs (structural, setup, one-time)
   const infraPatterns = ['fidejussion', 'garanz', 'costituzione', 'notaio', 'licenza', 'setup', 'assicurazione', 'consulenza', 'legale', 'ufficio', 'arredamento'];
-  if (cost.cost_type === 'structural' || infraPatterns.some(p => name.includes(p))) {
-    return 'infrastructure';
-  }
+  if (cost.cost_type === 'structural' || infraPatterns.some(p => name.includes(p))) return 'infrastructure';
   
-  // Default to operational (indirect costs, ongoing operations)
   return 'operational';
 };
 
@@ -155,12 +167,11 @@ export const CostTabsView = ({
   onAdd,
   simulatedPassthrough,
 }: CostTabsViewProps) => {
-  // Filter and categorize costs - excluding passthrough
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
     
     const result: Record<keyof typeof COST_CATEGORIES, { costs: ProjectCost[]; total: number }> = {
-      passthrough: { costs: [], total: 0 }, // Will use simulated data instead
+      passthrough: { costs: [], total: 0 },
       operational: { costs: [], total: 0 },
       commercial: { costs: [], total: 0 },
       infrastructure: { costs: [], total: 0 },
@@ -168,14 +179,13 @@ export const CostTabsView = ({
     
     filtered.forEach(cost => {
       const category = categorizeCost(cost);
-      if (category === null) return; // Skip passthrough costs
+      if (category === null) return;
       
       const amount = cost.amount * cost.quantity;
       result[category].costs.push(cost);
       result[category].total += amount;
     });
     
-    // Use simulated passthrough total
     if (simulatedPassthrough) {
       result.passthrough.total = simulatedPassthrough.costoEnergiaTotale + simulatedPassthrough.costoGestionePodTotale;
     }
@@ -261,7 +271,7 @@ export const CostTabsView = ({
     );
   };
 
-  // Render simulated passthrough costs
+  // Render simulated passthrough costs with full breakdown
   const renderSimulatedPassthrough = () => {
     if (!simulatedPassthrough) {
       return (
@@ -279,100 +289,320 @@ export const CostTabsView = ({
       consumoMedioMensile,
       punPerKwh,
       spreadGrossistaPerKwh,
-      gestionePodPerPod 
+      gestionePodPerPod,
+      dispacciamentoPerKwh = 0,
+      trasportoQuotaFissaAnno = 0,
+      trasportoQuotaPotenzaKwAnno = 0,
+      trasportoQuotaEnergiaKwh = 0,
+      potenzaImpegnataKw = 3,
+      oneriAsosKwh = 0,
+      oneriArimKwh = 0,
+      acciseKwh = 0,
+      monthlyBreakdown = [],
     } = simulatedPassthrough;
 
-    // Calcola consumo totale su 14 mesi (semplificato)
-    const consumoTotaleKwh = clientiAttivi * consumoMedioMensile * 14;
     const costoAcquistoPerKwh = punPerKwh + spreadGrossistaPerKwh;
 
-    const passthroughItems = [
-      {
-        name: 'Energia Acquistata dal Grossista',
-        description: `(PUN €${punPerKwh.toFixed(4)} + Spread Grossista €${spreadGrossistaPerKwh.toFixed(4)}) × ${consumoTotaleKwh.toLocaleString('it-IT')} kWh`,
-        subDescription: `= €${costoAcquistoPerKwh.toFixed(4)}/kWh × consumo totale`,
-        amount: costoEnergiaTotale,
-        icon: Zap,
-        iconColor: 'text-yellow-500',
-      },
-      {
-        name: 'Fee Gestione POD',
-        description: `€${gestionePodPerPod.toFixed(2)}/POD/mese × ${clientiAttivi} clienti attivi × 14 mesi`,
-        subDescription: null,
-        amount: costoGestionePodTotale,
-        icon: Settings,
-        iconColor: 'text-blue-500',
-      },
-    ];
+    // Calculate component breakdown for passthrough detail
+    const kWh = consumoMedioMensile;
+    const trasportoMensilePerCliente = (trasportoQuotaFissaAnno / 12) + (trasportoQuotaPotenzaKwAnno * potenzaImpegnataKw / 12) + (trasportoQuotaEnergiaKwh * kWh);
+    const oneriMensilePerCliente = (oneriAsosKwh + oneriArimKwh) * kWh;
+    const acciseMensilePerCliente = acciseKwh * kWh;
+    const dispacciamentoMensilePerCliente = dispacciamentoPerKwh * kWh;
+
+    // Calculate progressive totals for passthrough components
+    const totalClientiMesi = monthlyBreakdown.reduce((sum, m) => sum + m.clientiAttivi, 0);
+    const trasportoTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * trasportoMensilePerCliente), 0);
+    const oneriTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * oneriMensilePerCliente), 0);
+    const acciseTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * acciseMensilePerCliente), 0);
+    const dispacciamentoTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * dispacciamentoMensilePerCliente), 0);
+
+    // Find min/max active customers for the info text
+    const activeMonths = monthlyBreakdown.filter(m => m.clientiAttivi > 0);
+    const minClienti = activeMonths.length > 0 ? Math.min(...activeMonths.map(m => m.clientiAttivi)) : 0;
+    const maxClienti = activeMonths.length > 0 ? Math.max(...activeMonths.map(m => m.clientiAttivi)) : clientiAttivi;
+    const monthsWithClients = activeMonths.length;
 
     return (
-      <div className="space-y-4">
-        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
-          <div className="flex items-start gap-2">
-            <Calculator className="h-5 w-5 text-orange-600 mt-0.5" />
+      <div className="space-y-6">
+        {/* Info box - progressive calculation */}
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-orange-800 dark:text-orange-300">Costi Calcolati dal Simulatore</h4>
-              <p className="text-sm text-orange-700 dark:text-orange-400 mt-1">
-                Questi costi sono derivati automaticamente dai parametri del simulatore ricavi 
-                (clienti attivi: {clientiAttivi}, consumo medio: {consumoMedioMensile} kWh/mese).
+              <h4 className="font-medium text-amber-800 dark:text-amber-300">Calcolo progressivo mese per mese</h4>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                I costi qui sotto <strong>non sono calcolati su {clientiAttivi} clienti per 14 mesi</strong>. 
+                Ogni mese il costo è moltiplicato per i clienti effettivamente attivi in quel mese 
+                (da {minClienti} al mese iniziale fino a {maxClienti} al mese finale), 
+                tenendo conto delle nuove attivazioni e degli switch-out progressivi.
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">
+                I clienti iniziano a essere attivi dal 3° mese (dopo firma → invio SII → attivazione) e 
+                una quota mensile ({simulatedPassthrough.monthlyBreakdown?.length ? 'churn applicato' : '~1.5%'}) cessa la fornitura.
               </p>
             </div>
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Voce</TableHead>
-              <TableHead>Calcolo</TableHead>
-              <TableHead className="text-right">Totale 14 mesi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {passthroughItems.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <TableRow key={idx}>
+        {/* SECTION 1: Costi Grossista (what the reseller actually pays) */}
+        <div>
+          <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-primary" />
+            Costi pagati al Grossista
+            <Badge variant="outline" className="text-xs font-normal">Il reseller paga questi costi</Badge>
+          </h4>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Voce</TableHead>
+                <TableHead>Formula unitaria</TableHead>
+                <TableHead>Logica di calcolo</TableHead>
+                <TableHead className="text-right">Totale 14 mesi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-yellow-500" />
+                    Acquisto Energia
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">PUN + Spread Grossista</p>
+                </TableCell>
+                <TableCell>
+                  <code className="text-xs bg-muted px-2 py-1 rounded">
+                    €{costoAcquistoPerKwh.toFixed(4)}/kWh × {consumoMedioMensile} kWh
+                  </code>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    = (€{punPerKwh.toFixed(4)} + €{spreadGrossistaPerKwh.toFixed(4)}) × {consumoMedioMensile}
+                  </p>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    Progressivo su {monthsWithClients} mesi attivi
+                  </div>
+                  <p className="text-xs mt-1">da {minClienti} a {maxClienti} clienti</p>
+                </TableCell>
+                <TableCell className="text-right font-semibold text-lg">
+                  {formatCurrency(costoEnergiaTotale)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-blue-500" />
+                    Fee Gestione POD
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Costo fisso per punto di fornitura</p>
+                </TableCell>
+                <TableCell>
+                  <code className="text-xs bg-muted px-2 py-1 rounded">
+                    €{gestionePodPerPod.toFixed(2)}/POD/mese
+                  </code>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    Progressivo su {monthsWithClients} mesi attivi
+                  </div>
+                  <p className="text-xs mt-1">da {minClienti} a {maxClienti} POD attivi</p>
+                </TableCell>
+                <TableCell className="text-right font-semibold text-lg">
+                  {formatCurrency(costoGestionePodTotale)}
+                </TableCell>
+              </TableRow>
+              <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={3}>Totale Costi Grossista</TableCell>
+                <TableCell className="text-right text-xl">
+                  {formatCurrency(costoEnergiaTotale + costoGestionePodTotale)}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* SECTION 2: Dettaglio componenti passanti in fattura */}
+        {(trasportoQuotaFissaAnno > 0 || oneriAsosKwh > 0 || acciseKwh > 0) && (
+          <div>
+            <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+              Componenti Passanti in Fattura
+              <Badge variant="secondary" className="text-xs font-normal">Il cliente paga, il reseller gira al destinatario</Badge>
+            </h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Queste voci compaiono nella bolletta del cliente ma il reseller le incassa e le rigira ai rispettivi destinatari. 
+              Non impattano il margine.
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Componente</TableHead>
+                  <TableHead>Destinatario</TableHead>
+                  <TableHead>Costo unitario /cliente/mese</TableHead>
+                  <TableHead className="text-right">Totale 14 mesi (progressivo)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dispacciamentoPerKwh > 0 && (
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-amber-500" />
+                        Dispacciamento
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">Terna/GME</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">
+                        €{dispacciamentoPerKwh.toFixed(4)}/kWh × {kWh} = {formatCurrency(dispacciamentoMensilePerCliente)}
+                      </code>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {formatCurrency(dispacciamentoTotale)}
+                    </TableCell>
+                  </TableRow>
+                )}
+                <TableRow>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <Icon className={`h-4 w-4 ${item.iconColor}`} />
-                      {item.name}
+                      <Truck className="h-4 w-4 text-blue-500" />
+                      Trasporto e Distribuzione
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Quota fissa + potenza + energia</p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">Distributore locale</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5 text-xs">
+                      <p>Fissa: €{(trasportoQuotaFissaAnno / 12).toFixed(2)}/mese</p>
+                      <p>Potenza: €{(trasportoQuotaPotenzaKwAnno * potenzaImpegnataKw / 12).toFixed(2)}/mese ({potenzaImpegnataKw} kW)</p>
+                      <p>Energia: €{trasportoQuotaEnergiaKwh.toFixed(4)}/kWh × {kWh} = €{(trasportoQuotaEnergiaKwh * kWh).toFixed(2)}</p>
+                      <p className="font-medium mt-1">Totale: {formatCurrency(trasportoMensilePerCliente)}/cliente/mese</p>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    <div className="space-y-1">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger className="flex items-center gap-1 text-left">
-                            {item.description}
-                            <Info className="h-3 w-3 flex-shrink-0" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Valore calcolato dinamicamente dal simulatore</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      {item.subDescription && (
-                        <p className="text-xs text-muted-foreground/70">{item.subDescription}</p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-lg">
-                    {formatCurrency(item.amount)}
+                  <TableCell className="text-right font-mono">
+                    {formatCurrency(trasportoTotale)}
                   </TableCell>
                 </TableRow>
-              );
-            })}
-            <TableRow className="bg-muted/50">
-              <TableCell colSpan={2} className="font-bold">
-                Totale Costi Passanti
-              </TableCell>
-              <TableCell className="text-right font-bold text-xl">
-                {formatCurrency(costoEnergiaTotale + costoGestionePodTotale)}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+                <TableRow>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-green-500" />
+                      Oneri di Sistema
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">ASOS + ARIM</p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">CSEA/ARERA</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5 text-xs">
+                      <p>ASOS (rinnovabili): €{oneriAsosKwh.toFixed(4)}/kWh</p>
+                      <p>ARIM (rimanenti): €{oneriArimKwh.toFixed(4)}/kWh</p>
+                      <p className="font-medium mt-1">Totale: {formatCurrency(oneriMensilePerCliente)}/cliente/mese</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {formatCurrency(oneriTotale)}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Calculator className="h-4 w-4 text-red-500" />
+                      Accise
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">Agenzia Dogane</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      €{acciseKwh.toFixed(4)}/kWh × {kWh} = {formatCurrency(acciseMensilePerCliente)}
+                    </code>
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {formatCurrency(acciseTotale)}
+                  </TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/30">
+                  <TableCell colSpan={3} className="font-bold text-muted-foreground">
+                    Totale Passanti (escluso energia grossista)
+                  </TableCell>
+                  <TableCell className="text-right font-bold text-muted-foreground">
+                    {formatCurrency(dispacciamentoTotale + trasportoTotale + oneriTotale + acciseTotale)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {/* SECTION 3: Dettaglio mensile progressivo */}
+        {monthlyBreakdown.length > 0 && (
+          <Accordion type="single" collapsible>
+            <AccordionItem value="monthly" className="border rounded-lg px-4">
+              <AccordionTrigger className="text-sm hover:no-underline py-3">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  Dettaglio mensile progressivo (clienti attivi e costi mese per mese)
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mese</TableHead>
+                      <TableHead className="text-right">Clienti Attivi</TableHead>
+                      <TableHead className="text-right">Costo Energia</TableHead>
+                      <TableHead className="text-right">Fee POD</TableHead>
+                      <TableHead className="text-right">Totale Mese</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {monthlyBreakdown.map((m) => (
+                      <TableRow key={m.month} className={m.clientiAttivi === 0 ? 'opacity-50' : ''}>
+                        <TableCell className="font-medium">{m.monthLabel}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="font-mono">{m.clientiAttivi}</span>
+                            {m.clientiAttivi > 0 && (
+                              <div 
+                                className="h-2 bg-primary/30 rounded-full" 
+                                style={{ width: `${Math.max(4, (m.clientiAttivi / maxClienti) * 60)}px` }}
+                              />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {formatCurrencyShort(m.costoEnergia)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {formatCurrencyShort(m.costoPod)}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold font-mono">
+                          {formatCurrencyShort(m.costoEnergia + m.costoPod)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/50 font-bold">
+                      <TableCell>Totale cumulativo</TableCell>
+                      <TableCell className="text-right">-</TableCell>
+                      <TableCell className="text-right">{formatCurrency(costoEnergiaTotale)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(costoGestionePodTotale)}</TableCell>
+                      <TableCell className="text-right text-lg">{formatCurrency(costoEnergiaTotale + costoGestionePodTotale)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
       </div>
     );
   };
@@ -437,7 +667,7 @@ export const CostTabsView = ({
                     <p className="text-2xl font-bold">{formatCurrency(category.total)}</p>
                     <p className="text-sm text-muted-foreground">
                       {isPassthrough && simulatedPassthrough 
-                        ? '2 voci (dal simulatore)' 
+                        ? 'Calcolati dal simulatore' 
                         : `${category.costs.length} ${category.costs.length === 1 ? 'voce' : 'voci'}`}
                     </p>
                   </div>
