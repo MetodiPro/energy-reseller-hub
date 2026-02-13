@@ -331,6 +331,18 @@ export const WholesalerCostsConfig = ({
                   </span>
                 </div>
               </div>
+
+              {/* Totale assoluto */}
+              <Separator className="my-3" />
+              <div className="flex justify-between font-bold text-lg pt-1">
+                <span>TOTALE ASSOLUTO DA CORRISPONDERE</span>
+                <span className="font-mono text-destructive">
+                  {formatCurrencyFull(
+                    costoEnergiaTotale + costoGestionePodTotale +
+                    passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema + passthroughTotals.accise
+                  )}
+                </span>
+              </div>
             </>
           )}
         </div>
