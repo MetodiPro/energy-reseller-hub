@@ -737,8 +737,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             </CardContent>
           </Card>
 
-          {/* Trend Chart with Forecast */}
-          <FinancialTrendChart costs={costs} revenues={revenues} summary={summary} />
+          {/* Trend Chart with Forecast - uses same data as Liquidità tab */}
+          <FinancialTrendChart cashFlowData={cashFlowData} loading={cashFlowLoading} />
 
           {/* Break-Even Analysis */}
           <BreakEvenAnalysis summary={summary} />

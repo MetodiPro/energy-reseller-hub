@@ -18,14 +18,11 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { ProjectCost, ProjectRevenue, FinancialSummary } from '@/hooks/useProjectFinancials';
+import type { CashFlowSummary } from '@/hooks/useCashFlowAnalysis';
 
 interface FinancialTrendChartProps {
-  costs: ProjectCost[];
-  revenues: ProjectRevenue[];
-  summary: FinancialSummary & {
-    hasSimulationData?: boolean;
-  };
+  cashFlowData: CashFlowSummary;
+  loading: boolean;
 }
 
 const formatCurrency = (value: number) => {
@@ -36,8 +33,6 @@ const formatCurrency = (value: number) => {
     maximumFractionDigits: 0,
   }).format(value);
 };
-
-const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
 const InfoTip = ({ text }: { text: string }) => (
   <Tooltip>
@@ -50,87 +45,48 @@ const InfoTip = ({ text }: { text: string }) => (
   </Tooltip>
 );
 
-export const FinancialTrendChart = ({ costs, revenues, summary }: FinancialTrendChartProps) => {
+export const FinancialTrendChart = ({ cashFlowData, loading }: FinancialTrendChartProps) => {
   const trendData = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    if (!cashFlowData.hasData) return [];
 
-    const months: {
-      month: string;
-      costs: number;
-      revenues: number;
-      cumCosts: number;
-      cumRevenues: number;
-      margin: number;
-    }[] = [];
+    let cumIncassi = 0;
+    let cumUscite = 0;
 
-    // ─── Distribuzione su 12 mesi basata sui dati reali ───
-    // Se abbiamo dati di simulazione, distribuiamo uniformemente su 12 mesi
-    // (la simulazione copre 14 mesi ma proiettiamo su 12 per il grafico)
-    const hasSimData = summary.hasSimulationData && summary.totalRevenue > 0;
+    return cashFlowData.monthlyData.map(d => {
+      cumIncassi += d.incassi;
+      const usciteMese = d.costiPassanti + d.costiOperativi + d.costiCommerciali + d.flussiFiscali + d.investimentiIniziali + (d.deltaDeposito > 0 ? d.deltaDeposito : 0);
+      cumUscite += usciteMese;
 
-    // Ricavi mensili medi
-    const monthlyRevenue = hasSimData
-      ? summary.totalRevenue / 14 // simulazione è su 14 mesi
-      : summary.totalRevenue / 12;
-
-    // Costi mensili medi
-    const monthlyCosts = hasSimData
-      ? summary.totalCosts / 14
-      : summary.totalCosts / 12;
-
-    // Costi operativi mensili (da costi registrati)
-    const recurringMonthlyCosts = costs
-      .filter(c => c.is_recurring)
-      .reduce((sum, c) => {
-        const multiplier = c.recurrence_period === 'yearly' ? 1 / 12 : c.recurrence_period === 'quarterly' ? 1 / 3 : 1;
-        return sum + (c.amount * c.quantity * multiplier);
-      }, 0);
-
-    let cumCosts = 0;
-    let cumRevenues = 0;
-
-    for (let i = 0; i < 12; i++) {
-      const monthIndex = (currentMonth + i) % 12;
-      const year = currentYear + Math.floor((currentMonth + i) / 12);
-      const monthLabel = `${MONTHS_IT[monthIndex]} ${year.toString().slice(2)}`;
-
-      // Applichiamo una curva di crescita graduale per i primi mesi
-      // (un reseller non ha subito tutti i clienti dal mese 1)
-      const rampUpFactor = hasSimData
-        ? Math.min(1, (i + 1) / 6) // rampa su 6 mesi
-        : 1;
-
-      const monthRevenue = monthlyRevenue * rampUpFactor * (1 + i * 0.03); // +3% crescita mensile
-      const monthCost = hasSimData
-        ? (monthlyCosts * rampUpFactor * (1 + i * 0.02)) // costi crescono più lentamente dei ricavi
-        : (recurringMonthlyCosts > 0 ? recurringMonthlyCosts : monthlyCosts);
-
-      cumCosts += monthCost;
-      cumRevenues += monthRevenue;
-
-      months.push({
-        month: monthLabel,
-        costs: Math.round(monthCost),
-        revenues: Math.round(monthRevenue),
-        cumCosts: Math.round(cumCosts),
-        cumRevenues: Math.round(cumRevenues),
-        margin: Math.round(monthRevenue - monthCost),
-      });
-    }
-
-    return months;
-  }, [costs, summary]);
+      return {
+        month: d.monthLabel,
+        cumRevenues: cumIncassi,
+        cumCosts: cumUscite,
+        margin: d.flussoNetto,
+      };
+    });
+  }, [cashFlowData]);
 
   const breakEvenMonth = useMemo(() => {
-    for (let i = 0; i < trendData.length; i++) {
-      if (trendData[i].cumRevenues >= trendData[i].cumCosts && trendData[i].cumCosts > 0) {
-        return trendData[i].month;
+    for (const d of trendData) {
+      if (d.cumRevenues >= d.cumCosts && d.cumCosts > 0) {
+        return d.month;
       }
     }
     return null;
   }, [trendData]);
+
+  if (loading || !cashFlowData.hasData) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            Configura il simulatore di ricavi per visualizzare il trend.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const lastMonth = trendData[trendData.length - 1];
   const projectedMargin = lastMonth ? lastMonth.cumRevenues - lastMonth.cumCosts : 0;
@@ -142,19 +98,24 @@ export const FinancialTrendChart = ({ costs, revenues, summary }: FinancialTrend
           <div>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Trend e Proiezioni 12 Mesi
-              <InfoTip text="Proiezione dell'andamento cumulativo di ricavi e costi nei prossimi 12 mesi, basata sui dati del simulatore di ricavi e sui costi operativi registrati." />
+              Trend e Proiezioni 14 Mesi
+              <InfoTip text="Andamento cumulativo di incassi e uscite nei 14 mesi della simulazione, basato sul motore di cash flow (stessi dati della scheda Liquidità)." />
             </CardTitle>
-            <CardDescription>Andamento cumulativo costi e ricavi con proiezione</CardDescription>
+            <CardDescription>Andamento cumulativo incassi e uscite dalla simulazione</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1">
               <Calendar className="h-3 w-3" />
-              Proiezione
+              Simulazione
             </Badge>
             {breakEvenMonth && (
               <Badge variant="default" className="bg-green-600">
                 Break-Even: {breakEvenMonth}
+              </Badge>
+            )}
+            {!breakEvenMonth && (
+              <Badge variant="secondary">
+                Break-Even non raggiunto
               </Badge>
             )}
           </div>
@@ -188,9 +149,8 @@ export const FinancialTrendChart = ({ costs, revenues, summary }: FinancialTrend
             <RechartsTooltip
               formatter={(value: number, name: string) => [
                 formatCurrency(value),
-                name === 'cumRevenues' ? 'Ricavi Cumulativi' :
-                  name === 'cumCosts' ? 'Costi Cumulativi' :
-                    name === 'margin' ? 'Margine Mensile' : name
+                name === 'cumRevenues' ? 'Incassi Cumulativi' :
+                  name === 'cumCosts' ? 'Uscite Cumulative' : name
               ]}
               labelFormatter={(label) => `Mese: ${label}`}
               contentStyle={{
@@ -201,8 +161,8 @@ export const FinancialTrendChart = ({ costs, revenues, summary }: FinancialTrend
             />
             <Legend
               formatter={(value) =>
-                value === 'cumRevenues' ? 'Ricavi Cumulativi' :
-                  value === 'cumCosts' ? 'Costi Cumulativi' : value
+                value === 'cumRevenues' ? 'Incassi Cumulativi' :
+                  value === 'cumCosts' ? 'Uscite Cumulative' : value
               }
             />
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
@@ -227,19 +187,19 @@ export const FinancialTrendChart = ({ costs, revenues, summary }: FinancialTrend
 
         <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">Proiezione Ricavi (12m)</p>
+            <p className="text-muted-foreground">Totale Incassi (14m)</p>
             <p className="text-lg font-bold text-primary">
               {formatCurrency(lastMonth?.cumRevenues || 0)}
             </p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">Proiezione Costi (12m)</p>
+            <p className="text-muted-foreground">Totale Uscite (14m)</p>
             <p className="text-lg font-bold text-destructive">
               {formatCurrency(lastMonth?.cumCosts || 0)}
             </p>
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">Margine Proiettato</p>
+            <p className="text-muted-foreground">Saldo Finale</p>
             <p className={`text-lg font-bold ${projectedMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
               {formatCurrency(projectedMargin)}
             </p>
@@ -247,7 +207,7 @@ export const FinancialTrendChart = ({ costs, revenues, summary }: FinancialTrend
         </div>
 
         <p className="text-xs text-muted-foreground mt-3 italic">
-          ⚠️ Le proiezioni sono stime basate sui parametri attuali del simulatore e sui costi operativi registrati. I valori reali potranno variare in base all'andamento del mercato e all'acquisizione clienti.
+          ⚠️ Dati coerenti con la scheda Liquidità: basati sul simulatore di ricavi, costi operativi, flussi fiscali, depositi e aging degli incassi.
         </p>
       </CardContent>
     </Card>
