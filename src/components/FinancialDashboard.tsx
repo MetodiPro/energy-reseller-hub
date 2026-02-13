@@ -37,6 +37,7 @@ import { FinancialGlossary } from '@/components/financial/FinancialGlossary';
 
 
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
+import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
 import { CostTabsView } from '@/components/financial/CostTabsView';
@@ -809,6 +810,10 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
         <TabsContent value="margins" className="space-y-6">
           <MarginAnalysis summary={summary} />
+          <WhatIfSimulator 
+            summary={summary} 
+            channelBreakdown={getChannelBreakdown(simulationSummary.contrattiTotali || 0)} 
+          />
         </TabsContent>
 
         <TabsContent value="liquidity" className="space-y-6">

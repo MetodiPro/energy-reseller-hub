@@ -5,26 +5,55 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { 
   Calculator, 
   RotateCcw, 
   TrendingUp, 
   TrendingDown,
   ArrowRight,
-  Target
+  Target,
+  Users,
+  Phone
 } from 'lucide-react';
-import type { FinancialSummary } from '@/hooks/useProjectFinancials';
 
-interface WhatIfSimulatorProps {
-  summary: FinancialSummary;
+interface ChannelScenario {
+  channelName: string;
+  commissionChange: number; // % variation on commission amount
+  contractShareChange: number; // % variation on contract share
+  originalCommission: number;
+  originalContracts: number;
+  originalCost: number;
 }
 
-interface Scenario {
-  revenueChange: number;
-  directCostChange: number;
-  commercialCostChange: number;
-  structuralCostChange: number;
-  indirectCostChange: number;
+interface WhatIfSimulatorProps {
+  summary: {
+    totalRevenue: number;
+    totalCosts: number;
+    grossMargin: number;
+    grossMarginPercent: number;
+    contributionMargin: number;
+    contributionMarginPercent: number;
+    netMargin: number;
+    netMarginPercent: number;
+    costiCommercialiSimulati: number;
+    operationalCosts: number;
+    passthroughCosts: number;
+    costsByType: {
+      direct: number;
+      commercial: number;
+      structural: number;
+      indirect: number;
+    };
+  };
+  channelBreakdown: Array<{
+    channel_name: string;
+    commission_amount: number;
+    commission_type: 'per_contract' | 'per_activation';
+    contracts: number;
+    activations: number;
+    cost: number;
+  }>;
 }
 
 const formatCurrency = (value: number) => {
@@ -40,31 +69,58 @@ const formatPercent = (value: number) => {
   return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 };
 
-export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
-  const [scenario, setScenario] = useState<Scenario>({
-    revenueChange: 0,
-    directCostChange: 0,
-    commercialCostChange: 0,
-    structuralCostChange: 0,
-    indirectCostChange: 0,
-  });
+export const WhatIfSimulator = ({ summary, channelBreakdown }: WhatIfSimulatorProps) => {
+  const [revenueChange, setRevenueChange] = useState(0);
+  const [structuralCostChange, setStructuralCostChange] = useState(0);
+  const [indirectCostChange, setIndirectCostChange] = useState(0);
+  const [channelScenarios, setChannelScenarios] = useState<Record<string, { commissionChange: number; volumeChange: number }>>(
+    () => {
+      const init: Record<string, { commissionChange: number; volumeChange: number }> = {};
+      channelBreakdown.forEach(ch => {
+        init[ch.channel_name] = { commissionChange: 0, volumeChange: 0 };
+      });
+      return init;
+    }
+  );
 
   const simulatedSummary = useMemo(() => {
-    const newRevenue = summary.totalRevenue * (1 + scenario.revenueChange / 100);
-    const newDirectCosts = summary.costsByType.direct * (1 + scenario.directCostChange / 100);
-    const newCommercialCosts = summary.costsByType.commercial * (1 + scenario.commercialCostChange / 100);
-    const newStructuralCosts = summary.costsByType.structural * (1 + scenario.structuralCostChange / 100);
-    const newIndirectCosts = summary.costsByType.indirect * (1 + scenario.indirectCostChange / 100);
+    const newRevenue = summary.totalRevenue * (1 + revenueChange / 100);
     
-    const newTotalCosts = newDirectCosts + newCommercialCosts + newStructuralCosts + newIndirectCosts;
-    const newGrossMargin = newRevenue - newDirectCosts;
-    const newContributionMargin = newRevenue - newDirectCosts - newCommercialCosts;
+    // Calculate new commercial costs from channels
+    let newCommercialCosts = 0;
+    channelBreakdown.forEach(ch => {
+      const scenario = channelScenarios[ch.channel_name] || { commissionChange: 0, volumeChange: 0 };
+      const newCommission = ch.commission_amount * (1 + scenario.commissionChange / 100);
+      const newVolume = ch.contracts * (1 + scenario.volumeChange / 100);
+      
+      if (ch.commission_type === 'per_contract') {
+        newCommercialCosts += newCommission * newVolume;
+      } else {
+        const activations = Math.round(newVolume * (ch.activations / (ch.contracts || 1)));
+        newCommercialCosts += newCommission * activations;
+      }
+    });
+    
+    // If no channels configured, fall back to percentage-based
+    if (channelBreakdown.length === 0) {
+      newCommercialCosts = summary.costiCommercialiSimulati;
+    }
+
+    const newStructuralCosts = summary.costsByType.structural * (1 + structuralCostChange / 100);
+    const newIndirectCosts = summary.costsByType.indirect * (1 + indirectCostChange / 100);
+    
+    // Non-commercial operational costs (operational - commercial simulated)
+    const nonCommercialOps = summary.operationalCosts - summary.costiCommercialiSimulati;
+    const newOperationalCosts = nonCommercialOps + newCommercialCosts + newStructuralCosts + newIndirectCosts;
+    
+    const newTotalCosts = summary.passthroughCosts + newOperationalCosts;
+    const newGrossMargin = newRevenue - summary.passthroughCosts;
+    const newContributionMargin = newGrossMargin - newCommercialCosts;
     const newNetMargin = newRevenue - newTotalCosts;
 
     const fixedCosts = newStructuralCosts + newIndirectCosts;
-    const variableCosts = newDirectCosts + newCommercialCosts;
-    const contributionMarginRatio = newRevenue > 0 ? (newRevenue - variableCosts) / newRevenue : 0;
-    const breakEvenRevenue = contributionMarginRatio > 0 ? fixedCosts / contributionMarginRatio : 0;
+    const contributionMarginRatio = newRevenue > 0 ? (newRevenue - summary.passthroughCosts - newCommercialCosts) / newRevenue : 0;
+    const breakEvenRevenue = contributionMarginRatio > 0 ? (fixedCosts + nonCommercialOps) / contributionMarginRatio : 0;
 
     return {
       totalRevenue: newRevenue,
@@ -75,77 +131,83 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
       contributionMarginPercent: newRevenue > 0 ? (newContributionMargin / newRevenue) * 100 : 0,
       netMargin: newNetMargin,
       netMarginPercent: newRevenue > 0 ? (newNetMargin / newRevenue) * 100 : 0,
+      commercialCosts: newCommercialCosts,
       breakEvenRevenue,
       isAboveBreakEven: newRevenue >= breakEvenRevenue && breakEvenRevenue > 0,
-      costsByType: {
-        direct: newDirectCosts,
-        commercial: newCommercialCosts,
-        structural: newStructuralCosts,
-        indirect: newIndirectCosts,
-      },
     };
-  }, [summary, scenario]);
+  }, [summary, revenueChange, structuralCostChange, indirectCostChange, channelScenarios, channelBreakdown]);
 
   const differences = useMemo(() => ({
     revenue: simulatedSummary.totalRevenue - summary.totalRevenue,
     costs: simulatedSummary.totalCosts - summary.totalCosts,
     netMargin: simulatedSummary.netMargin - summary.netMargin,
     netMarginPercent: simulatedSummary.netMarginPercent - summary.netMarginPercent,
+    commercialCosts: simulatedSummary.commercialCosts - summary.costiCommercialiSimulati,
   }), [summary, simulatedSummary]);
 
   const resetScenario = () => {
-    setScenario({
-      revenueChange: 0,
-      directCostChange: 0,
-      commercialCostChange: 0,
-      structuralCostChange: 0,
-      indirectCostChange: 0,
+    setRevenueChange(0);
+    setStructuralCostChange(0);
+    setIndirectCostChange(0);
+    const reset: Record<string, { commissionChange: number; volumeChange: number }> = {};
+    channelBreakdown.forEach(ch => {
+      reset[ch.channel_name] = { commissionChange: 0, volumeChange: 0 };
     });
+    setChannelScenarios(reset);
   };
 
   const applyPreset = (preset: 'optimistic' | 'pessimistic' | 'cost-reduction') => {
+    const channelPreset: Record<string, { commissionChange: number; volumeChange: number }> = {};
+    channelBreakdown.forEach(ch => {
+      switch (preset) {
+        case 'optimistic':
+          channelPreset[ch.channel_name] = { commissionChange: -10, volumeChange: 20 };
+          break;
+        case 'pessimistic':
+          channelPreset[ch.channel_name] = { commissionChange: 10, volumeChange: -15 };
+          break;
+        case 'cost-reduction':
+          channelPreset[ch.channel_name] = { commissionChange: -20, volumeChange: 0 };
+          break;
+      }
+    });
+    setChannelScenarios(channelPreset);
+    
     switch (preset) {
       case 'optimistic':
-        setScenario({
-          revenueChange: 20,
-          directCostChange: 5,
-          commercialCostChange: 10,
-          structuralCostChange: 0,
-          indirectCostChange: 0,
-        });
+        setRevenueChange(20);
+        setStructuralCostChange(0);
+        setIndirectCostChange(0);
         break;
       case 'pessimistic':
-        setScenario({
-          revenueChange: -15,
-          directCostChange: 10,
-          commercialCostChange: 5,
-          structuralCostChange: 5,
-          indirectCostChange: 5,
-        });
+        setRevenueChange(-15);
+        setStructuralCostChange(5);
+        setIndirectCostChange(5);
         break;
       case 'cost-reduction':
-        setScenario({
-          revenueChange: 0,
-          directCostChange: -10,
-          commercialCostChange: -15,
-          structuralCostChange: -5,
-          indirectCostChange: -5,
-        });
+        setRevenueChange(0);
+        setStructuralCostChange(-5);
+        setIndirectCostChange(-5);
         break;
     }
+  };
+
+  const updateChannelScenario = (channelName: string, field: 'commissionChange' | 'volumeChange', value: number) => {
+    setChannelScenarios(prev => ({
+      ...prev,
+      [channelName]: { ...prev[channelName], [field]: value },
+    }));
   };
 
   const SliderControl = ({ 
     label, 
     value, 
     onChange, 
-    color = 'primary',
     currentValue 
   }: { 
     label: string; 
     value: number; 
     onChange: (val: number) => void;
-    color?: 'primary' | 'destructive';
     currentValue: number;
   }) => (
     <div className="space-y-2">
@@ -185,7 +247,7 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
     highlight?: boolean;
   }) => {
     const diff = simulated - original;
-    const isPositive = diff > 0;
+    const isPositive = label.includes('Costi') ? diff < 0 : diff > 0;
     
     return (
       <div className={`flex items-center justify-between py-2 ${highlight ? 'bg-muted/50 px-3 rounded-lg' : ''}`}>
@@ -196,7 +258,7 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
           </span>
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
           <span className={`text-sm font-medium w-24 text-right ${
-            isPositive ? 'text-green-600' : diff < 0 ? 'text-destructive' : ''
+            isPositive ? 'text-green-600' : diff !== 0 ? 'text-destructive' : ''
           }`}>
             {isPercent ? `${simulated.toFixed(1)}%` : formatCurrency(simulated)}
           </span>
@@ -206,7 +268,7 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
           >
             {isPercent 
               ? `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}pp` 
-              : formatPercent((diff / (original || 1)) * 100)
+              : formatPercent((diff / (Math.abs(original) || 1)) * 100)
             }
           </Badge>
         </div>
@@ -223,7 +285,7 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
               <Calculator className="h-5 w-5" />
               Simulatore What-If
             </CardTitle>
-            <CardDescription>Analizza scenari di variazione costi e ricavi</CardDescription>
+            <CardDescription>Simula variazioni su ricavi, provvigioni canali e costi operativi</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={resetScenario}>
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -234,30 +296,15 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
       <CardContent className="space-y-6">
         {/* Preset Scenarios */}
         <div className="flex flex-wrap gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => applyPreset('optimistic')}
-            className="gap-1"
-          >
+          <Button variant="outline" size="sm" onClick={() => applyPreset('optimistic')} className="gap-1">
             <TrendingUp className="h-3 w-3 text-green-600" />
             Scenario Ottimista
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => applyPreset('pessimistic')}
-            className="gap-1"
-          >
+          <Button variant="outline" size="sm" onClick={() => applyPreset('pessimistic')} className="gap-1">
             <TrendingDown className="h-3 w-3 text-destructive" />
             Scenario Pessimista
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => applyPreset('cost-reduction')}
-            className="gap-1"
-          >
+          <Button variant="outline" size="sm" onClick={() => applyPreset('cost-reduction')} className="gap-1">
             <Target className="h-3 w-3 text-blue-600" />
             Riduzione Costi
           </Button>
@@ -274,8 +321,8 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
             </h4>
             <SliderControl
               label="Variazione Ricavi"
-              value={scenario.revenueChange}
-              onChange={(val) => setScenario(s => ({ ...s, revenueChange: val }))}
+              value={revenueChange}
+              onChange={setRevenueChange}
               currentValue={summary.totalRevenue}
             />
           </div>
@@ -283,38 +330,108 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
           <div className="space-y-4">
             <h4 className="font-medium text-destructive flex items-center gap-2">
               <TrendingDown className="h-4 w-4" />
-              Costi
+              Costi Fissi
             </h4>
             <SliderControl
-              label="Costi Diretti"
-              value={scenario.directCostChange}
-              onChange={(val) => setScenario(s => ({ ...s, directCostChange: val }))}
-              color="destructive"
-              currentValue={summary.costsByType.direct}
-            />
-            <SliderControl
-              label="Costi Commerciali"
-              value={scenario.commercialCostChange}
-              onChange={(val) => setScenario(s => ({ ...s, commercialCostChange: val }))}
-              color="destructive"
-              currentValue={summary.costsByType.commercial}
-            />
-            <SliderControl
               label="Costi Strutturali"
-              value={scenario.structuralCostChange}
-              onChange={(val) => setScenario(s => ({ ...s, structuralCostChange: val }))}
-              color="destructive"
+              value={structuralCostChange}
+              onChange={setStructuralCostChange}
               currentValue={summary.costsByType.structural}
             />
             <SliderControl
               label="Costi Indiretti"
-              value={scenario.indirectCostChange}
-              onChange={(val) => setScenario(s => ({ ...s, indirectCostChange: val }))}
-              color="destructive"
+              value={indirectCostChange}
+              onChange={setIndirectCostChange}
               currentValue={summary.costsByType.indirect}
             />
           </div>
         </div>
+
+        {/* Channel-specific controls */}
+        {channelBreakdown.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-4">
+              <h4 className="font-medium text-orange-600 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Canali di Vendita
+                <Badge variant="outline" className="text-xs font-normal">Provvigioni reali configurate</Badge>
+              </h4>
+              
+              {channelBreakdown.map(ch => {
+                const scenario = channelScenarios[ch.channel_name] || { commissionChange: 0, volumeChange: 0 };
+                const newCommission = ch.commission_amount * (1 + scenario.commissionChange / 100);
+                const newVolume = Math.round(ch.contracts * (1 + scenario.volumeChange / 100));
+                const newCost = ch.commission_type === 'per_contract'
+                  ? newCommission * newVolume
+                  : newCommission * Math.round(newVolume * (ch.activations / (ch.contracts || 1)));
+                
+                return (
+                  <div key={ch.channel_name} className="p-4 rounded-lg border bg-card space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{ch.channel_name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {ch.commission_type === 'per_contract' ? 'Per contratto' : 'Per attivazione'}
+                        </Badge>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm text-muted-foreground mr-2">{formatCurrency(ch.cost)}</span>
+                        <ArrowRight className="h-3 w-3 inline text-muted-foreground mx-1" />
+                        <span className={`text-sm font-medium ${newCost !== ch.cost ? (newCost < ch.cost ? 'text-green-600' : 'text-destructive') : ''}`}>
+                          {formatCurrency(newCost)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Provvigione unitaria</Label>
+                          <span className="text-xs text-muted-foreground">€{ch.commission_amount} → €{newCommission.toFixed(0)}</span>
+                        </div>
+                        <Slider
+                          value={[scenario.commissionChange]}
+                          onValueChange={([val]) => updateChannelScenario(ch.channel_name, 'commissionChange', val)}
+                          min={-50}
+                          max={50}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="text-right">
+                          <Badge variant={scenario.commissionChange === 0 ? 'secondary' : scenario.commissionChange > 0 ? 'destructive' : 'default'} className="text-xs">
+                            {formatPercent(scenario.commissionChange)}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Volume contratti</Label>
+                          <span className="text-xs text-muted-foreground">{ch.contracts} → {newVolume}</span>
+                        </div>
+                        <Slider
+                          value={[scenario.volumeChange]}
+                          onValueChange={([val]) => updateChannelScenario(ch.channel_name, 'volumeChange', val)}
+                          min={-50}
+                          max={50}
+                          step={1}
+                          className="w-full"
+                        />
+                        <div className="text-right">
+                          <Badge variant={scenario.volumeChange === 0 ? 'secondary' : scenario.volumeChange > 0 ? 'default' : 'destructive'} className="text-xs">
+                            {formatPercent(scenario.volumeChange)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         <Separator />
 
@@ -326,6 +443,11 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
               label="Ricavi Totali" 
               original={summary.totalRevenue} 
               simulated={simulatedSummary.totalRevenue} 
+            />
+            <ComparisonRow 
+              label="Costi Commerciali" 
+              original={summary.costiCommercialiSimulati} 
+              simulated={simulatedSummary.commercialCosts} 
             />
             <ComparisonRow 
               label="Costi Totali" 
@@ -396,10 +518,10 @@ export const WhatIfSimulator = ({ summary }: WhatIfSimulatorProps) => {
               {formatCurrency(differences.revenue)}
             </p>
           </div>
-          <div className={`p-3 rounded-lg text-center ${differences.costs <= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
-            <p className="text-xs text-muted-foreground mb-1">Δ Costi</p>
-            <p className={`text-lg font-bold ${differences.costs <= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {formatCurrency(differences.costs)}
+          <div className={`p-3 rounded-lg text-center ${differences.commercialCosts <= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
+            <p className="text-xs text-muted-foreground mb-1">Δ Provvigioni</p>
+            <p className={`text-lg font-bold ${differences.commercialCosts <= 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {formatCurrency(differences.commercialCosts)}
             </p>
           </div>
           <div className={`p-3 rounded-lg text-center ${differences.netMarginPercent >= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
