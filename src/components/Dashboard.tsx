@@ -27,7 +27,7 @@ import {
 import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import type { StepProgress } from "@/hooks/useStepProgress";
 import { format, differenceInDays, parseISO, isAfter, isBefore } from "date-fns";
 import { it } from "date-fns/locale";
@@ -415,8 +415,8 @@ export const Dashboard = ({
         </Card>
 
         <Card className="p-6 border-l-4 border-l-primary shadow-custom-lg">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <ShadcnTooltip>
                 <TooltipTrigger asChild>
                   <p className="text-sm font-medium text-muted-foreground flex items-center gap-1 cursor-help">
@@ -473,7 +473,28 @@ export const Dashboard = ({
                 </div>
               )}
             </div>
-            <Wallet className="h-8 w-8 text-primary" />
+            {/* Sparkline: saldo cumulativo 14 mesi */}
+            {cashFlowData.hasData && cashFlowData.monthlyData.length > 0 && (
+              <div className="w-24 h-14 flex-shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={cashFlowData.monthlyData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+                    <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" strokeWidth={0.5} />
+                    <Bar 
+                      dataKey="saldoCumulativo" 
+                      radius={[1, 1, 0, 0]}
+                    >
+                      {cashFlowData.monthlyData.map((entry, index) => (
+                        <Cell 
+                          key={index} 
+                          fill={entry.saldoCumulativo >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--destructive))'} 
+                          opacity={0.8}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         </Card>
       </div>
