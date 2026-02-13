@@ -3,6 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
+  Tooltip as ShadcnTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { 
   Wallet, 
   TrendingDown, 
   TrendingUp, 
@@ -34,6 +39,25 @@ import {
 } from 'recharts';
 import type { CashFlowSummary, MonthlyCashFlowData } from '@/hooks/useCashFlowAnalysis';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
+
+// Tooltip cell wrapper
+const TipCell = ({ children, lines, className }: { children: React.ReactNode; lines: string[]; className?: string }) => {
+  if (lines.length === 0) return <TableCell className={className}>{children}</TableCell>;
+  return (
+    <TableCell className={className}>
+      <ShadcnTooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help border-b border-dotted border-current">{children}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-left">
+          {lines.map((line, i) => (
+            <p key={i} className="text-xs whitespace-nowrap">{line}</p>
+          ))}
+        </TooltipContent>
+      </ShadcnTooltip>
+    </TableCell>
+  );
+};
 
 interface CashFlowDashboardProps {
   cashFlowData: CashFlowSummary;
@@ -527,7 +551,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cashFlowData.monthlyData.map((row) => (
+                {cashFlowData.monthlyData.map((row) => {
+                  const b = row.breakdown;
+                  return (
                   <TableRow key={row.month}>
                     <TableCell className="sticky left-0 bg-background font-medium">
                       {row.monthLabel}
@@ -535,39 +561,86 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
                     <TableCell className="text-right text-muted-foreground">
                       {row.contrattiNuovi > 0 ? `+${row.contrattiNuovi}` : '-'}
                     </TableCell>
-                    <TableCell className="text-right text-cyan-600">
+                    <TipCell className="text-right text-cyan-600" lines={row.attivazioni > 0 ? [
+                      `Contratti mese M-2 × tasso attivazione`,
+                      `= ${row.attivazioni} clienti attivati`,
+                    ] : []}>
                       {row.attivazioni > 0 ? `+${row.attivazioni}` : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">{row.clientiAttivi}</TableCell>
-                    <TableCell className="text-right text-green-600">
+                    </TipCell>
+                    <TipCell className="text-right" lines={[
+                      `Attivi prec. + ${row.attivazioni} attivaz. − ${b.churnedCustomers} churn`,
+                      `= ${row.clientiAttivi} clienti attivi`,
+                    ]}>
+                      {row.clientiAttivi}
+                    </TipCell>
+                    <TipCell className="text-right text-green-600" lines={row.incassi > 0 ? [
+                      `Alla scadenza: ${formatCurrency(b.incassoScadenza)}`,
+                      `Entro 30gg: ${formatCurrency(b.incasso30gg)}`,
+                      `Entro 60gg: ${formatCurrency(b.incasso60gg)}`,
+                      `Oltre 60gg: ${formatCurrency(b.incassoOltre60gg)}`,
+                    ] : []}>
                       {formatCurrency(row.incassi)}
-                    </TableCell>
-                    <TableCell className="text-right text-orange-600">
+                    </TipCell>
+                    <TipCell className="text-right text-orange-600" lines={row.costiPassanti > 0 ? [
+                      `${row.clientiAttivi} clienti × costi unitari:`,
+                      `Energia: ${formatCurrency(b.materiaEnergia)}`,
+                      `Trasporto: ${formatCurrency(b.trasporto)}`,
+                      `Oneri sistema: ${formatCurrency(b.oneriSistema)}`,
+                      `Accise: ${formatCurrency(b.accise)}`,
+                    ] : []}>
                       {formatCurrency(row.costiPassanti)}
-                    </TableCell>
-                    <TableCell className="text-right text-blue-600">
+                    </TipCell>
+                    <TipCell className="text-right text-blue-600" lines={row.costiOperativi > 0 ? [
+                      `${row.clientiAttivi} clienti × fee gestione POD`,
+                      `= ${formatCurrency(b.gestionePod)}`,
+                    ] : []}>
                       {formatCurrency(row.costiOperativi)}
-                    </TableCell>
-                    <TableCell className="text-right text-pink-600">
+                    </TipCell>
+                    <TipCell className="text-right text-pink-600" lines={row.costiCommerciali > 0 ? [
+                      `Commissioni canali di vendita`,
+                      `su ${row.contrattiNuovi} contratti + ${row.attivazioni} attivazioni`,
+                    ] : []}>
                       {row.costiCommerciali > 0 ? formatCurrency(row.costiCommerciali) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right text-amber-600">
+                    </TipCell>
+                    <TipCell className="text-right text-amber-600" lines={row.flussiFiscali > 0 ? [
+                      `IVA F24 + Accise + Oneri di sistema`,
+                      `Totale: ${formatCurrency(row.flussiFiscali)}`,
+                    ] : []}>
                       {row.flussiFiscali > 0 ? formatCurrency(row.flussiFiscali) : '-'}
-                    </TableCell>
-                    <TableCell className={`text-right ${row.deltaDeposito > 0 ? 'text-purple-600' : 'text-green-600'}`}>
+                    </TipCell>
+                    <TipCell className={`text-right ${row.deltaDeposito > 0 ? 'text-purple-600' : 'text-green-600'}`} lines={row.deltaDeposito !== 0 ? [
+                      `Deposito richiesto: ${formatCurrency(b.depositoRichiesto)}`,
+                      `Deposito precedente: ${formatCurrency(b.depositoPrecedente)}`,
+                      `Delta: ${formatCurrency(row.deltaDeposito)}`,
+                    ] : []}>
                       {row.deltaDeposito !== 0 ? formatCurrency(row.deltaDeposito) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right text-destructive">
+                    </TipCell>
+                    <TipCell className="text-right text-destructive" lines={row.investimentiIniziali > 0 ? [
+                      `Costi step di processo assegnati a questo mese`,
+                    ] : []}>
                       {row.investimentiIniziali > 0 ? formatCurrency(row.investimentiIniziali) : '-'}
-                    </TableCell>
-                    <TableCell className={`text-right font-medium ${row.flussoNetto >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    </TipCell>
+                    <TipCell className={`text-right font-medium ${row.flussoNetto >= 0 ? 'text-green-600' : 'text-destructive'}`} lines={[
+                      `Incassi: +${formatCurrency(row.incassi)}`,
+                      `Passanti: −${formatCurrency(row.costiPassanti)}`,
+                      `Operativi: −${formatCurrency(row.costiOperativi)}`,
+                      `Commerciali: −${formatCurrency(row.costiCommerciali)}`,
+                      `Fiscali: −${formatCurrency(row.flussiFiscali)}`,
+                      `Deposito Δ: ${row.deltaDeposito >= 0 ? '−' : '+'}${formatCurrency(Math.abs(row.deltaDeposito))}`,
+                      `Investimenti: −${formatCurrency(row.investimentiIniziali)}`,
+                    ]}>
                       {formatCurrency(row.flussoNetto)}
-                    </TableCell>
-                    <TableCell className={`text-right font-bold ${row.saldoCumulativo >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    </TipCell>
+                    <TipCell className={`text-right font-bold ${row.saldoCumulativo >= 0 ? 'text-green-600' : 'text-destructive'}`} lines={[
+                      `Saldo prec.: ${formatCurrency(b.saldoPrecedente)}`,
+                      `+ Flusso netto: ${formatCurrency(row.flussoNetto)}`,
+                      `= ${formatCurrency(row.saldoCumulativo)}`,
+                    ]}>
                       {formatCurrency(row.saldoCumulativo)}
-                    </TableCell>
+                    </TipCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

@@ -7,6 +7,28 @@ import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
 import { useTaxFlows } from './useTaxFlows';
 
+export interface CashFlowBreakdown {
+  // Incassi breakdown (collection aging)
+  incassoScadenza: number;   // collectionMonth0
+  incasso30gg: number;       // collectionMonth1
+  incasso60gg: number;       // collectionMonth2
+  incassoOltre60gg: number;  // collectionMonth3Plus
+  // Passanti breakdown
+  materiaEnergia: number;
+  trasporto: number;
+  oneriSistema: number;
+  accise: number;
+  // Operativi
+  gestionePod: number;
+  // Deposito
+  depositoRichiesto: number;
+  depositoPrecedente: number;
+  // Clienti
+  churnedCustomers: number;
+  invoicedCustomers: number;
+  saldoPrecedente: number;
+}
+
 export interface MonthlyCashFlowData {
   month: number;
   monthLabel: string;
@@ -15,8 +37,8 @@ export interface MonthlyCashFlowData {
   // Outflows
   costiPassanti: number;
   costiOperativi: number;
-  costiCommerciali: number; // Commission costs for acquired customers
-  flussiFiscali: number;   // Tax outflows (IVA F24, accise, oneri)
+  costiCommerciali: number;
+  flussiFiscali: number;
   deltaDeposito: number;
   investimentiIniziali: number;
   // Net
@@ -25,8 +47,10 @@ export interface MonthlyCashFlowData {
   // Context
   clientiAttivi: number;
   contrattiNuovi: number;
-  attivazioni: number;       // Clienti effettivamente attivati (pipeline 2 mesi)
+  attivazioni: number;
   fatturato: number;
+  // Breakdown for tooltips
+  breakdown: CashFlowBreakdown;
 }
 
 export interface CashFlowSummary {
@@ -187,23 +211,39 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         invoicesToCollect.push({ month: m, amount: fatturatoMese });
       }
       
-      // Calculate collections this month (from previous invoices)
+      // Calculate collections this month (from previous invoices) with aging breakdown
       let incassiMese = 0;
+      let incassoScadenza = 0;
+      let incasso30gg = 0;
+      let incasso60gg = 0;
+      let incassoOltre60gg = 0;
       invoicesToCollect.forEach(invoice => {
         const monthsAfterInvoice = m - invoice.month;
         if (monthsAfterInvoice === 0) {
-          incassiMese += invoice.amount * (params.collectionMonth0 / 100);
+          const amt = invoice.amount * (params.collectionMonth0 / 100);
+          incassiMese += amt;
+          incassoScadenza += amt;
         } else if (monthsAfterInvoice === 1) {
-          incassiMese += invoice.amount * (params.collectionMonth1 / 100);
+          const amt = invoice.amount * (params.collectionMonth1 / 100);
+          incassiMese += amt;
+          incasso30gg += amt;
         } else if (monthsAfterInvoice === 2) {
-          incassiMese += invoice.amount * (params.collectionMonth2 / 100);
+          const amt = invoice.amount * (params.collectionMonth2 / 100);
+          incassiMese += amt;
+          incasso60gg += amt;
         } else if (monthsAfterInvoice === 3) {
-          incassiMese += invoice.amount * (params.collectionMonth3Plus / 100);
+          const amt = invoice.amount * (params.collectionMonth3Plus / 100);
+          incassiMese += amt;
+          incassoOltre60gg += amt;
         }
       });
       
-      // Calculate passthrough costs (paid to wholesaler)
-      const costiPassantiMese = m >= 2 ? cumulativeActiveCustomers * passantiPerCliente : 0;
+      // Calculate passthrough costs with breakdown
+      const materiaEnergiaMese = m >= 2 ? cumulativeActiveCustomers * materiaEnergiaPerCliente : 0;
+      const trasportoMese = m >= 2 ? cumulativeActiveCustomers * trasportoPerCliente : 0;
+      const oneriMese = m >= 2 ? cumulativeActiveCustomers * oneriPerCliente : 0;
+      const acciseMese = m >= 2 ? cumulativeActiveCustomers * accisePerCliente : 0;
+      const costiPassantiMese = materiaEnergiaMese + trasportoMese + oneriMese + acciseMese;
       
       // Calculate operational costs (gestione POD, etc.)
       const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
@@ -211,6 +251,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       // Calculate deposit delta
       const fatturatoMensileStimato = cumulativeActiveCustomers * fatturaPerCliente;
       const depositoRichiesto = fatturatoMensileStimato * depositoMesi;
+      const depositoPrecedente = previousDeposito;
       const deltaDeposito = depositoRichiesto - previousDeposito;
       previousDeposito = depositoRichiesto;
       
@@ -218,7 +259,6 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       const investimentiMese = monthlyInvestments[m] ?? 0;
       
       // Commercial costs (sales channel commissions)
-      // Commissions are paid when contracts are signed or when customers activate
       const costiCommercialiMese = calculateCommissionCosts(newContracts, activatedCustomers);
       
       // Tax flows (IVA F24, accise, oneri) - get from tax flows hook
@@ -226,8 +266,9 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         ? taxFlows.monthlyData[m].totaleTaxOutflows 
         : 0;
       
-      // Net cash flow (including tax outflows)
+      // Net cash flow
       const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - costiCommercialiMese - flussiFiscaliMese - deltaDeposito - investimentiMese;
+      const saldoPrecedente = saldoCumulativo;
       saldoCumulativo += flussoNetto;
       
       // Track min balance and first positive month
@@ -265,6 +306,22 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         contrattiNuovi: newContracts,
         attivazioni: activatedCustomers,
         fatturato: Math.round(fatturatoMese),
+        breakdown: {
+          incassoScadenza: Math.round(incassoScadenza),
+          incasso30gg: Math.round(incasso30gg),
+          incasso60gg: Math.round(incasso60gg),
+          incassoOltre60gg: Math.round(incassoOltre60gg),
+          materiaEnergia: Math.round(materiaEnergiaMese),
+          trasporto: Math.round(trasportoMese),
+          oneriSistema: Math.round(oneriMese),
+          accise: Math.round(acciseMese),
+          gestionePod: Math.round(costiOperativiMese),
+          depositoRichiesto: Math.round(depositoRichiesto),
+          depositoPrecedente: Math.round(depositoPrecedente),
+          churnedCustomers,
+          invoicedCustomers,
+          saldoPrecedente: Math.round(saldoPrecedente),
+        },
       });
     }
     
