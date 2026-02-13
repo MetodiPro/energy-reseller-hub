@@ -60,14 +60,14 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
   const alerts = useMemo(() => {
     const alertList: FinancialAlert[] = [];
     
-    // Calcoli di base
-    const fixedCosts = summary.costsByType.structural + summary.costsByType.indirect;
-    const variableCosts = summary.costsByType.direct + summary.costsByType.commercial;
-    const contributionMarginRatio = summary.totalRevenue > 0 
-      ? (summary.totalRevenue - variableCosts) / summary.totalRevenue 
+    // Calcoli di base - modello reseller: passanti vs operativi
+    const passthroughCosts = summary.passthroughCosts;
+    const operationalCosts = summary.operationalCosts;
+    const grossMarginRatio = summary.totalRevenue > 0 
+      ? (summary.totalRevenue - passthroughCosts) / summary.totalRevenue 
       : 0;
-    const breakEvenRevenue = contributionMarginRatio > 0 
-      ? fixedCosts / contributionMarginRatio 
+    const breakEvenRevenue = grossMarginRatio > 0 
+      ? operationalCosts / grossMarginRatio 
       : 0;
     const isAboveBreakEven = summary.totalRevenue >= breakEvenRevenue && breakEvenRevenue > 0;
 
@@ -166,14 +166,14 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
     // ═══════════════════════════════════════════
     // ALERT 4: Struttura dei costi
     // ═══════════════════════════════════════════
-    const fixedCostRatio = summary.totalCosts > 0 ? (fixedCosts / summary.totalCosts) * 100 : 0;
-    if (fixedCostRatio > 60) {
+    const passthroughRatio = summary.totalCosts > 0 ? (passthroughCosts / summary.totalCosts) * 100 : 0;
+    if (passthroughRatio > 60) {
       alertList.push({
-        id: 'high-fixed-costs',
+        id: 'high-passthrough-costs',
         type: 'info',
-        title: 'Molte Spese Fisse',
-        description: `Il ${fixedCostRatio.toFixed(0)}% delle spese totali sono costi fissi (es. affitti, stipendi) che devi pagare anche senza clienti.`,
-        explanation: 'I costi fissi elevati significano che hai bisogno di un certo volume di vendite per coprirli. Lato positivo: una volta coperti, ogni vendita in più genera quasi tutto profitto.',
+        title: 'Molti Costi Passanti',
+        description: `Il ${passthroughRatio.toFixed(0)}% delle spese totali sono costi passanti (energia, distribuzione, oneri) che devi girare al grossista/distributore.`,
+        explanation: 'In un modello reseller è normale che i costi passanti siano la maggior parte. Il tuo vero margine dipende dallo spread e dalla CCV che applichi ai clienti.',
         icon: Info,
         priority: 5,
       });
