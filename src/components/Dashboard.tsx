@@ -20,8 +20,10 @@ import {
   AlertTriangle,
   Flag,
   Activity,
-  HelpCircle
+  HelpCircle,
+  Wallet
 } from "lucide-react";
+import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -36,6 +38,7 @@ interface DashboardProps {
   projectStartDate?: string | null;
   projectEndDate?: string | null;
   getCostAmount: (stepId: string, costItemId: string) => number;
+  projectId?: string | null;
 }
 
 export const Dashboard = ({ 
@@ -43,8 +46,12 @@ export const Dashboard = ({
   commodityType,
   projectStartDate,
   projectEndDate,
-  getCostAmount
+  getCostAmount,
+  projectId
 }: DashboardProps) => {
+  
+  // Cash flow analysis for financial BEP
+  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId ?? null);
   
   // Filter steps by commodity type (same logic as ProcessTracker)
   const filterStep = (step: ProcessStep) => {
@@ -280,7 +287,7 @@ export const Dashboard = ({
       )}
 
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card className="p-6 border-l-4 border-l-primary shadow-custom-lg hover:shadow-glow transition-shadow">
           <div className="flex items-center justify-between">
             <div>
@@ -359,6 +366,54 @@ export const Dashboard = ({
               <p className="text-xs text-muted-foreground mt-1">costi inseriti</p>
             </div>
             <Euro className="h-8 w-8 text-success" />
+          </div>
+        </Card>
+
+        <Card className="p-6 border-l-4 border-l-primary shadow-custom-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <ShadcnTooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1 cursor-help">
+                    BEP Finanziario
+                    <HelpCircle className="h-3 w-3" />
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="font-semibold mb-1">Break-Even Point Finanziario</p>
+                  <p className="text-xs">
+                    Primo mese in cui il saldo di cassa cumulativo diventa positivo. 
+                    Tiene conto dell'aging degli incassi, depositi cauzionali, investimenti iniziali, 
+                    costi commerciali e flussi fiscali (IVA, accise).
+                  </p>
+                </TooltipContent>
+              </ShadcnTooltip>
+              {cashFlowLoading ? (
+                <h3 className="text-xl font-bold mt-2 text-muted-foreground">...</h3>
+              ) : cashFlowData.mesePrimoPositivo ? (
+                <>
+                  <h3 className="text-xl font-bold mt-2 text-primary">
+                    {cashFlowData.mesePrimoPositivo}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">saldo positivo</p>
+                </>
+              ) : cashFlowData.hasData ? (
+                <>
+                  <h3 className="text-lg font-bold mt-2 text-destructive">
+                    Non raggiunto
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    esposizione max: €{cashFlowData.massimaEsposizione.toLocaleString('it-IT')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-bold mt-2 text-muted-foreground">N/D</h3>
+                  <p className="text-xs text-muted-foreground mt-1">configura simulazione</p>
+                </>
+              )}
+            </div>
+            <Wallet className="h-8 w-8 text-primary" />
           </div>
         </Card>
       </div>

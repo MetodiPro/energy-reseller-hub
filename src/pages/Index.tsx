@@ -209,6 +209,7 @@ const Index = () => {
             projectStartDate={(currentProject as any)?.planned_start_date}
             projectEndDate={(currentProject as any)?.go_live_date}
             getCostAmount={getCostAmount}
+            projectId={currentProjectId}
           />
         );
       case "process":
