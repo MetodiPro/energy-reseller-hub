@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -19,7 +20,8 @@ import {
   Calculator,
   Zap,
   Users,
-  Wallet
+  Wallet,
+  Info
 } from 'lucide-react';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
@@ -266,10 +268,21 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <FinancialAlerts summary={summary} />
 
           {/* KPI Cards */}
+          <TooltipProvider delayDuration={200}>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Fatturato Totale</CardTitle>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Fatturato Totale
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Tutto ciò che il reseller fattura ai clienti finali nei 14 mesi di simulazione. Include margine, costi passanti e IVA.</p>
+                  </TooltipContent>
+                </UITooltip>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -282,7 +295,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Margine Reseller</CardTitle>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Margine Reseller
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Il guadagno lordo del reseller: somma di CCV (commercializzazione), Spread al cliente e altri servizi. È ciò che resta prima dei costi operativi.</p>
+                  </TooltipContent>
+                </UITooltip>
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
@@ -295,7 +318,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Clienti Attivi</CardTitle>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Clienti Attivi
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Clienti con fornitura attiva a fine simulazione, al netto degli switch-out. I contratti firmati diventano attivi dopo ~2 mesi (verifica SII).</p>
+                  </TooltipContent>
+                </UITooltip>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -308,7 +341,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Costi Operativi</CardTitle>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Costi Operativi
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Spese strutturali del reseller: affitto, personale, software, consulenze. Non includono i costi passanti (energia, trasporto, oneri).</p>
+                  </TooltipContent>
+                </UITooltip>
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -321,7 +364,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Margine Lordo</CardTitle>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Margine Lordo
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Fatturato meno costi passanti in fattura (energia, trasporto, oneri, accise, IVA). Indica quanto resta al reseller prima delle spese operative.</p>
+                  </TooltipContent>
+                </UITooltip>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -344,7 +397,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Margine Netto</CardTitle>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Margine Netto
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Margine Lordo meno i Costi Operativi (affitto, personale, ecc.). È il profitto effettivo del reseller.</p>
+                  </TooltipContent>
+                </UITooltip>
                 <Percent className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -365,13 +428,25 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               </CardContent>
             </Card>
           </div>
+          </TooltipProvider>
 
           {/* Cash Flow Summary if simulation data available */}
           {summary.hasSimulationData && (
+            <TooltipProvider delayDuration={200}>
             <div className="grid gap-4 md:grid-cols-3">
               <Card className="bg-green-50 dark:bg-green-950/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Incassato</CardTitle>
+                  <UITooltip>
+                    <TooltipTrigger asChild>
+                      <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300 flex items-center gap-1 cursor-help">
+                        Incassato
+                        <Info className="h-3 w-3 opacity-60" />
+                      </CardTitle>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p>Quanto è stato effettivamente incassato dai clienti, considerando i tempi di pagamento (alla scadenza, entro 30/60/90+ gg).</p>
+                    </TooltipContent>
+                  </UITooltip>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</div>
@@ -379,7 +454,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               </Card>
               <Card className="bg-orange-50 dark:bg-orange-950/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">Costi Passanti in Fattura</CardTitle>
+                  <UITooltip>
+                    <TooltipTrigger asChild>
+                      <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1 cursor-help">
+                        Costi Passanti in Fattura
+                        <Info className="h-3 w-3 opacity-60" />
+                      </CardTitle>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p>Voci addebitate al cliente e girate a terzi: PUN, dispacciamento, trasporto, oneri di sistema, accise e IVA. Non sono un guadagno per il reseller.</p>
+                    </TooltipContent>
+                  </UITooltip>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</div>
@@ -387,13 +472,24 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               </Card>
               <Card className="bg-red-50 dark:bg-red-950/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">Insoluti</CardTitle>
+                  <UITooltip>
+                    <TooltipTrigger asChild>
+                      <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300 flex items-center gap-1 cursor-help">
+                        Insoluti
+                        <Info className="h-3 w-3 opacity-60" />
+                      </CardTitle>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p>Importi fatturati ma non incassati dopo 4+ mesi. Rappresentano perdite definitive sul credito verso i clienti.</p>
+                    </TooltipContent>
+                  </UITooltip>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xl font-bold text-red-600">{formatCurrency(summary.totalInsoluti)}</div>
                 </CardContent>
               </Card>
             </div>
+            </TooltipProvider>
           )}
 
           {/* Charts */}
