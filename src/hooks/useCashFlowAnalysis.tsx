@@ -25,6 +25,7 @@ export interface MonthlyCashFlowData {
   // Context
   clientiAttivi: number;
   contrattiNuovi: number;
+  attivazioni: number;       // Clienti effettivamente attivati (pipeline 2 mesi)
   fatturato: number;
 }
 
@@ -262,6 +263,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         saldoCumulativo: Math.round(saldoCumulativo),
         clientiAttivi: cumulativeActiveCustomers,
         contrattiNuovi: newContracts,
+        attivazioni: activatedCustomers,
         fatturato: Math.round(fatturatoMese),
       });
     }
