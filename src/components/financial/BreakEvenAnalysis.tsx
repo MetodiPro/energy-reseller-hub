@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Target, TrendingUp, AlertTriangle, CheckCircle, HelpCircle, Info } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, CheckCircle, HelpCircle, Info, Wallet } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -12,6 +12,7 @@ import type { FinancialSummary } from '@/hooks/useProjectFinancials';
 
 interface BreakEvenAnalysisProps {
   summary: FinancialSummary;
+  breakEvenFinanziario?: string | null; // from cash flow analysis
 }
 
 const formatCurrency = (value: number) => {
@@ -38,7 +39,7 @@ const InfoTip = ({ text }: { text: string }) => (
   </Tooltip>
 );
 
-export const BreakEvenAnalysis = ({ summary }: BreakEvenAnalysisProps) => {
+export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAnalysisProps) => {
   const analysis = useMemo(() => {
     // ─── Classificazione costi per il modello reseller ───
     // Costi Passanti = costi che il reseller gira al grossista/distributore (contenuti in passthroughCosts)
@@ -241,6 +242,46 @@ export const BreakEvenAnalysis = ({ summary }: BreakEvenAnalysisProps) => {
           <div className="p-3 rounded-md bg-muted/30 text-xs font-mono">
             BEP = Costi Operativi ({formatCurrency(analysis.operationalCosts)}) ÷ Margine Lordo ({formatPercent(analysis.grossMarginRatio * 100)}) = {formatCurrency(analysis.breakEvenRevenue)}
           </div>
+        </div>
+
+        {/* Distinction between commercial and financial break-even */}
+        <div className="pt-4 border-t space-y-3 text-sm">
+          <p className="font-medium text-foreground flex items-center gap-2">
+            <Info className="h-4 w-4" />
+            Break-Even Commerciale vs Finanziario
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 rounded-lg border bg-card space-y-1">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="font-medium">BEP Commerciale</span>
+                <Badge variant={analysis.isAboveBreakEven ? 'default' : 'secondary'} className="text-xs">
+                  {analysis.isAboveBreakEven ? 'Raggiunto' : 'Non raggiunto'}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Indica il <strong>fatturato minimo</strong> necessario affinché il margine lordo copra i costi operativi. 
+                Si basa sulla struttura dei margini (fatturato − passanti) e non tiene conto dei tempi di incasso, depositi e flussi fiscali.
+              </p>
+            </div>
+            <div className="p-3 rounded-lg border bg-card space-y-1">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-primary" />
+                <span className="font-medium">BEP Finanziario</span>
+                <Badge variant={breakEvenFinanziario ? 'default' : 'secondary'} className="text-xs">
+                  {breakEvenFinanziario || 'Non raggiunto'}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Indica il <strong>primo mese</strong> in cui il saldo di cassa cumulativo diventa positivo. 
+                Tiene conto dell'aging degli incassi, depositi cauzionali, investimenti iniziali, costi commerciali e flussi fiscali (IVA, accise).
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground italic">
+            💡 Può capitare che il BEP commerciale sia raggiunto ma quello finanziario no: i margini sono sufficienti, 
+            ma la liquidità necessaria per finanziare la crescita (depositi, ritardi incasso, investimenti) supera le disponibilità di cassa.
+          </p>
         </div>
       </CardContent>
     </Card>
