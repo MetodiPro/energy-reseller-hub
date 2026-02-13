@@ -379,7 +379,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               </Card>
               <Card className="bg-orange-50 dark:bg-orange-950/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">Passanti (da girare)</CardTitle>
+                  <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300">Costi Passanti in Fattura</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</div>

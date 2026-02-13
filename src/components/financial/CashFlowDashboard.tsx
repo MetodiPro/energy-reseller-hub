@@ -280,7 +280,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <Receipt className="h-4 w-4 text-orange-600" />
-              Costi Passanti
+              Costi Passanti in Fattura
             </div>
             <p className="text-xl font-bold text-orange-600">
               {formatCurrency(cashFlowData.totaleCostiPassanti)}
