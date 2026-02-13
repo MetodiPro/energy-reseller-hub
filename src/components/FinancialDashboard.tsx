@@ -41,6 +41,7 @@ import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsCon
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
+import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import {
   PieChart as RechartsPie,
   Pie,
@@ -257,6 +258,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Simulation Parameters Config */}
+          <SimulationParamsConfig projectId={projectId} />
+
           {/* Financial Alerts */}
           <FinancialAlerts summary={summary} />
 
