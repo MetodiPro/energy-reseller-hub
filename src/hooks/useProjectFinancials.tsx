@@ -55,6 +55,7 @@ export interface FinancialSummary {
   totalCosts: number;
   passthroughCosts: number;
   operationalCosts: number;
+  costiCommercialiSimulati: number; // Commission costs from sales channels (simulated)
   grossMargin: number;
   grossMarginPercent: number;
   costsByType: {
@@ -322,6 +323,7 @@ export const useProjectFinancials = (projectId: string | null) => {
       totalCosts,
       passthroughCosts,
       operationalCosts,
+      costiCommercialiSimulati: 0, // Will be set by FinancialDashboard from cashflow
       grossMargin,
       grossMarginPercent,
       costsByType,

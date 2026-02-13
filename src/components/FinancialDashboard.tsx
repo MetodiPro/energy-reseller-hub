@@ -141,19 +141,23 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
     const resellerMargin = simulationSummary.hasData ? simulationSummary.totalMargine : 0;
     const passthroughCosts = simulationSummary.hasData ? simulationSummary.totalPassanti + simulationSummary.totalIva : costSummary.passthroughCosts;
     
-    // Operational costs from cost manager
-    const operationalCosts = costSummary.operationalCosts;
+    // Simulated commercial costs from sales channels (commissions)
+    const costiCommercialiSimulati = cashFlowData.hasData ? cashFlowData.totaleCostiCommerciali : 0;
+    
+    // Operational costs from cost manager (exclude manual commercial costs to avoid duplication)
+    const manualCommercialCosts = costSummary.costsByType.commercial;
+    const operationalCosts = costSummary.operationalCosts - manualCommercialCosts + costiCommercialiSimulati;
     const totalCosts = passthroughCosts + operationalCosts;
     
     // Gross Margin = Fatturato - Passanti (what you keep before operational expenses)
     const grossMargin = totalRevenue - passthroughCosts;
     const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
     
-    // Contribution Margin = Gross Margin - Commercial Costs
-    const contributionMargin = grossMargin - costSummary.costsByType.commercial;
+    // Contribution Margin = Gross Margin - Commercial Costs (simulated from channels)
+    const contributionMargin = grossMargin - costiCommercialiSimulati;
     const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
     
-    // Net Margin = Revenue - All Costs (passthrough + operational)
+    // Net Margin = Revenue - All Costs (passthrough + operational including commercial)
     const netMargin = totalRevenue - totalCosts;
     const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
 
@@ -162,6 +166,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
       totalCosts,
       passthroughCosts,
       operationalCosts,
+      costiCommercialiSimulati,
       grossMargin,
       grossMarginPercent,
       costsByType: costSummary.costsByType,
@@ -177,7 +182,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
       totalInsoluti: simulationSummary.totalInsoluti,
       hasSimulationData: simulationSummary.hasData,
     };
-  }, [costSummary, simulationSummary]);
+  }, [costSummary, simulationSummary, cashFlowData]);
 
   const handleExportPDF = () => {
     exportToPDF(projectName, costs, revenues, summary);
@@ -269,7 +274,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
           {/* KPI Cards */}
           <TooltipProvider delayDuration={200}>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <UITooltip>
@@ -344,12 +349,35 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
                 <UITooltip>
                   <TooltipTrigger asChild>
                     <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                      Costi Commerciali
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </CardTitle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Provvigioni e commissioni pagate ai canali di vendita (agenti, call center, web, ecc.) per l'acquisizione clienti. Calcolati dal simulatore in base ai canali configurati.</p>
+                  </TooltipContent>
+                </UITooltip>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">{formatCurrency(summary.costiCommercialiSimulati)}</div>
+                <p className="text-xs text-muted-foreground">
+                  {summary.costiCommercialiSimulati > 0 ? 'Da canali di vendita' : 'Configura i canali'}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
                       Costi Operativi
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </CardTitle>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Spese strutturali del reseller: affitto, personale, software, consulenze. Non includono i costi passanti (energia, trasporto, oneri).</p>
+                    <p>Totale costi del reseller: provvigioni canali + spese strutturali (affitto, personale, software). Non includono i costi passanti (energia, trasporto, oneri).</p>
                   </TooltipContent>
                 </UITooltip>
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
@@ -357,7 +385,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">{formatCurrency(summary.operationalCosts)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {costs.filter(c => !(c as any).is_passthrough).length} voci
+                  Commerciali + strutturali
                 </p>
               </CardContent>
             </Card>
@@ -609,7 +637,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               <CardDescription>Costi calcolati in base alla base clienti e consumi previsti</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Costo Energia Grossista</p>
                   <p className="text-xl font-bold">{formatCurrency(simulationSummary.costoEnergiaTotale)}</p>
@@ -621,14 +649,19 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
                   <p className="text-xs text-muted-foreground">14 mesi simulati</p>
                 </div>
                 <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Costi Commerciali</p>
+                  <p className="text-xl font-bold">{formatCurrency(summary.costiCommercialiSimulati)}</p>
+                  <p className="text-xs text-muted-foreground">Provvigioni canali vendita</p>
+                </div>
+                <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Depositi Cauzionali</p>
                   <p className="text-xl font-bold">{formatCurrency(simulationSummary.depositoMassimo)}</p>
                   <p className="text-xs text-muted-foreground">Picco massimo</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Costi Operativi</p>
-                  <p className="text-xl font-bold">{formatCurrency(summary.totalCosts - summary.passthroughCosts)}</p>
-                  <p className="text-xs text-muted-foreground">Da gestione manuale</p>
+                  <p className="text-sm text-muted-foreground">Costi Operativi Totali</p>
+                  <p className="text-xl font-bold">{formatCurrency(summary.operationalCosts)}</p>
+                  <p className="text-xs text-muted-foreground">Commerciali + strutturali</p>
                 </div>
               </div>
             </CardContent>
