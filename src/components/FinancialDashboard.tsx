@@ -1,10 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -23,12 +29,12 @@ import {
   Wallet,
   Info
 } from 'lucide-react';
-import { useProjectFinancials } from '@/hooks/useProjectFinancials';
+import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
-import { CostRevenueManager } from '@/components/CostRevenueManager';
+import { supabase } from '@/integrations/supabase/client';
 import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
@@ -101,8 +107,69 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const { channels: salesChannels, getChannelBreakdown } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
-  const [editingCost, setEditingCost] = useState<any>(null);
+  const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
+  const [costFormData, setCostFormData] = useState<any>({
+    name: '', description: '', amount: '', quantity: 1, unit: 'unità',
+    cost_type: 'direct', category_id: '', is_recurring: false, recurrence_period: '', date: '', notes: '',
+  });
+
+  const COST_TYPE_OPTIONS = [
+    { value: 'direct', label: 'Diretto', description: 'Collegato direttamente al progetto' },
+    { value: 'indirect', label: 'Indiretto', description: 'Non direttamente collegato' },
+    { value: 'commercial', label: 'Commerciale', description: 'Marketing e vendite' },
+    { value: 'structural', label: 'Strutturale', description: 'Costi fissi aziendali' },
+  ];
+
+  useEffect(() => {
+    if (editingCost && showCostDialog) {
+      setCostFormData({
+        name: editingCost.name,
+        description: editingCost.description || '',
+        amount: editingCost.amount,
+        quantity: editingCost.quantity,
+        unit: editingCost.unit,
+        cost_type: editingCost.cost_type,
+        category_id: editingCost.category_id || '',
+        is_recurring: editingCost.is_recurring,
+        recurrence_period: editingCost.recurrence_period || '',
+        date: editingCost.date || '',
+        notes: editingCost.notes || '',
+      });
+    } else if (!editingCost && showCostDialog) {
+      setCostFormData({
+        name: '', description: '', amount: '', quantity: 1, unit: 'unità',
+        cost_type: 'direct', category_id: '', is_recurring: false, recurrence_period: '', date: '', notes: '',
+      });
+    }
+  }, [editingCost, showCostDialog]);
+
+  const handleCostSubmit = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const costData = {
+      project_id: projectId,
+      name: costFormData.name,
+      description: costFormData.description || null,
+      amount: parseFloat(costFormData.amount) || 0,
+      quantity: parseFloat(costFormData.quantity) || 1,
+      unit: costFormData.unit || 'unità',
+      cost_type: costFormData.cost_type,
+      category_id: costFormData.category_id || null,
+      is_recurring: costFormData.is_recurring,
+      recurrence_period: costFormData.is_recurring ? costFormData.recurrence_period : null,
+      date: costFormData.date || null,
+      notes: costFormData.notes || null,
+      created_by: user.id,
+    };
+    if (editingCost) {
+      await updateCost(editingCost.id, costData);
+    } else {
+      await addCost(costData as any);
+    }
+    setShowCostDialog(false);
+    setEditingCost(null);
+  };
   
   // Filter costs by commodity type
   const filteredCosts = useMemo(() => {
@@ -829,6 +896,95 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </TabsContent>
 
       </Tabs>
+
+      {/* Cost Add/Edit Dialog */}
+      <Dialog open={showCostDialog} onOpenChange={(open) => { setShowCostDialog(open); if (!open) setEditingCost(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingCost ? 'Modifica' : 'Aggiungi'} Voce di Costo</DialogTitle>
+            <DialogDescription>Inserisci i dettagli della voce di costo</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cost-name">Nome *</Label>
+                <Input id="cost-name" value={costFormData.name} onChange={(e) => setCostFormData({ ...costFormData, name: e.target.value })} placeholder="es. Software gestionale" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cost-type">Tipo Costo *</Label>
+                <Select value={costFormData.cost_type} onValueChange={(value) => setCostFormData({ ...costFormData, cost_type: value })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COST_TYPE_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cost-amount">Importo (€) *</Label>
+                <Input id="cost-amount" type="number" step="0.01" value={costFormData.amount} onChange={(e) => setCostFormData({ ...costFormData, amount: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cost-qty">Quantità</Label>
+                <Input id="cost-qty" type="number" value={costFormData.quantity} onChange={(e) => setCostFormData({ ...costFormData, quantity: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cost-unit">Unità</Label>
+                <Input id="cost-unit" value={costFormData.unit} onChange={(e) => setCostFormData({ ...costFormData, unit: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cost-cat">Categoria</Label>
+              <Select value={costFormData.category_id} onValueChange={(value) => setCostFormData({ ...costFormData, category_id: value })}>
+                <SelectTrigger><SelectValue placeholder="Seleziona categoria" /></SelectTrigger>
+                <SelectContent>
+                  {categories.filter(c => c.type === costFormData.cost_type).map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cost-desc">Descrizione</Label>
+              <Textarea id="cost-desc" value={costFormData.description} onChange={(e) => setCostFormData({ ...costFormData, description: e.target.value })} rows={2} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cost-date">Data</Label>
+                <Input id="cost-date" type="date" value={costFormData.date} onChange={(e) => setCostFormData({ ...costFormData, date: e.target.value })} />
+              </div>
+              <div className="flex items-center space-x-2 pt-6">
+                <Switch id="cost-recurring" checked={costFormData.is_recurring} onCheckedChange={(checked) => setCostFormData({ ...costFormData, is_recurring: checked })} />
+                <Label htmlFor="cost-recurring">Costo ricorrente</Label>
+              </div>
+            </div>
+            {costFormData.is_recurring && (
+              <div className="space-y-2">
+                <Label>Periodicità</Label>
+                <Select value={costFormData.recurrence_period} onValueChange={(value) => setCostFormData({ ...costFormData, recurrence_period: value })}>
+                  <SelectTrigger><SelectValue placeholder="Seleziona periodicità" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Mensile</SelectItem>
+                    <SelectItem value="quarterly">Trimestrale</SelectItem>
+                    <SelectItem value="yearly">Annuale</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="cost-notes">Note</Label>
+              <Textarea id="cost-notes" value={costFormData.notes} onChange={(e) => setCostFormData({ ...costFormData, notes: e.target.value })} rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowCostDialog(false); setEditingCost(null); }}>Annulla</Button>
+            <Button onClick={handleCostSubmit} disabled={!costFormData.name || !costFormData.amount}>{editingCost ? 'Salva Modifiche' : 'Aggiungi Costo'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
