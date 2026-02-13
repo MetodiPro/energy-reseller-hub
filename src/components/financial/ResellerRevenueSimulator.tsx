@@ -77,6 +77,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ResellerRevenueSimulatorProps {
   projectId: string;
+  simulationHook: ReturnType<typeof useRevenueSimulation>;
 }
 
 interface MonthData {
@@ -140,7 +141,7 @@ const formatCurrencyDecimal = (value: number) => {
   }).format(value);
 };
 
-export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulatorProps) => {
+export const ResellerRevenueSimulator = ({ projectId, simulationHook }: ResellerRevenueSimulatorProps) => {
   const { toast } = useToast();
   const { 
     data, 
@@ -150,7 +151,7 @@ export const ResellerRevenueSimulator = ({ projectId }: ResellerRevenueSimulator
     updateMonthlyContract, 
     updateStartDate, 
     saveSimulation 
-  } = useRevenueSimulation(projectId);
+  } = simulationHook;
 
   const { startDate, monthlyContracts, params } = data;
   const [showInvoiceParams, setShowInvoiceParams] = useState(false);

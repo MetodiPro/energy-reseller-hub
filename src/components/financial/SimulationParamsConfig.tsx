@@ -54,9 +54,10 @@ const formatCurrency = (value: number) => {
 
 interface SimulationParamsConfigProps {
   projectId: string;
+  simulationHook: ReturnType<typeof useRevenueSimulation>;
 }
 
-export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProps) => {
+export const SimulationParamsConfig = ({ projectId, simulationHook }: SimulationParamsConfigProps) => {
   const { 
     data, 
     loading, 
@@ -65,7 +66,7 @@ export const SimulationParamsConfig = ({ projectId }: SimulationParamsConfigProp
     updateMonthlyContract, 
     updateStartDate, 
     saveSimulation 
-  } = useRevenueSimulation(projectId);
+  } = simulationHook;
 
   const { startDate, monthlyContracts, params } = data;
   const [showInvoiceParams, setShowInvoiceParams] = useState(false);
