@@ -91,7 +91,7 @@ const formatPercent = (value: number) => {
 export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId);
-  const { data: simulationData, updateParams: updateSimParams, saveSimulation } = useRevenueSimulation(projectId);
+  const revenueSimulation = useRevenueSimulation(projectId);
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
@@ -259,7 +259,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
         <TabsContent value="overview" className="space-y-6">
           {/* Simulation Parameters Config */}
-          <SimulationParamsConfig projectId={projectId} />
+          <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} />
 
           {/* Financial Alerts */}
           <FinancialAlerts summary={summary} />
@@ -548,25 +548,25 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           {/* Wholesaler costs configuration with deposit evolution */}
           <WholesalerCostsConfig
             config={{
-              punPerKwh: simulationData?.params?.punPerKwh || 0.12,
+              punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
               punOverride: null,
               punAutoUpdate: true,
-              spreadGrossistaPerKwh: simulationData?.params?.spreadGrossistaPerKwh ?? 0.008,
-              gestionePodPerPod: simulationData?.params?.gestionePodPerPod ?? 2.50,
+              spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
+              gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod ?? 2.50,
             }}
-            consumoMedioMensile={simulationData?.params?.avgMonthlyConsumption || 200}
+            consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
             onConfigChange={(updates) => {
               if (updates.spreadGrossistaPerKwh !== undefined) {
-                updateSimParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
+                revenueSimulation.updateParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
               }
               if (updates.punPerKwh !== undefined) {
-                updateSimParams('punPerKwh', updates.punPerKwh);
+                revenueSimulation.updateParams('punPerKwh', updates.punPerKwh);
               }
               if (updates.gestionePodPerPod !== undefined) {
-                updateSimParams('gestionePodPerPod', updates.gestionePodPerPod);
+                revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
               }
               // Auto-save after config change
-              setTimeout(() => saveSimulation(), 500);
+              setTimeout(() => revenueSimulation.saveSimulation(), 500);
             }}
             costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
             costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
@@ -596,11 +596,11 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               costoGestionePodTotale: simulationSummary.costoGestionePodTotale,
               totalPassanti: simulationSummary.totalPassanti,
               clientiAttivi: simulationSummary.clientiAttivi,
-              consumoMedioMensile: simulationData?.params?.avgMonthlyConsumption || 200,
-              punPerKwh: simulationData?.params?.punPerKwh || 0.12,
-              spreadGrossistaPerKwh: simulationData?.params?.spreadGrossistaPerKwh ?? 0.008,
-              spreadResellerPerKwh: simulationData?.params?.spreadPerKwh || 0.015,
-              gestionePodPerPod: simulationData?.params?.gestionePodPerPod || 2.50,
+              consumoMedioMensile: revenueSimulation.data?.params?.avgMonthlyConsumption || 200,
+              punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
+              spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
+              spreadResellerPerKwh: revenueSimulation.data?.params?.spreadPerKwh || 0.015,
+              gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod || 2.50,
             }}
           />
 
@@ -633,7 +633,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             </div>
 
             {/* Simulatore Ricavi Reseller - Fonte unica dei ricavi */}
-            <ResellerRevenueSimulator projectId={projectId} />
+            <ResellerRevenueSimulator projectId={projectId} simulationHook={revenueSimulation} />
           </div>
         </TabsContent>
 
