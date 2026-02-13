@@ -31,6 +31,7 @@ import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart'
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
 import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
+import { FinancialGlossary } from '@/components/financial/FinancialGlossary';
 
 
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
@@ -542,6 +543,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
           {/* Break-Even Analysis */}
           <BreakEvenAnalysis summary={summary} />
+
+          {/* Financial Glossary */}
+          <FinancialGlossary />
         </TabsContent>
 
         <TabsContent value="costs" className="space-y-6">
