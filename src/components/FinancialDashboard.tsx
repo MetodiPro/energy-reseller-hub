@@ -605,6 +605,16 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
               spreadResellerPerKwh: revenueSimulation.data?.params?.spreadPerKwh || 0.015,
               gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod || 2.50,
+              dispacciamentoPerKwh: revenueSimulation.data?.params?.dispacciamentoPerKwh || 0.01,
+              trasportoQuotaFissaAnno: revenueSimulation.data?.params?.trasportoQuotaFissaAnno || 23,
+              trasportoQuotaPotenzaKwAnno: revenueSimulation.data?.params?.trasportoQuotaPotenzaKwAnno || 22,
+              trasportoQuotaEnergiaKwh: revenueSimulation.data?.params?.trasportoQuotaEnergiaKwh || 0.008,
+              potenzaImpegnataKw: revenueSimulation.data?.params?.potenzaImpegnataKw || 3,
+              oneriAsosKwh: revenueSimulation.data?.params?.oneriAsosKwh || 0.025,
+              oneriArimKwh: revenueSimulation.data?.params?.oneriArimKwh || 0.007,
+              acciseKwh: revenueSimulation.data?.params?.acciseKwh || 0.0227,
+              ivaPercent: revenueSimulation.data?.params?.ivaPercent || 10,
+              monthlyBreakdown: simulationSummary.costiMensili,
             }}
           />
 

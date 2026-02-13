@@ -10,6 +10,14 @@ export interface MonthlyDepositData {
   deltaDeposito: number;
 }
 
+export interface MonthlyCostBreakdown {
+  month: number;
+  monthLabel: string;
+  clientiAttivi: number;
+  costoEnergia: number;
+  costoPod: number;
+}
+
 export interface SimulationSummary {
   // Fatturato totale (IVA inclusa)
   totalFatturato: number;
@@ -44,6 +52,8 @@ export interface SimulationSummary {
   depositoMassimo: number;
   // Serie mensile depositi per grafico
   depositiMensili: MonthlyDepositData[];
+  // Serie mensile costi per dettaglio progressivo
+  costiMensili: MonthlyCostBreakdown[];
 }
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
@@ -78,6 +88,7 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
         depositoFinale: 0,
         depositoMassimo: 0,
         depositiMensili: [],
+        costiMensili: [],
       };
     }
 
@@ -128,6 +139,7 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
     
     // Deposito cauzionale tracking
     const depositiMensili: MonthlyDepositData[] = [];
+    const costiMensili: MonthlyCostBreakdown[] = [];
     let depositoIniziale = 0;
     let depositoFinale = 0;
     let depositoMassimo = 0;
@@ -178,14 +190,16 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       totalIva += iva;
       
       // Costi grossista - il reseller paga PUN + spread grossista (NON lo spread reseller!)
+      let costoEnergiaMese = 0;
+      let gestionePodMese = 0;
       if (m >= 2) {
         // Gestione POD: pagato per ogni cliente attivo
-        const gestionePodMese = cumulativeActiveCustomers * gestionePodPerPod;
+        gestionePodMese = cumulativeActiveCustomers * gestionePodPerPod;
         costoGestionePodTotale += gestionePodMese;
         
         // Costo energia: PUN + spread GROSSISTA (non spread reseller)
         const spreadGrossista = (data as any).params?.spreadGrossistaPerKwh ?? 0.008;
-        const costoEnergiaMese = cumulativeActiveCustomers * kWh * (params.punPerKwh + spreadGrossista);
+        costoEnergiaMese = cumulativeActiveCustomers * kWh * (params.punPerKwh + spreadGrossista);
         costoEnergiaTotale += costoEnergiaMese;
       }
       
@@ -207,6 +221,14 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
         fatturatoMensileStimato,
         depositoRichiesto,
         deltaDeposito,
+      });
+      
+      costiMensili.push({
+        month: m,
+        monthLabel,
+        clientiAttivi: cumulativeActiveCustomers,
+        costoEnergia: costoEnergiaMese,
+        costoPod: gestionePodMese,
       });
       
       if (m === 2) {
@@ -266,6 +288,7 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       depositoFinale,
       depositoMassimo,
       depositiMensili,
+      costiMensili,
     };
   }, [projectId, loading, startDate, monthlyContracts, params, data]);
 
