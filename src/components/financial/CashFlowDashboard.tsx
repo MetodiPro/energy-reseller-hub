@@ -465,14 +465,35 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
             </div>
           )}
 
-          {/* Explanation */}
-          <div className="bg-muted/50 rounded-lg p-4 text-sm">
-            <p className="text-muted-foreground">
-              <strong>Nota:</strong> Il deposito cauzionale è un impegno finanziario richiesto dal grossista 
-              pari a {simSummary.depositiMensili[0]?.fatturatoMensileStimato > 0 ? '3 mesi' : 'N mesi'} di fatturato stimato. 
-              Non è un costo ma liquidità vincolata che verrà restituita alla cessazione del rapporto. 
-              Influisce sulla massima esposizione finanziaria e sul fabbisogno di capitale circolante.
-            </p>
+          {/* Explanation with pipeline and formula details */}
+          <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-3">
+            <div className="text-muted-foreground">
+              <p className="font-semibold mb-1">📐 Formula di calcolo</p>
+              <p>
+                <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
+                  Deposito = Clienti Attivi × Fattura Media Mensile × N mesi (configurabile: 3 o 6)
+                </code>
+              </p>
+              <p className="mt-1 text-xs">
+                Il deposito si ricalcola ogni mese in base ai clienti attivi correnti. Se i clienti diminuiscono (switch-out, 
+                zero nuovi contratti), il deposito richiesto diminuisce e il delta diventa negativo, liberando liquidità.
+              </p>
+            </div>
+            <div className="text-muted-foreground border-t border-border pt-3">
+              <p className="font-semibold mb-1">⏱️ Pipeline di attivazione (ritardo 2 mesi)</p>
+              <p className="text-xs">
+                I contratti firmati nel mese M vengono inviati al SII e attivati nel mese M+2. Pertanto, anche se si 
+                azzerano i nuovi contratti (es. aprile), i clienti attivi continuano a crescere per altri 2 mesi 
+                (attivazioni da contratti firmati a febbraio e marzo), e con essi il deposito cauzionale. 
+                Il calo effettivo del deposito si vedrà solo dal mese M+2 in avanti.
+              </p>
+            </div>
+            <div className="text-muted-foreground border-t border-border pt-3">
+              <p className="text-xs">
+                <strong>Nota:</strong> Il deposito cauzionale è liquidità vincolata, non un costo operativo. 
+                Verrà restituita alla cessazione del rapporto con il grossista.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -492,6 +513,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
                 <TableRow>
                   <TableHead className="sticky left-0 bg-background">Mese</TableHead>
                   <TableHead className="text-right">Contratti</TableHead>
+                  <TableHead className="text-right text-cyan-600">Attivazioni</TableHead>
                   <TableHead className="text-right">Clienti</TableHead>
                   <TableHead className="text-right text-green-600">Incassi</TableHead>
                   <TableHead className="text-right text-orange-600">Passanti</TableHead>
@@ -512,6 +534,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {row.contrattiNuovi > 0 ? `+${row.contrattiNuovi}` : '-'}
+                    </TableCell>
+                    <TableCell className="text-right text-cyan-600">
+                      {row.attivazioni > 0 ? `+${row.attivazioni}` : '-'}
                     </TableCell>
                     <TableCell className="text-right">{row.clientiAttivi}</TableCell>
                     <TableCell className="text-right text-green-600">

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   Circle, 
   Clock, 
-  TrendingUp, 
+  TrendingUp,
+  TrendingDown,
   FileText, 
   Euro, 
   Calendar, 
@@ -52,6 +53,50 @@ export const Dashboard = ({
   
   // Cash flow analysis for financial BEP
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId ?? null);
+  
+  // BEP trend tracking: compare with previous value
+  const [bepTrend, setBepTrend] = useState<'improving' | 'worsening' | 'stable' | null>(null);
+  
+  useEffect(() => {
+    if (cashFlowLoading || !cashFlowData.hasData || !projectId) return;
+    
+    const storageKey = `bep_previous_${projectId}`;
+    const currentExposure = cashFlowData.massimaEsposizione;
+    const currentBepMonth = cashFlowData.mesePrimoPositivo;
+    
+    try {
+      const prev = localStorage.getItem(storageKey);
+      if (prev) {
+        const parsed = JSON.parse(prev);
+        const prevExposure = parsed.exposure ?? 0;
+        const prevBepMonth = parsed.bepMonth ?? null;
+        
+        // Determine trend: BEP reached vs not, or exposure change
+        if (currentBepMonth && !prevBepMonth) {
+          setBepTrend('improving');
+        } else if (!currentBepMonth && prevBepMonth) {
+          setBepTrend('worsening');
+        } else if (!currentBepMonth && !prevBepMonth) {
+          // Both not reached: compare exposure
+          if (currentExposure < prevExposure * 0.98) setBepTrend('improving');
+          else if (currentExposure > prevExposure * 1.02) setBepTrend('worsening');
+          else setBepTrend('stable');
+        } else {
+          // Both reached: stable
+          setBepTrend('stable');
+        }
+      }
+      
+      // Save current values
+      localStorage.setItem(storageKey, JSON.stringify({
+        exposure: currentExposure,
+        bepMonth: currentBepMonth,
+        timestamp: Date.now(),
+      }));
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [cashFlowLoading, cashFlowData, projectId]);
   
   // Filter steps by commodity type (same logic as ProcessTracker)
   const filterStep = (step: ProcessStep) => {
@@ -411,6 +456,21 @@ export const Dashboard = ({
                   <h3 className="text-lg font-bold mt-2 text-muted-foreground">N/D</h3>
                   <p className="text-xs text-muted-foreground mt-1">configura simulazione</p>
                 </>
+              )}
+              {/* BEP Trend indicator */}
+              {bepTrend && bepTrend !== 'stable' && (
+                <div className={cn(
+                  "mt-2 flex items-center gap-1 text-xs font-medium rounded-full px-2 py-0.5 w-fit",
+                  bepTrend === 'improving' 
+                    ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400" 
+                    : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"
+                )}>
+                  {bepTrend === 'improving' ? (
+                    <><TrendingUp className="h-3 w-3" /> In miglioramento</>
+                  ) : (
+                    <><TrendingDown className="h-3 w-3" /> In peggioramento</>
+                  )}
+                </div>
               )}
             </div>
             <Wallet className="h-8 w-8 text-primary" />
