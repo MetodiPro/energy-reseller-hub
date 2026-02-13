@@ -30,6 +30,13 @@ interface WholesalerConfig {
   gestionePodPerPod: number;
 }
 
+interface PassthroughTotals {
+  dispacciamento: number;
+  trasporto: number;
+  oneriSistema: number;
+  accise: number;
+}
+
 interface WholesalerCostsConfigProps {
   config: WholesalerConfig;
   consumoMedioMensile: number;
@@ -38,6 +45,8 @@ interface WholesalerCostsConfigProps {
   costoEnergiaTotale: number;
   costoGestionePodTotale: number;
   clientiAttiviFinale: number;
+  // Costi passanti fattura
+  passthroughTotals?: PassthroughTotals;
 }
 
 const formatCurrency = (value: number) => {
@@ -64,6 +73,7 @@ export const WholesalerCostsConfig = ({
   costoEnergiaTotale,
   costoGestionePodTotale,
   clientiAttiviFinale,
+  passthroughTotals,
 }: WholesalerCostsConfigProps) => {
   const { toast } = useToast();
   const [punData, setPunData] = useState<PunPriceData | null>(null);
@@ -287,6 +297,42 @@ export const WholesalerCostsConfig = ({
               </span>
             </div>
           </div>
+
+          {/* Costi passanti in fattura */}
+          {passthroughTotals && (
+            <>
+              <Separator className="my-4" />
+              <h4 className="font-semibold mb-3">Costi Passanti in Fattura (14 mesi cumulativi)</h4>
+              <p className="text-xs text-muted-foreground mb-4">
+                Il reseller li incassa dal cliente e li gira ai rispettivi destinatari. Non impattano il margine.
+              </p>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Dispacciamento <span className="text-xs text-muted-foreground">(Terna/GME)</span></span>
+                  <span className="font-mono text-amber-600">{formatCurrencyFull(passthroughTotals.dispacciamento)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Trasporto e Distribuzione <span className="text-xs text-muted-foreground">(Distributore)</span></span>
+                  <span className="font-mono text-amber-600">{formatCurrencyFull(passthroughTotals.trasporto)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Oneri di Sistema <span className="text-xs text-muted-foreground">(CSEA/ARERA)</span></span>
+                  <span className="font-mono text-amber-600">{formatCurrencyFull(passthroughTotals.oneriSistema)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Accise <span className="text-xs text-muted-foreground">(Agenzia Dogane)</span></span>
+                  <span className="font-mono text-amber-600">{formatCurrencyFull(passthroughTotals.accise)}</span>
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between font-bold">
+                  <span>Totale Passanti (14 mesi)</span>
+                  <span className="font-mono text-amber-600">
+                    {formatCurrencyFull(passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema + passthroughTotals.accise)}
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         
         {/* Info box */}

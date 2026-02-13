@@ -575,6 +575,12 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
             costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
             clientiAttiviFinale={summary.clientiAttivi || 0}
+            passthroughTotals={{
+              dispacciamento: simulationSummary.costiMensili.reduce((s, m) => s + m.dispacciamento, 0),
+              trasporto: simulationSummary.costiMensili.reduce((s, m) => s + m.trasporto, 0),
+              oneriSistema: simulationSummary.costiMensili.reduce((s, m) => s + m.oneriSistema, 0),
+              accise: simulationSummary.costiMensili.reduce((s, m) => s + m.accise, 0),
+            }}
           />
           
           {/* Costs organized by category tabs */}
