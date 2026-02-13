@@ -314,12 +314,13 @@ export const CostTabsView = ({
     const acciseMensilePerCliente = acciseKwh * kWh;
     const dispacciamentoMensilePerCliente = dispacciamentoPerKwh * kWh;
 
-    // Calculate progressive totals for passthrough components
+    // Use actual values from costiMensili (based on invoicedCustomers, month 3+)
+    // NOT recalculated on clientiAttivi (month 2+) to avoid discrepancies
     const totalClientiMesi = monthlyBreakdown.reduce((sum, m) => sum + m.clientiAttivi, 0);
-    const trasportoTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * trasportoMensilePerCliente), 0);
-    const oneriTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * oneriMensilePerCliente), 0);
-    const acciseTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * acciseMensilePerCliente), 0);
-    const dispacciamentoTotale = monthlyBreakdown.reduce((sum, m) => sum + (m.clientiAttivi * dispacciamentoMensilePerCliente), 0);
+    const trasportoTotale = monthlyBreakdown.reduce((sum, m) => sum + m.trasporto, 0);
+    const oneriTotale = monthlyBreakdown.reduce((sum, m) => sum + m.oneriSistema, 0);
+    const acciseTotale = monthlyBreakdown.reduce((sum, m) => sum + m.accise, 0);
+    const dispacciamentoTotale = monthlyBreakdown.reduce((sum, m) => sum + m.dispacciamento, 0);
 
     // Find min/max active customers for the info text
     const activeMonths = monthlyBreakdown.filter(m => m.clientiAttivi > 0);
