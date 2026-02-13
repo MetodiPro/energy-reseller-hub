@@ -65,6 +65,25 @@ interface SimulatedPassthroughCosts {
   monthlyBreakdown?: MonthlyBreakdown[];
 }
 
+// Monthly commission breakdown by channel
+interface MonthlyCommissionBreakdown {
+  month: number;
+  monthLabel: string;
+  contrattiNuovi: number;
+  clientiAttivati: number;
+  costiCommerciali: number;
+}
+
+// Channel breakdown for summary
+interface ChannelBreakdownData {
+  channel_name: string;
+  commission_amount: number;
+  commission_type: 'per_contract' | 'per_activation';
+  contracts: number;
+  activations: number;
+  cost: number;
+}
+
 interface CostTabsViewProps {
   costs: ProjectCost[];
   categories: CostCategory[];
@@ -74,6 +93,11 @@ interface CostTabsViewProps {
   onAdd: () => void;
   simulatedPassthrough?: SimulatedPassthroughCosts;
   activeChannelNames?: string[];
+  simulatedCommercial?: {
+    totaleCostiCommerciali: number;
+    monthlyBreakdown: MonthlyCommissionBreakdown[];
+    channelBreakdown: ChannelBreakdownData[];
+  };
 }
 
 const COST_CATEGORIES = {
@@ -186,6 +210,7 @@ export const CostTabsView = ({
   onAdd,
   simulatedPassthrough,
   activeChannelNames = [],
+  simulatedCommercial,
 }: CostTabsViewProps) => {
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
@@ -202,16 +227,26 @@ export const CostTabsView = ({
       if (category === null) return;
       
       const amount = cost.amount * cost.quantity;
+      // Exclude duplicate commission costs from total when channels are active
+      const isDuplicate = category === 'commercial' && isCommissionDuplicate(cost, activeChannelNames);
+      
       result[category].costs.push(cost);
-      result[category].total += amount;
+      if (!isDuplicate) {
+        result[category].total += amount;
+      }
     });
     
     if (simulatedPassthrough) {
       result.passthrough.total = simulatedPassthrough.costoEnergiaTotale + simulatedPassthrough.costoGestionePodTotale;
     }
     
+    // Add simulated commercial costs to commercial total
+    if (simulatedCommercial) {
+      result.commercial.total += simulatedCommercial.totaleCostiCommerciali;
+    }
+    
     return result;
-  }, [costs, commodityType, simulatedPassthrough]);
+  }, [costs, commodityType, simulatedPassthrough, activeChannelNames, simulatedCommercial]);
   
   const totalCosts = Object.values(categorizedCosts).reduce((sum, cat) => sum + cat.total, 0);
   
@@ -724,6 +759,8 @@ export const CostTabsView = ({
                     <p className="text-sm text-muted-foreground">
                       {isPassthrough && simulatedPassthrough 
                         ? 'Calcolati dal simulatore' 
+                        : key === 'commercial' && simulatedCommercial
+                        ? `${category.costs.length} voci manuali + provvigioni canali`
                         : `${category.costs.length} ${category.costs.length === 1 ? 'voce' : 'voci'}`}
                     </p>
                   </div>
@@ -731,6 +768,111 @@ export const CostTabsView = ({
                 
                 {isPassthrough ? renderSimulatedPassthrough() : (
                   <>
+                    {/* Simulated channel commissions section */}
+                    {key === 'commercial' && simulatedCommercial && simulatedCommercial.totaleCostiCommerciali > 0 && (
+                      <div className="space-y-4 mb-6">
+                        <h4 className="font-semibold text-base flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          Provvigioni Canali di Vendita (dal simulatore)
+                          <Badge variant="outline" className="text-xs font-normal">Calcolate automaticamente</Badge>
+                        </h4>
+                        
+                        {/* Channel breakdown summary */}
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Canale</TableHead>
+                              <TableHead>Tipo Commissione</TableHead>
+                              <TableHead className="text-right">Importo Unitario</TableHead>
+                              <TableHead className="text-right">Contratti</TableHead>
+                              <TableHead className="text-right">Attivazioni</TableHead>
+                              <TableHead className="text-right">Totale</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {simulatedCommercial.channelBreakdown.map(ch => (
+                              <TableRow key={ch.channel_name}>
+                                <TableCell className="font-medium">{ch.channel_name}</TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {ch.commission_type === 'per_contract' ? 'Per contratto' : 'Per attivazione'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right font-mono">{formatCurrency(ch.commission_amount)}</TableCell>
+                                <TableCell className="text-right">{ch.contracts}</TableCell>
+                                <TableCell className="text-right">{ch.activations}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(ch.cost)}</TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow className="bg-muted/50 font-bold">
+                              <TableCell colSpan={5}>Totale Provvigioni Simulate</TableCell>
+                              <TableCell className="text-right text-lg">{formatCurrency(simulatedCommercial.totaleCostiCommerciali)}</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+
+                        {/* Monthly progressive breakdown */}
+                        {simulatedCommercial.monthlyBreakdown.length > 0 && (
+                          <Accordion type="single" collapsible>
+                            <AccordionItem value="monthly-commissions" className="border rounded-lg px-4">
+                              <AccordionTrigger className="text-sm hover:no-underline py-3">
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                                  Dettaglio mensile progressivo provvigioni
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="overflow-x-auto">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead>Mese</TableHead>
+                                        <TableHead className="text-right">Contratti Nuovi</TableHead>
+                                        <TableHead className="text-right">Attivazioni</TableHead>
+                                        <TableHead className="text-right">Provvigioni Mese</TableHead>
+                                        <TableHead className="text-right font-bold">Cumulativo</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {(() => {
+                                        let cumulative = 0;
+                                        return simulatedCommercial.monthlyBreakdown.map(m => {
+                                          cumulative += m.costiCommerciali;
+                                          return (
+                                            <TableRow key={m.month} className={m.costiCommerciali === 0 ? 'opacity-50' : ''}>
+                                              <TableCell className="font-medium">{m.monthLabel}</TableCell>
+                                              <TableCell className="text-right font-mono">{m.contrattiNuovi}</TableCell>
+                                              <TableCell className="text-right font-mono">{m.clientiAttivati}</TableCell>
+                                              <TableCell className="text-right font-mono">{formatCurrencyShort(m.costiCommerciali)}</TableCell>
+                                              <TableCell className="text-right font-bold font-mono text-primary">{formatCurrencyShort(cumulative)}</TableCell>
+                                            </TableRow>
+                                          );
+                                        });
+                                      })()}
+                                      <TableRow className="bg-muted/50 font-bold">
+                                        <TableCell>Totale</TableCell>
+                                        <TableCell className="text-right">
+                                          {simulatedCommercial.monthlyBreakdown.reduce((s, m) => s + m.contrattiNuovi, 0)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                          {simulatedCommercial.monthlyBreakdown.reduce((s, m) => s + m.clientiAttivati, 0)}
+                                        </TableCell>
+                                        <TableCell className="text-right text-lg">
+                                          {formatCurrency(simulatedCommercial.totaleCostiCommerciali)}
+                                        </TableCell>
+                                        <TableCell className="text-right">-</TableCell>
+                                      </TableRow>
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Warning for duplicate manual costs */}
                     {key === 'commercial' && activeChannelNames.length > 0 && category.costs.some(c => isCommissionDuplicate(c, activeChannelNames)) && (
                       <div className="mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                         <div className="flex items-start gap-2">
@@ -741,11 +883,20 @@ export const CostTabsView = ({
                             </p>
                             <p className="text-amber-700 dark:text-amber-400 mt-1">
                               Hai configurato solo <strong>{activeChannelNames.join(', ')}</strong> come {activeChannelNames.length === 1 ? 'canale attivo' : 'canali attivi'}. 
-                              Le voci evidenziate in basso si riferiscono a canali non attivi e potrebbero essere eliminate per evitare duplicazioni con i costi calcolati dal simulatore.
+                              Le voci evidenziate sono escluse dal totale. Eliminale per tenere pulita la scheda.
                             </p>
                           </div>
                         </div>
                       </div>
+                    )}
+
+                    {/* Manual cost entries */}
+                    {key === 'commercial' && category.costs.length > 0 && simulatedCommercial && (
+                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        Costi Commerciali Manuali
+                        <Badge variant="secondary" className="text-xs font-normal">{category.costs.length} voci</Badge>
+                      </h4>
                     )}
                     {renderCostTable(category.costs, key === 'commercial')}
                   </>

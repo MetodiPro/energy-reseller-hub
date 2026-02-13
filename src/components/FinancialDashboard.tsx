@@ -97,7 +97,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const revenueSimulation = useRevenueSimulation(projectId);
   const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, { data: revenueSimulation.data, loading: revenueSimulation.loading });
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId);
-  const { channels: salesChannels } = useSalesChannels(projectId);
+  const { channels: salesChannels, getChannelBreakdown } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
   const [editingCost, setEditingCost] = useState<any>(null);
@@ -754,6 +754,24 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               monthlyBreakdown: simulationSummary.costiMensili,
             }}
             activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
+            simulatedCommercial={cashFlowData.hasData ? {
+              totaleCostiCommerciali: cashFlowData.totaleCostiCommerciali,
+              monthlyBreakdown: cashFlowData.monthlyData.map(m => ({
+                month: m.month,
+                monthLabel: m.monthLabel,
+                contrattiNuovi: m.contrattiNuovi,
+                clientiAttivati: m.month >= 2 ? Math.round((m.month - 2 < 12 ? (revenueSimulation.data?.monthlyContracts?.[m.month - 2] ?? 0) : 0) * ((revenueSimulation.data?.params?.activationRate ?? 85) / 100)) : 0,
+                costiCommerciali: m.costiCommerciali,
+              })),
+              channelBreakdown: getChannelBreakdown(simulationSummary.contrattiTotali).map(ch => ({
+                channel_name: ch.channel_name,
+                commission_amount: ch.commission_amount,
+                commission_type: ch.commission_type as 'per_contract' | 'per_activation',
+                contracts: ch.contracts,
+                activations: ch.activations,
+                cost: ch.cost,
+              })),
+            } : undefined}
           />
 
           {/* Sales Channels Configuration */}
