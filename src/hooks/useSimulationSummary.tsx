@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useRevenueSimulation } from './useRevenueSimulation';
+import { useRevenueSimulation, RevenueSimulationData } from './useRevenueSimulation';
 
 export interface MonthlyDepositData {
   month: number;
@@ -48,9 +48,14 @@ export interface SimulationSummary {
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
-export const useSimulationSummary = (projectId: string | null) => {
-  const { data, loading } = useRevenueSimulation(projectId);
-  const { startDate, monthlyContracts, params } = data;
+export const useSimulationSummary = (projectId: string | null, simulationData?: { data: RevenueSimulationData; loading: boolean }) => {
+  // If no external data provided, create own hook instance (backward compat)
+  const ownHook = useRevenueSimulation(simulationData ? null : projectId);
+  const data = simulationData?.data ?? ownHook.data;
+  const loading = simulationData?.loading ?? ownHook.loading;
+  const startDate = data.startDate;
+  const monthlyContracts = data.monthlyContracts;
+  const params = data.params;
 
   const summary = useMemo((): SimulationSummary => {
     if (!projectId || loading) {

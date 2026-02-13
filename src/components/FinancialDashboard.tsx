@@ -90,8 +90,8 @@ const formatPercent = (value: number) => {
 
 export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
-  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId);
   const revenueSimulation = useRevenueSimulation(projectId);
+  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, { data: revenueSimulation.data, loading: revenueSimulation.loading });
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('overview');
