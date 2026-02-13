@@ -16,6 +16,10 @@ export interface MonthlyCostBreakdown {
   clientiAttivi: number;
   costoEnergia: number;
   costoPod: number;
+  dispacciamento: number;
+  trasporto: number;
+  oneriSistema: number;
+  accise: number;
 }
 
 export interface SimulationSummary {
@@ -223,14 +227,22 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
         deltaDeposito,
       });
       
+      const dispacciamentoMese = invoicedCustomers * (params.punPerKwh > 0 ? params.dispacciamentoPerKwh * kWh : 0);
+      const trasportoMese = invoicedCustomers * trasportoPerCliente;
+      const oneriSistemaMese = invoicedCustomers * oneriPerCliente;
+      const acciseMese = invoicedCustomers * accisePerCliente;
+
       costiMensili.push({
         month: m,
         monthLabel,
         clientiAttivi: cumulativeActiveCustomers,
         costoEnergia: costoEnergiaMese,
         costoPod: gestionePodMese,
+        dispacciamento: dispacciamentoMese,
+        trasporto: trasportoMese,
+        oneriSistema: oneriSistemaMese,
+        accise: acciseMese,
       });
-      
       if (m === 2) {
         depositoIniziale = depositoRichiesto;
       }

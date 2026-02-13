@@ -33,6 +33,10 @@ interface MonthlyBreakdown {
   clientiAttivi: number;
   costoEnergia: number;
   costoPod: number;
+  dispacciamento: number;
+  trasporto: number;
+  oneriSistema: number;
+  accise: number;
 }
 
 // Dati costi passanti dal simulatore
@@ -554,51 +558,71 @@ export const CostTabsView = ({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Mese</TableHead>
-                      <TableHead className="text-right">Clienti Attivi</TableHead>
-                      <TableHead className="text-right">Costo Energia</TableHead>
+                      <TableHead className="text-right">Clienti</TableHead>
+                      <TableHead className="text-right">Energia</TableHead>
                       <TableHead className="text-right">Fee POD</TableHead>
-                      <TableHead className="text-right">Totale Mese</TableHead>
+                      <TableHead className="text-right">Dispacc.</TableHead>
+                      <TableHead className="text-right">Trasporto</TableHead>
+                      <TableHead className="text-right">Oneri</TableHead>
+                      <TableHead className="text-right">Accise</TableHead>
+                      <TableHead className="text-right font-bold">Totale Mese</TableHead>
+                      <TableHead className="text-right font-bold">Cumulativo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {monthlyBreakdown.map((m) => (
-                      <TableRow key={m.month} className={m.clientiAttivi === 0 ? 'opacity-50' : ''}>
-                        <TableCell className="font-medium">{m.monthLabel}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="font-mono">{m.clientiAttivi}</span>
-                            {m.clientiAttivi > 0 && (
-                              <div 
-                                className="h-2 bg-primary/30 rounded-full" 
-                                style={{ width: `${Math.max(4, (m.clientiAttivi / maxClienti) * 60)}px` }}
-                              />
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
-                          {formatCurrencyShort(m.costoEnergia)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
-                          {formatCurrencyShort(m.costoPod)}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold font-mono">
-                          {formatCurrencyShort(m.costoEnergia + m.costoPod)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {(() => {
+                      let cumulative = 0;
+                      return monthlyBreakdown.map((m) => {
+                        const totaleMese = m.costoEnergia + m.costoPod + m.dispacciamento + m.trasporto + m.oneriSistema + m.accise;
+                        cumulative += totaleMese;
+                        return (
+                          <TableRow key={m.month} className={m.clientiAttivi === 0 ? 'opacity-50' : ''}>
+                            <TableCell className="font-medium">{m.monthLabel}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <span className="font-mono">{m.clientiAttivi}</span>
+                                {m.clientiAttivi > 0 && (
+                                  <div 
+                                    className="h-2 bg-primary/30 rounded-full" 
+                                    style={{ width: `${Math.max(4, (m.clientiAttivi / maxClienti) * 60)}px` }}
+                                  />
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-sm">{formatCurrencyShort(m.costoEnergia)}</TableCell>
+                            <TableCell className="text-right font-mono text-sm">{formatCurrencyShort(m.costoPod)}</TableCell>
+                            <TableCell className="text-right font-mono text-sm">{formatCurrencyShort(m.dispacciamento)}</TableCell>
+                            <TableCell className="text-right font-mono text-sm">{formatCurrencyShort(m.trasporto)}</TableCell>
+                            <TableCell className="text-right font-mono text-sm">{formatCurrencyShort(m.oneriSistema)}</TableCell>
+                            <TableCell className="text-right font-mono text-sm">{formatCurrencyShort(m.accise)}</TableCell>
+                            <TableCell className="text-right font-semibold font-mono">{formatCurrencyShort(totaleMese)}</TableCell>
+                            <TableCell className="text-right font-bold font-mono text-primary">{formatCurrencyShort(cumulative)}</TableCell>
+                          </TableRow>
+                        );
+                      });
+                    })()}
                     <TableRow className="bg-muted/50 font-bold">
-                      <TableCell>Totale cumulativo</TableCell>
+                      <TableCell>Totale</TableCell>
                       <TableCell className="text-right">-</TableCell>
-                      <TableCell className="text-right">{formatCurrency(costoEnergiaTotale)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(costoGestionePodTotale)}</TableCell>
-                      <TableCell className="text-right text-lg">{formatCurrency(costoEnergiaTotale + costoGestionePodTotale)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatCurrency(costoEnergiaTotale)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatCurrency(costoGestionePodTotale)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatCurrency(dispacciamentoTotale)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatCurrency(trasportoTotale)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatCurrency(oneriTotale)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatCurrency(acciseTotale)}</TableCell>
+                      <TableCell className="text-right text-lg">
+                        {formatCurrency(costoEnergiaTotale + costoGestionePodTotale + dispacciamentoTotale + trasportoTotale + oneriTotale + acciseTotale)}
+                      </TableCell>
+                      <TableCell className="text-right">-</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
