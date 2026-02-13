@@ -40,6 +40,7 @@ export interface ClientParams {
 // Parametri costi grossista
 export interface WholesalerParams {
   gestionePodPerPod: number;      // Fee gestione POD €/POD/mese
+  depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
 }
 
 // Parametri fiscali
@@ -90,6 +91,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   
   // Costi grossista
   gestionePodPerPod: 2.50,
+  depositoMesi: 3,
   
   // Regime fiscale
   ivaPaymentRegime: 'monthly',
@@ -166,6 +168,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             
             // Costi grossista
             gestionePodPerPod: Number(simulation.gestione_pod_per_pod ?? DEFAULT_PARAMS.gestionePodPerPod),
+            depositoMesi: Number(simulation.deposito_cauzionale_mesi ?? DEFAULT_PARAMS.depositoMesi),
           },
         });
       } else {
@@ -230,6 +233,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         
         // Costi grossista
         gestione_pod_per_pod: data.params.gestionePodPerPod,
+        deposito_cauzionale_mesi: data.params.depositoMesi,
         
         created_by: user.id,
       };

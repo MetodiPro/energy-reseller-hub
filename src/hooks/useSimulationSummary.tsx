@@ -99,9 +99,9 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
     const startMonth = startDate.getMonth();
     const startYear = startDate.getFullYear();
     
-    // Get deposit config from simulation params (with defaults)
-    const depositoMesi = (data as any).depositoMesi ?? 3;
-    const gestionePodPerPod = (data as any).gestionePodPerPod ?? 2.5;
+    // Get deposit config from simulation params
+    const depositoMesi = params.depositoMesi ?? 3;
+    const gestionePodPerPod = params.gestionePodPerPod ?? 2.5;
     
     const invoicesToCollect: { month: number; amount: number }[] = [];
     let cumulativeActiveCustomers = 0;

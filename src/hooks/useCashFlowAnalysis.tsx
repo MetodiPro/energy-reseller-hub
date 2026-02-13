@@ -126,9 +126,9 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     const params = simData.params;
     const monthlyContracts = simData.monthlyContracts;
     
-    // Get deposit config
-    const depositoMesi = (simData as any).depositoMesi ?? 3;
-    const gestionePodPerPod = (simData as any).gestionePodPerPod ?? 2.5;
+    // Get deposit config from params
+    const depositoMesi = params.depositoMesi ?? 3;
+    const gestionePodPerPod = params.gestionePodPerPod ?? 2.5;
     
     // Calculate monthly investments based on step timing
     const monthlyInvestments = calculateMonthlyInvestments(getStepTotal);

@@ -28,6 +28,7 @@ interface WholesalerConfig {
   punAutoUpdate: boolean;
   spreadGrossistaPerKwh: number;  // Spread pagato al grossista (COSTO)
   gestionePodPerPod: number;
+  depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
 }
 
 interface PassthroughTotals {
@@ -268,6 +269,47 @@ export const WholesalerCostsConfig = ({
                 <span className="text-sm text-muted-foreground">POD attivi al 14° mese</span>
                 <span className="font-mono font-semibold">{clientiAttiviFinale}</span>
               </div>
+            </div>
+          </div>
+        </div>
+        
+        <Separator />
+        
+        {/* Depositi Cauzionali */}
+        <div className="space-y-4">
+          <h4 className="font-medium flex items-center gap-2">
+            <Info className="h-4 w-4 text-purple-500" />
+            Depositi Cauzionali (Garanzie Grossista)
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                Mesi di fatturato in garanzia
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Il grossista richiede un deposito pari a N mesi di fatturato stimato dei clienti attivi.
+                      Ogni mese si versa solo il delta incrementale rispetto al deposito già versato.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+              <Input
+                type="number"
+                step="1"
+                min="1"
+                max="12"
+                value={config.depositoMesi}
+                onChange={(e) => onConfigChange({ depositoMesi: parseInt(e.target.value) || 3 })}
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Deposito = Clienti Attivi × Fattura Media × {config.depositoMesi} mesi
+              </p>
             </div>
           </div>
         </div>
