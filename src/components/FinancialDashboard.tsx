@@ -741,7 +741,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <FinancialTrendChart cashFlowData={cashFlowData} loading={cashFlowLoading} />
 
           {/* Break-Even Analysis */}
-          <BreakEvenAnalysis summary={summary} />
+          <BreakEvenAnalysis summary={summary} breakEvenFinanziario={cashFlowData.mesePrimoPositivo} />
 
           {/* Financial Glossary */}
           <FinancialGlossary />
