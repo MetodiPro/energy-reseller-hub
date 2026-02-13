@@ -29,6 +29,7 @@ interface WholesalerConfig {
   spreadGrossistaPerKwh: number;  // Spread pagato al grossista (COSTO)
   gestionePodPerPod: number;
   depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
+  depositoPercentualeAttivazione: number; // % fatturato stimato applicata al deposito
 }
 
 interface PassthroughTotals {
@@ -307,11 +308,36 @@ export const WholesalerCostsConfig = ({
                 onChange={(e) => onConfigChange({ depositoMesi: parseInt(e.target.value) || 3 })}
                 className="font-mono"
               />
-              <p className="text-xs text-muted-foreground">
-                Deposito = Clienti Attivi × Fattura Media × {config.depositoMesi} mesi
-              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                % applicata al deposito
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Percentuale del fatturato stimato effettivamente richiesta come deposito cauzionale.
+                      Es: 85% significa che il deposito è calcolato sull'85% del fatturato stimato.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+              <Input
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                value={config.depositoPercentualeAttivazione}
+                onChange={(e) => onConfigChange({ depositoPercentualeAttivazione: parseFloat(e.target.value) || 85 })}
+                className="font-mono"
+              />
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Deposito = Clienti Attivi × Fattura Media × {config.depositoMesi} mesi × {config.depositoPercentualeAttivazione}%
+          </p>
         </div>
         
         <Separator />

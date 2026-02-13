@@ -757,6 +757,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
               gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod ?? 2.50,
               depositoMesi: revenueSimulation.data?.params?.depositoMesi ?? 3,
+              depositoPercentualeAttivazione: revenueSimulation.data?.params?.depositoPercentualeAttivazione ?? 85,
             }}
             consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
             onConfigChange={(updates) => {
@@ -771,6 +772,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               }
               if (updates.depositoMesi !== undefined) {
                 revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
+              }
+              if (updates.depositoPercentualeAttivazione !== undefined) {
+                revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
               }
               // Auto-save after config change
               setTimeout(() => revenueSimulation.saveSimulation(), 500);

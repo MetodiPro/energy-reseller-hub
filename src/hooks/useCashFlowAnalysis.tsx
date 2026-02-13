@@ -128,6 +128,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     
     // Get deposit config from params
     const depositoMesi = params.depositoMesi ?? 3;
+    const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
     const gestionePodPerPod = params.gestionePodPerPod ?? 2.5;
     
     // Calculate monthly investments based on step timing
@@ -250,7 +251,7 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       
       // Calculate deposit delta
       const fatturatoMensileStimato = cumulativeActiveCustomers * fatturaPerCliente;
-      const depositoRichiesto = fatturatoMensileStimato * depositoMesi;
+      const depositoRichiesto = fatturatoMensileStimato * depositoMesi * depositoPercentuale;
       const depositoPrecedente = previousDeposito;
       const deltaDeposito = depositoRichiesto - previousDeposito;
       previousDeposito = depositoRichiesto;
