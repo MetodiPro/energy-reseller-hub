@@ -49,19 +49,31 @@ interface AppSidebarProps {
   onSignOut?: () => void;
 }
 
-const navigationItems = [
-  { id: "overview", title: "Scheda", icon: Building2 },
+const projectItems = [
+  { id: "overview", title: "Scheda Progetto", icon: Building2 },
   { id: "dashboard", title: "Dashboard", icon: LayoutDashboard },
+];
+
+const operativeItems = [
   { id: "process", title: "Processo", icon: ListTodo },
-  { id: "deadlines", title: "Scadenze", icon: Calendar },
-  { id: "step-docs", title: "Doc/Step", icon: Link },
-  { id: "team", title: "Team", icon: Users },
-  { id: "documents", title: "Documenti", icon: FolderOpen },
-  { id: "consultants", title: "Consulenti", icon: Briefcase },
-  { id: "financials", title: "Finanza", icon: DollarSign },
-  { id: "business-plan", title: "Business", icon: FileText },
-  { id: "marketing", title: "Marketing", icon: TrendingUp },
   { id: "gantt", title: "Timeline", icon: BarChart3 },
+  { id: "deadlines", title: "Scadenze", icon: Calendar },
+  { id: "step-docs", title: "Documenti Step", icon: Link },
+  { id: "documents", title: "Documenti", icon: FolderOpen },
+];
+
+const teamItems = [
+  { id: "team", title: "Team", icon: Users },
+  { id: "consultants", title: "Consulenti", icon: Briefcase },
+];
+
+const strategyItems = [
+  { id: "financials", title: "Finanza", icon: DollarSign },
+  { id: "business-plan", title: "Business Plan", icon: FileText },
+  { id: "marketing", title: "Marketing", icon: TrendingUp },
+];
+
+const launchItems = [
   { id: "prelaunch", title: "Pre-Launch", icon: Rocket },
 ];
 
@@ -101,25 +113,36 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, userName, onSign
       </SidebarHeader>
       
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigazione</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    isActive={activeTab === item.id}
-                    onClick={() => onTabChange(item.id)}
-                    tooltip={item.title}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {[
+          { label: 'Progetto', items: projectItems },
+          { label: 'Operativo', items: operativeItems },
+          { label: 'Team', items: teamItems },
+          { label: 'Strategia', items: strategyItems },
+          { label: 'Lancio', items: launchItems },
+        ].map((group, idx) => (
+          <div key={group.label}>
+            {idx > 0 && <SidebarSeparator />}
+            <SidebarGroup>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        isActive={activeTab === item.id}
+                        onClick={() => onTabChange(item.id)}
+                        tooltip={item.title}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        ))}
 
         <SidebarSeparator />
 

@@ -282,7 +282,7 @@ const Index = () => {
         return (
           <GanttTimeline 
             stepProgress={stepProgress}
-            projectStartDate={(currentProject as any)?.created_at}
+            projectStartDate={(currentProject as any)?.planned_start_date}
             goLiveDate={(currentProject as any)?.go_live_date}
           />
         );
@@ -291,7 +291,7 @@ const Index = () => {
           <PreLaunchChecklist 
             stepProgress={stepProgress}
             project={currentProject as any}
-            hasDocuments={false}
+            hasDocuments={costs.length > 0 || revenues.length > 0}
             hasCosts={costs.length > 0}
             hasTeamMembers={true}
           />
