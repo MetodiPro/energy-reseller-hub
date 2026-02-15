@@ -213,10 +213,11 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       
       // Calcolo deposito cauzionale mensile
       // Il deposito è richiesto solo sui NUOVI clienti attivati
-      // I pagamenti effettuati per consumi riducono la garanzia
+      // I clienti churned rilasciano il deposito, i pagamenti consumi riducono la garanzia
       const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
       const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
-      totalDepositoLordo += nuovoDepositoAttivazioni;
+      const depositoRilasciatoChurn = churnedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
+      totalDepositoLordo += nuovoDepositoAttivazioni - depositoRilasciatoChurn;
       
       // Costi passanti pagati al grossista questo mese riducono il deposito
       const costiPassantiMese = m >= 2 
