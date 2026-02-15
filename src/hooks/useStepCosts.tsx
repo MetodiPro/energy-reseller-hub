@@ -61,6 +61,31 @@ export const useStepCosts = (projectId: string | null) => {
     fetchCosts();
   }, [fetchCosts]);
 
+  // Realtime subscription to detect changes from other components (e.g. Processo -> Liquidità)
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel(`step-costs-${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_step_costs',
+          filter: `project_id=eq.${projectId}`,
+        },
+        () => {
+          fetchCosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, fetchCosts]);
+
   // Get the effective amount for a cost item (custom or default)
   const getCostAmount = useCallback((stepId: string, costItemId: string): number => {
     // Check for custom amount first
