@@ -374,9 +374,53 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab Ipotesi Operative - All simulation parameters */}
+        {/* Tab Ipotesi Operative - All simulation parameters, sales channels, wholesaler */}
         <TabsContent value="hypotheses" className="space-y-6">
-          <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} />
+          <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
+          
+          {/* Sales Channels Configuration */}
+          <SalesChannelsConfig projectId={projectId} />
+          
+          {/* Wholesaler Costs Configuration */}
+          <WholesalerCostsConfig
+            config={{
+              punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
+              punOverride: null,
+              punAutoUpdate: true,
+              spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
+              gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod ?? 2.50,
+              depositoMesi: revenueSimulation.data?.params?.depositoMesi ?? 3,
+              depositoPercentualeAttivazione: revenueSimulation.data?.params?.depositoPercentualeAttivazione ?? 85,
+            }}
+            consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
+            onConfigChange={(updates) => {
+              if (updates.spreadGrossistaPerKwh !== undefined) {
+                revenueSimulation.updateParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
+              }
+              if (updates.punPerKwh !== undefined) {
+                revenueSimulation.updateParams('punPerKwh', updates.punPerKwh);
+              }
+              if (updates.gestionePodPerPod !== undefined) {
+                revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
+              }
+              if (updates.depositoMesi !== undefined) {
+                revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
+              }
+              if (updates.depositoPercentualeAttivazione !== undefined) {
+                revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
+              }
+              setTimeout(() => revenueSimulation.saveSimulation(), 500);
+            }}
+            costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
+            costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
+            clientiAttiviFinale={summary.clientiAttivi || 0}
+            passthroughTotals={{
+              dispacciamento: simulationSummary.costiMensili.reduce((s, m) => s + m.dispacciamento, 0),
+              trasporto: simulationSummary.costiMensili.reduce((s, m) => s + m.trasporto, 0),
+              oneriSistema: simulationSummary.costiMensili.reduce((s, m) => s + m.oneriSistema, 0),
+              accise: simulationSummary.costiMensili.reduce((s, m) => s + m.accise, 0),
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
@@ -789,48 +833,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </TabsContent>
 
         <TabsContent value="costs" className="space-y-6">
-          {/* Wholesaler costs configuration with deposit evolution */}
-          <WholesalerCostsConfig
-            config={{
-              punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
-              punOverride: null,
-              punAutoUpdate: true,
-              spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
-              gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod ?? 2.50,
-              depositoMesi: revenueSimulation.data?.params?.depositoMesi ?? 3,
-              depositoPercentualeAttivazione: revenueSimulation.data?.params?.depositoPercentualeAttivazione ?? 85,
-            }}
-            consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
-            onConfigChange={(updates) => {
-              if (updates.spreadGrossistaPerKwh !== undefined) {
-                revenueSimulation.updateParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
-              }
-              if (updates.punPerKwh !== undefined) {
-                revenueSimulation.updateParams('punPerKwh', updates.punPerKwh);
-              }
-              if (updates.gestionePodPerPod !== undefined) {
-                revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
-              }
-              if (updates.depositoMesi !== undefined) {
-                revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
-              }
-              if (updates.depositoPercentualeAttivazione !== undefined) {
-                revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
-              }
-              // Auto-save after config change
-              setTimeout(() => revenueSimulation.saveSimulation(), 500);
-            }}
-            costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
-            costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
-            clientiAttiviFinale={summary.clientiAttivi || 0}
-            passthroughTotals={{
-              dispacciamento: simulationSummary.costiMensili.reduce((s, m) => s + m.dispacciamento, 0),
-              trasporto: simulationSummary.costiMensili.reduce((s, m) => s + m.trasporto, 0),
-              oneriSistema: simulationSummary.costiMensili.reduce((s, m) => s + m.oneriSistema, 0),
-              accise: simulationSummary.costiMensili.reduce((s, m) => s + m.accise, 0),
-            }}
-          />
-          
           {/* Costs organized by category tabs */}
           <CostTabsView
             costs={filteredCosts}
@@ -890,9 +892,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               })),
             } : undefined}
           />
-
-          {/* Sales Channels Configuration */}
-          <SalesChannelsConfig projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="revenues">
