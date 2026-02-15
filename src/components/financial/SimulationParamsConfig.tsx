@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Receipt,
   Settings2,
+  Flame,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useRevenueSimulation, type RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
@@ -94,8 +95,28 @@ export const SimulationParamsConfig = ({ projectId, simulationHook }: Simulation
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Commodity Type Selector */}
+        <div className="col-span-full mb-4">
+          <Label className="text-sm font-medium">Tipo Commodity Simulazione</Label>
+          <div className="flex gap-2 mt-2">
+            {[
+              { value: 'luce', label: '⚡ Solo Luce', icon: Zap },
+              { value: 'gas', label: '🔥 Solo Gas', icon: Flame },
+              { value: 'dual', label: '⚡🔥 Dual Fuel', icon: Settings2 },
+            ].map((opt) => (
+              <Button
+                key={opt.value}
+                variant={params.simulationCommodityType === opt.value ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateParams('simulationCommodityType', opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Column 1: Date + Contracts */}
           <div className="space-y-6">
             {/* Data Inizio */}
             <div className="space-y-4">
@@ -277,6 +298,61 @@ export const SimulationParamsConfig = ({ projectId, simulationHook }: Simulation
                 </p>
               </div>
             </div>
+
+            {/* Gas Parameters - show when gas or dual */}
+            {(params.simulationCommodityType === 'gas' || params.simulationCommodityType === 'dual') && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <h4 className="font-medium flex items-center gap-2 text-orange-600">
+                    <Flame className="h-4 w-4" />
+                    Parametri Gas
+                  </h4>
+                  <div className="space-y-2">
+                    <Label>Consumo medio gas (Smc/mese)</Label>
+                    <Input type="number" value={params.avgMonthlyConsumptionGas} onChange={(e) => updateParams('avgMonthlyConsumptionGas', parseInt(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>PSV (€/Smc)</Label>
+                    <Input type="number" step="0.001" value={params.psvPerSmc} onChange={(e) => updateParams('psvPerSmc', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CCV Gas (€/mese)</Label>
+                    <Input type="number" step="0.01" value={params.ccvGasMonthly} onChange={(e) => updateParams('ccvGasMonthly', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Spread Gas su PSV (€/Smc)</Label>
+                    <Input type="number" step="0.001" value={params.spreadGasPerSmc} onChange={(e) => updateParams('spreadGasPerSmc', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Spread Grossista Gas (€/Smc)</Label>
+                    <Input type="number" step="0.001" value={params.spreadGrossistaGasPerSmc} onChange={(e) => updateParams('spreadGrossistaGasPerSmc', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Accise Gas (€/Smc)</Label>
+                    <Input type="number" step="0.001" value={params.acciseGasSmc} onChange={(e) => updateParams('acciseGasSmc', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Addizionale Regionale (€/Smc)</Label>
+                    <Input type="number" step="0.001" value={params.addizionaleRegionaleGasSmc} onChange={(e) => updateParams('addizionaleRegionaleGasSmc', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gestione PDR (€/PDR/mese)</Label>
+                    <Input type="number" step="0.01" value={params.gestionePdrPerPdr} onChange={(e) => updateParams('gestionePdrPerPdr', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>IVA Gas (%)</Label>
+                    <Input type="number" value={params.ivaPercentGas} onChange={(e) => updateParams('ivaPercentGas', parseFloat(e.target.value) || 0)} />
+                  </div>
+                  <div className="p-3 bg-orange-500/10 rounded-lg">
+                    <p className="text-sm font-medium text-orange-600">Margine Gas per cliente/mese</p>
+                    <p className="text-xl font-bold text-orange-600">
+                      {formatCurrency(params.ccvGasMonthly + (params.spreadGasPerSmc * params.avgMonthlyConsumptionGas))}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Column 3: Collection rates + Invoice components */}
