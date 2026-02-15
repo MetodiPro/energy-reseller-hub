@@ -248,14 +248,14 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         }
       });
       
-      // Calculate passthrough costs with breakdown
-      const materiaEnergiaMese = m >= 2 ? cumulativeActiveCustomers * materiaEnergiaPerCliente : 0;
-      const trasportoMese = m >= 2 ? cumulativeActiveCustomers * trasportoPerCliente : 0;
-      const oneriMese = m >= 2 ? cumulativeActiveCustomers * oneriPerCliente : 0;
-      const acciseMese = m >= 2 ? cumulativeActiveCustomers * accisePerCliente : 0;
+      // Calculate passthrough costs with breakdown (aligned with invoicedCustomers, same as simulation summary)
+      const materiaEnergiaMese = invoicedCustomers * materiaEnergiaPerCliente;
+      const trasportoMese = invoicedCustomers * trasportoPerCliente;
+      const oneriMese = invoicedCustomers * oneriPerCliente;
+      const acciseMese = invoicedCustomers * accisePerCliente;
       const costiPassantiMese = materiaEnergiaMese + trasportoMese + oneriMese + acciseMese;
       
-      // Calculate operational costs (gestione POD, etc.)
+      // Calculate operational costs (gestione POD - based on active customers from month 2)
       const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
       
       // Calculate deposit: only NEW activations generate new deposit requirements
