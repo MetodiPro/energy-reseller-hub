@@ -609,8 +609,10 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
                       {row.flussiFiscali > 0 ? formatCurrency(row.flussiFiscali) : '-'}
                     </TipCell>
                     <TipCell className={`text-right ${row.deltaDeposito > 0 ? 'text-purple-600' : 'text-green-600'}`} lines={row.deltaDeposito !== 0 ? [
-                      `Deposito richiesto: ${formatCurrency(b.depositoRichiesto)}`,
-                      `Deposito precedente: ${formatCurrency(b.depositoPrecedente)}`,
+                      `Depositi lordi (attivazioni): ${formatCurrency(b.depositoLordo)}`,
+                      `Pagamenti consumi cumulati: -${formatCurrency(b.pagamentiConsumi)}`,
+                      `Deposito netto richiesto: ${formatCurrency(b.depositoRichiesto)}`,
+                      `Deposito mese prec.: ${formatCurrency(b.depositoPrecedente)}`,
                       `Delta: ${formatCurrency(row.deltaDeposito)}`,
                     ] : []}>
                       {row.deltaDeposito !== 0 ? formatCurrency(row.deltaDeposito) : '-'}
