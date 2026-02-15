@@ -619,7 +619,8 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
                       {row.deltaDeposito !== 0 ? formatCurrency(row.deltaDeposito) : '-'}
                     </TipCell>
                     <TipCell className="text-right text-destructive" lines={row.investimentiIniziali > 0 ? [
-                      `Costi step di processo assegnati a questo mese`,
+                      `Dettaglio costi step:`,
+                      ...b.investmentBreakdown.map(item => `• ${item.description}: ${formatCurrency(item.amount)}`),
                     ] : []}>
                       {row.investimentiIniziali > 0 ? formatCurrency(row.investimentiIniziali) : '-'}
                     </TipCell>
