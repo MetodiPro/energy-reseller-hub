@@ -217,7 +217,8 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
       const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
       const depositoRilasciatoChurn = churnedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
-      totalDepositoLordo += nuovoDepositoAttivazioni - depositoRilasciatoChurn;
+      totalDepositoLordo += nuovoDepositoAttivazioni;
+      totalPagamentiConsumi += depositoRilasciatoChurn; // churn releases count as "payments" reducing deposit
       
       // Costi passanti pagati al grossista questo mese riducono il deposito
       const costiPassantiMese = m >= 2 
