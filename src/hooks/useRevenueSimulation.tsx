@@ -4,10 +4,14 @@ import { useToast } from '@/hooks/use-toast';
 
 // Parametri componenti commerciali reseller
 export interface ResellerParams {
-  ccvMonthly: number;              // CCV - Commercializzazione e Vendita €/mese
+  ccvMonthly: number;              // CCV - Commercializzazione e Vendita €/mese (luce)
   spreadPerKwh: number;            // Spread applicato dal reseller al cliente €/kWh (RICAVO)
   spreadGrossistaPerKwh: number;   // Spread applicato dal grossista al reseller €/kWh (COSTO)
   otherServicesMonthly: number;    // Altri servizi €/mese
+  // Gas-specific margin params
+  ccvGasMonthly: number;           // CCV Gas €/mese
+  spreadGasPerSmc: number;         // Spread gas reseller €/Smc (RICAVO)
+  spreadGrossistaGasPerSmc: number; // Spread gas grossista €/Smc (COSTO)
 }
 
 // Parametri componenti fattura (passanti)
@@ -23,6 +27,17 @@ export interface InvoiceComponentParams {
   acciseKwh: number;                    // Accise €/kWh
   ivaPercent: number;                   // IVA %
   clientType: 'domestico' | 'business' | 'pmi';
+  // Gas invoice components
+  psvPerSmc: number;                     // PSV €/Smc
+  avgMonthlyConsumptionGas: number;      // Consumo medio gas Smc/mese
+  trasportoGasQuotaFissaAnno: number;    // Trasporto gas quota fissa €/anno
+  trasportoGasQuotaEnergiaSmc: number;   // Trasporto gas quota energia €/Smc
+  oneriGasReSmc: number;                 // Oneri gas RE €/Smc
+  oneriGasUgSmc: number;                 // Oneri gas UG €/Smc
+  acciseGasSmc: number;                  // Accise gas €/Smc
+  addizionaleRegionaleGasSmc: number;    // Addizionale regionale gas €/Smc
+  ivaPercentGas: number;                 // IVA gas %
+  potenzaImpegnataGasSmcGiorno: number;  // Capacità gas Smc/giorno
 }
 
 // Parametri clienti e incasso
@@ -40,6 +55,7 @@ export interface ClientParams {
 // Parametri costi grossista
 export interface WholesalerParams {
   gestionePodPerPod: number;      // Fee gestione POD €/POD/mese
+  gestionePdrPerPdr: number;      // Fee gestione PDR €/PDR/mese (gas)
   depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
   depositoPercentualeAttivazione: number; // % fatturato stimato applicata al deposito iniziale
 }
@@ -49,7 +65,9 @@ export interface TaxRegimeParams {
   ivaPaymentRegime: 'monthly' | 'quarterly';
 }
 
-export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams, WholesalerParams, TaxRegimeParams {}
+export interface RevenueSimulationParams extends ResellerParams, InvoiceComponentParams, ClientParams, WholesalerParams, TaxRegimeParams {
+  simulationCommodityType: 'luce' | 'gas' | 'dual';
+}
 
 export type MonthlyContractsTarget = [number, number, number, number, number, number, number, number, number, number, number, number];
 
@@ -61,13 +79,21 @@ export interface RevenueSimulationData {
 }
 
 const DEFAULT_PARAMS: RevenueSimulationParams = {
-  // Componenti commerciali reseller
+  // Tipo commodity simulazione
+  simulationCommodityType: 'luce',
+  
+  // Componenti commerciali reseller (luce)
   ccvMonthly: 8.50,
-  spreadPerKwh: 0.015,            // Spread al cliente (RICAVO)
-  spreadGrossistaPerKwh: 0.008,   // Spread dal grossista (COSTO)
+  spreadPerKwh: 0.015,
+  spreadGrossistaPerKwh: 0.008,
   otherServicesMonthly: 0,
   
-  // Componenti fattura (passanti)
+  // Componenti commerciali reseller (gas)
+  ccvGasMonthly: 6.50,
+  spreadGasPerSmc: 0.03,
+  spreadGrossistaGasPerSmc: 0.015,
+  
+  // Componenti fattura luce (passanti)
   punPerKwh: 0.12,
   dispacciamentoPerKwh: 0.01,
   trasportoQuotaFissaAnno: 23.00,
@@ -79,6 +105,18 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   acciseKwh: 0.0227,
   ivaPercent: 10,
   clientType: 'domestico',
+  
+  // Componenti fattura gas (passanti)
+  psvPerSmc: 0.45,
+  avgMonthlyConsumptionGas: 80,
+  trasportoGasQuotaFissaAnno: 65.00,
+  trasportoGasQuotaEnergiaSmc: 0.04,
+  oneriGasReSmc: 0.015,
+  oneriGasUgSmc: 0.008,
+  acciseGasSmc: 0.186,
+  addizionaleRegionaleGasSmc: 0.02,
+  ivaPercentGas: 10,
+  potenzaImpegnataGasSmcGiorno: 5.0,
   
   // Clienti e incasso
   avgMonthlyConsumption: 200,
@@ -92,6 +130,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   
   // Costi grossista
   gestionePodPerPod: 2.50,
+  gestionePdrPerPdr: 2.50,
   depositoMesi: 3,
   depositoPercentualeAttivazione: 85,
   
@@ -138,13 +177,20 @@ export const useRevenueSimulation = (projectId: string | null) => {
             ? monthlyContracts as MonthlyContractsTarget 
             : DEFAULT_MONTHLY_CONTRACTS,
           params: {
-            // Componenti commerciali
+            simulationCommodityType: ((simulation as any).commodity_type as 'luce' | 'gas' | 'dual') ?? DEFAULT_PARAMS.simulationCommodityType,
+            
+            // Componenti commerciali luce
             ccvMonthly: Number(simulation.ccv_monthly),
             spreadPerKwh: Number(simulation.spread_per_kwh),
             spreadGrossistaPerKwh: Number((simulation as any).spread_grossista_per_kwh ?? DEFAULT_PARAMS.spreadGrossistaPerKwh),
             otherServicesMonthly: Number(simulation.other_services_monthly),
             
-            // Componenti fattura (con fallback a default)
+            // Componenti commerciali gas
+            ccvGasMonthly: Number((simulation as any).ccv_gas_monthly ?? DEFAULT_PARAMS.ccvGasMonthly),
+            spreadGasPerSmc: Number((simulation as any).spread_gas_per_smc ?? DEFAULT_PARAMS.spreadGasPerSmc),
+            spreadGrossistaGasPerSmc: Number((simulation as any).spread_grossista_gas_per_smc ?? DEFAULT_PARAMS.spreadGrossistaGasPerSmc),
+            
+            // Componenti fattura luce
             punPerKwh: Number(simulation.pun_per_kwh ?? DEFAULT_PARAMS.punPerKwh),
             dispacciamentoPerKwh: Number(simulation.dispacciamento_per_kwh ?? DEFAULT_PARAMS.dispacciamentoPerKwh),
             trasportoQuotaFissaAnno: Number(simulation.trasporto_quota_fissa_anno ?? DEFAULT_PARAMS.trasportoQuotaFissaAnno),
@@ -158,6 +204,18 @@ export const useRevenueSimulation = (projectId: string | null) => {
             clientType: (simulation.client_type as 'domestico' | 'business' | 'pmi') ?? DEFAULT_PARAMS.clientType,
             ivaPaymentRegime: ((simulation as any).iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
             
+            // Componenti fattura gas
+            psvPerSmc: Number((simulation as any).psv_per_smc ?? DEFAULT_PARAMS.psvPerSmc),
+            avgMonthlyConsumptionGas: Number((simulation as any).avg_monthly_consumption_gas ?? DEFAULT_PARAMS.avgMonthlyConsumptionGas),
+            trasportoGasQuotaFissaAnno: Number((simulation as any).trasporto_gas_quota_fissa_anno ?? DEFAULT_PARAMS.trasportoGasQuotaFissaAnno),
+            trasportoGasQuotaEnergiaSmc: Number((simulation as any).trasporto_gas_quota_energia_smc ?? DEFAULT_PARAMS.trasportoGasQuotaEnergiaSmc),
+            oneriGasReSmc: Number((simulation as any).oneri_gas_re_smc ?? DEFAULT_PARAMS.oneriGasReSmc),
+            oneriGasUgSmc: Number((simulation as any).oneri_gas_ug_smc ?? DEFAULT_PARAMS.oneriGasUgSmc),
+            acciseGasSmc: Number((simulation as any).accise_gas_smc ?? DEFAULT_PARAMS.acciseGasSmc),
+            addizionaleRegionaleGasSmc: Number((simulation as any).addizionale_regionale_gas_smc ?? DEFAULT_PARAMS.addizionaleRegionaleGasSmc),
+            ivaPercentGas: Number((simulation as any).iva_percent_gas ?? DEFAULT_PARAMS.ivaPercentGas),
+            potenzaImpegnataGasSmcGiorno: Number((simulation as any).potenza_impegnata_gas_smc_giorno ?? DEFAULT_PARAMS.potenzaImpegnataGasSmcGiorno),
+            
             // Clienti e incasso
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
             activationRate: Number(simulation.activation_rate),
@@ -170,6 +228,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             
             // Costi grossista
             gestionePodPerPod: Number(simulation.gestione_pod_per_pod ?? DEFAULT_PARAMS.gestionePodPerPod),
+            gestionePdrPerPdr: Number((simulation as any).gestione_pdr_per_pdr ?? DEFAULT_PARAMS.gestionePdrPerPdr),
             depositoMesi: Number(simulation.deposito_cauzionale_mesi ?? DEFAULT_PARAMS.depositoMesi),
             depositoPercentualeAttivazione: Number(simulation.deposito_percentuale_attivazione ?? DEFAULT_PARAMS.depositoPercentualeAttivazione),
           },
@@ -203,14 +262,20 @@ export const useRevenueSimulation = (projectId: string | null) => {
         project_id: projectId,
         start_date: data.startDate.toISOString().split('T')[0],
         monthly_contracts: data.monthlyContracts,
+        commodity_type: data.params.simulationCommodityType,
         
-        // Componenti commerciali
+        // Componenti commerciali luce
         ccv_monthly: data.params.ccvMonthly,
         spread_per_kwh: data.params.spreadPerKwh,
         spread_grossista_per_kwh: data.params.spreadGrossistaPerKwh,
         other_services_monthly: data.params.otherServicesMonthly,
         
-        // Componenti fattura
+        // Componenti commerciali gas
+        ccv_gas_monthly: data.params.ccvGasMonthly,
+        spread_gas_per_smc: data.params.spreadGasPerSmc,
+        spread_grossista_gas_per_smc: data.params.spreadGrossistaGasPerSmc,
+        
+        // Componenti fattura luce
         pun_per_kwh: data.params.punPerKwh,
         dispacciamento_per_kwh: data.params.dispacciamentoPerKwh,
         trasporto_quota_fissa_anno: data.params.trasportoQuotaFissaAnno,
@@ -224,6 +289,18 @@ export const useRevenueSimulation = (projectId: string | null) => {
         client_type: data.params.clientType,
         iva_payment_regime: data.params.ivaPaymentRegime,
         
+        // Componenti fattura gas
+        psv_per_smc: data.params.psvPerSmc,
+        avg_monthly_consumption_gas: data.params.avgMonthlyConsumptionGas,
+        trasporto_gas_quota_fissa_anno: data.params.trasportoGasQuotaFissaAnno,
+        trasporto_gas_quota_energia_smc: data.params.trasportoGasQuotaEnergiaSmc,
+        oneri_gas_re_smc: data.params.oneriGasReSmc,
+        oneri_gas_ug_smc: data.params.oneriGasUgSmc,
+        accise_gas_smc: data.params.acciseGasSmc,
+        addizionale_regionale_gas_smc: data.params.addizionaleRegionaleGasSmc,
+        iva_percent_gas: data.params.ivaPercentGas,
+        potenza_impegnata_gas_smc_giorno: data.params.potenzaImpegnataGasSmcGiorno,
+        
         // Clienti e incasso
         avg_monthly_consumption: data.params.avgMonthlyConsumption,
         activation_rate: data.params.activationRate,
@@ -236,6 +313,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         
         // Costi grossista
         gestione_pod_per_pod: data.params.gestionePodPerPod,
+        gestione_pdr_per_pdr: data.params.gestionePdrPerPdr,
         deposito_cauzionale_mesi: data.params.depositoMesi,
         deposito_percentuale_attivazione: data.params.depositoPercentualeAttivazione,
         

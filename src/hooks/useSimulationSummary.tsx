@@ -110,26 +110,46 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
     
     // Calcola costi mensili per singolo cliente
     const kWh = params.avgMonthlyConsumption;
+    const smc = params.avgMonthlyConsumptionGas;
+    const commodityType = params.simulationCommodityType ?? 'luce';
+    const includeLuce = commodityType === 'luce' || commodityType === 'dual';
+    const includeGas = commodityType === 'gas' || commodityType === 'dual';
     
-    // Componenti passanti per cliente/mese
-    const materiaEnergiaPerCliente = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
-    const trasportoPerCliente = 
+    // Componenti passanti LUCE per cliente/mese
+    const materiaEnergiaPerCliente = includeLuce ? (params.punPerKwh + params.dispacciamentoPerKwh) * kWh : 0;
+    const trasportoPerCliente = includeLuce ? (
       (params.trasportoQuotaFissaAnno / 12) + 
       (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw / 12) +
-      (params.trasportoQuotaEnergiaKwh * kWh);
-    const oneriPerCliente = (params.oneriAsosKwh + params.oneriArimKwh) * kWh;
-    const accisePerCliente = params.acciseKwh * kWh;
+      (params.trasportoQuotaEnergiaKwh * kWh)
+    ) : 0;
+    const oneriPerCliente = includeLuce ? (params.oneriAsosKwh + params.oneriArimKwh) * kWh : 0;
+    const accisePerCliente = includeLuce ? params.acciseKwh * kWh : 0;
+    
+    // Componenti passanti GAS per cliente/mese
+    const materiaGasPerCliente = includeGas ? params.psvPerSmc * smc : 0;
+    const trasportoGasPerCliente = includeGas ? (
+      (params.trasportoGasQuotaFissaAnno / 12) +
+      (params.trasportoGasQuotaEnergiaSmc * smc)
+    ) : 0;
+    const oneriGasPerCliente = includeGas ? (params.oneriGasReSmc + params.oneriGasUgSmc) * smc : 0;
+    const acciseGasPerCliente = includeGas ? (params.acciseGasSmc + params.addizionaleRegionaleGasSmc) * smc : 0;
     
     // Componenti margine per cliente/mese
-    const ccvPerCliente = params.ccvMonthly;
-    const spreadPerCliente = params.spreadPerKwh * kWh;
+    const ccvPerCliente = (includeLuce ? params.ccvMonthly : 0) + (includeGas ? params.ccvGasMonthly : 0);
+    const spreadPerCliente = (includeLuce ? params.spreadPerKwh * kWh : 0) + (includeGas ? params.spreadGasPerSmc * smc : 0);
     const altroPerCliente = params.otherServicesMonthly;
     const marginePerCliente = ccvPerCliente + spreadPerCliente + altroPerCliente;
     
-    // Totale imponibile per cliente
-    const imponibilePerCliente = materiaEnergiaPerCliente + trasportoPerCliente + 
-                                  oneriPerCliente + accisePerCliente + marginePerCliente;
-    const ivaPerCliente = imponibilePerCliente * (params.ivaPercent / 100);
+    // Totale imponibile per cliente (luce + gas)
+    const passantiLucePerCliente = materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente;
+    const passantiGasPerCliente = materiaGasPerCliente + trasportoGasPerCliente + oneriGasPerCliente + acciseGasPerCliente;
+    const imponibilePerCliente = passantiLucePerCliente + passantiGasPerCliente + marginePerCliente;
+    
+    // IVA media ponderata (semplificazione: usa IVA luce per luce, IVA gas per gas)
+    const ivaLucePerCliente = includeLuce ? (passantiLucePerCliente + (includeLuce ? (params.ccvMonthly + params.spreadPerKwh * kWh) : 0)) * (params.ivaPercent / 100) : 0;
+    const ivaGasPerCliente = includeGas ? (passantiGasPerCliente + (includeGas ? (params.ccvGasMonthly + params.spreadGasPerSmc * smc) : 0)) * (params.ivaPercentGas / 100) : 0;
+    const ivaAltroPerCliente = altroPerCliente * (params.ivaPercent / 100);
+    const ivaPerCliente = ivaLucePerCliente + ivaGasPerCliente + ivaAltroPerCliente;
     const fatturaPerCliente = imponibilePerCliente + ivaPerCliente;
     
     let totalFatturato = 0;
@@ -177,37 +197,46 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
         ? Math.max(0, cumulativeActiveCustomers)
         : 0;
       
-      // Calcolo componenti fattura
+      // Calcolo componenti fattura (luce + gas combinati)
       const materiaEnergia = invoicedCustomers * materiaEnergiaPerCliente;
       const trasporto = invoicedCustomers * trasportoPerCliente;
       const oneriSistema = invoicedCustomers * oneriPerCliente;
       const accise = invoicedCustomers * accisePerCliente;
+      const materiaGas = invoicedCustomers * materiaGasPerCliente;
+      const trasportoGas = invoicedCustomers * trasportoGasPerCliente;
+      const oneriGas = invoicedCustomers * oneriGasPerCliente;
+      const acciseGas = invoicedCustomers * acciseGasPerCliente;
+      
+      const passantiLuce = materiaEnergia + trasporto + oneriSistema + accise;
+      const passantiGas = materiaGas + trasportoGas + oneriGas + acciseGas;
       
       const margineCCV = invoicedCustomers * ccvPerCliente;
       const margineSpread = invoicedCustomers * spreadPerCliente;
       const margineAltro = invoicedCustomers * altroPerCliente;
       const commercialeReseller = margineCCV + margineSpread + margineAltro;
       
-      const imponibileTotale = materiaEnergia + trasporto + oneriSistema + accise + commercialeReseller;
-      const iva = imponibileTotale * (params.ivaPercent / 100);
+      const imponibileTotale = passantiLuce + passantiGas + commercialeReseller;
+      const iva = invoicedCustomers * ivaPerCliente;
       const fatturaTotale = imponibileTotale + iva;
       
       totalFatturato += fatturaTotale;
       totalMargine += commercialeReseller;
-      totalPassanti += materiaEnergia + trasporto + oneriSistema + accise;
+      totalPassanti += passantiLuce + passantiGas;
       totalIva += iva;
       
-      // Costi grossista - il reseller paga PUN + spread grossista (NON lo spread reseller!)
+      // Costi grossista
       let costoEnergiaMese = 0;
       let gestionePodMese = 0;
       if (m >= 2) {
-        // Gestione POD: pagato per ogni cliente attivo
-        gestionePodMese = cumulativeActiveCustomers * gestionePodPerPod;
+        // Gestione POD/PDR: pagato per ogni cliente attivo
+        const gestionePerCliente = (includeLuce ? gestionePodPerPod : 0) + (includeGas ? (params.gestionePdrPerPdr ?? 2.5) : 0);
+        gestionePodMese = cumulativeActiveCustomers * gestionePerCliente;
         costoGestionePodTotale += gestionePodMese;
         
-        // Costo energia: PUN + spread GROSSISTA (non spread reseller)
-        const spreadGrossista = (data as any).params?.spreadGrossistaPerKwh ?? 0.008;
-        costoEnergiaMese = cumulativeActiveCustomers * kWh * (params.punPerKwh + spreadGrossista);
+        // Costo energia: PUN + spread GROSSISTA (luce) + PSV + spread grossista gas
+        const costoLuce = includeLuce ? cumulativeActiveCustomers * kWh * (params.punPerKwh + params.spreadGrossistaPerKwh) : 0;
+        const costoGas = includeGas ? cumulativeActiveCustomers * smc * (params.psvPerSmc + params.spreadGrossistaGasPerSmc) : 0;
+        costoEnergiaMese = costoLuce + costoGas;
         costoEnergiaTotale += costoEnergiaMese;
       }
       
@@ -221,8 +250,9 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       totalPagamentiConsumi += depositoRilasciatoChurn; // churn releases count as "payments" reducing deposit
       
       // Costi passanti pagati al grossista questo mese riducono il deposito
+      const passantiPerCliente = passantiLucePerCliente + passantiGasPerCliente;
       const costiPassantiMese = m >= 2 
-        ? cumulativeActiveCustomers * (materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente)
+        ? cumulativeActiveCustomers * passantiPerCliente
         : 0;
       totalPagamentiConsumi += costiPassantiMese;
       
@@ -244,10 +274,10 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
         deltaDeposito,
       });
       
-      const dispacciamentoMese = invoicedCustomers * (params.punPerKwh > 0 ? params.dispacciamentoPerKwh * kWh : 0);
-      const trasportoMese = invoicedCustomers * trasportoPerCliente;
-      const oneriSistemaMese = invoicedCustomers * oneriPerCliente;
-      const acciseMese = invoicedCustomers * accisePerCliente;
+      const dispacciamentoMese = includeLuce ? invoicedCustomers * params.dispacciamentoPerKwh * kWh : 0;
+      const trasportoMese = invoicedCustomers * (trasportoPerCliente + trasportoGasPerCliente);
+      const oneriSistemaMese = invoicedCustomers * (oneriPerCliente + oneriGasPerCliente);
+      const acciseMese = invoicedCustomers * (accisePerCliente + acciseGasPerCliente);
 
       costiMensili.push({
         month: m,

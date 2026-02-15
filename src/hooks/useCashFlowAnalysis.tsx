@@ -156,28 +156,48 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     // Track invoices for collection aging
     const invoicesToCollect: { month: number; amount: number }[] = [];
     
-    // Monthly cost and revenue calculations (same as simulation summary)
+    // Monthly cost and revenue calculations
     const kWh = params.avgMonthlyConsumption;
+    const smc = params.avgMonthlyConsumptionGas;
+    const commodityType = params.simulationCommodityType ?? 'luce';
+    const includeLuce = commodityType === 'luce' || commodityType === 'dual';
+    const includeGas = commodityType === 'gas' || commodityType === 'dual';
     
-    // Passthrough costs per client/month
-    const materiaEnergiaPerCliente = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
-    const trasportoPerCliente = 
+    // Passthrough costs per client/month (LUCE)
+    const materiaEnergiaPerCliente = includeLuce ? (params.punPerKwh + params.dispacciamentoPerKwh) * kWh : 0;
+    const trasportoPerCliente = includeLuce ? (
       (params.trasportoQuotaFissaAnno / 12) + 
       (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw / 12) +
-      (params.trasportoQuotaEnergiaKwh * kWh);
-    const oneriPerCliente = (params.oneriAsosKwh + params.oneriArimKwh) * kWh;
-    const accisePerCliente = params.acciseKwh * kWh;
-    const passantiPerCliente = materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente;
+      (params.trasportoQuotaEnergiaKwh * kWh)
+    ) : 0;
+    const oneriPerCliente = includeLuce ? (params.oneriAsosKwh + params.oneriArimKwh) * kWh : 0;
+    const accisePerCliente = includeLuce ? params.acciseKwh * kWh : 0;
+    
+    // Passthrough costs per client/month (GAS)
+    const materiaGasPerCliente = includeGas ? params.psvPerSmc * smc : 0;
+    const trasportoGasPerCliente = includeGas ? (
+      (params.trasportoGasQuotaFissaAnno / 12) +
+      (params.trasportoGasQuotaEnergiaSmc * smc)
+    ) : 0;
+    const oneriGasPerCliente = includeGas ? (params.oneriGasReSmc + params.oneriGasUgSmc) * smc : 0;
+    const acciseGasPerCliente = includeGas ? (params.acciseGasSmc + params.addizionaleRegionaleGasSmc) * smc : 0;
+    
+    const passantiLucePerCliente = materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente;
+    const passantiGasPerCliente = materiaGasPerCliente + trasportoGasPerCliente + oneriGasPerCliente + acciseGasPerCliente;
+    const passantiPerCliente = passantiLucePerCliente + passantiGasPerCliente;
     
     // Margin components per client
-    const ccvPerCliente = params.ccvMonthly;
-    const spreadPerCliente = params.spreadPerKwh * kWh;
+    const ccvPerCliente = (includeLuce ? params.ccvMonthly : 0) + (includeGas ? params.ccvGasMonthly : 0);
+    const spreadPerCliente = (includeLuce ? params.spreadPerKwh * kWh : 0) + (includeGas ? params.spreadGasPerSmc * smc : 0);
     const altroPerCliente = params.otherServicesMonthly;
     const marginePerCliente = ccvPerCliente + spreadPerCliente + altroPerCliente;
     
-    // Full invoice per client (including IVA)
+    // Full invoice per client (including IVA - weighted)
     const imponibilePerCliente = passantiPerCliente + marginePerCliente;
-    const ivaPerCliente = imponibilePerCliente * (params.ivaPercent / 100);
+    const ivaLuce = includeLuce ? (passantiLucePerCliente + params.ccvMonthly + params.spreadPerKwh * kWh) * (params.ivaPercent / 100) : 0;
+    const ivaGas = includeGas ? (passantiGasPerCliente + params.ccvGasMonthly + params.spreadGasPerSmc * smc) * (params.ivaPercentGas / 100) : 0;
+    const ivaAltro = altroPerCliente * (params.ivaPercent / 100);
+    const ivaPerCliente = ivaLuce + ivaGas + ivaAltro;
     const fatturaPerCliente = imponibilePerCliente + ivaPerCliente;
     
     // Totals for summary
@@ -248,15 +268,16 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
         }
       });
       
-      // Calculate passthrough costs with breakdown (aligned with invoicedCustomers, same as simulation summary)
-      const materiaEnergiaMese = invoicedCustomers * materiaEnergiaPerCliente;
-      const trasportoMese = invoicedCustomers * trasportoPerCliente;
-      const oneriMese = invoicedCustomers * oneriPerCliente;
-      const acciseMese = invoicedCustomers * accisePerCliente;
+      // Calculate passthrough costs with breakdown (luce + gas combined)
+      const materiaEnergiaMese = invoicedCustomers * (materiaEnergiaPerCliente + materiaGasPerCliente);
+      const trasportoMese = invoicedCustomers * (trasportoPerCliente + trasportoGasPerCliente);
+      const oneriMese = invoicedCustomers * (oneriPerCliente + oneriGasPerCliente);
+      const acciseMese = invoicedCustomers * (accisePerCliente + acciseGasPerCliente);
       const costiPassantiMese = materiaEnergiaMese + trasportoMese + oneriMese + acciseMese;
       
-      // Calculate operational costs (gestione POD - based on active customers from month 2)
-      const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
+      // Calculate operational costs (gestione POD/PDR - based on active customers from month 2)
+      const gestionePerCliente = (includeLuce ? gestionePodPerPod : 0) + (includeGas ? (params.gestionePdrPerPdr ?? 2.5) : 0);
+      const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePerCliente : 0;
       
       // Calculate deposit: only NEW activations generate new deposit requirements
       // Churned customers release their deposit, payments reduce the outstanding deposit

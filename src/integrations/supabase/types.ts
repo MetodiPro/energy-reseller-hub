@@ -663,37 +663,52 @@ export type Database = {
       }
       project_revenue_simulations: {
         Row: {
+          accise_gas_smc: number | null
           accise_kwh: number | null
           activation_rate: number
+          addizionale_regionale_gas_smc: number | null
           avg_monthly_consumption: number
+          avg_monthly_consumption_gas: number | null
+          ccv_gas_monthly: number | null
           ccv_monthly: number
           client_type: string | null
           collection_month_0: number
           collection_month_1: number
           collection_month_2: number
           collection_month_3_plus: number
+          commodity_type: string | null
           created_at: string
           created_by: string
           deposito_cauzionale_mesi: number | null
           deposito_percentuale_attivazione: number | null
           dispacciamento_per_kwh: number | null
+          gestione_pdr_per_pdr: number | null
           gestione_pod_per_pod: number | null
           id: string
           iva_payment_regime: string | null
           iva_percent: number | null
+          iva_percent_gas: number | null
           monthly_churn_rate: number | null
           monthly_contracts: Json
           oneri_arim_kwh: number | null
           oneri_asos_kwh: number | null
+          oneri_gas_re_smc: number | null
+          oneri_gas_ug_smc: number | null
           other_services_monthly: number
+          potenza_impegnata_gas_smc_giorno: number | null
           potenza_impegnata_kw: number | null
           project_id: string
+          psv_per_smc: number | null
           pun_auto_update: boolean | null
           pun_override: number | null
           pun_per_kwh: number | null
+          spread_gas_per_smc: number | null
+          spread_grossista_gas_per_smc: number | null
           spread_grossista_per_kwh: number | null
           spread_per_kwh: number
           start_date: string
+          trasporto_gas_quota_energia_smc: number | null
+          trasporto_gas_quota_fissa_anno: number | null
           trasporto_quota_energia_kwh: number | null
           trasporto_quota_fissa_anno: number | null
           trasporto_quota_potenza_kw_anno: number | null
@@ -701,37 +716,52 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accise_gas_smc?: number | null
           accise_kwh?: number | null
           activation_rate?: number
+          addizionale_regionale_gas_smc?: number | null
           avg_monthly_consumption?: number
+          avg_monthly_consumption_gas?: number | null
+          ccv_gas_monthly?: number | null
           ccv_monthly?: number
           client_type?: string | null
           collection_month_0?: number
           collection_month_1?: number
           collection_month_2?: number
           collection_month_3_plus?: number
+          commodity_type?: string | null
           created_at?: string
           created_by: string
           deposito_cauzionale_mesi?: number | null
           deposito_percentuale_attivazione?: number | null
           dispacciamento_per_kwh?: number | null
+          gestione_pdr_per_pdr?: number | null
           gestione_pod_per_pod?: number | null
           id?: string
           iva_payment_regime?: string | null
           iva_percent?: number | null
+          iva_percent_gas?: number | null
           monthly_churn_rate?: number | null
           monthly_contracts?: Json
           oneri_arim_kwh?: number | null
           oneri_asos_kwh?: number | null
+          oneri_gas_re_smc?: number | null
+          oneri_gas_ug_smc?: number | null
           other_services_monthly?: number
+          potenza_impegnata_gas_smc_giorno?: number | null
           potenza_impegnata_kw?: number | null
           project_id: string
+          psv_per_smc?: number | null
           pun_auto_update?: boolean | null
           pun_override?: number | null
           pun_per_kwh?: number | null
+          spread_gas_per_smc?: number | null
+          spread_grossista_gas_per_smc?: number | null
           spread_grossista_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
+          trasporto_gas_quota_energia_smc?: number | null
+          trasporto_gas_quota_fissa_anno?: number | null
           trasporto_quota_energia_kwh?: number | null
           trasporto_quota_fissa_anno?: number | null
           trasporto_quota_potenza_kw_anno?: number | null
@@ -739,37 +769,52 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accise_gas_smc?: number | null
           accise_kwh?: number | null
           activation_rate?: number
+          addizionale_regionale_gas_smc?: number | null
           avg_monthly_consumption?: number
+          avg_monthly_consumption_gas?: number | null
+          ccv_gas_monthly?: number | null
           ccv_monthly?: number
           client_type?: string | null
           collection_month_0?: number
           collection_month_1?: number
           collection_month_2?: number
           collection_month_3_plus?: number
+          commodity_type?: string | null
           created_at?: string
           created_by?: string
           deposito_cauzionale_mesi?: number | null
           deposito_percentuale_attivazione?: number | null
           dispacciamento_per_kwh?: number | null
+          gestione_pdr_per_pdr?: number | null
           gestione_pod_per_pod?: number | null
           id?: string
           iva_payment_regime?: string | null
           iva_percent?: number | null
+          iva_percent_gas?: number | null
           monthly_churn_rate?: number | null
           monthly_contracts?: Json
           oneri_arim_kwh?: number | null
           oneri_asos_kwh?: number | null
+          oneri_gas_re_smc?: number | null
+          oneri_gas_ug_smc?: number | null
           other_services_monthly?: number
+          potenza_impegnata_gas_smc_giorno?: number | null
           potenza_impegnata_kw?: number | null
           project_id?: string
+          psv_per_smc?: number | null
           pun_auto_update?: boolean | null
           pun_override?: number | null
           pun_per_kwh?: number | null
+          spread_gas_per_smc?: number | null
+          spread_grossista_gas_per_smc?: number | null
           spread_grossista_per_kwh?: number | null
           spread_per_kwh?: number
           start_date?: string
+          trasporto_gas_quota_energia_smc?: number | null
+          trasporto_gas_quota_fissa_anno?: number | null
           trasporto_quota_energia_kwh?: number | null
           trasporto_quota_fissa_anno?: number | null
           trasporto_quota_potenza_kw_anno?: number | null
