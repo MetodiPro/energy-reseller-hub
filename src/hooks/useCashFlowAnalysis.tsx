@@ -21,8 +21,9 @@ export interface CashFlowBreakdown {
   // Operativi
   gestionePod: number;
   // Deposito
-  depositoLordo: number;        // cumulative initial deposits from activations
-  pagamentiConsumi: number;     // cumulative payments reducing deposit
+  depositoLordoAttivazioni: number;   // cumulative deposits from new activations
+  depositoRilasciatoChurn: number;    // cumulative deposits released from churned customers
+  pagamentiConsumi: number;           // cumulative payments reducing deposit
   depositoRichiesto: number;
   depositoPrecedente: number;
   // Clienti
@@ -147,9 +148,10 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     let previousDeposito = 0;
     
     // Deposit tracking: deposits are required only for NEW activations,
-    // and payments made for actual consumption reduce the outstanding deposit
-    let totalDepositoLordo = 0;  // cumulative initial deposits for each activation batch
-    let totalPagamentiConsumi = 0; // cumulative payments made to wholesaler (reduce deposit)
+    // churned customers release deposits, payments reduce the outstanding deposit
+    let totalDepositoLordo = 0;        // cumulative gross deposits from activations
+    let totalDepositoRilasciatoChurn = 0; // cumulative deposits released from churn
+    let totalPagamentiConsumi = 0;     // cumulative payments made to wholesaler
     
     // Track invoices for collection aging
     const invoicesToCollect: { month: number; amount: number }[] = [];
@@ -260,12 +262,13 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       // Churned customers release their deposit, payments reduce the outstanding deposit
       const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
       const depositoRilasciatoChurn = churnedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
-      totalDepositoLordo += nuovoDepositoAttivazioni - depositoRilasciatoChurn;
+      totalDepositoLordo += nuovoDepositoAttivazioni;
+      totalDepositoRilasciatoChurn += depositoRilasciatoChurn;
       
       // Reseller pays wholesaler for actual consumption (passthrough costs) - this reduces the deposit
       totalPagamentiConsumi += costiPassantiMese;
       
-      const depositoRichiesto = Math.max(0, totalDepositoLordo - totalPagamentiConsumi);
+      const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRilasciatoChurn - totalPagamentiConsumi);
       const depositoPrecedente = previousDeposito;
       const deltaDeposito = depositoRichiesto - previousDeposito;
       previousDeposito = depositoRichiesto;
@@ -331,7 +334,8 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
           oneriSistema: Math.round(oneriMese),
           accise: Math.round(acciseMese),
           gestionePod: Math.round(costiOperativiMese),
-          depositoLordo: Math.round(totalDepositoLordo),
+          depositoLordoAttivazioni: Math.round(totalDepositoLordo),
+          depositoRilasciatoChurn: Math.round(totalDepositoRilasciatoChurn),
           pagamentiConsumi: Math.round(totalPagamentiConsumi),
           depositoRichiesto: Math.round(depositoRichiesto),
           depositoPrecedente: Math.round(depositoPrecedente),
