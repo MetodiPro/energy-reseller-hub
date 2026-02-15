@@ -257,9 +257,10 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
       
       // Calculate deposit: only NEW activations generate new deposit requirements
-      // Payments for actual consumption reduce the outstanding deposit
+      // Churned customers release their deposit, payments reduce the outstanding deposit
       const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
-      totalDepositoLordo += nuovoDepositoAttivazioni;
+      const depositoRilasciatoChurn = churnedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
+      totalDepositoLordo += nuovoDepositoAttivazioni - depositoRilasciatoChurn;
       
       // Reseller pays wholesaler for actual consumption (passthrough costs) - this reduces the deposit
       totalPagamentiConsumi += costiPassantiMese;
