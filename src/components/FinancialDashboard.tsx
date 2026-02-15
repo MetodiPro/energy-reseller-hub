@@ -27,7 +27,8 @@ import {
   Zap,
   Users,
   Wallet,
-  Info
+  Info,
+  Settings2
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
@@ -102,11 +103,12 @@ const formatPercent = (value: number) => {
 export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const revenueSimulation = useRevenueSimulation(projectId);
-  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, { data: revenueSimulation.data, loading: revenueSimulation.loading });
-  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId);
+  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
+  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, sharedSimData);
+  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData });
   const { channels: salesChannels, getChannelBreakdown } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('hypotheses');
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
   const [costFormData, setCostFormData] = useState<any>({
@@ -341,7 +343,11 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="hypotheses" className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4" />
+            Ipotesi
+          </TabsTrigger>
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <PieChart className="h-4 w-4" />
             Panoramica
@@ -368,10 +374,12 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Simulation Parameters Config */}
+        {/* Tab Ipotesi Operative - All simulation parameters */}
+        <TabsContent value="hypotheses" className="space-y-6">
           <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} />
+        </TabsContent>
 
+        <TabsContent value="overview" className="space-y-6">
           {/* Financial Alerts */}
           <FinancialAlerts summary={summary} />
 
