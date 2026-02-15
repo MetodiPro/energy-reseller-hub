@@ -209,7 +209,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
     // Use simulation revenue as the source of truth
     const totalRevenue = simulationSummary.hasData ? simulationSummary.totalFatturato : costSummary.totalRevenue;
     const resellerMargin = simulationSummary.hasData ? simulationSummary.totalMargine : 0;
-    const passthroughCosts = simulationSummary.hasData ? simulationSummary.totalPassanti + simulationSummary.totalIva : costSummary.passthroughCosts;
+    const passthroughCosts = simulationSummary.hasData ? simulationSummary.totalPassanti : costSummary.passthroughCosts;
     
     // Simulated commercial costs from sales channels (commissions)
     const costiCommercialiSimulati = cashFlowData.hasData ? cashFlowData.totaleCostiCommerciali : 0;

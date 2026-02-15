@@ -92,7 +92,14 @@ export const PreLaunchChecklist = ({
   hasCosts, 
   hasTeamMembers 
 }: PreLaunchChecklistProps) => {
-  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
+  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('prelaunch-manual-checks');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const checkItems = useMemo<CheckItem[]>(() => {
     const items: CheckItem[] = [];
@@ -234,7 +241,13 @@ export const PreLaunchChecklist = ({
   }, [stepProgress, project, hasDocuments, hasCosts, hasTeamMembers, manualChecks]);
 
   const toggleManualCheck = (id: string) => {
-    setManualChecks(prev => ({ ...prev, [id]: !prev[id] }));
+    setManualChecks(prev => {
+      const updated = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem('prelaunch-manual-checks', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
   };
 
   // Group items by category
