@@ -56,9 +56,10 @@ const formatCurrency = (value: number) => {
 interface SimulationParamsConfigProps {
   projectId: string;
   simulationHook: ReturnType<typeof useRevenueSimulation>;
+  commodityType?: string | null;
 }
 
-export const SimulationParamsConfig = ({ projectId, simulationHook }: SimulationParamsConfigProps) => {
+export const SimulationParamsConfig = ({ projectId, simulationHook, commodityType }: SimulationParamsConfigProps) => {
   const { 
     data, 
     loading, 
@@ -95,26 +96,28 @@ export const SimulationParamsConfig = ({ projectId, simulationHook }: Simulation
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Commodity Type Selector */}
-        <div className="col-span-full mb-4">
-          <Label className="text-sm font-medium">Tipo Commodity Simulazione</Label>
-          <div className="flex gap-2 mt-2">
-            {[
-              { value: 'luce', label: '⚡ Solo Luce', icon: Zap },
-              { value: 'gas', label: '🔥 Solo Gas', icon: Flame },
-              { value: 'dual', label: '⚡🔥 Dual Fuel', icon: Settings2 },
-            ].map((opt) => (
-              <Button
-                key={opt.value}
-                variant={params.simulationCommodityType === opt.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => updateParams('simulationCommodityType', opt.value)}
-              >
-                {opt.label}
-              </Button>
-            ))}
+        {/* Commodity Type Selector - only show if project supports multiple commodities */}
+        {commodityType !== 'solo-luce' && commodityType !== 'solo-gas' && (
+          <div className="col-span-full mb-4">
+            <Label className="text-sm font-medium">Tipo Commodity Simulazione</Label>
+            <div className="flex gap-2 mt-2">
+              {[
+                { value: 'luce', label: '⚡ Solo Luce', icon: Zap },
+                { value: 'gas', label: '🔥 Solo Gas', icon: Flame },
+                { value: 'dual', label: '⚡🔥 Dual Fuel', icon: Settings2 },
+              ].map((opt) => (
+                <Button
+                  key={opt.value}
+                  variant={params.simulationCommodityType === opt.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateParams('simulationCommodityType', opt.value)}
+                >
+                  {opt.label}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="space-y-6">
