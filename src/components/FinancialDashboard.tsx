@@ -753,6 +753,72 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             </Card>
           </div>
 
+          {/* Sales Channel Cost Breakdown */}
+          {(() => {
+            const totalContracts = summary.contrattiTotali || 0;
+            const breakdown = getChannelBreakdown(totalContracts);
+            const totalChannelCost = breakdown.reduce((s, ch) => s + ch.cost, 0);
+            const channelPieData = breakdown
+              .filter(ch => ch.cost > 0)
+              .map((ch, i) => ({
+                name: ch.channel_name,
+                value: ch.cost,
+                percent: totalChannelCost > 0 ? (ch.cost / totalChannelCost) * 100 : 0,
+                color: `hsl(var(--chart-${(i % 5) + 1}))`,
+              }));
+
+            return channelPieData.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Peso Canali di Vendita sui Costi Commerciali
+                  </CardTitle>
+                  <CardDescription>
+                    Distribuzione percentuale delle provvigioni per canale ({formatCurrency(totalChannelCost)} totali)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <ResponsiveContainer width="100%" height={250}>
+                      <RechartsPie>
+                        <Pie
+                          data={channelPieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${percent.toFixed(0)}%`}
+                        >
+                          {channelPieData.map((entry, index) => (
+                            <Cell key={`ch-cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      </RechartsPie>
+                    </ResponsiveContainer>
+                    <div className="space-y-3 flex flex-col justify-center">
+                      {channelPieData.map((entry) => (
+                        <div key={entry.name} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span className="text-sm font-medium">{entry.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-bold">{formatCurrency(entry.value)}</span>
+                            <span className="text-xs text-muted-foreground ml-2">({entry.percent.toFixed(1)}%)</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null;
+          })()}
+
           {/* Margin Analysis */}
           <Card>
             <CardHeader>
