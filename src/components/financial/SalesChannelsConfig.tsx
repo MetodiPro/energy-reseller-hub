@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SalesChannelsConfigProps {
   projectId: string | null;
+  onChannelChange?: () => void;
 }
 
 const getChannelIcon = (name: string) => {
@@ -47,7 +48,7 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export const SalesChannelsConfig = ({ projectId }: SalesChannelsConfigProps) => {
+export const SalesChannelsConfig = ({ projectId, onChannelChange }: SalesChannelsConfigProps) => {
   const {
     channels,
     loading,
@@ -79,6 +80,7 @@ export const SalesChannelsConfig = ({ projectId }: SalesChannelsConfigProps) => 
 
   const handleInitialize = async () => {
     await initializePredefinedChannels();
+    onChannelChange?.();
   };
 
   const handleAddChannel = async () => {
@@ -103,21 +105,22 @@ export const SalesChannelsConfig = ({ projectId }: SalesChannelsConfigProps) => 
       contract_share: 0,
     });
     setShowAddDialog(false);
+    onChannelChange?.();
   };
 
   const handleShareChange = (id: string, value: string) => {
     const numValue = parseFloat(value) || 0;
-    updateChannel(id, { contract_share: Math.min(100, Math.max(0, numValue)) });
+    updateChannel(id, { contract_share: Math.min(100, Math.max(0, numValue)) }).then(() => onChannelChange?.());
   };
 
   const handleCommissionChange = (id: string, value: string) => {
     const numValue = parseFloat(value) || 0;
-    updateChannel(id, { commission_amount: Math.max(0, numValue) });
+    updateChannel(id, { commission_amount: Math.max(0, numValue) }).then(() => onChannelChange?.());
   };
 
   const handleActivationRateChange = (id: string, value: string) => {
     const numValue = parseFloat(value) || 0;
-    updateChannel(id, { activation_rate: Math.min(100, Math.max(0, numValue)) });
+    updateChannel(id, { activation_rate: Math.min(100, Math.max(0, numValue)) }).then(() => onChannelChange?.());
   };
 
   if (loading) {
@@ -309,7 +312,7 @@ export const SalesChannelsConfig = ({ projectId }: SalesChannelsConfigProps) => 
                     <TableCell className="text-center">
                       <Switch
                         checked={channel.is_active}
-                        onCheckedChange={(checked) => updateChannel(channel.id, { is_active: checked })}
+                        onCheckedChange={(checked) => updateChannel(channel.id, { is_active: checked }).then(() => onChannelChange?.())}
                       />
                     </TableCell>
                     <TableCell className="text-right">
@@ -338,7 +341,7 @@ export const SalesChannelsConfig = ({ projectId }: SalesChannelsConfigProps) => 
                     <TableCell className="text-center">
                       <Select
                         value={channel.commission_type}
-                        onValueChange={(v) => updateChannel(channel.id, { commission_type: v as 'per_contract' | 'per_activation' })}
+                        onValueChange={(v) => updateChannel(channel.id, { commission_type: v as 'per_contract' | 'per_activation' }).then(() => onChannelChange?.())}
                       >
                         <SelectTrigger className="w-32 h-8">
                           <SelectValue />
@@ -365,8 +368,8 @@ export const SalesChannelsConfig = ({ projectId }: SalesChannelsConfigProps) => 
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => deleteChannel(channel.id)}
+                           className="h-8 w-8 text-destructive hover:text-destructive"
+                           onClick={() => deleteChannel(channel.id).then(() => onChannelChange?.())}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

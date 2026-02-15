@@ -105,8 +105,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const revenueSimulation = useRevenueSimulation(projectId);
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
   const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, sharedSimData);
-  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData });
-  const { channels: salesChannels, getChannelBreakdown } = useSalesChannels(projectId);
+  const { channels: salesChannels, getChannelBreakdown, calculateCommissionCosts, loading: channelsLoading, refetch: refetchChannels } = useSalesChannels(projectId);
+  const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
+  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData });
   const { exportToPDF } = useExportFinancialPDF();
   const [activeTab, setActiveTab] = useState('hypotheses');
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
@@ -379,7 +380,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
           
           {/* Sales Channels Configuration */}
-          <SalesChannelsConfig projectId={projectId} />
+          <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
           
           {/* Wholesaler Costs Configuration */}
           <WholesalerCostsConfig
