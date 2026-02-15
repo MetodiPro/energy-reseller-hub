@@ -30,6 +30,7 @@ export interface CashFlowBreakdown {
   churnedCustomers: number;
   invoicedCustomers: number;
   saldoPrecedente: number;
+  investmentBreakdown: Array<{ stepId: string; description: string; amount: number }>;
 }
 
 export interface MonthlyCashFlowData {
@@ -78,21 +79,31 @@ export interface CashFlowSummary {
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
 // Calculate investment per month based on step timing config
+interface MonthlyInvestmentResult {
+  totals: number[];
+  breakdowns: Array<Array<{ stepId: string; description: string; amount: number }>>;
+}
+
 const calculateMonthlyInvestments = (
   getStepTotal: (stepId: string) => number
-): number[] => {
-  const monthlyTotals = new Array(14).fill(0);
+): MonthlyInvestmentResult => {
+  const totals = new Array(14).fill(0);
+  const breakdowns: Array<Array<{ stepId: string; description: string; amount: number }>> = Array.from({ length: 14 }, () => []);
   
-  // Iterate through all steps and assign to their designated month
   Object.keys(stepCostsData).forEach(stepId => {
     const month = stepTimingConfig[stepId] ?? 0;
     const stepTotal = getStepTotal(stepId);
-    if (month >= 0 && month < 14) {
-      monthlyTotals[month] += stepTotal;
+    if (month >= 0 && month < 14 && stepTotal > 0) {
+      totals[month] += stepTotal;
+      breakdowns[month].push({
+        stepId,
+        description: stepCostsData[stepId].description,
+        amount: stepTotal,
+      });
     }
   });
   
-  return monthlyTotals;
+  return { totals, breakdowns };
 };
 
 interface CashFlowAnalysisOptions {
@@ -155,8 +166,8 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlow
     const gestionePodPerPod = params.gestionePodPerPod ?? 2.5;
     
     // Calculate monthly investments based on step timing
-    const monthlyInvestments = calculateMonthlyInvestments(getStepTotal);
-    const investimentoIniziale = monthlyInvestments.reduce((sum, val) => sum + val, 0);
+    const investmentResult = calculateMonthlyInvestments(getStepTotal);
+    const investimentoIniziale = investmentResult.totals.reduce((sum, val) => sum + val, 0);
     
     // Monthly calculations
     const monthlyData: MonthlyCashFlowData[] = [];
@@ -315,7 +326,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlow
       previousDeposito = depositoRichiesto;
       
       // Investment costs for this month (distributed based on step timing)
-      const investimentiMese = monthlyInvestments[m] ?? 0;
+      const investimentiMese = investmentResult.totals[m] ?? 0;
       
       // Commercial costs (sales channel commissions)
       const costiCommercialiMese = calculateCommissionCosts(newContracts, activatedCustomers);
@@ -383,6 +394,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlow
           churnedCustomers,
           invoicedCustomers,
           saldoPrecedente: Math.round(saldoPrecedente),
+          investmentBreakdown: investmentResult.breakdowns[m] ?? [],
         },
       });
     }
