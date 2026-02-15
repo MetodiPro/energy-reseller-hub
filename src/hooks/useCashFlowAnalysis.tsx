@@ -95,9 +95,19 @@ const calculateMonthlyInvestments = (
   return monthlyTotals;
 };
 
-export const useCashFlowAnalysis = (projectId: string | null) => {
-  const { summary: simSummary, loading: simLoading } = useSimulationSummary(projectId);
-  const { data: simData, loading: revenueLoading } = useRevenueSimulation(projectId);
+interface CashFlowAnalysisOptions {
+  simulationData?: { data: import('./useRevenueSimulation').RevenueSimulationData; loading: boolean };
+}
+
+export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlowAnalysisOptions) => {
+  // Use shared simulation data if provided, otherwise create own instances (backward compat)
+  const ownRevenueHook = useRevenueSimulation(options?.simulationData ? null : projectId);
+  const simData = options?.simulationData?.data ?? ownRevenueHook.data;
+  const revenueLoading = options?.simulationData?.loading ?? ownRevenueHook.loading;
+  
+  const { summary: simSummary, loading: simLoading } = useSimulationSummary(projectId, 
+    options?.simulationData ? { data: simData, loading: revenueLoading } : undefined
+  );
   const { getStepTotal, loading: stepCostsLoading } = useStepCosts(projectId);
   const { channels, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
   const { taxFlows, loading: taxFlowsLoading } = useTaxFlows(projectId);
