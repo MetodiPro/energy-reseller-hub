@@ -97,6 +97,11 @@ const calculateMonthlyInvestments = (
 
 interface CashFlowAnalysisOptions {
   simulationData?: { data: import('./useRevenueSimulation').RevenueSimulationData; loading: boolean };
+  salesChannelsData?: { 
+    channels: import('./useSalesChannels').SalesChannel[];
+    calculateCommissionCosts: (totalContracts: number, activatedCustomers: number) => number;
+    loading: boolean;
+  };
 }
 
 export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlowAnalysisOptions) => {
@@ -109,7 +114,12 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlow
     options?.simulationData ? { data: simData, loading: revenueLoading } : undefined
   );
   const { getStepTotal, loading: stepCostsLoading } = useStepCosts(projectId);
-  const { channels, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
+  
+  // Use shared sales channels data if provided, otherwise create own instance
+  const ownChannelsHook = useSalesChannels(options?.salesChannelsData ? null : projectId);
+  const calculateCommissionCosts = options?.salesChannelsData?.calculateCommissionCosts ?? ownChannelsHook.calculateCommissionCosts;
+  const channelsLoading = options?.salesChannelsData?.loading ?? ownChannelsHook.loading;
+  
   const { taxFlows, loading: taxFlowsLoading } = useTaxFlows(projectId);
 
   const loading = simLoading || revenueLoading || stepCostsLoading || channelsLoading || taxFlowsLoading;
