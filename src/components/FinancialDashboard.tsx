@@ -270,13 +270,46 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
     );
   }
 
-  const pieData = Object.entries(summary.costsByType)
-    .filter(([_, value]) => value > 0)
-    .map(([key, value]) => ({
-      name: COST_TYPE_LABELS[key as keyof typeof COST_TYPE_LABELS],
-      value,
-      color: COLORS[key as keyof typeof COLORS],
-    }));
+  // Build comprehensive pie data including simulated costs
+  const pieData = (() => {
+    const entries: { name: string; value: number; color: string }[] = [];
+    
+    // Add passthrough costs from simulation
+    if (summary.hasSimulationData && summary.passthroughCosts > 0) {
+      entries.push({
+        name: 'Passanti (energia, trasporto, oneri)',
+        value: summary.passthroughCosts,
+        color: 'hsl(var(--chart-5))',
+      });
+    }
+    
+    // Add simulated commercial costs
+    if (summary.costiCommercialiSimulati > 0) {
+      entries.push({
+        name: 'Commerciali (canali vendita)',
+        value: summary.costiCommercialiSimulati,
+        color: COLORS.commercial,
+      });
+    }
+    
+    // Add manual costs by type (excluding commercial if already covered by simulation)
+    Object.entries(summary.costsByType)
+      .filter(([key, value]) => {
+        if (value <= 0) return false;
+        // Skip manual commercial costs if we have simulated ones
+        if (key === 'commercial' && summary.costiCommercialiSimulati > 0) return false;
+        return true;
+      })
+      .forEach(([key, value]) => {
+        entries.push({
+          name: COST_TYPE_LABELS[key as keyof typeof COST_TYPE_LABELS],
+          value,
+          color: COLORS[key as keyof typeof COLORS],
+        });
+      });
+    
+    return entries;
+  })();
 
   const barData = [
     { name: 'Ricavi', value: summary.totalRevenue, fill: 'hsl(var(--chart-1))' },
@@ -628,16 +661,16 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-2 mt-4">
-                  {Object.entries(summary.costsByType).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between text-sm">
+                  {pieData.map((entry) => (
+                    <div key={entry.name} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: COLORS[key as keyof typeof COLORS] }}
+                          style={{ backgroundColor: entry.color }}
                         />
-                        <span>{COST_TYPE_LABELS[key as keyof typeof COST_TYPE_LABELS]}</span>
+                        <span className="truncate">{entry.name}</span>
                       </div>
-                      <span className="font-medium">{formatCurrency(value)}</span>
+                      <span className="font-medium">{formatCurrency(entry.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -690,9 +723,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               ))}
               
               <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-                <p><strong>Margine Lordo:</strong> Ricavi - Costi Diretti (materiali, manodopera)</p>
-                <p><strong>Margine Contributivo:</strong> Ricavi - Costi Diretti - Costi Commerciali</p>
-                <p><strong>Margine Netto:</strong> Ricavi - Tutti i Costi (inclusi strutturali e indiretti)</p>
+                <p><strong>Margine Lordo:</strong> Fatturato - Costi Passanti (energia, trasporto, oneri, accise, IVA)</p>
+                <p><strong>Margine Contributivo:</strong> Margine Lordo - Costi Commerciali (provvigioni canali di vendita)</p>
+                <p><strong>Margine Netto:</strong> Fatturato - Tutti i Costi (passanti + operativi)</p>
               </div>
             </CardContent>
           </Card>
