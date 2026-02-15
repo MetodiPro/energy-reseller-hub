@@ -21,6 +21,8 @@ export interface CashFlowBreakdown {
   // Operativi
   gestionePod: number;
   // Deposito
+  depositoLordo: number;        // cumulative initial deposits from activations
+  pagamentiConsumi: number;     // cumulative payments reducing deposit
   depositoRichiesto: number;
   depositoPrecedente: number;
   // Clienti
@@ -144,6 +146,11 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
     let mesePrimoPositivo: string | null = null;
     let previousDeposito = 0;
     
+    // Deposit tracking: deposits are required only for NEW activations,
+    // and payments made for actual consumption reduce the outstanding deposit
+    let totalDepositoLordo = 0;  // cumulative initial deposits for each activation batch
+    let totalPagamentiConsumi = 0; // cumulative payments made to wholesaler (reduce deposit)
+    
     // Track invoices for collection aging
     const invoicesToCollect: { month: number; amount: number }[] = [];
     
@@ -249,9 +256,15 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
       // Calculate operational costs (gestione POD, etc.)
       const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
       
-      // Calculate deposit delta
-      const fatturatoMensileStimato = cumulativeActiveCustomers * fatturaPerCliente;
-      const depositoRichiesto = fatturatoMensileStimato * depositoMesi * depositoPercentuale;
+      // Calculate deposit: only NEW activations generate new deposit requirements
+      // Payments for actual consumption reduce the outstanding deposit
+      const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
+      totalDepositoLordo += nuovoDepositoAttivazioni;
+      
+      // Reseller pays wholesaler for actual consumption (passthrough costs) - this reduces the deposit
+      totalPagamentiConsumi += costiPassantiMese;
+      
+      const depositoRichiesto = Math.max(0, totalDepositoLordo - totalPagamentiConsumi);
       const depositoPrecedente = previousDeposito;
       const deltaDeposito = depositoRichiesto - previousDeposito;
       previousDeposito = depositoRichiesto;
@@ -317,6 +330,8 @@ export const useCashFlowAnalysis = (projectId: string | null) => {
           oneriSistema: Math.round(oneriMese),
           accise: Math.round(acciseMese),
           gestionePod: Math.round(costiOperativiMese),
+          depositoLordo: Math.round(totalDepositoLordo),
+          pagamentiConsumi: Math.round(totalPagamentiConsumi),
           depositoRichiesto: Math.round(depositoRichiesto),
           depositoPrecedente: Math.round(depositoPrecedente),
           churnedCustomers,

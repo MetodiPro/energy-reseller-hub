@@ -142,12 +142,16 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
     let costoEnergiaTotale = 0;
     
     // Deposito cauzionale tracking
+    // Deposits are required only for NEW activations;
+    // payments for actual consumption reduce the outstanding deposit
     const depositiMensili: MonthlyDepositData[] = [];
     const costiMensili: MonthlyCostBreakdown[] = [];
     let depositoIniziale = 0;
     let depositoFinale = 0;
     let depositoMassimo = 0;
     let previousDeposito = 0;
+    let totalDepositoLordo = 0;
+    let totalPagamentiConsumi = 0;
     
     for (let m = 0; m < 14; m++) {
       // Contratti firmati questo mese
@@ -208,10 +212,20 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       }
       
       // Calcolo deposito cauzionale mensile
-      // Il deposito è calcolato sul fatturato stimato dei clienti attivi × % attivazione
+      // Il deposito è richiesto solo sui NUOVI clienti attivati
+      // I pagamenti effettuati per consumi riducono la garanzia
       const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
+      const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
+      totalDepositoLordo += nuovoDepositoAttivazioni;
+      
+      // Costi passanti pagati al grossista questo mese riducono il deposito
+      const costiPassantiMese = m >= 2 
+        ? cumulativeActiveCustomers * (materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente)
+        : 0;
+      totalPagamentiConsumi += costiPassantiMese;
+      
       const fatturatoMensileStimato = cumulativeActiveCustomers * fatturaPerCliente;
-      const depositoRichiesto = fatturatoMensileStimato * depositoMesi * depositoPercentuale;
+      const depositoRichiesto = Math.max(0, totalDepositoLordo - totalPagamentiConsumi);
       const deltaDeposito = depositoRichiesto - previousDeposito;
       
       // Calcola etichetta mese
