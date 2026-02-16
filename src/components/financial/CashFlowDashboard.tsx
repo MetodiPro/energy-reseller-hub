@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
@@ -20,7 +21,8 @@ import {
   Receipt,
   Building2,
   Shield,
-  Lock
+  Lock,
+  FileDown
 } from 'lucide-react';
 import {
   AreaChart,
@@ -59,10 +61,13 @@ const TipCell = ({ children, lines, className }: { children: React.ReactNode; li
   );
 };
 
+import { exportCashFlowToExcel } from '@/lib/exportCashFlowExcel';
+
 interface CashFlowDashboardProps {
   cashFlowData: CashFlowSummary;
   loading: boolean;
   projectId: string | null;
+  projectName?: string;
 }
 
 const formatCurrency = (value: number) => {
@@ -84,7 +89,7 @@ const formatCompact = (value: number) => {
   return `€${value.toFixed(0)}`;
 };
 
-export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlowDashboardProps) => {
+export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectName }: CashFlowDashboardProps) => {
   const { summary: simSummary } = useSimulationSummary(projectId);
   
   const chartData = useMemo(() => {
@@ -525,10 +530,23 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId }: CashFlow
       {/* Detail Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Dettaglio Mensile</CardTitle>
-          <CardDescription>
-            Flussi di cassa per ogni mese della simulazione
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Dettaglio Mensile</CardTitle>
+              <CardDescription>
+                Flussi di cassa per ogni mese della simulazione
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => exportCashFlowToExcel(projectName || 'Progetto', cashFlowData)}
+            >
+              <FileDown className="h-4 w-4" />
+              Esporta Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
