@@ -829,6 +829,74 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             />
           )}
 
+          {/* ROI Indicator */}
+          {cashFlowData.hasData && cashFlowData.investimentoIniziale > 0 && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  ROI — Return on Investment
+                </CardTitle>
+                <CardDescription>
+                  Confronto tra margine netto e investimento iniziale dal Processo
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Investimento Totale</p>
+                    <p className="text-2xl font-bold text-destructive">{formatCurrency(cashFlowData.investimentoIniziale)}</p>
+                    <p className="text-xs text-muted-foreground">Costi step del Processo</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Margine Netto (14m)</p>
+                    <p className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                      {formatCurrency(summary.netMargin)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Ricavi − Tutti i costi</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">ROI</p>
+                    {(() => {
+                      const roi = cashFlowData.investimentoIniziale > 0
+                        ? ((summary.netMargin / cashFlowData.investimentoIniziale) * 100)
+                        : 0;
+                      return (
+                        <>
+                          <p className={`text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                            {roi.toFixed(1)}%
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {roi >= 100 ? 'Investimento recuperato' : roi >= 0 ? 'In recupero' : 'Negativo'}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Payback</p>
+                    {(() => {
+                      const avgMonthlyNetMargin = summary.netMargin / 14;
+                      const paybackMonths = avgMonthlyNetMargin > 0
+                        ? Math.ceil(cashFlowData.investimentoIniziale / avgMonthlyNetMargin)
+                        : null;
+                      return (
+                        <>
+                          <p className="text-2xl font-bold">
+                            {paybackMonths ? `${paybackMonths} mesi` : 'N/D'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {paybackMonths && paybackMonths <= 14 ? 'Entro la simulazione' : 'Oltre 14 mesi'}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Margin Analysis */}
           <Card>
             <CardHeader>
@@ -1013,6 +1081,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             cashFlowData={cashFlowData} 
             loading={cashFlowLoading}
             projectId={projectId}
+            projectName={projectName}
           />
         </TabsContent>
 
