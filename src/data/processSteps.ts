@@ -605,6 +605,40 @@ export const processSteps: ProcessStep[] = [
       'Formazione su procedure operative grossista'
     ]
   },
+  {
+    id: 'step-4-2',
+    phase: 4,
+    title: 'Garanzie Finanziarie Grossista',
+    description: 'Predisposizione delle garanzie finanziarie richieste dal grossista: deposito cauzionale, fideiussione bancaria/assicurativa e revisione legale del contratto',
+    category: 'commercial',
+    estimatedDays: 15,
+    priority: 'high',
+    dependencies: ['step-4-1'],
+    documents: [
+      'Fideiussione bancaria/assicurativa',
+      'Ricevuta deposito cauzionale',
+      'Parere legale sul contratto di fornitura',
+    ],
+    costs: {
+      min: 30000,
+      max: 150000,
+      description: 'Deposito cauzionale, fideiussione e consulenza legale'
+    },
+    notes: [
+      'Il grossista richiede garanzie finanziarie proporzionali ai volumi previsti',
+      'Tipicamente 1-3 mesi di fatturato previsto come deposito',
+      'La fideiussione può essere bancaria o assicurativa (costo 1.5-3% annuo)',
+      'Valutare con il commercialista l\'impatto sul cash flow iniziale',
+    ],
+    checklist: [
+      'Verificare importo garanzia richiesta dal grossista',
+      'Richiedere preventivi fideiussione a banche/assicurazioni',
+      'Predisporre deposito cauzionale',
+      'Revisione legale contratto di fornitura',
+      'Consegna garanzia al grossista',
+      'Ottenere conferma accettazione garanzia',
+    ]
+  },
   // NOTA: L'accreditamento SII è gestito dal grossista/UDD, non dal reseller
   {
     id: 'step-4-3',
