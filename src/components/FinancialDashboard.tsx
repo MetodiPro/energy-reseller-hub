@@ -53,6 +53,7 @@ import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
+import { MonthlyChannelCostsChart } from '@/components/financial/MonthlyChannelCostsChart';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import {
   PieChart as RechartsPie,
@@ -818,6 +819,15 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
               </Card>
             ) : null;
           })()}
+
+          {/* Monthly Commercial Costs by Channel - Stacked Bar Chart */}
+          {revenueSimulation.data && (
+            <MonthlyChannelCostsChart
+              channels={salesChannels}
+              monthlyContracts={revenueSimulation.data.monthlyContracts}
+              startDate={revenueSimulation.data.startDate}
+            />
+          )}
 
           {/* Margin Analysis */}
           <Card>
