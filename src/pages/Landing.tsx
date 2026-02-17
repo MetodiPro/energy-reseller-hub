@@ -7,13 +7,9 @@ import {
   CheckCircle2,
   BarChart3,
   Users,
-  FileText,
-  Shield,
   TrendingUp,
   ClipboardCheck,
   Rocket,
-  Quote,
-  Star,
   Building2,
   Landmark,
   Scale,
@@ -85,29 +81,8 @@ const benefits = [
   "Collaborazione multi-utente con ruoli",
 ];
 
-const testimonials = [
-  {
-    quote:
-      "Grazie a Power Reseller Start Up abbiamo ottenuto la licenza ARERA e avviato la commercializzazione in soli 5 mesi. Il processo guidato ci ha evitato errori costosi.",
-    name: "Marco Bianchi",
-    role: "CEO, EnergiaVerde Srl",
-    stars: 5,
-  },
-  {
-    quote:
-      "Il simulatore finanziario ci ha permesso di validare il nostro modello di business prima di investire. Il break-even era chiaro fin dal primo giorno.",
-    name: "Laura Conti",
-    role: "CFO, LuceNuova SpA",
-    stars: 5,
-  },
-  {
-    quote:
-      "La gestione integrata dei consulenti e delle scadenze regolatorie ha fatto la differenza. Niente più fogli Excel sparsi e deadline dimenticate.",
-    name: "Alessandro Rossi",
-    role: "Fondatore, PowerItalia",
-    stars: 5,
-  },
-];
+
+
 
 const partners = [
   { name: "Consulenze ARERA", icon: Landmark },
@@ -277,40 +252,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mb-14 text-center">
-            <h2 className="font-serif text-3xl font-bold sm:text-4xl">
-              Chi ci ha scelto
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Imprenditori e aziende che hanno avviato la loro attività di reseller energia con la nostra piattaforma.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <Card key={t.name} className="border-border transition-shadow hover:shadow-lg">
-                <CardContent className="flex flex-col gap-4 p-6">
-                  <Quote className="h-8 w-8 text-primary/30" />
-                  <p className="flex-1 text-sm leading-relaxed text-muted-foreground italic">
-                    "{t.quote}"
-                  </p>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: t.stars }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <div className="border-t border-border pt-4">
-                    <p className="font-semibold text-sm">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* Partners */}
       <section className="border-t border-border bg-card/50 py-14">
