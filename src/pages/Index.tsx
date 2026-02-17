@@ -22,6 +22,7 @@ import { PreLaunchChecklist } from "@/components/PreLaunchChecklist";
 import { ConsultantsManager } from "@/components/ConsultantsManager";
 import { FAQ } from "@/components/FAQ";
 import { SettingsPage } from "@/components/SettingsPage";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -297,7 +298,7 @@ const Index = () => {
           />
         );
       case "faq":
-        return <FAQ />;
+        return <FAQ onNavigate={setActiveTab} />;
       case "settings":
         return (
           <SettingsPage 
@@ -337,6 +338,9 @@ const Index = () => {
           onClose={() => setShowWizard(false)}
           onProjectCreated={handleProjectCreated}
         />
+
+        {/* Onboarding Tutorial */}
+        {currentProject && <OnboardingTutorial onNavigate={setActiveTab} />}
 
         <AppSidebar 
           activeTab={activeTab} 
