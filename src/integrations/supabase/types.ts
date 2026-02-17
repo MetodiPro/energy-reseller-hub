@@ -1131,6 +1131,7 @@ export type Database = {
           expected_volumes: number | null
           go_live_date: string | null
           id: string
+          logo_url: string | null
           market_type: string | null
           name: string
           owner_id: string
@@ -1151,6 +1152,7 @@ export type Database = {
           expected_volumes?: number | null
           go_live_date?: string | null
           id?: string
+          logo_url?: string | null
           market_type?: string | null
           name: string
           owner_id: string
@@ -1171,6 +1173,7 @@ export type Database = {
           expected_volumes?: number | null
           go_live_date?: string | null
           id?: string
+          logo_url?: string | null
           market_type?: string | null
           name?: string
           owner_id?: string
