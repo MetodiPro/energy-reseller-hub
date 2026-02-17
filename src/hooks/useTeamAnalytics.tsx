@@ -99,81 +99,67 @@ export const useTeamAnalytics = (userId: string | undefined, stepProgress: Recor
         // Get team members
         const { data: membersData } = await supabase
           .from('project_members')
-          .select(`
-            user_id,
-            role,
-            profiles:user_id (
-              id,
-              full_name
-            )
-          `)
+          .select('user_id, role')
           .eq('project_id', project.id);
-        
-        const members: TeamMember[] = membersData?.map(member => {
-          const profile = member.profiles as any;
-          return {
-            id: member.user_id,
-            // Email isn't available client-side without privileged access; keep empty.
-            email: '',
-            full_name: profile?.full_name || null,
-            role: member.role
-          };
-        }) || [];
+
+        const memberUserIds = membersData?.map(m => m.user_id) || [];
 
         // Get assignments
         const { data: assignmentsData } = await supabase
           .from('step_assignments')
-          .select(`
-            *,
-            assignee:assigned_to (
-              id,
-              full_name
-            )
-          `)
+          .select('*')
           .eq('project_id', project.id);
-
-        const assignments: StepAssignment[] = assignmentsData?.map(a => {
-          const assignee = a.assignee as any;
-          return {
-            id: a.id,
-            step_id: a.step_id,
-            assigned_to: a.assigned_to,
-            assigned_by: a.assigned_by,
-            created_at: a.created_at,
-            assignee: {
-              email: '',
-              full_name: assignee?.full_name || null
-            }
-          };
-        }) || [];
 
         // Get comments
         const { data: commentsData } = await supabase
           .from('step_comments')
-          .select(`
-            *,
-            user:user_id (
-              id,
-              full_name
-            )
-          `)
+          .select('*')
           .eq('project_id', project.id)
           .order('created_at', { ascending: false });
 
-        const comments: StepComment[] = commentsData?.map(c => {
-          const user = c.user as any;
-          return {
-            id: c.id,
-            step_id: c.step_id,
-            user_id: c.user_id,
-            comment: c.comment,
-            created_at: c.created_at,
-            user: {
-              email: '',
-              full_name: user?.full_name || null
-            }
-          };
-        }) || [];
+        // Collect all unique user IDs and fetch profiles in one query
+        const allUserIds = new Set<string>(memberUserIds);
+        assignmentsData?.forEach(a => { allUserIds.add(a.assigned_to); allUserIds.add(a.assigned_by); });
+        commentsData?.forEach(c => allUserIds.add(c.user_id));
+
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', Array.from(allUserIds));
+
+        const profileMap: Record<string, string | null> = {};
+        profilesData?.forEach(p => { profileMap[p.id] = p.full_name; });
+
+        const members: TeamMember[] = membersData?.map(member => ({
+          id: member.user_id,
+          email: '',
+          full_name: profileMap[member.user_id] || null,
+          role: member.role
+        })) || [];
+
+        const assignments: StepAssignment[] = assignmentsData?.map(a => ({
+          id: a.id,
+          step_id: a.step_id,
+          assigned_to: a.assigned_to,
+          assigned_by: a.assigned_by,
+          created_at: a.created_at,
+          assignee: {
+            email: '',
+            full_name: profileMap[a.assigned_to] || null
+          }
+        })) || [];
+
+        const comments: StepComment[] = commentsData?.map(c => ({
+          id: c.id,
+          step_id: c.step_id,
+          user_id: c.user_id,
+          comment: c.comment,
+          created_at: c.created_at,
+          user: {
+            email: '',
+            full_name: profileMap[c.user_id] || null
+          }
+        })) || [];
 
         // Calculate member performance
         const memberPerformance = members.map(member => {
