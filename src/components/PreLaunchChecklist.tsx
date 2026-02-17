@@ -32,6 +32,7 @@ import { processSteps } from '@/data/processSteps';
 import type { StepProgress } from '@/hooks/useStepProgress';
 import { useContractPackage } from '@/hooks/useContractPackage';
 import { useProjectLogo } from '@/hooks/useProjectLogo';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 
 interface PreLaunchChecklistProps {
   stepProgress: Record<string, StepProgress>;
@@ -114,6 +115,7 @@ export const PreLaunchChecklist = ({
   const { uploadLogo, removeLogo, uploading: logoUploading } = useProjectLogo(
     project ? { id: project.id || '', name: project.name || '', description: null, owner_id: '', commodity_type: project.commodity_type || null, planned_start_date: null, go_live_date: project.go_live_date, logo_url: project.logo_url || null, created_at: '', updated_at: '' } : null
   );
+  const { data: simData } = useRevenueSimulation(projectId || null);
 
   // Load manual checks from DB
   useEffect(() => {
@@ -559,6 +561,7 @@ export const PreLaunchChecklist = ({
             className="w-full"
             onClick={() => {
               if (!project) return;
+              const sp = simData.params;
               generatePackage({
                 projectName: project.name || 'Reseller',
                 logoUrl: project.logo_url || null,
@@ -566,6 +569,32 @@ export const PreLaunchChecklist = ({
                 companyName: project.name,
                 areaCode: project.arera_code || undefined,
                 wholesalerName: project.wholesaler_name || undefined,
+                simulation: {
+                  punPerKwh: sp.punPerKwh,
+                  spreadPerKwh: sp.spreadPerKwh,
+                  dispacciamentoPerKwh: sp.dispacciamentoPerKwh,
+                  trasportoQuotaFissaAnno: sp.trasportoQuotaFissaAnno,
+                  trasportoQuotaPotenzaKwAnno: sp.trasportoQuotaPotenzaKwAnno,
+                  trasportoQuotaEnergiaKwh: sp.trasportoQuotaEnergiaKwh,
+                  oneriAsosKwh: sp.oneriAsosKwh,
+                  oneriArimKwh: sp.oneriArimKwh,
+                  acciseKwh: sp.acciseKwh,
+                  ivaPercent: sp.ivaPercent,
+                  ccvMonthly: sp.ccvMonthly,
+                  gestionePodPerPod: sp.gestionePodPerPod,
+                  potenzaImpegnataKw: sp.potenzaImpegnataKw,
+                  psvPerSmc: sp.psvPerSmc,
+                  spreadGasPerSmc: sp.spreadGasPerSmc,
+                  trasportoGasQuotaFissaAnno: sp.trasportoGasQuotaFissaAnno,
+                  trasportoGasQuotaEnergiaSmc: sp.trasportoGasQuotaEnergiaSmc,
+                  oneriGasReSmc: sp.oneriGasReSmc,
+                  oneriGasUgSmc: sp.oneriGasUgSmc,
+                  acciseGasSmc: sp.acciseGasSmc,
+                  addizionaleRegionaleGasSmc: sp.addizionaleRegionaleGasSmc,
+                  ivaPercentGas: sp.ivaPercentGas,
+                  ccvGasMonthly: sp.ccvGasMonthly,
+                  gestionePdrPerPdr: sp.gestionePdrPerPdr,
+                },
               });
             }}
             disabled={generating}
@@ -579,6 +608,12 @@ export const PreLaunchChecklist = ({
           <p className="text-xs text-muted-foreground text-center">
             Include: PDA, CTE, Condizioni Generali di Fornitura, Scheda Sintetica di Confrontabilità
           </p>
+          {simData.id && (
+            <p className="text-xs text-success text-center flex items-center justify-center gap-1">
+              <CheckCircle2 className="h-3 w-3" />
+              I prezzi vengono pre-compilati dalla simulazione finanziaria del progetto
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

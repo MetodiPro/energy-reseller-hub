@@ -5,6 +5,35 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useToast } from '@/hooks/use-toast';
 
+export interface ContractSimulationData {
+  // Luce
+  punPerKwh?: number;
+  spreadPerKwh?: number;
+  dispacciamentoPerKwh?: number;
+  trasportoQuotaFissaAnno?: number;
+  trasportoQuotaPotenzaKwAnno?: number;
+  trasportoQuotaEnergiaKwh?: number;
+  oneriAsosKwh?: number;
+  oneriArimKwh?: number;
+  acciseKwh?: number;
+  ivaPercent?: number;
+  ccvMonthly?: number;
+  gestionePodPerPod?: number;
+  potenzaImpegnataKw?: number;
+  // Gas
+  psvPerSmc?: number;
+  spreadGasPerSmc?: number;
+  trasportoGasQuotaFissaAnno?: number;
+  trasportoGasQuotaEnergiaSmc?: number;
+  oneriGasReSmc?: number;
+  oneriGasUgSmc?: number;
+  acciseGasSmc?: number;
+  addizionaleRegionaleGasSmc?: number;
+  ivaPercentGas?: number;
+  ccvGasMonthly?: number;
+  gestionePdrPerPdr?: number;
+}
+
 interface ContractData {
   projectName: string;
   logoUrl: string | null;
@@ -12,6 +41,7 @@ interface ContractData {
   companyName?: string;
   areaCode?: string;
   wholesalerName?: string;
+  simulation?: ContractSimulationData;
 }
 
 // Helper to load image as base64
@@ -141,12 +171,15 @@ const generatePDA = async (data: ContractData, logoBase64: string | null): Promi
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
 
+  const sim = data.simulation;
+  const fmtVal = (v?: number, suffix?: string) => v != null ? `${v}${suffix || ''}` : '________';
+  
   const offerFields = [
     'Nome offerta: ____________________________________',
-    'Prezzo energia (€/kWh o €/Smc): ________',
-    'Tipologia prezzo: [ ] Fisso  [ ] Variabile (PUN/PSV + spread)',
-    'Spread (€/kWh o €/Smc): ________',
-    'Contributo Commercializzazione Vendita (CCV) mensile: € ________',
+    `Prezzo energia (€/kWh): ${sim?.punPerKwh != null && sim?.spreadPerKwh != null ? (sim.punPerKwh + sim.spreadPerKwh).toFixed(4) : '________'}`,
+    'Tipologia prezzo: [ ] Fisso  [X] Variabile (PUN/PSV + spread)',
+    `Spread reseller (€/kWh): ${fmtVal(sim?.spreadPerKwh)}`,
+    `CCV mensile: € ${fmtVal(sim?.ccvMonthly)}`,
     'Durata contrattuale: [ ] 12 mesi  [ ] 24 mesi  [ ] Altro: ________',
     'Decorrenza fornitura: ____/____/________',
   ];
@@ -198,19 +231,24 @@ const generateCTE = async (data: ContractData, logoBase64: string | null): Promi
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
 
+  const sim = data.simulation;
+  const fmtN = (v?: number, decimals = 4) => v != null ? v.toFixed(decimals) : '________';
+  const fmtN2 = (v?: number) => fmtN(v, 2);
+
   const elecRows = [
-    ['Prezzo energia (PUN + spread)', '€/kWh', '________'],
-    ['Spread reseller', '€/kWh', '________'],
-    ['Dispacciamento', '€/kWh', '________'],
-    ['Trasporto – quota fissa', '€/anno', '________'],
-    ['Trasporto – quota potenza', '€/kW/anno', '________'],
-    ['Trasporto – quota energia', '€/kWh', '________'],
-    ['Oneri di sistema (ASOS)', '€/kWh', '________'],
-    ['Oneri di sistema (ARIM)', '€/kWh', '________'],
-    ['Accise', '€/kWh', '________'],
-    ['IVA', '%', '________'],
-    ['CCV mensile', '€/mese', '________'],
-    ['Gestione POD', '€/POD/mese', '________'],
+    ['Prezzo energia (PUN + spread)', '€/kWh', sim?.punPerKwh != null && sim?.spreadPerKwh != null ? (sim.punPerKwh + sim.spreadPerKwh).toFixed(4) : '________'],
+    ['di cui PUN', '€/kWh', fmtN(sim?.punPerKwh)],
+    ['di cui Spread reseller', '€/kWh', fmtN(sim?.spreadPerKwh)],
+    ['Dispacciamento', '€/kWh', fmtN(sim?.dispacciamentoPerKwh)],
+    ['Trasporto – quota fissa', '€/anno', fmtN2(sim?.trasportoQuotaFissaAnno)],
+    ['Trasporto – quota potenza', '€/kW/anno', fmtN2(sim?.trasportoQuotaPotenzaKwAnno)],
+    ['Trasporto – quota energia', '€/kWh', fmtN(sim?.trasportoQuotaEnergiaKwh)],
+    ['Oneri di sistema (ASOS)', '€/kWh', fmtN(sim?.oneriAsosKwh)],
+    ['Oneri di sistema (ARIM)', '€/kWh', fmtN(sim?.oneriArimKwh)],
+    ['Accise', '€/kWh', fmtN(sim?.acciseKwh)],
+    ['IVA', '%', fmtN2(sim?.ivaPercent)],
+    ['CCV mensile', '€/mese', fmtN2(sim?.ccvMonthly)],
+    ['Gestione POD', '€/POD/mese', fmtN2(sim?.gestionePodPerPod)],
   ];
 
   (doc as any).autoTable({
@@ -231,17 +269,18 @@ const generateCTE = async (data: ContractData, logoBase64: string | null): Promi
     doc.setFont('helvetica', 'normal');
 
     const gasRows = [
-      ['Prezzo materia prima (PSV + spread)', '€/Smc', '________'],
-      ['Spread reseller gas', '€/Smc', '________'],
-      ['Trasporto – quota fissa', '€/anno', '________'],
-      ['Trasporto – quota energia', '€/Smc', '________'],
-      ['Oneri gas (RE)', '€/Smc', '________'],
-      ['Oneri gas (UG)', '€/Smc', '________'],
-      ['Accise gas', '€/Smc', '________'],
-      ['Addizionale regionale', '€/Smc', '________'],
-      ['IVA gas', '%', '________'],
-      ['CCV gas mensile', '€/mese', '________'],
-      ['Gestione PDR', '€/PDR/mese', '________'],
+      ['Prezzo materia prima (PSV + spread)', '€/Smc', sim?.psvPerSmc != null && sim?.spreadGasPerSmc != null ? (sim.psvPerSmc + sim.spreadGasPerSmc).toFixed(4) : '________'],
+      ['di cui PSV', '€/Smc', fmtN(sim?.psvPerSmc)],
+      ['di cui Spread reseller gas', '€/Smc', fmtN(sim?.spreadGasPerSmc)],
+      ['Trasporto – quota fissa', '€/anno', fmtN2(sim?.trasportoGasQuotaFissaAnno)],
+      ['Trasporto – quota energia', '€/Smc', fmtN(sim?.trasportoGasQuotaEnergiaSmc)],
+      ['Oneri gas (RE)', '€/Smc', fmtN(sim?.oneriGasReSmc)],
+      ['Oneri gas (UG)', '€/Smc', fmtN(sim?.oneriGasUgSmc)],
+      ['Accise gas', '€/Smc', fmtN(sim?.acciseGasSmc)],
+      ['Addizionale regionale', '€/Smc', fmtN(sim?.addizionaleRegionaleGasSmc)],
+      ['IVA gas', '%', fmtN2(sim?.ivaPercentGas)],
+      ['CCV gas mensile', '€/mese', fmtN2(sim?.ccvGasMonthly)],
+      ['Gestione PDR', '€/PDR/mese', fmtN2(sim?.gestionePdrPerPdr)],
     ];
 
     (doc as any).autoTable({
@@ -333,21 +372,28 @@ const generateSchedaSintetica = async (data: ContractData, logoBase64: string | 
   const commodity = data.commodityType || 'luce';
   const label = commodity === 'dual' ? 'Energia Elettrica e Gas Naturale' : commodity === 'gas' ? 'Gas Naturale' : 'Energia Elettrica';
 
+  const sim = data.simulation;
+  const fmtV = (v?: number, d = 4) => v != null ? v.toFixed(d) : '________';
+
   const infoRows = [
     ['Denominazione venditore', company],
     ['Codice ARERA', data.areaCode || '________'],
     ['Denominazione offerta', '________'],
     ['Tipologia fornitura', label],
     ['Segmento clienti', '[ ] Domestico  [ ] Business'],
-    ['Tipologia prezzo', '[ ] Fisso  [ ] Variabile'],
-    ['Durata offerta', '________ mesi'],
-    ['Prezzo energia', '________ €/kWh (o €/Smc)'],
-    ['Spread applicato', '________ €/kWh (o €/Smc)'],
-    ['CCV mensile', '________ €/mese'],
+    ['Tipologia prezzo', '[X] Variabile (PUN/PSV + spread)'],
+    ['Durata offerta', '12 mesi'],
+    ['Prezzo energia (luce)', sim?.punPerKwh != null && sim?.spreadPerKwh != null ? `${(sim.punPerKwh + sim.spreadPerKwh).toFixed(4)} €/kWh` : '________ €/kWh'],
+    ['Spread reseller (luce)', `${fmtV(sim?.spreadPerKwh)} €/kWh`],
+    ['CCV mensile (luce)', `${fmtV(sim?.ccvMonthly, 2)} €/mese`],
+    ...(commodity === 'gas' || commodity === 'dual' ? [
+      ['Prezzo energia (gas)', sim?.psvPerSmc != null && sim?.spreadGasPerSmc != null ? `${(sim.psvPerSmc + sim.spreadGasPerSmc).toFixed(4)} €/Smc` : '________ €/Smc'],
+      ['Spread reseller (gas)', `${fmtV(sim?.spreadGasPerSmc)} €/Smc`],
+      ['CCV mensile (gas)', `${fmtV(sim?.ccvGasMonthly, 2)} €/mese`],
+    ] : []),
     ['Spesa annua stimata (ARERA)', '________ €/anno'],
-    ['Risparmio stimato vs tutele', '________ €/anno'],
     ['Deposito cauzionale', '[ ] Sì  [ ] No – Importo: ________'],
-    ['Penali per recesso anticipato', '[ ] Nessuna  [ ] ________'],
+    ['Penali per recesso anticipato', 'Nessuna'],
     ['Modalità di pagamento accettate', 'RID/SDD, Bollettino, Bonifico'],
     ['Canale di vendita', '[ ] Porta a porta  [ ] Online  [ ] Telefonico  [ ] Agenzia'],
   ];
