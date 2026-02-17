@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, LogOut, Download, FileText } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
@@ -42,6 +43,7 @@ import { DollarSign } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,6 +209,7 @@ const Index = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    navigate("/");
   };
 
   if (loading) {
