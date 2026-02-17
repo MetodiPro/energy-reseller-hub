@@ -7,11 +7,12 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Bell, Shield, Palette, Save, Check, Sun, Moon, Monitor, Loader2 } from "lucide-react";
+import { User, Bell, Shield, Palette, Save, Check, Sun, Moon, Monitor, Loader2, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import { resetOnboardingTutorial } from "@/components/OnboardingTutorial";
 
 interface SettingsPageProps {
   userId?: string;
@@ -311,6 +312,38 @@ export function SettingsPage({ userId, userEmail, userName }: SettingsPageProps)
             </div>
             <Button variant="outline" size="sm">
               Visualizza sessioni
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tutorial Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <RotateCcw className="h-5 w-5 text-primary" />
+            <CardTitle>Tutorial</CardTitle>
+          </div>
+          <CardDescription>Rivedi il tutorial guidato dell'applicazione</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+            <div>
+              <p className="font-medium">Tutorial interattivo</p>
+              <p className="text-sm text-muted-foreground">
+                Riavvia la guida passo-passo che illustra le sezioni principali dell'app
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                resetOnboardingTutorial();
+                toast.success("Tutorial riavviato! Ricarica la pagina per vederlo.");
+              }}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Riavvia Tutorial
             </Button>
           </div>
         </CardContent>
