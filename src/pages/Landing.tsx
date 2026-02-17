@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -28,6 +29,22 @@ import processImage from "@/assets/landing-process.jpg";
 import financeImage from "@/assets/landing-finance.jpg";
 import teamImage from "@/assets/landing-team.jpg";
 
+// --- animation helpers ---
+const fadeUp = {
+  hidden: { opacity: 0, y: 32 },
+  visible: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.1, ease: [0.25, 0.1, 0.25, 1] as const },
+  }),
+};
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+// --- data ---
 const features = [
   {
     icon: ClipboardCheck,
@@ -88,9 +105,6 @@ const benefits = [
   "Collaborazione multi-utente con ruoli",
 ];
 
-
-
-
 const partners = [
   { name: "Consulenze ARERA", icon: Landmark },
   { name: "Studi Legali Energia", icon: Scale },
@@ -146,7 +160,7 @@ export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
@@ -172,20 +186,25 @@ export default function Landing() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+          <motion.div
+            className="space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
               <Zap className="h-3.5 w-3.5" /> Piattaforma operativa per reseller energia
-            </div>
-            <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+            </motion.div>
+            <motion.h1 variants={fadeUp} custom={1} className="font-serif text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Avvia la tua attività di{" "}
               <span className="text-primary">reseller energia</span> in Italia
-            </h1>
-            <p className="max-w-lg text-lg text-muted-foreground">
+            </motion.h1>
+            <motion.p variants={fadeUp} custom={2} className="max-w-lg text-lg text-muted-foreground">
               La piattaforma all-in-one che ti guida passo dopo passo dall'ottenimento della licenza
               ARERA fino al lancio commerciale, con simulazioni finanziarie, gestione team e
               compliance integrata.
-            </p>
-            <div className="flex flex-wrap gap-3">
+            </motion.p>
+            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-3">
               <Button size="lg" onClick={() => navigate("/app")} className="text-base">
                 Crea il tuo progetto <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
@@ -194,9 +213,14 @@ export default function Landing() {
               }} className="text-base">
                 Scopri come funziona
               </Button>
-            </div>
-          </div>
-          <div className="relative">
+            </motion.div>
+          </motion.div>
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
             <div className="overflow-hidden rounded-xl border border-border shadow-2xl">
               <img
                 src={heroImage}
@@ -205,82 +229,121 @@ export default function Landing() {
                 loading="eager"
               />
             </div>
-            <div className="absolute -bottom-4 -left-4 rounded-lg border border-border bg-card p-3 shadow-lg">
+            <motion.div
+              className="absolute -bottom-4 -left-4 rounded-lg border border-border bg-card p-3 shadow-lg"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.8 }}
+            >
               <div className="flex items-center gap-2 text-sm font-medium">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <span>Break-even in 8 mesi</span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features */}
       <section className="border-t border-border bg-card/50 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mb-14 text-center">
+          <motion.div
+            className="mb-14 text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={fadeUp}
+          >
             <h2 className="font-serif text-3xl font-bold sm:text-4xl">
               Tutto ciò che serve per partire
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
               Dalla burocrazia alla strategia commerciale: ogni aspetto del tuo avvio è coperto.
             </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-3">
-            {features.map((f) => (
-              <Card key={f.title} className="overflow-hidden border-border transition-shadow hover:shadow-lg">
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src={f.image}
-                    alt={f.title}
-                    className="h-full w-full object-cover transition-transform hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                <CardContent className="space-y-3 p-6">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <f.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="font-semibold leading-snug">{f.title}</h3>
+          </motion.div>
+          <motion.div
+            className="grid gap-8 md:grid-cols-3"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            {features.map((f, i) => (
+              <motion.div key={f.title} variants={fadeUp} custom={i}>
+                <Card className="overflow-hidden border-border transition-shadow hover:shadow-lg h-full">
+                  <div className="aspect-video overflow-hidden">
+                    <img
+                      src={f.image}
+                      alt={f.title}
+                      className="h-full w-full object-cover transition-transform hover:scale-105"
+                      loading="lazy"
+                    />
                   </div>
-                  <p className="text-sm text-muted-foreground">{f.description}</p>
-                </CardContent>
-              </Card>
+                  <CardContent className="space-y-3 p-6">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <f.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold leading-snug">{f.title}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{f.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* How It Works */}
       <section id="come-funziona" className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mb-14 text-center">
+          <motion.div
+            className="mb-14 text-center"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={fadeUp}
+          >
             <h2 className="font-serif text-3xl font-bold sm:text-4xl">Come funziona</h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
               Quattro passaggi per trasformare la tua idea in un'attività operativa.
             </p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((s) => (
-              <div
+          </motion.div>
+          <motion.div
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            {steps.map((s, i) => (
+              <motion.div
                 key={s.number}
+                variants={fadeUp}
+                custom={i}
                 className="relative rounded-xl border border-border bg-card p-6 transition-shadow hover:shadow-lg"
               >
                 <span className="font-mono text-4xl font-bold text-primary/20">{s.number}</span>
                 <h3 className="mt-2 text-lg font-semibold">{s.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{s.description}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Benefits */}
       <section className="border-t border-border bg-card/50 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div>
+          <motion.div
+            className="grid items-center gap-12 lg:grid-cols-2"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp}>
               <h2 className="font-serif text-3xl font-bold sm:text-4xl">
                 Progettato per il mercato energetico italiano
               </h2>
@@ -289,42 +352,61 @@ export default function Landing() {
                 energia elettrica e gas in Italia, nel rispetto della normativa ARERA e degli
                 adempimenti fiscali di settore.
               </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {benefits.map((b) => (
-                <div key={b} className="flex items-start gap-2.5 rounded-lg border border-border bg-card p-4">
+            </motion.div>
+            <motion.div className="grid gap-3 sm:grid-cols-2" variants={stagger}>
+              {benefits.map((b, i) => (
+                <motion.div key={b} variants={fadeUp} custom={i} className="flex items-start gap-2.5 rounded-lg border border-border bg-card p-4">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <span className="text-sm font-medium">{b}</span>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-
-
       {/* Partners */}
-      <section className="border-t border-border bg-card/50 py-14">
+      <motion.section
+        className="border-t border-border bg-card/50 py-14"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={fadeUp}
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <p className="mb-8 text-center text-sm font-medium uppercase tracking-wider text-muted-foreground">
             Ecosistema di partner e competenze
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-            {partners.map((p) => (
-              <div key={p.name} className="flex flex-col items-center gap-2 text-muted-foreground transition-colors hover:text-foreground">
+          <motion.div
+            className="flex flex-wrap items-center justify-center gap-8 sm:gap-12"
+            variants={stagger}
+          >
+            {partners.map((p, i) => (
+              <motion.div
+                key={p.name}
+                variants={fadeUp}
+                custom={i}
+                className="flex flex-col items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
                 <p.icon className="h-8 w-8" />
                 <span className="text-xs font-medium text-center max-w-[100px]">{p.name}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* FAQ */}
-      <section id="faq" className="py-20">
+      <motion.section
+        id="faq"
+        className="py-20"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={stagger}
+      >
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="mb-14 text-center">
+          <motion.div className="mb-14 text-center" variants={fadeUp}>
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <HelpCircle className="h-6 w-6 text-primary" />
             </div>
@@ -334,24 +416,32 @@ export default function Landing() {
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
               Le risposte alle domande più comuni sul processo di avvio come reseller energia in Italia.
             </p>
-          </div>
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="border-border">
-                <AccordionTrigger className="text-left text-sm font-semibold hover:text-primary hover:no-underline sm:text-base">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          </motion.div>
+          <motion.div variants={fadeUp} custom={1}>
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, i) => (
+                <AccordionItem key={i} value={`faq-${i}`} className="border-border">
+                  <AccordionTrigger className="text-left text-sm font-semibold hover:text-primary hover:no-underline sm:text-base">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* CTA */}
-      <section className="py-20">
+      <motion.section
+        className="py-20"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={fadeUp}
+      >
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <div className="rounded-2xl border border-primary/20 bg-primary/5 p-10 sm:p-14">
             <Rocket className="mx-auto h-10 w-10 text-primary" />
@@ -367,7 +457,7 @@ export default function Landing() {
             </Button>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="border-t border-border py-8">
