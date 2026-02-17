@@ -15,7 +15,14 @@ import {
   Scale,
   Monitor,
   Briefcase,
+  HelpCircle,
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import heroImage from "@/assets/landing-hero.jpg";
 import processImage from "@/assets/landing-process.jpg";
 import financeImage from "@/assets/landing-finance.jpg";
@@ -90,6 +97,49 @@ const partners = [
   { name: "Software CRM/Billing", icon: Monitor },
   { name: "Grossisti Energia", icon: Building2 },
   { name: "Commercialisti Settore", icon: Briefcase },
+];
+
+const faqs = [
+  {
+    question: "Cos'è un reseller di energia elettrica e gas?",
+    answer:
+      "Un reseller acquista energia all'ingrosso da un grossista autorizzato e la rivende ai clienti finali con il proprio brand e le proprie condizioni commerciali. Non possiede infrastrutture di rete: si occupa di fatturazione, assistenza clienti e gestione contrattuale.",
+  },
+  {
+    question: "Quali autorizzazioni servono per diventare reseller in Italia?",
+    answer:
+      "Serve ottenere la licenza di vendita dall'ARERA (codice EVE per l'elettricità, EVG per il gas), iscriversi al portale SII (Sistema Informativo Integrato), registrarsi al REMIT presso ACER e adempiere agli obblighi fiscali di settore (accise, IVA energia, CSEA).",
+  },
+  {
+    question: "Quanto tempo serve per avviare l'attività?",
+    answer:
+      "Il percorso completo richiede mediamente 4-8 mesi, a seconda della complessità: costituzione societaria, ottenimento licenze ARERA, contratto con il grossista, setup del sistema CRM/billing e adempimenti regolatori. La piattaforma ti guida in ogni fase per ridurre i tempi.",
+  },
+  {
+    question: "Qual è l'investimento iniziale necessario?",
+    answer:
+      "L'investimento varia in base al modello di business. I costi principali includono: costituzione societaria, consulenze legali e regolatorie, sistema CRM/billing, garanzie per il grossista e capitale circolante iniziale. Il simulatore finanziario della piattaforma ti aiuta a stimare il budget necessario.",
+  },
+  {
+    question: "Serve avere esperienza nel settore energetico?",
+    answer:
+      "No. La piattaforma è progettata proprio per guidare chi parte da zero: ogni step include spiegazioni dettagliate, checklist operative e suggerimenti su quali professionisti coinvolgere (commercialista, avvocato, consulente ARERA).",
+  },
+  {
+    question: "Come funziona il rapporto con il grossista?",
+    answer:
+      "Il grossista fornisce l'energia all'ingrosso e gestisce i flussi con il distributore locale. Tu come reseller firmi un contratto di fornitura che definisce spread, modalità di fatturazione e garanzie richieste. La piattaforma ti aiuta a configurare e simulare i parametri economici del rapporto.",
+  },
+  {
+    question: "Posso operare su tutto il territorio nazionale?",
+    answer:
+      "Sì, la licenza ARERA consente di operare su tutto il territorio italiano. Puoi scegliere di concentrarti su specifiche regioni o mercati (domestico, business, condomini) in base alla tua strategia commerciale.",
+  },
+  {
+    question: "La piattaforma sostituisce i consulenti professionali?",
+    answer:
+      "No. La piattaforma organizza e velocizza il lavoro, ma per gli aspetti legali, fiscali e regolatori è fondamentale affidarsi a professionisti qualificati. Il sistema ti aiuta a coordinare il loro lavoro e a monitorare scadenze e deliverable.",
+  },
 ];
 
 export default function Landing() {
@@ -268,6 +318,35 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <div className="mb-14 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <HelpCircle className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="font-serif text-3xl font-bold sm:text-4xl">
+              Domande frequenti
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+              Le risposte alle domande più comuni sul processo di avvio come reseller energia in Italia.
+            </p>
+          </div>
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border-border">
+                <AccordionTrigger className="text-left text-sm font-semibold hover:text-primary hover:no-underline sm:text-base">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </section>
 
