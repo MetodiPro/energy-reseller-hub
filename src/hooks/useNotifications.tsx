@@ -5,10 +5,15 @@ import { toast } from "@/hooks/use-toast";
 import { differenceInDays, parseISO, addDays, isSameDay, isAfter, startOfDay } from "date-fns";
 import { NotificationSetting } from "./useNotificationSettings";
 
+interface StepAssignmentRow {
+  step_id: string;
+  assigned_to: string;
+}
+
 export interface Notification {
   id: string;
   stepId: string;
-  type: 'deadline' | 'reminder' | 'priority';
+  type: 'deadline' | 'reminder' | 'priority' | 'assignment';
   message: string;
   priority: 'high' | 'medium' | 'low';
   read: boolean;
@@ -18,16 +23,41 @@ export interface Notification {
 export const useNotifications = (
   userId: string | undefined, 
   stepProgress: Record<string, any>,
-  notificationSettings?: Record<string, NotificationSetting>
+  notificationSettings?: Record<string, NotificationSetting>,
+  projectId?: string | null
 ) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     if (!userId || !stepProgress) return;
 
-    const checkNotifications = () => {
+    const checkNotifications = async () => {
       const newNotifications: Notification[] = [];
       const today = new Date();
+
+      // Check for step assignments to this user
+      if (projectId) {
+        const { data: assignments } = await supabase
+          .from('step_assignments')
+          .select('step_id, assigned_to')
+          .eq('project_id', projectId)
+          .eq('assigned_to', userId);
+
+        assignments?.forEach((assignment: StepAssignmentRow) => {
+          const step = processSteps.find(s => s.id === assignment.step_id);
+          if (step && !stepProgress[step.id]?.completed) {
+            newNotifications.push({
+              id: `assignment-${step.id}`,
+              stepId: step.id,
+              type: 'assignment',
+              message: `👤 Sei stato assegnato allo step: ${step.title}`,
+              priority: step.priority || 'medium',
+              read: false,
+              createdAt: today,
+            });
+          }
+        });
+      }
 
       processSteps.forEach((step) => {
         const progress = stepProgress[step.id];
@@ -146,7 +176,7 @@ export const useNotifications = (
     const interval = setInterval(checkNotifications, 3600000);
 
     return () => clearInterval(interval);
-  }, [userId, stepProgress, notificationSettings]);
+  }, [userId, stepProgress, notificationSettings, projectId]);
 
   const markAsRead = (notificationId: string) => {
     setNotifications(prev =>

@@ -87,7 +87,8 @@ const Index = () => {
   const { notifications, unreadCount, markAsRead, clearAll } = useNotifications(
     user?.id,
     stepProgress,
-    notificationSettings
+    notificationSettings,
+    currentProjectId
   );
   const { exportToPDF } = useExportPDF();
   const { exportProjectReportPDF } = useExportProjectReportPDF();
@@ -285,6 +286,7 @@ const Index = () => {
             stepProgress={stepProgress}
             projectStartDate={(currentProject as any)?.planned_start_date}
             goLiveDate={(currentProject as any)?.go_live_date}
+            projectId={currentProjectId}
           />
         );
       case "prelaunch":

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useStepAssignments } from '@/hooks/useStepAssignments';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -7,13 +8,14 @@ import { processSteps, phases } from '@/data/processSteps';
 import { format, addDays, differenceInDays, parseISO, isAfter, isBefore, startOfDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, CheckCircle2, Clock, Calendar } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Calendar, UserCircle } from 'lucide-react';
 import type { StepProgress } from '@/hooks/useStepProgress';
 
 interface GanttTimelineProps {
   stepProgress: Record<string, StepProgress>;
   projectStartDate?: string;
   goLiveDate?: string;
+  projectId?: string | null;
 }
 
 interface PhaseData {
@@ -46,7 +48,9 @@ const phaseColors: Record<number, { bg: string; fill: string; text: string }> = 
   7: { bg: 'bg-indigo-100', fill: 'bg-indigo-500', text: 'text-indigo-700' },
 };
 
-export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate }: GanttTimelineProps) => {
+export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, projectId }: GanttTimelineProps) => {
+  const { getAssigneeName } = useStepAssignments(projectId ?? null);
+
   const timeline = useMemo(() => {
     const baseStartDate = projectStartDate 
       ? parseISO(projectStartDate) 
@@ -322,6 +326,12 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate }: Ga
                               <p>
                                 {step.completed ? '✓ Completato' : step.started ? '⏳ In corso' : '○ Non iniziato'}
                               </p>
+                              {getAssigneeName(step.id) && (
+                                <p className="flex items-center gap-1 mt-0.5">
+                                  <UserCircle className="h-3 w-3" />
+                                  {getAssigneeName(step.id)}
+                                </p>
+                              )}
                             </div>
                           </TooltipContent>
                         </Tooltip>

@@ -26,7 +26,8 @@ import {
   Download,
   CalendarDays,
   Play,
-  Flag
+  Flag,
+  UserCircle
 } from "lucide-react";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/ste
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
 import { ProcessGanttTimeline } from "@/components/ProcessGanttTimeline";
+import { useStepAssignments } from "@/hooks/useStepAssignments";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -73,6 +75,7 @@ export const ProcessTracker = ({
   const { settings: notificationSettings, updateSetting, deleteSetting } = useNotificationSettings(userId);
   const { getStepTotal, getCostAmount } = useStepCosts(projectId ?? null);
   const { exportToPDF } = useExportProcessCostsPDF();
+  const { getAssigneeName } = useStepAssignments(projectId ?? null);
   const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
   const parsedEndDate = projectEndDate ? parseISO(projectEndDate) : null;
 
@@ -445,6 +448,12 @@ export const ProcessTracker = ({
                         <ListChecks className="h-4 w-4" />
                         <span>{step.checklist.length} attività</span>
                       </div>
+                      {getAssigneeName(step.id) && (
+                        <div className="flex items-center gap-1 text-primary">
+                          <UserCircle className="h-4 w-4" />
+                          <span>{getAssigneeName(step.id)}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Checklist Progress */}
