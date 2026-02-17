@@ -247,8 +247,37 @@ const faqAppData: FAQItem[] = [
   { id: 'app-prelaunch', question: "Cos'è la Pre-Launch Checklist?", answer: "È una verifica finale che controlla la prontezza al go-live: licenze ottenute, software configurato, team operativo, contratti con grossista firmati, compliance ARERA completata. Non andare live finché non è al 100%.", category: 'app' },
 ];
 
+// ─── Step to Tab mapping ──────────────────────────────────
+const guideStepToTab: Record<string, string> = {
+  'project-setup': 'overview',
+  'process-tracking': 'process',
+  'team-collaboration': 'team',
+  'financial-planning': 'financials',
+  'strategy-docs': 'business-plan',
+  'launch-prep': 'prelaunch',
+};
+
+const sectionToTab: Record<string, string> = {
+  'Scheda Progetto': 'overview',
+  'Dashboard': 'dashboard',
+  'Processo': 'process',
+  'Timeline': 'gantt',
+  'Scadenze': 'deadlines',
+  'Documenti': 'documents',
+  'Team': 'team',
+  'Consulenti': 'consultants',
+  'Finanza': 'financials',
+  'Business Plan': 'business-plan',
+  'Marketing': 'marketing',
+  'Pre-Launch': 'prelaunch',
+};
+
+interface FAQProps {
+  onNavigate?: (tab: string) => void;
+}
+
 // ─── Component ──────────────────────────────────────────────
-export const FAQ = () => {
+export const FAQ = ({ onNavigate }: FAQProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeGuideStep, setActiveGuideStep] = useState(0);
   const [activeFaqCategory, setActiveFaqCategory] = useState<string | null>(null);
@@ -488,6 +517,17 @@ export const FAQ = () => {
                       >
                         ← Precedente
                       </Button>
+                      {onNavigate && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => onNavigate(guideStepToTab[step.id] || 'overview')}
+                        >
+                          <ArrowRight className="h-3.5 w-3.5" />
+                          Vai alla sezione
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         disabled={activeGuideStep === guideSteps.length - 1}
@@ -523,7 +563,11 @@ export const FAQ = () => {
                     { icon: TrendingUp, section: 'Marketing', desc: 'Piano marketing auto-generato + verifica' },
                     { icon: Rocket, section: 'Pre-Launch', desc: 'Checklist finale prima del go-live' },
                   ].map(({ icon: Icon, section, desc }) => (
-                    <div key={section} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <button
+                      key={section}
+                      onClick={() => onNavigate?.(sectionToTab[section] || 'overview')}
+                      className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-primary/10 hover:border-primary/30 border border-transparent transition-all text-left group cursor-pointer"
+                    >
                       <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <Icon className="h-4 w-4 text-primary" />
                       </div>
@@ -531,7 +575,7 @@ export const FAQ = () => {
                         <p className="text-sm font-medium">{section}</p>
                         <p className="text-xs text-muted-foreground">{desc}</p>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
