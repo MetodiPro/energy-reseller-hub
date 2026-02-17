@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { processSteps } from "@/data/processSteps";
 import { toast } from "@/hooks/use-toast";
@@ -27,6 +27,22 @@ export const useNotifications = (
   projectId?: string | null
 ) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+
+  // Load persisted read state
+  useEffect(() => {
+    if (!userId) return;
+    const loadReadState = async () => {
+      const { data } = await supabase
+        .from('user_notification_reads')
+        .select('notification_id')
+        .eq('user_id', userId);
+      if (data) {
+        setReadIds(new Set(data.map(r => r.notification_id)));
+      }
+    };
+    loadReadState();
+  }, [userId]);
 
   useEffect(() => {
     if (!userId || !stepProgress) return;
@@ -155,11 +171,17 @@ export const useNotifications = (
         }
       });
 
-      setNotifications(newNotifications);
+      // Mark notifications as read if they were previously read in DB
+      const markedNotifications = newNotifications.map(n => ({
+        ...n,
+        read: readIds.has(n.id),
+      }));
 
-      // Show toast for high priority notifications
-      newNotifications
-        .filter(n => n.priority === 'high')
+      setNotifications(markedNotifications);
+
+      // Show toast for high priority unread notifications
+      markedNotifications
+        .filter(n => n.priority === 'high' && !n.read)
         .slice(0, 3)
         .forEach(n => {
           toast({
@@ -176,17 +198,45 @@ export const useNotifications = (
     const interval = setInterval(checkNotifications, 3600000);
 
     return () => clearInterval(interval);
-  }, [userId, stepProgress, notificationSettings, projectId]);
+  }, [userId, stepProgress, notificationSettings, projectId, readIds]);
 
-  const markAsRead = (notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string) => {
     setNotifications(prev =>
       prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
-  };
+    setReadIds(prev => new Set(prev).add(notificationId));
+    
+    if (userId) {
+      await supabase
+        .from('user_notification_reads')
+        .upsert({
+          user_id: userId,
+          notification_id: notificationId,
+          project_id: projectId || null,
+        }, { onConflict: 'user_id,notification_id' });
+    }
+  }, [userId, projectId]);
 
-  const clearAll = () => {
-    setNotifications([]);
-  };
+  const clearAll = useCallback(async () => {
+    const allIds = notifications.map(n => n.id);
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setReadIds(prev => {
+      const next = new Set(prev);
+      allIds.forEach(id => next.add(id));
+      return next;
+    });
+    
+    if (userId && allIds.length > 0) {
+      const inserts = allIds.map(id => ({
+        user_id: userId,
+        notification_id: id,
+        project_id: projectId || null,
+      }));
+      await supabase
+        .from('user_notification_reads')
+        .upsert(inserts, { onConflict: 'user_id,notification_id' });
+    }
+  }, [userId, projectId, notifications]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

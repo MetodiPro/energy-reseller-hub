@@ -480,6 +480,41 @@ export type Database = {
         }
         Relationships: []
       }
+      prelaunch_manual_checks: {
+        Row: {
+          check_id: string
+          checked: boolean
+          checked_at: string
+          checked_by: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          check_id: string
+          checked?: boolean
+          checked_at?: string
+          checked_by: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          check_id?: string
+          checked?: boolean
+          checked_at?: string
+          checked_by?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prelaunch_manual_checks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -1454,6 +1489,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_notification_reads: {
+        Row: {
+          id: string
+          notification_id: string
+          project_id: string | null
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          notification_id: string
+          project_id?: string | null
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          notification_id?: string
+          project_id?: string | null
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notification_reads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

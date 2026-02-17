@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   Rocket, 
@@ -40,6 +41,7 @@ interface PreLaunchChecklistProps {
   hasDocuments: boolean;
   hasCosts: boolean;
   hasTeamMembers: boolean;
+  projectId?: string | null;
 }
 
 interface CheckItem {
@@ -90,16 +92,31 @@ export const PreLaunchChecklist = ({
   project, 
   hasDocuments, 
   hasCosts, 
-  hasTeamMembers 
+  hasTeamMembers,
+  projectId
 }: PreLaunchChecklistProps) => {
-  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>(() => {
-    try {
-      const saved = localStorage.getItem('prelaunch-manual-checks');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
+  const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
+  const [loadingChecks, setLoadingChecks] = useState(true);
+
+  // Load manual checks from DB
+  useEffect(() => {
+    if (!projectId) {
+      setManualChecks({});
+      setLoadingChecks(false);
+      return;
     }
-  });
+    const fetchChecks = async () => {
+      const { data } = await supabase
+        .from('prelaunch_manual_checks')
+        .select('check_id, checked')
+        .eq('project_id', projectId);
+      const checksMap: Record<string, boolean> = {};
+      data?.forEach(row => { checksMap[row.check_id] = row.checked; });
+      setManualChecks(checksMap);
+      setLoadingChecks(false);
+    };
+    fetchChecks();
+  }, [projectId]);
 
   const checkItems = useMemo<CheckItem[]>(() => {
     const items: CheckItem[] = [];
@@ -240,15 +257,23 @@ export const PreLaunchChecklist = ({
     return items;
   }, [stepProgress, project, hasDocuments, hasCosts, hasTeamMembers, manualChecks]);
 
-  const toggleManualCheck = (id: string) => {
-    setManualChecks(prev => {
-      const updated = { ...prev, [id]: !prev[id] };
-      try {
-        localStorage.setItem('prelaunch-manual-checks', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-  };
+  const toggleManualCheck = useCallback(async (id: string) => {
+    if (!projectId) return;
+    const newValue = !manualChecks[id];
+    setManualChecks(prev => ({ ...prev, [id]: newValue }));
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    await supabase
+      .from('prelaunch_manual_checks')
+      .upsert({
+        project_id: projectId,
+        check_id: id,
+        checked: newValue,
+        checked_by: user.id,
+      }, { onConflict: 'project_id,check_id' });
+  }, [projectId, manualChecks]);
 
   // Group items by category
   const itemsByCategory = useMemo(() => {

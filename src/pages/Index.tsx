@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Zap, LogOut, Download } from "lucide-react";
+import { Zap, LogOut, Download, FileText } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { ProcessTracker } from "@/components/ProcessTracker";
 import { AuthForm } from "@/components/AuthForm";
@@ -36,6 +36,8 @@ import { useProjects } from "@/hooks/useProjects";
 import { useProjectFinancials } from "@/hooks/useProjectFinancials";
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useDeadlineNotifications } from "@/hooks/useDeadlineNotifications";
+import { useExportUnifiedPDF } from "@/hooks/useExportUnifiedPDF";
+import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
 import { DollarSign } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
@@ -97,8 +99,35 @@ const Index = () => {
   // Project financials for report
   const { costs, revenues, summary: financialSummary } = useProjectFinancials(currentProjectId);
   
+  // Cash flow for unified export
+  const { cashFlowData } = useCashFlowAnalysis(currentProjectId);
+  
+  // Unified PDF export
+  const { exportUnifiedPDF } = useExportUnifiedPDF();
+  
   // Step costs for dashboard
   const { getCostAmount } = useStepCosts(currentProjectId);
+
+  // Real data queries for PreLaunch checks
+  const [realHasDocuments, setRealHasDocuments] = useState(false);
+  const [realHasTeamMembers, setRealHasTeamMembers] = useState(false);
+
+  useEffect(() => {
+    if (!currentProjectId) {
+      setRealHasDocuments(false);
+      setRealHasTeamMembers(false);
+      return;
+    }
+    const fetchRealData = async () => {
+      const [{ count: docCount }, { count: memberCount }] = await Promise.all([
+        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('project_id', currentProjectId),
+        supabase.from('project_members').select('id', { count: 'exact', head: true }).eq('project_id', currentProjectId),
+      ]);
+      setRealHasDocuments((docCount ?? 0) > 0);
+      setRealHasTeamMembers((memberCount ?? 0) > 1); // More than just the owner
+    };
+    fetchRealData();
+  }, [currentProjectId]);
 
   // Deadline notifications - filtered by commodity type
   useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, (currentProject as any)?.commodity_type);
@@ -294,9 +323,10 @@ const Index = () => {
           <PreLaunchChecklist 
             stepProgress={stepProgress}
             project={currentProject as any}
-            hasDocuments={costs.length > 0 || revenues.length > 0}
+            hasDocuments={realHasDocuments}
             hasCosts={costs.length > 0}
-            hasTeamMembers={true}
+            hasTeamMembers={realHasTeamMembers}
+            projectId={currentProjectId}
           />
         );
       case "faq":
@@ -401,8 +431,57 @@ const Index = () => {
                   className="text-white hover:bg-white/10"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  <span className="hidden md:inline">Esporta</span>
+                  <span className="hidden md:inline">Processo</span>
                 </Button>
+                {currentProject && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      // Fetch team members for unified report
+                      const { data: members } = await supabase
+                        .from('project_members')
+                        .select('user_id, role')
+                        .eq('project_id', currentProjectId!);
+                      const userIds = members?.map(m => m.user_id) || [];
+                      const { data: profiles } = userIds.length > 0
+                        ? await supabase.from('profiles').select('id, full_name').in('id', userIds)
+                        : { data: [] };
+                      const profileMap: Record<string, string> = {};
+                      profiles?.forEach(p => { profileMap[p.id] = p.full_name || 'Utente'; });
+                      const teamMembers = members?.map(m => ({
+                        name: profileMap[m.user_id] || 'Utente',
+                        role: m.role,
+                      })) || [];
+
+                      // Build check items for PDF (simplified)
+                      const { processSteps } = await import('@/data/processSteps');
+                      const checkItems = [
+                        { label: 'Iscrizione EVE', isMet: !!(currentProject as any)?.eve_license_date, severity: 'critical', category: 'admin' },
+                        { label: 'Codice ARERA', isMet: !!(currentProject as any)?.arera_code, severity: 'critical', category: 'admin' },
+                        { label: 'Grossista definito', isMet: !!(currentProject as any)?.wholesaler_name, severity: 'critical', category: 'commercial' },
+                        { label: 'Mercato target', isMet: !!(currentProject as any)?.market_type, severity: 'important', category: 'commercial' },
+                        { label: 'Data Go-Live', isMet: !!(currentProject as any)?.go_live_date, severity: 'important', category: 'operational' },
+                        { label: 'Documenti caricati', isMet: realHasDocuments, severity: 'recommended', category: 'admin' },
+                        { label: 'Team definito', isMet: realHasTeamMembers, severity: 'recommended', category: 'operational' },
+                        { label: 'Budget definito', isMet: costs.length > 0, severity: 'recommended', category: 'operational' },
+                      ];
+
+                      exportUnifiedPDF(
+                        currentProject as any,
+                        stepProgress,
+                        financialSummary as any,
+                        cashFlowData,
+                        teamMembers,
+                        checkItems,
+                      );
+                    }}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    <span className="hidden md:inline">Report</span>
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
