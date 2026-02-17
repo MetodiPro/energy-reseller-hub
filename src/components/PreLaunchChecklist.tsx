@@ -594,6 +594,8 @@ export const PreLaunchChecklist = ({
                   ivaPercentGas: sp.ivaPercentGas,
                   ccvGasMonthly: sp.ccvGasMonthly,
                   gestionePdrPerPdr: sp.gestionePdrPerPdr,
+                  avgMonthlyConsumption: sp.avgMonthlyConsumption,
+                  avgMonthlyConsumptionGas: sp.avgMonthlyConsumptionGas,
                 },
               });
             }}
@@ -606,7 +608,7 @@ export const PreLaunchChecklist = ({
             )}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-            Include: PDA, CTE, Condizioni Generali di Fornitura, Scheda Sintetica di Confrontabilità
+            Include: PDA, CTE, Condizioni Generali, Scheda Sintetica, Fattura Tipo Bolletta 2.0, Scontrino Energia
           </p>
           {simData.id && (
             <p className="text-xs text-success text-center flex items-center justify-center gap-1">

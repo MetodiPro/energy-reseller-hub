@@ -32,6 +32,9 @@ export interface ContractSimulationData {
   ivaPercentGas?: number;
   ccvGasMonthly?: number;
   gestionePdrPerPdr?: number;
+  // Consumi medi
+  avgMonthlyConsumption?: number;
+  avgMonthlyConsumptionGas?: number;
 }
 
 interface ContractData {
@@ -422,6 +425,308 @@ const generateSchedaSintetica = async (data: ContractData, logoBase64: string | 
   return doc;
 };
 
+// --- Fattura Tipo Bolletta 2.0 ---
+const generateBolletta2 = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+  const doc = new jsPDF();
+  const company = data.companyName || data.projectName;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const sim = data.simulation;
+  const left = 14;
+  const consumption = sim?.avgMonthlyConsumption ?? 200;
+  const consumptionGas = sim?.avgMonthlyConsumptionGas ?? 80;
+  const commodity = data.commodityType || 'luce';
+  const isElec = commodity !== 'gas';
+  const isGas = commodity === 'gas' || commodity === 'dual';
+
+  // Helper calculations for electricity
+  const punSpread = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
+  const dispacc = sim?.dispacciamentoPerKwh ?? 0.01;
+  const traspEnKwh = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
+  const traspFissaMese = (sim?.trasportoQuotaFissaAnno ?? 23) / 12;
+  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * (sim?.potenzaImpegnataKw ?? 3)) / 12;
+  const asosKwh = sim?.oneriAsosKwh ?? 0.025;
+  const arimKwh = sim?.oneriArimKwh ?? 0.007;
+  const acciseKwh = sim?.acciseKwh ?? 0.0227;
+  const ivaPerc = (sim?.ivaPercent ?? 10) / 100;
+  const ccv = sim?.ccvMonthly ?? 8.5;
+  const gestPod = sim?.gestionePodPerPod ?? 2.5;
+
+  const spesaMateria = punSpread * consumption + dispacc * consumption + ccv + gestPod;
+  const spesaTrasporto = traspFissaMese + traspPotMese + traspEnKwh * consumption;
+  const spesaOneri = (asosKwh + arimKwh) * consumption;
+  const imponibile = spesaMateria + spesaTrasporto + spesaOneri;
+  const acciseTot = acciseKwh * consumption;
+  const iva = (imponibile + acciseTot) * ivaPerc;
+  const totale = imponibile + acciseTot + iva;
+
+  // Header
+  if (logoBase64) {
+    try { doc.addImage(logoBase64, 'JPEG', 14, 8, 28, 28); } catch { /* skip */ }
+  }
+  const xH = logoBase64 ? 48 : 14;
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(company, xH, 20);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  doc.text('Mercato Libero – Codice Operatore ARERA: ' + (data.areaCode || '________'), xH, 27);
+  doc.setTextColor(0);
+
+  // Title bar
+  doc.setFillColor(232, 121, 24);
+  doc.rect(0, 40, pageWidth, 10, 'F');
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255);
+  doc.text('BOLLETTA 2.0 – FATTURA TIPO ENERGIA ELETTRICA', 14, 47);
+  doc.setTextColor(0);
+
+  let y = 58;
+  doc.setFontSize(8);
+
+  // Customer data box
+  doc.setDrawColor(200);
+  doc.rect(left, y, pageWidth - 28, 28);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DATI CLIENTE', left + 2, y + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Intestatario: Mario Rossi (Cliente Tipo)', left + 2, y + 10);
+  doc.text('Codice Fiscale: RSSMRA80A01H501Z', left + 2, y + 15);
+  doc.text('Codice POD: IT001E12345678', left + 100, y + 10);
+  doc.text('Tipologia: Domestico residente – 3 kW', left + 100, y + 15);
+  doc.text('Periodo: 01/01/2026 – 31/01/2026  |  Consumo: ' + consumption + ' kWh', left + 2, y + 22);
+  y += 34;
+
+  // ===== SEZIONE 1: Sintesi importi (Bolletta 2.0) =====
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('SINTESI DEGLI IMPORTI FATTURATI', left, y); y += 6;
+
+  const summaryRows = [
+    ['Spesa per la materia energia', spesaMateria.toFixed(2) + ' €'],
+    ['Spesa per il trasporto e gestione del contatore', spesaTrasporto.toFixed(2) + ' €'],
+    ['Spesa per oneri di sistema', spesaOneri.toFixed(2) + ' €'],
+    ['Imposte (Accise + IVA)', (acciseTot + iva).toFixed(2) + ' €'],
+  ];
+
+  (doc as any).autoTable({
+    startY: y,
+    body: summaryRows,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 130 }, 1: { halign: 'right' } },
+    margin: { left },
+  });
+  y = (doc as any).lastAutoTable.finalY + 2;
+
+  // Total
+  doc.setFillColor(245, 245, 245);
+  doc.rect(left, y, pageWidth - 28, 8, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('TOTALE FATTURA', left + 2, y + 6);
+  doc.text(totale.toFixed(2) + ' €', pageWidth - 14, y + 6, { align: 'right' });
+  y += 14;
+
+  // ===== SEZIONE 2: Dettaglio Spesa Materia =====
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DETTAGLIO: Spesa per la materia energia', left, y); y += 5;
+
+  const materiaRows = [
+    ['Prezzo energia (PUN + spread)', `${consumption} kWh × ${punSpread.toFixed(4)} €/kWh`, (punSpread * consumption).toFixed(2)],
+    ['Dispacciamento', `${consumption} kWh × ${dispacc.toFixed(4)} €/kWh`, (dispacc * consumption).toFixed(2)],
+    ['CCV (Commercializzazione)', 'Quota fissa mensile', ccv.toFixed(2)],
+    ['Gestione POD', 'Quota fissa mensile', gestPod.toFixed(2)],
+    ['Subtotale materia', '', spesaMateria.toFixed(2)],
+  ];
+
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Componente', 'Calcolo', 'Importo (€)']],
+    body: materiaRows,
+    theme: 'striped',
+    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: { 2: { halign: 'right' } },
+    margin: { left },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // ===== SEZIONE 3: Dettaglio Trasporto =====
+  doc.setFont('helvetica', 'bold');
+  doc.text('DETTAGLIO: Spesa per trasporto e gestione contatore', left, y); y += 5;
+
+  const traspRows = [
+    ['Quota fissa', `${(sim?.trasportoQuotaFissaAnno ?? 23).toFixed(2)} €/anno ÷ 12`, traspFissaMese.toFixed(2)],
+    ['Quota potenza', `${(sim?.potenzaImpegnataKw ?? 3).toFixed(1)} kW × ${(sim?.trasportoQuotaPotenzaKwAnno ?? 22).toFixed(2)} €/kW/anno ÷ 12`, traspPotMese.toFixed(2)],
+    ['Quota energia', `${consumption} kWh × ${traspEnKwh.toFixed(4)} €/kWh`, (traspEnKwh * consumption).toFixed(2)],
+    ['Subtotale trasporto', '', spesaTrasporto.toFixed(2)],
+  ];
+
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Componente', 'Calcolo', 'Importo (€)']],
+    body: traspRows,
+    theme: 'striped',
+    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: { 2: { halign: 'right' } },
+    margin: { left },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // ===== SEZIONE 4: Oneri + Imposte =====
+  doc.setFont('helvetica', 'bold');
+  doc.text('DETTAGLIO: Oneri di sistema e Imposte', left, y); y += 5;
+
+  const oneriRows = [
+    ['ASOS', `${consumption} kWh × ${asosKwh.toFixed(4)} €/kWh`, (asosKwh * consumption).toFixed(2)],
+    ['ARIM', `${consumption} kWh × ${arimKwh.toFixed(4)} €/kWh`, (arimKwh * consumption).toFixed(2)],
+    ['Subtotale oneri', '', spesaOneri.toFixed(2)],
+    ['Accise (imposta erariale)', `${consumption} kWh × ${acciseKwh.toFixed(4)} €/kWh`, acciseTot.toFixed(2)],
+    ['IVA ' + ((sim?.ivaPercent ?? 10)) + '%', `su ${(imponibile + acciseTot).toFixed(2)} €`, iva.toFixed(2)],
+  ];
+
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Componente', 'Calcolo', 'Importo (€)']],
+    body: oneriRows,
+    theme: 'striped',
+    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: { 2: { halign: 'right' } },
+    margin: { left },
+  });
+  y = (doc as any).lastAutoTable.finalY + 10;
+
+  // Note
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(120);
+  const note = 'Documento fac-simile generato a scopo illustrativo. Formato conforme alla struttura Bolletta 2.0 ARERA. I valori sono basati sulla simulazione finanziaria del progetto per un cliente tipo domestico residente.';
+  doc.text(doc.splitTextToSize(note, 180), left, y);
+  doc.setTextColor(0);
+
+  addFooter(doc, company);
+  return doc;
+};
+
+// --- Scontrino dell'Energia ---
+const generateScontrinoEnergia = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+  const doc = new jsPDF({ format: [80, 200] }); // Receipt-like narrow format
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const sim = data.simulation;
+  const company = data.companyName || data.projectName;
+  const consumption = sim?.avgMonthlyConsumption ?? 200;
+  const left = 4;
+  const center = pageWidth / 2;
+
+  const punSpread = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
+  const dispacc = sim?.dispacciamentoPerKwh ?? 0.01;
+  const traspEnKwh = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
+  const traspFissaMese = (sim?.trasportoQuotaFissaAnno ?? 23) / 12;
+  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * (sim?.potenzaImpegnataKw ?? 3)) / 12;
+  const asosKwh = sim?.oneriAsosKwh ?? 0.025;
+  const arimKwh = sim?.oneriArimKwh ?? 0.007;
+  const acciseKwh = sim?.acciseKwh ?? 0.0227;
+  const ivaPerc = (sim?.ivaPercent ?? 10) / 100;
+  const ccv = sim?.ccvMonthly ?? 8.5;
+  const gestPod = sim?.gestionePodPerPod ?? 2.5;
+
+  const spesaMateria = punSpread * consumption + dispacc * consumption + ccv + gestPod;
+  const spesaTrasporto = traspFissaMese + traspPotMese + traspEnKwh * consumption;
+  const spesaOneri = (asosKwh + arimKwh) * consumption;
+  const acciseTot = acciseKwh * consumption;
+  const imponibile = spesaMateria + spesaTrasporto + spesaOneri;
+  const iva = (imponibile + acciseTot) * ivaPerc;
+  const totale = imponibile + acciseTot + iva;
+
+  let y = 6;
+
+  // Logo / header
+  if (logoBase64) {
+    try { doc.addImage(logoBase64, 'JPEG', center - 8, y, 16, 16); y += 18; } catch { /* skip */ }
+  }
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text(company, center, y, { align: 'center' }); y += 4;
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  doc.text('Cod. ARERA: ' + (data.areaCode || '________'), center, y, { align: 'center' }); y += 5;
+  doc.setTextColor(0);
+
+  // Dashed separator
+  const drawSep = () => {
+    doc.setDrawColor(180);
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(left, y, pageWidth - left, y);
+    doc.setLineDashPattern([], 0);
+    y += 3;
+  };
+  drawSep();
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SCONTRINO DELL\'ENERGIA', center, y, { align: 'center' }); y += 4;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  doc.text('Cliente Tipo – Domestico residente', center, y, { align: 'center' }); y += 3;
+  doc.text('Periodo: Gennaio 2026', center, y, { align: 'center' }); y += 3;
+  doc.text('Consumo: ' + consumption + ' kWh', center, y, { align: 'center' }); y += 4;
+
+  drawSep();
+
+  // Line items
+  const addLine = (label: string, value: string, bold = false) => {
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setFontSize(6);
+    doc.text(label, left, y);
+    doc.text(value, pageWidth - left, y, { align: 'right' });
+    y += 3.5;
+  };
+
+  addLine('Materia energia', spesaMateria.toFixed(2) + ' €');
+  addLine('  di cui PUN+spread', (punSpread * consumption).toFixed(2));
+  addLine('  di cui dispacciamento', (dispacc * consumption).toFixed(2));
+  addLine('  di cui CCV', ccv.toFixed(2));
+  addLine('  di cui gestione POD', gestPod.toFixed(2));
+  y += 1;
+  addLine('Trasporto e contatore', spesaTrasporto.toFixed(2) + ' €');
+  addLine('Oneri di sistema', spesaOneri.toFixed(2) + ' €');
+  addLine('Accise', acciseTot.toFixed(2) + ' €');
+  addLine('IVA ' + (sim?.ivaPercent ?? 10) + '%', iva.toFixed(2) + ' €');
+
+  y += 1;
+  drawSep();
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TOTALE', left, y);
+  doc.text(totale.toFixed(2) + ' €', pageWidth - left, y, { align: 'right' });
+  y += 5;
+  drawSep();
+
+  // Cost per kWh
+  const costoKwh = totale / consumption;
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Costo medio: ' + costoKwh.toFixed(4) + ' €/kWh', center, y, { align: 'center' }); y += 3;
+  doc.text('Costo giornaliero: ~' + (totale / 30).toFixed(2) + ' €/giorno', center, y, { align: 'center' }); y += 5;
+
+  // Footer note
+  doc.setFontSize(5);
+  doc.setTextColor(140);
+  doc.text('Documento illustrativo – Bolletta 2.0 ARERA', center, y, { align: 'center' }); y += 3;
+  doc.text('Valori da simulazione finanziaria progetto', center, y, { align: 'center' });
+  doc.setTextColor(0);
+
+  return doc;
+};
+
 export const useContractPackage = () => {
   const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
@@ -429,23 +734,24 @@ export const useContractPackage = () => {
   const generatePackage = useCallback(async (data: ContractData) => {
     setGenerating(true);
     try {
-      // Load logo
       const logoBase64 = data.logoUrl ? await loadImageAsBase64(data.logoUrl) : null;
 
-      // Generate all documents
-      const [pda, cte, condizioni, scheda] = await Promise.all([
+      const [pda, cte, condizioni, scheda, bolletta, scontrino] = await Promise.all([
         generatePDA(data, logoBase64),
         generateCTE(data, logoBase64),
         generateCondizioni(data, logoBase64),
         generateSchedaSintetica(data, logoBase64),
+        generateBolletta2(data, logoBase64),
+        generateScontrinoEnergia(data, logoBase64),
       ]);
 
-      // Create ZIP
       const zip = new JSZip();
       zip.file('PDA_Proposta_di_Adesione.pdf', pda.output('blob'));
       zip.file('CTE_Condizioni_Tecnico_Economiche.pdf', cte.output('blob'));
       zip.file('Condizioni_Generali_Fornitura.pdf', condizioni.output('blob'));
       zip.file('Scheda_Sintetica_Confrontabilita.pdf', scheda.output('blob'));
+      zip.file('Fattura_Tipo_Bolletta_2_0.pdf', bolletta.output('blob'));
+      zip.file('Scontrino_Energia.pdf', scontrino.output('blob'));
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const safeName = (data.companyName || data.projectName).replace(/[^a-zA-Z0-9]/g, '_');
@@ -453,7 +759,7 @@ export const useContractPackage = () => {
 
       toast({
         title: 'Plico contrattuale generato',
-        description: '4 documenti PDF scaricati in un archivio ZIP.',
+        description: '6 documenti PDF scaricati in un archivio ZIP.',
       });
     } catch (err: any) {
       toast({
