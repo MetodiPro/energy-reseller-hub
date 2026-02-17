@@ -10,6 +10,7 @@ export interface Project {
   commodity_type: string | null;
   planned_start_date: string | null;
   go_live_date: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
