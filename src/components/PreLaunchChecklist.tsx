@@ -30,9 +30,10 @@ import {
 import { cn } from '@/lib/utils';
 import { processSteps } from '@/data/processSteps';
 import type { StepProgress } from '@/hooks/useStepProgress';
-import { useContractPackage } from '@/hooks/useContractPackage';
+import { useContractPackage, type SampleClientData } from '@/hooks/useContractPackage';
 import { useProjectLogo } from '@/hooks/useProjectLogo';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { ContractPreviewDialog } from '@/components/ContractPreviewDialog';
 
 interface PreLaunchChecklistProps {
   stepProgress: Record<string, StepProgress>;
@@ -109,6 +110,7 @@ export const PreLaunchChecklist = ({
 }: PreLaunchChecklistProps) => {
   const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
   const [loadingChecks, setLoadingChecks] = useState(true);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const { generatePackage, generating } = useContractPackage();
@@ -559,7 +561,33 @@ export const PreLaunchChecklist = ({
           <Button
             size="lg"
             className="w-full"
-            onClick={() => {
+            onClick={() => setPreviewOpen(true)}
+            disabled={generating || !project}
+          >
+            {generating ? (
+              <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Generazione in corso...</>
+            ) : (
+              <><Download className="h-4 w-4 mr-2" /> Genera Plico Contrattuale (ZIP)</>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            Include: PDA, CTE, Condizioni Generali, Scheda Sintetica, Fattura Tipo Bolletta 2.0, Scontrino Energia
+          </p>
+          {simData.id && (
+            <p className="text-xs text-success text-center flex items-center justify-center gap-1">
+              <CheckCircle2 className="h-3 w-3" />
+              I prezzi vengono pre-compilati dalla simulazione finanziaria del progetto
+            </p>
+          )}
+
+          <ContractPreviewDialog
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            generating={generating}
+            commodityType={project?.commodity_type || null}
+            simAvgConsumption={simData.params.avgMonthlyConsumption}
+            simAvgConsumptionGas={simData.params.avgMonthlyConsumptionGas}
+            onGenerate={(clientData: SampleClientData) => {
               if (!project) return;
               const sp = simData.params;
               generatePackage({
@@ -569,6 +597,7 @@ export const PreLaunchChecklist = ({
                 companyName: project.name,
                 areaCode: project.arera_code || undefined,
                 wholesalerName: project.wholesaler_name || undefined,
+                client: clientData,
                 simulation: {
                   punPerKwh: sp.punPerKwh,
                   spreadPerKwh: sp.spreadPerKwh,
@@ -597,25 +626,9 @@ export const PreLaunchChecklist = ({
                   avgMonthlyConsumption: sp.avgMonthlyConsumption,
                   avgMonthlyConsumptionGas: sp.avgMonthlyConsumptionGas,
                 },
-              });
+              }).then(() => setPreviewOpen(false));
             }}
-            disabled={generating}
-          >
-            {generating ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Generazione in corso...</>
-            ) : (
-              <><Download className="h-4 w-4 mr-2" /> Genera Plico Contrattuale (ZIP)</>
-            )}
-          </Button>
-          <p className="text-xs text-muted-foreground text-center">
-            Include: PDA, CTE, Condizioni Generali, Scheda Sintetica, Fattura Tipo Bolletta 2.0, Scontrino Energia
-          </p>
-          {simData.id && (
-            <p className="text-xs text-success text-center flex items-center justify-center gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              I prezzi vengono pre-compilati dalla simulazione finanziaria del progetto
-            </p>
-          )}
+          />
         </CardContent>
       </Card>
     </div>
