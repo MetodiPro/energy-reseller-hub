@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +37,51 @@ export interface ContractSimulationData {
   avgMonthlyConsumptionGas?: number;
 }
 
-interface ContractData {
+export interface SampleClientData {
+  nome: string;
+  cognome: string;
+  codiceFiscale: string;
+  partitaIva: string;
+  indirizzo: string;
+  cap: string;
+  citta: string;
+  provincia: string;
+  telefono: string;
+  email: string;
+  pec: string;
+  pod: string;
+  pdr: string;
+  indirizzoFornitura: string;
+  tipologiaUso: string;
+  potenzaKw: string;
+  consumoMensile: number;
+  consumoMensileGas: number;
+  periodo: string;
+}
+
+export const defaultSampleClient: SampleClientData = {
+  nome: 'Mario',
+  cognome: 'Rossi',
+  codiceFiscale: 'RSSMRA80A01H501Z',
+  partitaIva: '',
+  indirizzo: 'Via Roma 1',
+  cap: '00100',
+  citta: 'Roma',
+  provincia: 'RM',
+  telefono: '333 1234567',
+  email: 'mario.rossi@email.it',
+  pec: '',
+  pod: 'IT001E12345678',
+  pdr: '12345678901234',
+  indirizzoFornitura: 'Via Roma 1, 00100 Roma (RM)',
+  tipologiaUso: 'Domestico residente',
+  potenzaKw: '3',
+  consumoMensile: 200,
+  consumoMensileGas: 80,
+  periodo: '01/01/2026 – 31/01/2026',
+};
+
+export interface ContractData {
   projectName: string;
   logoUrl: string | null;
   commodityType: string | null;
@@ -45,6 +89,7 @@ interface ContractData {
   areaCode?: string;
   wholesalerName?: string;
   simulation?: ContractSimulationData;
+  client?: SampleClientData;
 }
 
 // Helper to load image as base64
@@ -66,16 +111,12 @@ const loadImageAsBase64 = async (url: string): Promise<string | null> => {
 const addHeader = async (doc: jsPDF, logoBase64: string | null, title: string, subtitle: string, companyName: string) => {
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Logo
   if (logoBase64) {
     try {
       doc.addImage(logoBase64, 'JPEG', 14, 10, 30, 30);
-    } catch {
-      // skip if image fails
-    }
+    } catch { /* skip */ }
   }
 
-  // Company name
   const xStart = logoBase64 ? 50 : 14;
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
@@ -87,8 +128,7 @@ const addHeader = async (doc: jsPDF, logoBase64: string | null, title: string, s
   doc.text('Reseller Energia – Mercato Libero Italiano', xStart, 29);
   doc.setTextColor(0);
 
-  // Title bar
-  doc.setFillColor(232, 121, 24); // primary amber
+  doc.setFillColor(232, 121, 24);
   doc.rect(0, 46, pageWidth, 12, 'F');
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -96,7 +136,6 @@ const addHeader = async (doc: jsPDF, logoBase64: string | null, title: string, s
   doc.text(title, 14, 54);
   doc.setTextColor(0);
 
-  // Subtitle
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100);
@@ -123,6 +162,7 @@ const addFooter = (doc: jsPDF, companyName: string) => {
 const generatePDA = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
+  const cl = data.client || defaultSampleClient;
   await addHeader(doc, logoBase64, 'PROPOSTA DI ADESIONE (PDA)', 'Modulo per la sottoscrizione di contratto di fornitura energia', company);
 
   let y = 76;
@@ -136,14 +176,14 @@ const generatePDA = async (data: ContractData, logoBase64: string | null): Promi
   doc.setFontSize(9);
 
   const fields = [
-    'Cognome/Ragione Sociale: ____________________________________',
-    'Nome/Forma Giuridica: ____________________________________',
-    'Codice Fiscale: ____________________________________',
-    'Partita IVA: ____________________________________',
-    'Indirizzo di residenza/sede: ____________________________________',
-    'CAP: ________  Città: ____________________  Prov: ____',
-    'Telefono: ____________________  Email: ____________________________',
-    'PEC: ____________________________________',
+    `Cognome/Ragione Sociale: ${cl.cognome}`,
+    `Nome/Forma Giuridica: ${cl.nome}`,
+    `Codice Fiscale: ${cl.codiceFiscale}`,
+    `Partita IVA: ${cl.partitaIva || '—'}`,
+    `Indirizzo di residenza/sede: ${cl.indirizzo}`,
+    `CAP: ${cl.cap}  Città: ${cl.citta}  Prov: ${cl.provincia}`,
+    `Telefono: ${cl.telefono}  Email: ${cl.email}`,
+    `PEC: ${cl.pec || '—'}`,
   ];
   fields.forEach(f => { doc.text(f, left, y); y += lh; });
 
@@ -154,15 +194,14 @@ const generatePDA = async (data: ContractData, logoBase64: string | null): Promi
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
 
-  const commodity = data.commodityType || 'Luce';
+  const commodity = data.commodityType || 'luce';
   const supplyFields = [
     `Tipo fornitura: ${commodity === 'dual' ? 'Energia Elettrica + Gas' : commodity === 'gas' ? 'Gas Naturale' : 'Energia Elettrica'}`,
-    commodity !== 'gas' ? 'Codice POD: IT ___ E ____________________' : '',
-    commodity !== 'luce' ? 'Codice PDR: ____________________________________' : '',
-    'Indirizzo di fornitura: ____________________________________',
-    'CAP: ________  Città: ____________________  Prov: ____',
-    'Uso: [ ] Domestico residente  [ ] Domestico non residente  [ ] Business',
-    commodity !== 'gas' ? 'Potenza impegnata (kW): ________  Potenza disponibile (kW): ________' : '',
+    commodity !== 'gas' ? `Codice POD: ${cl.pod}` : '',
+    commodity !== 'luce' ? `Codice PDR: ${cl.pdr}` : '',
+    `Indirizzo di fornitura: ${cl.indirizzoFornitura}`,
+    `Uso: ${cl.tipologiaUso}`,
+    commodity !== 'gas' ? `Potenza impegnata (kW): ${cl.potenzaKw}` : '',
     'Distributore locale: ____________________________________',
   ].filter(Boolean);
   supplyFields.forEach(f => { doc.text(f, left, y); y += lh; });
@@ -175,7 +214,7 @@ const generatePDA = async (data: ContractData, logoBase64: string | null): Promi
   doc.setFontSize(9);
 
   const sim = data.simulation;
-  const fmtVal = (v?: number, suffix?: string) => v != null ? `${v}${suffix || ''}` : '________';
+  const fmtVal = (v?: number) => v != null ? `${v}` : '________';
   
   const offerFields = [
     'Nome offerta: ____________________________________',
@@ -254,7 +293,7 @@ const generateCTE = async (data: ContractData, logoBase64: string | null): Promi
     ['Gestione POD', '€/POD/mese', fmtN2(sim?.gestionePodPerPod)],
   ];
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Componente', 'Unità', 'Valore']],
     body: elecRows,
@@ -286,7 +325,7 @@ const generateCTE = async (data: ContractData, logoBase64: string | null): Promi
       ['Gestione PDR', '€/PDR/mese', fmtN2(sim?.gestionePdrPerPdr)],
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['Componente', 'Unità', 'Valore']],
       body: gasRows,
@@ -401,7 +440,7 @@ const generateSchedaSintetica = async (data: ContractData, logoBase64: string | 
     ['Canale di vendita', '[ ] Porta a porta  [ ] Online  [ ] Telefonico  [ ] Agenzia'],
   ];
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Caratteristica', 'Dettaglio']],
     body: infoRows,
@@ -431,19 +470,18 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   const company = data.companyName || data.projectName;
   const pageWidth = doc.internal.pageSize.getWidth();
   const sim = data.simulation;
+  const cl = data.client || defaultSampleClient;
   const left = 14;
-  const consumption = sim?.avgMonthlyConsumption ?? 200;
-  const consumptionGas = sim?.avgMonthlyConsumptionGas ?? 80;
+  const consumption = cl.consumoMensile || sim?.avgMonthlyConsumption || 200;
   const commodity = data.commodityType || 'luce';
-  const isElec = commodity !== 'gas';
-  const isGas = commodity === 'gas' || commodity === 'dual';
 
   // Helper calculations for electricity
   const punSpread = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
   const dispacc = sim?.dispacciamentoPerKwh ?? 0.01;
   const traspEnKwh = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
   const traspFissaMese = (sim?.trasportoQuotaFissaAnno ?? 23) / 12;
-  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * (sim?.potenzaImpegnataKw ?? 3)) / 12;
+  const potenzaKw = parseFloat(cl.potenzaKw) || sim?.potenzaImpegnataKw || 3;
+  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * potenzaKw) / 12;
   const asosKwh = sim?.oneriAsosKwh ?? 0.025;
   const arimKwh = sim?.oneriArimKwh ?? 0.007;
   const acciseKwh = sim?.acciseKwh ?? 0.0227;
@@ -491,14 +529,14 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   doc.setFont('helvetica', 'bold');
   doc.text('DATI CLIENTE', left + 2, y + 5);
   doc.setFont('helvetica', 'normal');
-  doc.text('Intestatario: Mario Rossi (Cliente Tipo)', left + 2, y + 10);
-  doc.text('Codice Fiscale: RSSMRA80A01H501Z', left + 2, y + 15);
-  doc.text('Codice POD: IT001E12345678', left + 100, y + 10);
-  doc.text('Tipologia: Domestico residente – 3 kW', left + 100, y + 15);
-  doc.text('Periodo: 01/01/2026 – 31/01/2026  |  Consumo: ' + consumption + ' kWh', left + 2, y + 22);
+  doc.text(`Intestatario: ${cl.nome} ${cl.cognome}`, left + 2, y + 10);
+  doc.text(`Codice Fiscale: ${cl.codiceFiscale}`, left + 2, y + 15);
+  doc.text(`Codice POD: ${cl.pod}`, left + 100, y + 10);
+  doc.text(`Tipologia: ${cl.tipologiaUso} – ${potenzaKw} kW`, left + 100, y + 15);
+  doc.text(`Periodo: ${cl.periodo}  |  Consumo: ${consumption} kWh`, left + 2, y + 22);
   y += 34;
 
-  // ===== SEZIONE 1: Sintesi importi (Bolletta 2.0) =====
+  // SEZIONE 1: Sintesi importi
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text('SINTESI DEGLI IMPORTI FATTURATI', left, y); y += 6;
@@ -510,7 +548,7 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
     ['Imposte (Accise + IVA)', (acciseTot + iva).toFixed(2) + ' €'],
   ];
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     body: summaryRows,
     theme: 'plain',
@@ -529,7 +567,7 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   doc.text(totale.toFixed(2) + ' €', pageWidth - 14, y + 6, { align: 'right' });
   y += 14;
 
-  // ===== SEZIONE 2: Dettaglio Spesa Materia =====
+  // SEZIONE 2: Dettaglio Spesa Materia
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text('DETTAGLIO: Spesa per la materia energia', left, y); y += 5;
@@ -542,7 +580,7 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
     ['Subtotale materia', '', spesaMateria.toFixed(2)],
   ];
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Componente', 'Calcolo', 'Importo (€)']],
     body: materiaRows,
@@ -554,18 +592,18 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   });
   y = (doc as any).lastAutoTable.finalY + 8;
 
-  // ===== SEZIONE 3: Dettaglio Trasporto =====
+  // SEZIONE 3: Dettaglio Trasporto
   doc.setFont('helvetica', 'bold');
   doc.text('DETTAGLIO: Spesa per trasporto e gestione contatore', left, y); y += 5;
 
   const traspRows = [
     ['Quota fissa', `${(sim?.trasportoQuotaFissaAnno ?? 23).toFixed(2)} €/anno ÷ 12`, traspFissaMese.toFixed(2)],
-    ['Quota potenza', `${(sim?.potenzaImpegnataKw ?? 3).toFixed(1)} kW × ${(sim?.trasportoQuotaPotenzaKwAnno ?? 22).toFixed(2)} €/kW/anno ÷ 12`, traspPotMese.toFixed(2)],
+    ['Quota potenza', `${potenzaKw.toFixed(1)} kW × ${(sim?.trasportoQuotaPotenzaKwAnno ?? 22).toFixed(2)} €/kW/anno ÷ 12`, traspPotMese.toFixed(2)],
     ['Quota energia', `${consumption} kWh × ${traspEnKwh.toFixed(4)} €/kWh`, (traspEnKwh * consumption).toFixed(2)],
     ['Subtotale trasporto', '', spesaTrasporto.toFixed(2)],
   ];
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Componente', 'Calcolo', 'Importo (€)']],
     body: traspRows,
@@ -577,7 +615,7 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   });
   y = (doc as any).lastAutoTable.finalY + 8;
 
-  // ===== SEZIONE 4: Oneri + Imposte =====
+  // SEZIONE 4: Oneri + Imposte
   doc.setFont('helvetica', 'bold');
   doc.text('DETTAGLIO: Oneri di sistema e Imposte', left, y); y += 5;
 
@@ -589,7 +627,7 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
     ['IVA ' + ((sim?.ivaPercent ?? 10)) + '%', `su ${(imponibile + acciseTot).toFixed(2)} €`, iva.toFixed(2)],
   ];
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Componente', 'Calcolo', 'Importo (€)']],
     body: oneriRows,
@@ -605,8 +643,8 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(7);
   doc.setTextColor(120);
-  const note = 'Documento fac-simile generato a scopo illustrativo. Formato conforme alla struttura Bolletta 2.0 ARERA. I valori sono basati sulla simulazione finanziaria del progetto per un cliente tipo domestico residente.';
-  doc.text(doc.splitTextToSize(note, 180), left, y);
+  const noteText = 'Documento fac-simile generato a scopo illustrativo. Formato conforme alla struttura Bolletta 2.0 ARERA. I valori sono basati sulla simulazione finanziaria del progetto per un cliente tipo domestico residente.';
+  doc.text(doc.splitTextToSize(noteText, 180), left, y);
   doc.setTextColor(0);
 
   addFooter(doc, company);
@@ -615,11 +653,12 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
 
 // --- Scontrino dell'Energia ---
 const generateScontrinoEnergia = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
-  const doc = new jsPDF({ format: [80, 200] }); // Receipt-like narrow format
+  const doc = new jsPDF({ format: [80, 200] });
   const pageWidth = doc.internal.pageSize.getWidth();
   const sim = data.simulation;
+  const cl = data.client || defaultSampleClient;
   const company = data.companyName || data.projectName;
-  const consumption = sim?.avgMonthlyConsumption ?? 200;
+  const consumption = cl.consumoMensile || sim?.avgMonthlyConsumption || 200;
   const left = 4;
   const center = pageWidth / 2;
 
@@ -627,7 +666,8 @@ const generateScontrinoEnergia = async (data: ContractData, logoBase64: string |
   const dispacc = sim?.dispacciamentoPerKwh ?? 0.01;
   const traspEnKwh = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
   const traspFissaMese = (sim?.trasportoQuotaFissaAnno ?? 23) / 12;
-  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * (sim?.potenzaImpegnataKw ?? 3)) / 12;
+  const potenzaKw = parseFloat(cl.potenzaKw) || sim?.potenzaImpegnataKw || 3;
+  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * potenzaKw) / 12;
   const asosKwh = sim?.oneriAsosKwh ?? 0.025;
   const arimKwh = sim?.oneriArimKwh ?? 0.007;
   const acciseKwh = sim?.acciseKwh ?? 0.0227;
@@ -645,7 +685,6 @@ const generateScontrinoEnergia = async (data: ContractData, logoBase64: string |
 
   let y = 6;
 
-  // Logo / header
   if (logoBase64) {
     try { doc.addImage(logoBase64, 'JPEG', center - 8, y, 16, 16); y += 18; } catch { /* skip */ }
   }
@@ -659,7 +698,6 @@ const generateScontrinoEnergia = async (data: ContractData, logoBase64: string |
   doc.text('Cod. ARERA: ' + (data.areaCode || '________'), center, y, { align: 'center' }); y += 5;
   doc.setTextColor(0);
 
-  // Dashed separator
   const drawSep = () => {
     doc.setDrawColor(180);
     doc.setLineDashPattern([1, 1], 0);
@@ -674,13 +712,12 @@ const generateScontrinoEnergia = async (data: ContractData, logoBase64: string |
   doc.text('SCONTRINO DELL\'ENERGIA', center, y, { align: 'center' }); y += 4;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6);
-  doc.text('Cliente Tipo – Domestico residente', center, y, { align: 'center' }); y += 3;
-  doc.text('Periodo: Gennaio 2026', center, y, { align: 'center' }); y += 3;
+  doc.text(`${cl.nome} ${cl.cognome} – ${cl.tipologiaUso}`, center, y, { align: 'center' }); y += 3;
+  doc.text(`Periodo: ${cl.periodo}`, center, y, { align: 'center' }); y += 3;
   doc.text('Consumo: ' + consumption + ' kWh', center, y, { align: 'center' }); y += 4;
 
   drawSep();
 
-  // Line items
   const addLine = (label: string, value: string, bold = false) => {
     doc.setFont('helvetica', bold ? 'bold' : 'normal');
     doc.setFontSize(6);
@@ -710,14 +747,12 @@ const generateScontrinoEnergia = async (data: ContractData, logoBase64: string |
   y += 5;
   drawSep();
 
-  // Cost per kWh
   const costoKwh = totale / consumption;
   doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
   doc.text('Costo medio: ' + costoKwh.toFixed(4) + ' €/kWh', center, y, { align: 'center' }); y += 3;
   doc.text('Costo giornaliero: ~' + (totale / 30).toFixed(2) + ' €/giorno', center, y, { align: 'center' }); y += 5;
 
-  // Footer note
   doc.setFontSize(5);
   doc.setTextColor(140);
   doc.text('Documento illustrativo – Bolletta 2.0 ARERA', center, y, { align: 'center' }); y += 3;
