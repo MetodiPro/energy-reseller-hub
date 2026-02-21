@@ -208,7 +208,7 @@ export const useSimulationSummary = (projectId: string | null, simulationData?: 
       totalIncassato: cumulativeCollection, totalInsoluti: cumulativeUncollected,
       totalCrediti: pendingReceivables, clientiAttivi: cumulativeActiveCustomers,
       contrattiTotali: totalContracts, switchOutTotali: totalChurned,
-      marginePercent: totalFatturato > 0 ? (totalMargine / totalFatturato) * 100 : 0,
+      marginePercent: (totalFatturato - totalIva) > 0 ? (totalMargine / (totalFatturato - totalIva)) * 100 : 0,
       hasData: totalContracts > 0,
       costoGestionePodTotale, costoEnergiaTotale,
       depositoIniziale, depositoFinale, depositoMassimo,
