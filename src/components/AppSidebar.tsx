@@ -100,13 +100,11 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, userName, onSign
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-3">
         <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-orange-500/40 group-hover:rotate-3">
-            <Zap className="h-5 w-5 text-white drop-shadow-sm transition-transform duration-300 group-hover:scale-110" fill="white" />
-          </div>
+          <img src="/favicon.png" alt="Metodi Res Builder" className="h-10 w-10 rounded-xl shrink-0 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:rotate-3" />
           {!isCollapsed && (
             <div className="flex flex-col overflow-hidden">
-              <span className="font-bold text-base text-sidebar-foreground tracking-tight">Power Reseller</span>
-              <span className="text-xs font-medium text-amber-500">START UP</span>
+              <span className="font-bold text-base text-sidebar-foreground tracking-tight">Metodi</span>
+              <span className="text-xs font-medium text-amber-500">RES BUILDER</span>
             </div>
           )}
         </div>

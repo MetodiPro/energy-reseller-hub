@@ -393,12 +393,10 @@ const Index = () => {
                 <SidebarTrigger className="text-white hover:bg-white/20 h-9 w-9 rounded-md transition-colors" />
                 <div className="h-px w-6 bg-white/20 rotate-90 hidden sm:block" />
                 <div className="flex items-center gap-3 group cursor-pointer">
-                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/30 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-orange-500/40 group-hover:rotate-3">
-                    <Zap className="h-4 w-4 text-white drop-shadow-sm transition-transform duration-300 group-hover:scale-110" fill="white" />
-                  </div>
+                   <img src="/favicon.png" alt="Metodi Res Builder" className="h-9 w-9 rounded-xl shrink-0 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:rotate-3" />
                   <div className="hidden sm:flex flex-col">
-                    <span className="text-white font-bold text-sm tracking-tight leading-tight">Power Reseller</span>
-                    <span className="text-amber-400 text-xs font-medium leading-tight">START UP</span>
+                    <span className="text-white font-bold text-sm tracking-tight leading-tight">Metodi</span>
+                    <span className="text-amber-400 text-xs font-medium leading-tight">RES BUILDER</span>
                   </div>
                 </div>
               </div>

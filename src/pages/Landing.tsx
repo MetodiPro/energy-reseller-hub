@@ -24,6 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import logoImage from "@/assets/logo.png";
 import heroImage from "@/assets/landing-hero.jpg";
 import processImage from "@/assets/landing-process.jpg";
 import financeImage from "@/assets/landing-finance.jpg";
@@ -74,13 +75,13 @@ const steps = [
     number: "01",
     title: "Crea il tuo progetto",
     description:
-      "Inserisci i dati della tua iniziativa: commodity (luce/gas/dual), mercato target e volumi previsti.",
+      "Inserisci i dati della tua iniziativa: mercato target (residenziale/microbusiness) e volumi previsti.",
   },
   {
     number: "02",
     title: "Segui il processo operativo",
     description:
-      "Completa gli step: licenza ARERA, contratto grossista, SII, CRM/billing, codice REMIT e adempimenti fiscali.",
+      "Completa gli step: licenza ARERA (EVE), contratto grossista, SII, CRM/billing, codice REMIT e adempimenti fiscali.",
   },
   {
     number: "03",
@@ -92,14 +93,14 @@ const steps = [
     number: "04",
     title: "Lancia la tua attività",
     description:
-      "Supera la checklist pre-lancio, genera il report unificato e parti con la tua attività di reseller energia.",
+      "Supera la checklist pre-lancio, genera il report unificato e parti con la tua attività di reseller energia elettrica.",
   },
 ];
 
 const benefits = [
   "Conformità regolatoria ARERA integrata",
   "Business Plan e Marketing Plan auto-generati",
-  "Simulazione ricavi con PUN/PSV in tempo reale",
+  "Simulazione ricavi con PUN in tempo reale",
   "Gestione scadenze e adempimenti fiscali",
   "Esportazione report PDF professionali",
   "Collaborazione multi-utente con ruoli",
@@ -115,19 +116,19 @@ const partners = [
 
 const faqs = [
   {
-    question: "Cos'è un reseller di energia elettrica e gas?",
+    question: "Cos'è un reseller di energia elettrica?",
     answer:
-      "Un reseller acquista energia all'ingrosso da un grossista autorizzato e la rivende ai clienti finali con il proprio brand e le proprie condizioni commerciali. Non possiede infrastrutture di rete: si occupa di fatturazione, assistenza clienti e gestione contrattuale.",
+      "Un reseller acquista energia elettrica all'ingrosso da un grossista autorizzato (UDD) e la rivende ai clienti finali con il proprio brand e le proprie condizioni commerciali. Non possiede infrastrutture di rete: si occupa di fatturazione, assistenza clienti e gestione contrattuale.",
   },
   {
     question: "Quali autorizzazioni servono per diventare reseller in Italia?",
     answer:
-      "Serve ottenere la licenza di vendita dall'ARERA (codice EVE per l'elettricità, EVG per il gas), iscriversi al portale SII (Sistema Informativo Integrato), registrarsi al REMIT presso ACER e adempiere agli obblighi fiscali di settore (accise, IVA energia, CSEA).",
+      "Serve ottenere la licenza di vendita dall'ARERA (codice EVE per l'elettricità), iscriversi al portale SII (Sistema Informativo Integrato), registrarsi al REMIT presso ACER e adempiere agli obblighi fiscali di settore (accise, IVA energia, CSEA).",
   },
   {
     question: "Quanto tempo serve per avviare l'attività?",
     answer:
-      "Il percorso completo richiede mediamente 4-8 mesi, a seconda della complessità: costituzione societaria, ottenimento licenze ARERA, contratto con il grossista, setup del sistema CRM/billing e adempimenti regolatori. La piattaforma ti guida in ogni fase per ridurre i tempi.",
+      "Il percorso completo richiede mediamente 4-8 mesi, a seconda della complessità: costituzione societaria, ottenimento licenza EVE, contratto con il grossista, setup del sistema CRM/billing e adempimenti regolatori. La piattaforma ti guida in ogni fase per ridurre i tempi.",
   },
   {
     question: "Qual è l'investimento iniziale necessario?",
@@ -142,12 +143,12 @@ const faqs = [
   {
     question: "Come funziona il rapporto con il grossista?",
     answer:
-      "Il grossista fornisce l'energia all'ingrosso e gestisce i flussi con il distributore locale. Tu come reseller firmi un contratto di fornitura che definisce spread, modalità di fatturazione e garanzie richieste. La piattaforma ti aiuta a configurare e simulare i parametri economici del rapporto.",
+      "Il grossista fornisce l'energia elettrica all'ingrosso e gestisce i flussi con il distributore locale. Tu come reseller firmi un contratto di fornitura che definisce spread, modalità di fatturazione e garanzie richieste. La piattaforma ti aiuta a configurare e simulare i parametri economici del rapporto.",
   },
   {
     question: "Posso operare su tutto il territorio nazionale?",
     answer:
-      "Sì, la licenza ARERA consente di operare su tutto il territorio italiano. Puoi scegliere di concentrarti su specifiche regioni o mercati (domestico, business, condomini) in base alla tua strategia commerciale.",
+      "Sì, la licenza ARERA consente di operare su tutto il territorio italiano. Puoi scegliere di concentrarti su specifiche regioni o mercati (domestico, microbusiness) in base alla tua strategia commerciale.",
   },
   {
     question: "La piattaforma sostituisce i consulenti professionali?",
@@ -165,11 +166,9 @@ export default function Landing() {
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-red-500">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
+            <img src={logoImage} alt="Metodi Res Builder" className="h-9 w-9 rounded-lg" />
             <span className="text-lg font-bold tracking-tight">
-              Power Reseller <span className="text-primary">START UP</span>
+              Metodi <span className="text-primary">Res Builder</span>
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -193,16 +192,16 @@ export default function Landing() {
             variants={stagger}
           >
             <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-              <Zap className="h-3.5 w-3.5" /> Piattaforma operativa per reseller energia
+              <Zap className="h-3.5 w-3.5" /> Piattaforma operativa per reseller energia elettrica
             </motion.div>
             <motion.h1 variants={fadeUp} custom={1} className="font-serif text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Avvia la tua attività di{" "}
-              <span className="text-primary">reseller energia</span> in Italia
+              <span className="text-primary">reseller energia elettrica</span> in Italia
             </motion.h1>
             <motion.p variants={fadeUp} custom={2} className="max-w-lg text-lg text-muted-foreground">
               La piattaforma all-in-one che ti guida passo dopo passo dall'ottenimento della licenza
-              ARERA fino al lancio commerciale, con simulazioni finanziarie, gestione team e
-              compliance integrata.
+              ARERA (EVE) fino al lancio commerciale, con simulazioni finanziarie, gestione team e
+              compliance integrata. Per il mercato residenziale e microbusiness fino a 20.000 kWh/anno.
             </motion.p>
             <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-3">
               <Button size="lg" onClick={() => navigate("/app")} className="text-base">
@@ -224,7 +223,7 @@ export default function Landing() {
             <div className="overflow-hidden rounded-xl border border-border shadow-2xl">
               <img
                 src={heroImage}
-                alt="Dashboard Power Reseller Start Up con grafici di analisi finanziaria per reseller energia"
+                alt="Dashboard Metodi Res Builder con grafici di analisi finanziaria per reseller energia elettrica"
                 className="w-full"
                 loading="eager"
               />
@@ -345,12 +344,13 @@ export default function Landing() {
           >
             <motion.div variants={fadeUp}>
               <h2 className="font-serif text-3xl font-bold sm:text-4xl">
-                Progettato per il mercato energetico italiano
+                Progettato per il mercato elettrico italiano
               </h2>
               <p className="mt-4 text-muted-foreground">
                 Ogni funzionalità è pensata specificamente per chi vuole diventare reseller di
-                energia elettrica e gas in Italia, nel rispetto della normativa ARERA e degli
-                adempimenti fiscali di settore.
+                energia elettrica in Italia, nel rispetto della normativa ARERA e degli
+                adempimenti fiscali di settore. Focalizzato sul mercato residenziale e microbusiness
+                fino a 20.000 kWh/anno.
               </p>
             </motion.div>
             <motion.div className="grid gap-3 sm:grid-cols-2" variants={stagger}>
@@ -414,17 +414,17 @@ export default function Landing() {
               Domande frequenti
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-              Le risposte alle domande più comuni sul processo di avvio come reseller energia in Italia.
+              Le risposte alle domande più comuni sul processo di avvio come reseller di energia elettrica in Italia.
             </p>
           </motion.div>
           <motion.div variants={fadeUp} custom={1}>
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, i) => (
-                <AccordionItem key={i} value={`faq-${i}`} className="border-border">
-                  <AccordionTrigger className="text-left text-sm font-semibold hover:text-primary hover:no-underline sm:text-base">
+                <AccordionItem key={i} value={`faq-${i}`}>
+                  <AccordionTrigger className="text-left text-sm hover:no-underline">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+                  <AccordionContent className="text-sm text-muted-foreground">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
@@ -450,7 +450,7 @@ export default function Landing() {
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
               Crea il tuo account gratuito e inizia subito a pianificare il lancio della tua
-              attività di reseller energia.
+              attività di reseller di energia elettrica.
             </p>
             <Button size="lg" className="mt-6 text-base" onClick={() => navigate("/app")}>
               Inizia ora — è gratuito <ArrowRight className="ml-1.5 h-4 w-4" />
@@ -463,13 +463,11 @@ export default function Landing() {
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-amber-400 to-red-500">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-sm font-semibold">Power Reseller Start Up</span>
+            <img src={logoImage} alt="Metodi Res Builder" className="h-7 w-7 rounded-md" />
+            <span className="text-sm font-semibold">Metodi Res Builder</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Power Reseller Start Up. Tutti i diritti riservati.
+            © {new Date().getFullYear()} Metodi Res Builder. Tutti i diritti riservati.
           </p>
         </div>
       </footer>
