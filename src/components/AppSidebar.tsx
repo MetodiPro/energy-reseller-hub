@@ -80,6 +80,7 @@ const launchItems = [
 
 const helpItems = [
   { id: "faq", title: "FAQ", icon: HelpCircle },
+  { id: "profile", title: "Profilo", icon: User },
   { id: "settings", title: "Impostazioni", icon: Settings },
 ];
 
@@ -209,7 +210,7 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, userName, onSign
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="cursor-pointer"
-                  onClick={() => onTabChange("settings")}
+                  onClick={() => onTabChange("profile")}
                 >
                   <User className="mr-2 h-4 w-4" />
                   Profilo

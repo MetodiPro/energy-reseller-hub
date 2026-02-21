@@ -223,17 +223,21 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
     const operationalCosts = costSummary.operationalCosts - manualCommercialCosts + costiCommercialiSimulati;
     const totalCosts = passthroughCosts + operationalCosts;
     
-    // Gross Margin = Fatturato - Passanti (what you keep before operational expenses)
-    const grossMargin = totalRevenue - passthroughCosts;
-    const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+    // Imponibile = Fatturato - IVA (base di calcolo corretta per i margini)
+    const iva = simulationSummary.hasData ? simulationSummary.totalIva : 0;
+    const imponibile = totalRevenue - iva;
+    
+    // Gross Margin = Imponibile - Passanti (what you keep before operational expenses)
+    const grossMargin = imponibile - passthroughCosts;
+    const grossMarginPercent = imponibile > 0 ? (grossMargin / imponibile) * 100 : 0;
     
     // Contribution Margin = Gross Margin - Commercial Costs (simulated from channels)
     const contributionMargin = grossMargin - costiCommercialiSimulati;
-    const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
+    const contributionMarginPercent = imponibile > 0 ? (contributionMargin / imponibile) * 100 : 0;
     
-    // Net Margin = Revenue - All Costs (passthrough + operational including commercial)
-    const netMargin = totalRevenue - totalCosts;
-    const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
+    // Net Margin = Imponibile - All Costs (passthrough + operational including commercial)
+    const netMargin = imponibile - totalCosts;
+    const netMarginPercent = imponibile > 0 ? (netMargin / imponibile) * 100 : 0;
 
     return {
       totalRevenue,
