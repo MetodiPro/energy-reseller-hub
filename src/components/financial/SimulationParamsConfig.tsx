@@ -9,11 +9,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { 
   Users, 
   Zap, 
@@ -21,17 +16,10 @@ import {
   TrendingUp,
   Info,
   CreditCard,
-  Save,
   Loader2,
-  ChevronDown,
-  Receipt,
   Settings2,
-  Flame,
 } from 'lucide-react';
-import { useState } from 'react';
-import { useRevenueSimulation, type RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
-import { InvoiceComponentsInput } from './InvoiceComponentsInput';
-import { TariffsSummaryPanel } from './TariffsSummaryPanel';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
@@ -63,15 +51,12 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
   const { 
     data, 
     loading, 
-    saving, 
     updateParams, 
     updateMonthlyContract, 
     updateStartDate, 
-    saveSimulation 
   } = simulationHook;
 
   const { startDate, monthlyContracts, params } = data;
-  const [showInvoiceParams, setShowInvoiceParams] = useState(false);
 
   const startMonth = startDate.getMonth();
   const startYear = startDate.getFullYear();
@@ -96,29 +81,6 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Commodity Type Selector - only show if project supports multiple commodities */}
-        {commodityType !== 'solo-luce' && commodityType !== 'solo-gas' && (
-          <div className="col-span-full mb-4">
-            <Label className="text-sm font-medium">Tipo Commodity Simulazione</Label>
-            <div className="flex gap-2 mt-2">
-              {[
-                { value: 'luce', label: '⚡ Solo Luce', icon: Zap },
-                { value: 'gas', label: '🔥 Solo Gas', icon: Flame },
-                { value: 'dual', label: '⚡🔥 Dual Fuel', icon: Settings2 },
-              ].map((opt) => (
-                <Button
-                  key={opt.value}
-                  variant={params.simulationCommodityType === opt.value ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateParams('simulationCommodityType', opt.value)}
-                >
-                  {opt.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="space-y-6">
             {/* Data Inizio */}
@@ -301,61 +263,6 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 </p>
               </div>
             </div>
-
-            {/* Gas Parameters - show when gas or dual */}
-            {(params.simulationCommodityType === 'gas' || params.simulationCommodityType === 'dual') && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <h4 className="font-medium flex items-center gap-2 text-orange-600">
-                    <Flame className="h-4 w-4" />
-                    Parametri Gas
-                  </h4>
-                  <div className="space-y-2">
-                    <Label>Consumo medio gas (Smc/mese)</Label>
-                    <Input type="number" value={params.avgMonthlyConsumptionGas} onChange={(e) => updateParams('avgMonthlyConsumptionGas', parseInt(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>PSV (€/Smc)</Label>
-                    <Input type="number" step="0.001" value={params.psvPerSmc} onChange={(e) => updateParams('psvPerSmc', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>CCV Gas (€/mese)</Label>
-                    <Input type="number" step="0.01" value={params.ccvGasMonthly} onChange={(e) => updateParams('ccvGasMonthly', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Spread Gas su PSV (€/Smc)</Label>
-                    <Input type="number" step="0.001" value={params.spreadGasPerSmc} onChange={(e) => updateParams('spreadGasPerSmc', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Spread Grossista Gas (€/Smc)</Label>
-                    <Input type="number" step="0.001" value={params.spreadGrossistaGasPerSmc} onChange={(e) => updateParams('spreadGrossistaGasPerSmc', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Accise Gas (€/Smc)</Label>
-                    <Input type="number" step="0.001" value={params.acciseGasSmc} onChange={(e) => updateParams('acciseGasSmc', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Addizionale Regionale (€/Smc)</Label>
-                    <Input type="number" step="0.001" value={params.addizionaleRegionaleGasSmc} onChange={(e) => updateParams('addizionaleRegionaleGasSmc', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Gestione PDR (€/PDR/mese)</Label>
-                    <Input type="number" step="0.01" value={params.gestionePdrPerPdr} onChange={(e) => updateParams('gestionePdrPerPdr', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>IVA Gas (%)</Label>
-                    <Input type="number" value={params.ivaPercentGas} onChange={(e) => updateParams('ivaPercentGas', parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="p-3 bg-orange-500/10 rounded-lg">
-                    <p className="text-sm font-medium text-orange-600">Margine Gas per cliente/mese</p>
-                    <p className="text-xl font-bold text-orange-600">
-                      {formatCurrency(params.ccvGasMonthly + (params.spreadGasPerSmc * params.avgMonthlyConsumptionGas))}
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {/* Column 3: Collection rates + Invoice components */}
@@ -426,56 +333,14 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
               </div>
               
               <div className={`p-2 rounded-lg text-xs ${
-                (params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate) === 100
-                  ? 'bg-primary/10 text-primary'
-                  : 'bg-destructive/10 text-destructive'
+                Math.abs((params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate) - 100) < 0.1
+                  ? 'bg-green-50 text-green-700'
+                  : 'bg-red-50 text-red-700'
               }`}>
                 Totale: {params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate}%
-                {(params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate) !== 100 && ' (dovrebbe essere 100%)'}
               </div>
             </div>
-
           </div>
-        </div>
-
-        {/* Componenti Fattura Passanti - Full width */}
-        <div className="mt-6">
-          <Collapsible open={showInvoiceParams} onOpenChange={setShowInvoiceParams}>
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" className="w-full justify-between">
-                <span className="flex items-center gap-2">
-                  <Receipt className="h-4 w-4" />
-                  Componenti Fattura Passanti
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${showInvoiceParams ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-4 space-y-4">
-              <TariffsSummaryPanel params={params} onUpdate={updateParams} />
-              <InvoiceComponentsInput params={params} onUpdate={updateParams} />
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-
-        {/* Save Button */}
-        <div className="mt-6 flex justify-end">
-          <Button 
-            onClick={saveSimulation} 
-            disabled={saving || loading}
-            className="min-w-[200px]"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvataggio...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Salva Configurazione
-              </>
-            )}
-          </Button>
         </div>
       </CardContent>
     </Card>
