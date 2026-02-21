@@ -16,7 +16,7 @@ import {
   Settings,
   LogOut,
   User,
-  Briefcase
+  Briefcase,
 } from "lucide-react";
 import {
   Sidebar,
@@ -75,6 +75,7 @@ const strategyItems = [
 
 const launchItems = [
   { id: "prelaunch", title: "Pre-Launch", icon: Rocket },
+  { id: "contract-package", title: "Plico Contrattuale", icon: FileText },
 ];
 
 const helpItems = [

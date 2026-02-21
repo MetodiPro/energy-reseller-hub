@@ -20,6 +20,7 @@ import { StepDocuments } from "@/components/StepDocuments";
 import { ProjectTeamManager } from "@/components/ProjectTeamManager";
 import { GanttTimeline } from "@/components/GanttTimeline";
 import { PreLaunchChecklist } from "@/components/PreLaunchChecklist";
+import { ContractPackagePage } from "@/components/ContractPackagePage";
 import { ConsultantsManager } from "@/components/ConsultantsManager";
 import { FAQ } from "@/components/FAQ";
 import { SettingsPage } from "@/components/SettingsPage";
@@ -337,6 +338,13 @@ const Index = () => {
             hasDocuments={realHasDocuments}
             hasCosts={costs.length > 0}
             hasTeamMembers={realHasTeamMembers}
+            projectId={currentProjectId}
+          />
+        );
+      case "contract-package":
+        return (
+          <ContractPackagePage
+            project={currentProject as any}
             projectId={currentProjectId}
           />
         );

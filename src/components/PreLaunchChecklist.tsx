@@ -1,7 +1,6 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -16,24 +15,11 @@ import {
   Shield, 
   Users, 
   Settings,
-  Building2,
   Zap,
-  FileText,
-  DollarSign,
-  Phone,
-  Download,
-  Upload,
-  Image,
-  Loader2,
-  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { processSteps } from '@/data/processSteps';
 import type { StepProgress } from '@/hooks/useStepProgress';
-import { useContractPackage, type SampleClientData } from '@/hooks/useContractPackage';
-import { useProjectLogo } from '@/hooks/useProjectLogo';
-import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
-import { ContractPreviewDialog } from '@/components/ContractPreviewDialog';
 
 interface PreLaunchChecklistProps {
   stepProgress: Record<string, StepProgress>;
@@ -110,14 +96,6 @@ export const PreLaunchChecklist = ({
 }: PreLaunchChecklistProps) => {
   const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
   const [loadingChecks, setLoadingChecks] = useState(true);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
-
-  const { generatePackage, generating } = useContractPackage();
-  const { uploadLogo, removeLogo, uploading: logoUploading } = useProjectLogo(
-    project ? { id: project.id || '', name: project.name || '', description: null, owner_id: '', commodity_type: project.commodity_type || null, planned_start_date: null, go_live_date: project.go_live_date, logo_url: project.logo_url || null, created_at: '', updated_at: '' } : null
-  );
-  const { data: simData } = useRevenueSimulation(projectId || null);
 
   // Load manual checks from DB
   useEffect(() => {
@@ -495,139 +473,6 @@ export const PreLaunchChecklist = ({
         </CardContent>
       </Card>
 
-      {/* Contract Package Generator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            Plico Contrattuale
-          </CardTitle>
-          <CardDescription>
-            Genera il pacchetto documentale completo per il cliente finale: PDA, CTE, Condizioni Generali e Scheda Sintetica.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Logo Upload */}
-          <div className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card">
-            {project?.logo_url ? (
-              <img
-                src={project.logo_url}
-                alt="Logo brand"
-                className="h-14 w-14 object-contain rounded-md border border-border bg-background p-1"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-md border border-dashed border-border bg-muted">
-                <Image className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
-            <div className="flex-1">
-              <p className="text-sm font-medium">Logo del brand</p>
-              <p className="text-xs text-muted-foreground">
-                {project?.logo_url
-                  ? 'Il logo verrà inserito in tutti i documenti del plico.'
-                  : 'Carica il logo del fornitore per brandizzare i documenti contrattuali.'}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => logoInputRef.current?.click()}
-                disabled={logoUploading}
-              >
-                {logoUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                <span className="ml-1.5">{project?.logo_url ? 'Cambia' : 'Carica'}</span>
-              </Button>
-              {project?.logo_url && (
-                <Button variant="ghost" size="sm" onClick={removeLogo} disabled={logoUploading}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) uploadLogo(file);
-                e.target.value = '';
-              }}
-            />
-          </div>
-
-          {/* Disclaimer */}
-          <div className="p-3 rounded-lg border border-warning/30 bg-warning/5">
-            <p className="text-xs text-warning font-medium">⚠️ Facsimile essenziale e incompleto</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Il plico generato è un facsimile dimostrativo che fornisce un'idea della documentazione necessaria per lo svolgimento delle attività commerciali. 
-              Non ha valore legale né contrattuale. Per i documenti definitivi conformi alla normativa ARERA, si raccomanda di rivolgersi a un consulente legale specializzato nel settore energetico.
-            </p>
-          </div>
-
-          {/* Generate Button */}
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => setPreviewOpen(true)}
-            disabled={generating || !project}
-          >
-            {generating ? (
-              <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Generazione in corso...</>
-            ) : (
-              <><Download className="h-4 w-4 mr-2" /> Genera Plico Contrattuale (ZIP)</>
-            )}
-          </Button>
-          <p className="text-xs text-muted-foreground text-center">
-            Include: PDA, CTE, Condizioni Generali, Scheda Sintetica, Fattura Tipo Bolletta 2.0, Scontrino Energia
-          </p>
-          {simData.id && (
-            <p className="text-xs text-success text-center flex items-center justify-center gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              I prezzi vengono pre-compilati dalla simulazione finanziaria del progetto
-            </p>
-          )}
-
-          <ContractPreviewDialog
-            open={previewOpen}
-            onOpenChange={setPreviewOpen}
-            generating={generating}
-            commodityType={'solo-luce'}
-            simAvgConsumption={simData.params.avgMonthlyConsumption}
-            simAvgConsumptionGas={0}
-            onGenerate={(clientData: SampleClientData) => {
-              if (!project) return;
-              const sp = simData.params;
-              generatePackage({
-                projectName: project.name || 'Reseller',
-                logoUrl: project.logo_url || null,
-                commodityType: 'solo-luce',
-                companyName: project.name,
-                areaCode: project.arera_code || undefined,
-                wholesalerName: project.wholesaler_name || undefined,
-                client: clientData,
-                simulation: {
-                  punPerKwh: sp.punPerKwh,
-                  spreadPerKwh: sp.spreadPerKwh,
-                  dispacciamentoPerKwh: sp.dispacciamentoPerKwh,
-                  trasportoQuotaFissaAnno: sp.trasportoQuotaFissaAnno,
-                  trasportoQuotaPotenzaKwAnno: sp.trasportoQuotaPotenzaKwAnno,
-                  trasportoQuotaEnergiaKwh: sp.trasportoQuotaEnergiaKwh,
-                  oneriAsosKwh: sp.oneriAsosKwh,
-                  oneriArimKwh: sp.oneriArimKwh,
-                  acciseKwh: sp.acciseKwh,
-                  ivaPercent: sp.ivaPercent,
-                  ccvMonthly: sp.ccvMonthly,
-                  gestionePodPerPod: sp.gestionePodPerPod,
-                  potenzaImpegnataKw: sp.potenzaImpegnataKw,
-                  avgMonthlyConsumption: sp.avgMonthlyConsumption,
-                },
-              }).then(() => setPreviewOpen(false));
-            }}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 };
