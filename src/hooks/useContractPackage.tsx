@@ -6,7 +6,6 @@ import { saveAs } from 'file-saver';
 import { useToast } from '@/hooks/use-toast';
 
 export interface ContractSimulationData {
-  // Luce
   punPerKwh?: number;
   spreadPerKwh?: number;
   dispacciamentoPerKwh?: number;
@@ -20,21 +19,7 @@ export interface ContractSimulationData {
   ccvMonthly?: number;
   gestionePodPerPod?: number;
   potenzaImpegnataKw?: number;
-  // Gas
-  psvPerSmc?: number;
-  spreadGasPerSmc?: number;
-  trasportoGasQuotaFissaAnno?: number;
-  trasportoGasQuotaEnergiaSmc?: number;
-  oneriGasReSmc?: number;
-  oneriGasUgSmc?: number;
-  acciseGasSmc?: number;
-  addizionaleRegionaleGasSmc?: number;
-  ivaPercentGas?: number;
-  ccvGasMonthly?: number;
-  gestionePdrPerPdr?: number;
-  // Consumi medi
   avgMonthlyConsumption?: number;
-  avgMonthlyConsumptionGas?: number;
 }
 
 export interface SampleClientData {
@@ -50,35 +35,43 @@ export interface SampleClientData {
   email: string;
   pec: string;
   pod: string;
-  pdr: string;
   indirizzoFornitura: string;
   tipologiaUso: string;
   potenzaKw: string;
+  consumoAnnuo: number;
   consumoMensile: number;
-  consumoMensileGas: number;
   periodo: string;
+  tensione: string;
+  tipoMisuratore: string;
+  distributoreLocale: string;
+  exFornitore: string;
+  ibanCliente: string;
 }
 
 export const defaultSampleClient: SampleClientData = {
   nome: 'Mario',
   cognome: 'Rossi',
   codiceFiscale: 'RSSMRA80A01H501Z',
-  partitaIva: '',
+  partitaIva: '12345678901',
   indirizzo: 'Via Roma 1',
   cap: '00100',
   citta: 'Roma',
   provincia: 'RM',
-  telefono: '333 1234567',
+  telefono: '06 1234567',
   email: 'mario.rossi@email.it',
-  pec: '',
+  pec: 'mario.rossi@pec.it',
   pod: 'IT001E12345678',
-  pdr: '12345678901234',
-  indirizzoFornitura: 'Via Roma 1, 00100 Roma (RM)',
-  tipologiaUso: 'Domestico residente',
-  potenzaKw: '3',
+  indirizzoFornitura: 'Via Roma 1 - 00100 Roma',
+  tipologiaUso: 'non domestico',
+  potenzaKw: '6',
+  consumoAnnuo: 20000,
   consumoMensile: 200,
-  consumoMensileGas: 80,
   periodo: '01/01/2026 – 31/01/2026',
+  tensione: '220 V',
+  tipoMisuratore: 'orario',
+  distributoreLocale: 'E-Distribuzione S.p.A.',
+  exFornitore: '—',
+  ibanCliente: 'IT00X0000000000000000000000',
 };
 
 export interface ContractData {
@@ -90,9 +83,15 @@ export interface ContractData {
   wholesalerName?: string;
   simulation?: ContractSimulationData;
   client?: SampleClientData;
+  companyAddress?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  companyPec?: string;
+  companyWebsite?: string;
+  companyCf?: string;
+  companyPiva?: string;
 }
 
-// Helper to load image as base64
 const loadImageAsBase64 = async (url: string): Promise<string | null> => {
   try {
     const res = await fetch(url);
@@ -108,380 +107,738 @@ const loadImageAsBase64 = async (url: string): Promise<string | null> => {
   }
 };
 
-const addHeader = async (doc: jsPDF, logoBase64: string | null, title: string, subtitle: string, companyName: string) => {
+const PRIMARY_COLOR: [number, number, number] = [30, 64, 124]; // Deep blue
+const ACCENT_COLOR: [number, number, number] = [232, 121, 24]; // Orange
+const LIGHT_BG: [number, number, number] = [245, 247, 250];
+const today = () => {
+  const d = new Date();
+  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+};
+const codiceContratto = () => Math.floor(1000000 + Math.random() * 9000000).toString();
+
+// ─── Shared layout helpers ───────────────────────────────────────────────────
+
+const addCompanyHeader = (doc: jsPDF, logoBase64: string | null, company: string, data: ContractData) => {
   const pageWidth = doc.internal.pageSize.getWidth();
-
   if (logoBase64) {
-    try {
-      doc.addImage(logoBase64, 'JPEG', 14, 10, 30, 30);
-    } catch { /* skip */ }
+    try { doc.addImage(logoBase64, 'JPEG', 14, 8, 24, 24); } catch { /* skip */ }
   }
-
-  const xStart = logoBase64 ? 50 : 14;
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text(companyName, xStart, 22);
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(120);
-  doc.text('Reseller Energia – Mercato Libero Italiano', xStart, 29);
-  doc.setTextColor(0);
-
-  doc.setFillColor(232, 121, 24);
-  doc.rect(0, 46, pageWidth, 12, 'F');
+  const xStart = logoBase64 ? 44 : 14;
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255);
-  doc.text(title, 14, 54);
+  doc.setTextColor(...PRIMARY_COLOR);
+  doc.text(company, xStart, 18);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  const details = [
+    data.companyAddress || '',
+    [data.companyPhone ? `Tel. ${data.companyPhone}` : '', data.companyEmail || ''].filter(Boolean).join(' – '),
+    data.companyWebsite || '',
+  ].filter(Boolean);
+  details.forEach((line, i) => doc.text(line, xStart, 23 + i * 3.5));
   doc.setTextColor(0);
 
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100);
-  doc.text(subtitle, 14, 66);
-  doc.setTextColor(0);
-  doc.setFont('helvetica', 'normal');
+  // Separator line
+  doc.setDrawColor(...PRIMARY_COLOR);
+  doc.setLineWidth(0.8);
+  doc.line(14, 36, pageWidth - 14, 36);
+  doc.setLineWidth(0.2);
 };
 
-const addFooter = (doc: jsPDF, companyName: string) => {
+const addDocTitle = (doc: jsPDF, title: string, y: number): number => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setFillColor(...PRIMARY_COLOR);
+  doc.rect(0, y, pageWidth, 10, 'F');
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255);
+  doc.text(title, 14, y + 7);
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'normal');
+  return y + 16;
+};
+
+const addPageFooter = (doc: jsPDF, company: string, data: ContractData) => {
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    doc.setFontSize(7);
-    doc.setTextColor(150);
-    doc.text(`${companyName} — Documento riservato`, 14, pageHeight - 10);
-    doc.text(`Pagina ${i} di ${pageCount}`, pageWidth - 40, pageHeight - 10);
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    doc.setDrawColor(...PRIMARY_COLOR);
+    doc.setLineWidth(0.4);
+    doc.line(14, ph - 16, pw - 14, ph - 16);
+    doc.setLineWidth(0.2);
+    doc.setFontSize(6);
+    doc.setTextColor(100);
+    const footerLine = [
+      company,
+      data.companyCf ? `C.F./P.IVA ${data.companyCf}` : '',
+      data.companyAddress || '',
+      data.companyPhone || '',
+    ].filter(Boolean).join(' – ');
+    doc.text(footerLine, 14, ph - 12);
+    doc.text(`Pagina ${i} di ${pageCount}`, pw - 14, ph - 12, { align: 'right' });
     doc.setTextColor(0);
   }
 };
 
-// --- PDA ---
+const sectionTitle = (doc: jsPDF, title: string, y: number): number => {
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...PRIMARY_COLOR);
+  doc.text(title, 14, y);
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'normal');
+  return y + 6;
+};
+
+const bodyText = (doc: jsPDF, text: string, y: number, maxWidth = 182): number => {
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  const lines = doc.splitTextToSize(text, maxWidth);
+  doc.text(lines, 14, y);
+  return y + lines.length * 3.8 + 2;
+};
+
+const checkPageBreak = (doc: jsPDF, y: number, needed = 40): number => {
+  if (y > doc.internal.pageSize.getHeight() - needed) {
+    doc.addPage();
+    return 20;
+  }
+  return y;
+};
+
+// ─── 1. PDA – Proposta di Contratto ──────────────────────────────────────────
+
 const generatePDA = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
   const cl = data.client || defaultSampleClient;
-  await addHeader(doc, logoBase64, 'PROPOSTA DI ADESIONE (PDA)', 'Modulo per la sottoscrizione di contratto di fornitura energia', company);
+  const codice = codiceContratto();
 
-  let y = 76;
-  const left = 14;
-  const lh = 7;
+  addCompanyHeader(doc, logoBase64, company, data);
 
-  doc.setFontSize(11);
+  let y = addDocTitle(doc, 'Proposta di Contratto', 40);
+
+  // Codice
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  doc.text('1. DATI DEL CLIENTE', left, y); y += lh;
+  doc.text(`Codice: ${codice}`, 14, y);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
+  y += 6;
 
-  const fields = [
-    `Cognome/Ragione Sociale: ${cl.cognome}`,
-    `Nome/Forma Giuridica: ${cl.nome}`,
-    `Codice Fiscale: ${cl.codiceFiscale}`,
-    `Partita IVA: ${cl.partitaIva || '—'}`,
-    `Indirizzo di residenza/sede: ${cl.indirizzo}`,
-    `CAP: ${cl.cap}  Città: ${cl.citta}  Prov: ${cl.provincia}`,
-    `Telefono: ${cl.telefono}  Email: ${cl.email}`,
-    `PEC: ${cl.pec || '—'}`,
-  ];
-  fields.forEach(f => { doc.text(f, left, y); y += lh; });
+  // Intro text
+  y = bodyText(doc, `Il Cliente, come di seguito identificato, propone a ${company} (di seguito "Fornitore") di concludere un contratto per la somministrazione di energia elettrica (di seguito "Contratto" o "Proposta") secondo i termini e le condizioni indicate nella presente proposta (di seguito "Proposta di Contratto"), nell'allegato "Condizioni Generali di Fornitura" e nell'allegato "Condizioni Particolari di Fornitura" che, unitamente agli altri allegati, costituiscono il Contratto. La presente Proposta di Contratto deve intendersi vincolante ed irrevocabile ai sensi dell'art. 1329 c.c. (proposta irrevocabile) sino alla scadenza del termine di 45 (quarantacinque) giorni dalla sottoscrizione della stessa.`, y);
+  y += 2;
 
-  y += 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('2. DATI PUNTO DI FORNITURA', left, y); y += lh;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-
-  const commodity = data.commodityType || 'luce';
-  const supplyFields = [
-    `Tipo fornitura: ${commodity === 'dual' ? 'Energia Elettrica + Gas' : commodity === 'gas' ? 'Gas Naturale' : 'Energia Elettrica'}`,
-    commodity !== 'gas' ? `Codice POD: ${cl.pod}` : '',
-    commodity !== 'luce' ? `Codice PDR: ${cl.pdr}` : '',
-    `Indirizzo di fornitura: ${cl.indirizzoFornitura}`,
-    `Uso: ${cl.tipologiaUso}`,
-    commodity !== 'gas' ? `Potenza impegnata (kW): ${cl.potenzaKw}` : '',
-    'Distributore locale: ____________________________________',
-  ].filter(Boolean);
-  supplyFields.forEach(f => { doc.text(f, left, y); y += lh; });
-
-  y += 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('3. OFFERTA ECONOMICA', left, y); y += lh;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-
-  const sim = data.simulation;
-  const fmtVal = (v?: number) => v != null ? `${v}` : '________';
-  
-  const offerFields = [
-    'Nome offerta: ____________________________________',
-    `Prezzo energia (€/kWh): ${sim?.punPerKwh != null && sim?.spreadPerKwh != null ? (sim.punPerKwh + sim.spreadPerKwh).toFixed(4) : '________'}`,
-    'Tipologia prezzo: [ ] Fisso  [X] Variabile (PUN/PSV + spread)',
-    `Spread reseller (€/kWh): ${fmtVal(sim?.spreadPerKwh)}`,
-    `CCV mensile: € ${fmtVal(sim?.ccvMonthly)}`,
-    'Durata contrattuale: [ ] 12 mesi  [ ] 24 mesi  [ ] Altro: ________',
-    'Decorrenza fornitura: ____/____/________',
-  ];
-  offerFields.forEach(f => { doc.text(f, left, y); y += lh; });
-
-  y += 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('4. MODALITÀ DI PAGAMENTO', left, y); y += lh;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-
-  const payFields = [
-    '[ ] RID/SDD – IBAN: ____________________________________',
-    '[ ] Bollettino postale',
-    '[ ] Bonifico bancario',
-    'Frequenza fatturazione: [ ] Mensile  [ ] Bimestrale',
-  ];
-  payFields.forEach(f => { doc.text(f, left, y); y += lh; });
-
-  y += 8;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('5. FIRME', left, y); y += lh + 2;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('Data: ____/____/________', left, y);
-  doc.text('Luogo: ____________________', left + 80, y); y += 14;
-  doc.text('Firma del Cliente: ____________________________', left, y);
-  doc.text(`Per ${company}: ____________________________`, left + 100, y);
-
-  addFooter(doc, company);
-  return doc;
-};
-
-// --- CTE ---
-const generateCTE = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
-  const doc = new jsPDF();
-  const company = data.companyName || data.projectName;
-  await addHeader(doc, logoBase64, 'CONDIZIONI TECNICO-ECONOMICHE (CTE)', 'Dettaglio delle condizioni economiche della fornitura', company);
-
-  let y = 76;
-  const left = 14;
-  const lh = 6.5;
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('1. COMPONENTI DI PREZZO – ENERGIA ELETTRICA', left, y); y += lh + 2;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-
-  const sim = data.simulation;
-  const fmtN = (v?: number, decimals = 4) => v != null ? v.toFixed(decimals) : '________';
-  const fmtN2 = (v?: number) => fmtN(v, 2);
-
-  const elecRows = [
-    ['Prezzo energia (PUN + spread)', '€/kWh', sim?.punPerKwh != null && sim?.spreadPerKwh != null ? (sim.punPerKwh + sim.spreadPerKwh).toFixed(4) : '________'],
-    ['di cui PUN', '€/kWh', fmtN(sim?.punPerKwh)],
-    ['di cui Spread reseller', '€/kWh', fmtN(sim?.spreadPerKwh)],
-    ['Dispacciamento', '€/kWh', fmtN(sim?.dispacciamentoPerKwh)],
-    ['Trasporto – quota fissa', '€/anno', fmtN2(sim?.trasportoQuotaFissaAnno)],
-    ['Trasporto – quota potenza', '€/kW/anno', fmtN2(sim?.trasportoQuotaPotenzaKwAnno)],
-    ['Trasporto – quota energia', '€/kWh', fmtN(sim?.trasportoQuotaEnergiaKwh)],
-    ['Oneri di sistema (ASOS)', '€/kWh', fmtN(sim?.oneriAsosKwh)],
-    ['Oneri di sistema (ARIM)', '€/kWh', fmtN(sim?.oneriArimKwh)],
-    ['Accise', '€/kWh', fmtN(sim?.acciseKwh)],
-    ['IVA', '%', fmtN2(sim?.ivaPercent)],
-    ['CCV mensile', '€/mese', fmtN2(sim?.ccvMonthly)],
-    ['Gestione POD', '€/POD/mese', fmtN2(sim?.gestionePodPerPod)],
-  ];
+  // 1. Il Cliente
+  y = sectionTitle(doc, '1  Il Cliente', y);
 
   autoTable(doc, {
     startY: y,
-    head: [['Componente', 'Unità', 'Valore']],
-    body: elecRows,
-    theme: 'striped',
-    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
+    body: [
+      ['Ragione Sociale / Cognome e Nome', `${cl.cognome} ${cl.nome}`],
+      ['Indirizzo Sede Legale', `${cl.indirizzo} - ${cl.cap} ${cl.citta} (${cl.provincia})`],
+      ['Partita IVA', cl.partitaIva || '—'],
+      ['Codice Fiscale', cl.codiceFiscale],
+      ['Email PEC', cl.pec || '—'],
+      ['Rappresentante con poteri di firma', `${cl.nome} ${cl.cognome}`],
+    ],
+    theme: 'plain',
     styles: { fontSize: 8, cellPadding: 2 },
-    margin: { left },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 65, textColor: PRIMARY_COLOR } },
+    margin: { left: 14 },
   });
-  y = (doc as any).lastAutoTable.finalY + 10;
+  y = (doc as any).lastAutoTable.finalY + 6;
 
-  if (data.commodityType === 'gas' || data.commodityType === 'dual') {
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('2. COMPONENTI DI PREZZO – GAS NATURALE', left, y); y += lh + 2;
-    doc.setFont('helvetica', 'normal');
+  // 2. Punti di prelievo
+  y = checkPageBreak(doc, y, 50);
+  y = sectionTitle(doc, '2  Punti di prelievo dell\'energia elettrica e consumi', y);
+  y = bodyText(doc, `Il Cliente chiede a ${company} di approvvigionarsi di un quantitativo di energia elettrica pari a quanto indicato nell'allegato "Punti di Prelievo" e di somministrarla ai punti ivi indicati. In ragione di quanto precede, qualora in casi eccezionali il Cliente preveda una significativa variazione dei propri consumi, è tenuto a comunicarlo tempestivamente a ${company}.`, y);
 
-    const gasRows = [
-      ['Prezzo materia prima (PSV + spread)', '€/Smc', sim?.psvPerSmc != null && sim?.spreadGasPerSmc != null ? (sim.psvPerSmc + sim.spreadGasPerSmc).toFixed(4) : '________'],
-      ['di cui PSV', '€/Smc', fmtN(sim?.psvPerSmc)],
-      ['di cui Spread reseller gas', '€/Smc', fmtN(sim?.spreadGasPerSmc)],
-      ['Trasporto – quota fissa', '€/anno', fmtN2(sim?.trasportoGasQuotaFissaAnno)],
-      ['Trasporto – quota energia', '€/Smc', fmtN(sim?.trasportoGasQuotaEnergiaSmc)],
-      ['Oneri gas (RE)', '€/Smc', fmtN(sim?.oneriGasReSmc)],
-      ['Oneri gas (UG)', '€/Smc', fmtN(sim?.oneriGasUgSmc)],
-      ['Accise gas', '€/Smc', fmtN(sim?.acciseGasSmc)],
-      ['Addizionale regionale', '€/Smc', fmtN(sim?.addizionaleRegionaleGasSmc)],
-      ['IVA gas', '%', fmtN2(sim?.ivaPercentGas)],
-      ['CCV gas mensile', '€/mese', fmtN2(sim?.ccvGasMonthly)],
-      ['Gestione PDR', '€/PDR/mese', fmtN2(sim?.gestionePdrPerPdr)],
-    ];
+  // 3. Prezzo
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, '3  Prezzo', y);
+  y = bodyText(doc, `L'energia elettrica è somministrata al Cliente presso tutti i punti di prelievo di cui al paragrafo precedente, al prezzo composto e adeguato secondo le modalità descritte nella sezione "Condizioni Economiche di Fornitura" codice ${codice} dell'allegato "Condizioni Particolari di Fornitura".`, y);
 
-    autoTable(doc, {
-      startY: y,
-      head: [['Componente', 'Unità', 'Valore']],
-      body: gasRows,
-      theme: 'striped',
-      headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
-      styles: { fontSize: 8, cellPadding: 2 },
-      margin: { left },
-    });
-    y = (doc as any).lastAutoTable.finalY + 10;
-  }
+  // 4. Comunicazioni
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, '4  Comunicazioni', y);
+  y = bodyText(doc, `Salvo diverso accordo tra le Parti, ogni comunicazione inerente al contratto si intenderà validamente effettuata se inviata per iscritto agli indirizzi di seguito indicati, anche a mezzo e-mail:`, y);
+  y = bodyText(doc, `${company}: ${data.companyAddress || '____________________'}, e-mail: ${data.companyPec || data.companyEmail || '____________________'}`, y);
+  y = bodyText(doc, `Il Cliente: indirizzo indicato nel paragrafo "Il Cliente", e-mail indicata nell'allegato "Punti di Prelievo".`, y);
 
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  const nextSection = data.commodityType === 'gas' || data.commodityType === 'dual' ? '3' : '2';
-  doc.text(`${nextSection}. CONDIZIONI CONTRATTUALI`, left, y); y += lh + 2;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
+  // Allegati
+  y = checkPageBreak(doc, y, 50);
+  y = sectionTitle(doc, 'Allegati', y);
 
-  const conditions = [
-    'Durata contrattuale: ________ mesi dalla data di attivazione della fornitura.',
-    'Rinnovo automatico: alla scadenza il contratto si rinnova tacitamente alle condizioni di mercato vigenti.',
-    'Recesso: il cliente può recedere con un preavviso di 30 giorni senza penali.',
-    'Deposito cauzionale: potrà essere richiesto secondo le modalità previste dalla delibera ARERA.',
-    'Morosità: in caso di mancato pagamento si applicano gli interessi moratori al tasso BCE + 3,5%.',
-    `Grossista di riferimento: ${data.wholesalerName || '____________________________________'}`,
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['Condizioni Particolari di Fornitura', 'Scheda sintetica ai sensi della delibera 426/2020', 'Carta di Identità del sottoscrittore'],
+      ['Condizioni Generali di Fornitura', 'Informativa privacy', 'Fatture dei Punti di Prelievo'],
+      ['Punti di Prelievo', '', ''],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 7, cellPadding: 2.5 },
+    headStyles: { fillColor: LIGHT_BG, textColor: PRIMARY_COLOR },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 6;
+
+  // Privacy consents
+  y = checkPageBreak(doc, y, 50);
+  y = bodyText(doc, `Il Cliente, letta l'informativa di cui all'allegato "Informativa privacy", espressamente e liberamente:`, y);
+  y += 1;
+  const consents = [
+    'CONSENTE / NON CONSENTE il trattamento dei propri dati personali a mezzo posta cartacea ovvero mediante chiamate con operatore, per finalità di marketing e invio comunicazioni commerciali.',
+    'CONSENTE / NON CONSENTE il trattamento dei propri dati personali con l\'uso di sistemi automatizzati ovvero mediante posta elettronica e/o SMS, per finalità di marketing.',
+    'CONSENTE / NON CONSENTE il trattamento dei propri dati personali per le finalità di profilazione.',
   ];
-  conditions.forEach(c => {
-    const lines = doc.splitTextToSize(c, 180);
-    doc.text(lines, left, y);
-    y += lines.length * 5 + 2;
-  });
+  consents.forEach(c => { y = bodyText(doc, `☐ ${c}`, y); });
+  y += 4;
 
-  addFooter(doc, company);
+  // Signature section
+  y = checkPageBreak(doc, y, 50);
+  y = bodyText(doc, `Con la firma qui apposta il Cliente dichiara di aver letto attentamente il contenuto delle informative di cui agli allegati "Informativa privacy" ai sensi degli artt. 13 e 14 del Regolamento UE 679/2016 e di averne ricevuto copia.`, y);
+  y += 4;
+  doc.setFontSize(8);
+  doc.text('Firma del Cliente ......................................................', 14, y);
+  doc.text('Luogo e data ..............................', 120, y);
+  y += 10;
+
+  y = bodyText(doc, `Con la firma qui apposta il Cliente accetta la Proposta e gli Allegati, conferisce i mandati ivi indicati, conferma di aver preso visione della nota informativa, in occasione della proposta dell'offerta contrattuale e prima della conclusione del Contratto.`, y);
+  y += 4;
+  doc.text('Firma del Cliente ......................................................', 14, y);
+  doc.text('Luogo e data ..............................', 120, y);
+  y += 10;
+
+  // Art. 1341-1342
+  y = checkPageBreak(doc, y, 60);
+  y = bodyText(doc, `Ai sensi e per gli effetti degli artt. 1341 cod. civ. (Condizioni generali di contratto) e 1342 cod. civ. (Contratto concluso mediante moduli o formulari), il Cliente dichiara di approvare specificatamente le seguenti clausole delle Condizioni Generali di Fornitura: 2 (cessione della fornitura); 3 (mandati); 5 (inizio della fornitura); 7 (durata del contratto e tacito rinnovo); 8 (recesso); 9 (penali e risarcimento del danno); 11 (rinnovo del contratto); 13 (fatturazione, rettifiche, limitazioni); 14 (sospensione della fornitura); 18 (verifica del contatore); 19 (garanzie e deposito cauzionale); 20 (clausola risolutiva espressa); 21 (modifica unilaterale); 22 (limitazioni di responsabilità); 24 (cessione del credito); 27 (foro competente).`, y);
+  y += 4;
+  doc.text('Firma del Cliente ......................................................', 14, y);
+  doc.text('Timbro ..............................', 140, y);
+
+  addPageFooter(doc, company, data);
   return doc;
 };
 
-// --- Condizioni Generali ---
+// ─── 2. Condizioni Particolari di Fornitura ──────────────────────────────────
+
+const generateCondizioniParticolari = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+  const doc = new jsPDF();
+  const company = data.companyName || data.projectName;
+  const sim = data.simulation;
+  const cl = data.client || defaultSampleClient;
+  const codice = codiceContratto();
+  const fmtN = (v?: number, d = 4) => v != null ? v.toFixed(d) : '0,0000';
+  const fmtN2 = (v?: number) => fmtN(v, 2);
+
+  addCompanyHeader(doc, logoBase64, company, data);
+
+  let y = addDocTitle(doc, 'Condizioni Particolari di Fornitura di energia elettrica', 40);
+
+  // subtitle
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Allegato alla Proposta di Contratto – Mercato libero per clienti finali', 14, y);
+  y += 8;
+
+  // Section 1: Condizioni Speciali
+  y = sectionTitle(doc, '1  Condizioni Speciali di Fornitura', y);
+  y = bodyText(doc, 'In deroga a quanto previsto dalle Condizioni Generali di Fornitura, i seguenti articoli vengono modificati come segue:', y);
+  y = bodyText(doc, '- art 11.3 ("Rinnovo del Contratto" - adeguamento automatico del prezzo) non viene applicato.', y);
+  y += 4;
+
+  // Section 2: Condizioni Economiche
+  y = sectionTitle(doc, `2  Condizioni Economiche di Fornitura – codice ${codice}`, y);
+  y = bodyText(doc, `Tenuto conto dei consumi dichiarati dal Cliente, il prezzo della somministrazione di energia elettrica, al netto delle imposte e delle tasse che saranno applicate e per tutti i punti di prelievo indicati nell'Allegato "Punti di Prelievo", sarà composto come segue:`, y);
+
+  const items = [
+    `1. corrispettivo per il servizio di trasporto, pari a quanto pagato da ${company} al distributore locale come stabilito dalla delibera ARG/elt 199/11 dell'ARERA;`,
+    `2. corrispettivi per i servizi di dispacciamento e ulteriori oneri previsti dalla delibera ARG/elt 111/06 dell'ARERA, pari a ${fmtN(sim?.dispacciamentoPerKwh)} €/kWh;`,
+    `3. oneri ASOS (${fmtN(sim?.oneriAsosKwh)} €/kWh) e ARIM (${fmtN(sim?.oneriArimKwh)} €/kWh) relativi al sostegno alle energie da fonti rinnovabili e alla cogenerazione, pari all'importo determinato dall'ARERA;`,
+    `4. corrispettivo a copertura dei costi di commercializzazione (CCV) pari a ${fmtN2(sim?.ccvMonthly)} €/mese per punto di prelievo;`,
+    `5. corrispettivo per la vendita di energia elettrica applicato con aggiornamento mensile, in base al tipo di misuratore (orario/per fasce/integratore), definito come: prezzo PUN (Prezzo Unico Nazionale) valorizzato ora per ora più lo spread di ${fmtN(sim?.spreadPerKwh)} €/kWh;`,
+    `6. gestione POD: ${fmtN2(sim?.gestionePodPerPod)} €/POD/mese;`,
+    `7. quota fissa trasporto: ${fmtN2(sim?.trasportoQuotaFissaAnno)} €/anno; quota potenza: ${fmtN2(sim?.trasportoQuotaPotenzaKwAnno)} €/kW/anno; quota energia: ${fmtN(sim?.trasportoQuotaEnergiaKwh)} €/kWh;`,
+    `8. accise: ${fmtN(sim?.acciseKwh)} €/kWh, secondo il D.Lgs. 26/10/1995 n. 504 (T.U.A.);`,
+    `9. IVA: ${fmtN2(sim?.ivaPercent)}%, secondo il D.P.R. 26/10/1972 n. 633;`,
+    `10. in ogni momento, durante il periodo di fornitura, il Cliente potrà richiedere la rinegoziazione del proprio Contratto per il passaggio ad una nuova offerta ${company} fra quelle disponibili.`,
+  ];
+  items.forEach(item => {
+    y = checkPageBreak(doc, y, 20);
+    y = bodyText(doc, item, y);
+  });
+  y += 2;
+
+  y = bodyText(doc, `In sintesi, le condizioni economiche di fornitura prevedono un prezzo variabile (PUN + spread di ${fmtN(sim?.spreadPerKwh)} €/kWh).`, y);
+  y += 4;
+
+  // Section 3: Informazioni per delibera ARG/com 104/10
+  y = checkPageBreak(doc, y, 80);
+  y = sectionTitle(doc, '3  Informazioni corrispettivi – Delibera ARG/com 104/10', y);
+
+  y = bodyText(doc, `Corrispettivi previsti dall'offerta codice ${codice} alla data del ${today()}.`, y);
+  y += 2;
+
+  // Cliente tipo
+  y = sectionTitle(doc, 'Cliente finale tipo', y);
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['Tipologia', cl.tipologiaUso],
+      ['Consumo annuo', `${cl.consumoAnnuo.toLocaleString('it-IT')} kWh`],
+      ['Potenza impegnata', `${cl.potenzaKw} kW`],
+      ['Tensione', cl.tensione],
+      ['Tipo misuratore', cl.tipoMisuratore],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG, textColor: PRIMARY_COLOR } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Incidenza percentuale
+  y = checkPageBreak(doc, y, 60);
+  const potKw = parseFloat(cl.potenzaKw) || 6;
+  const consumo = cl.consumoAnnuo || 20000;
+  const punSp = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
+  const disp = sim?.dispacciamentoPerKwh ?? 0.01;
+  const traspEn = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
+  const traspFix = sim?.trasportoQuotaFissaAnno ?? 23;
+  const traspPot = (sim?.trasportoQuotaPotenzaKwAnno ?? 22) * potKw;
+  const asos = (sim?.oneriAsosKwh ?? 0.025) * consumo;
+  const arim = (sim?.oneriArimKwh ?? 0.007) * consumo;
+  const ccv = (sim?.ccvMonthly ?? 8.5) * 12;
+  const gestPod = (sim?.gestionePodPerPod ?? 2.5) * 12;
+  const totEnergia = punSp * consumo + disp * consumo + ccv + gestPod;
+  const totTrasporto = traspFix + traspPot + traspEn * consumo;
+  const totOneri = asos + arim;
+  const totNetto = totEnergia + totTrasporto + totOneri;
+
+  const pctTrasp = ((totTrasporto / totNetto) * 100).toFixed(0);
+  const pctDisp = ((disp * consumo / totNetto) * 100).toFixed(0);
+  const pctAsos = ((asos / totNetto) * 100).toFixed(0);
+  const pctArim = ((arim / totNetto) * 100).toFixed(0);
+  const pctEnergia = ((punSp * consumo / totNetto) * 100).toFixed(0);
+  const pctComm = (((ccv + gestPod) / totNetto) * 100).toFixed(0);
+
+  y = sectionTitle(doc, 'Incidenza percentuale dei corrispettivi (al netto delle imposte)', y);
+  autoTable(doc, {
+    startY: y,
+    head: [['Voce', 'Incidenza']],
+    body: [
+      ['Trasmissione/Distribuzione/Misura', `${pctTrasp}%`],
+      ['Dispacciamento', `${pctDisp}%`],
+      ['Componente ASOS', `${pctAsos}%`],
+      ['Componente ARIM', `${pctArim}%`],
+      ['Energia/Servizi di vendita/Perdite di rete', `${pctEnergia}%`],
+      ['Commercializzazione (CCV + gestione)', `${pctComm}%`],
+    ],
+    theme: 'striped',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { cellWidth: 120 } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Codice di condotta commerciale
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, 'Codice di condotta commerciale', y);
+  y = bodyText(doc, `${company} aderisce alle procedure di ripristino per contratti e attivazioni non richieste, ai sensi della delibera R/com 228/17 dell'ARERA. ${company} aderisce inoltre al Servizio di Conciliazione dell'ARERA (conciliazione.arera.it). La procedura di conciliazione è gratuita.`, y);
+
+  // Signature
+  y += 6;
+  y = checkPageBreak(doc, y, 30);
+  doc.setFontSize(8);
+  doc.text(`Data: ${today()}`, 14, y);
+  y += 10;
+  doc.text('Firma del Cliente ......................................................', 14, y);
+  doc.text('Timbro ..............................', 140, y);
+
+  addPageFooter(doc, company, data);
+  return doc;
+};
+
+// ─── 3. Condizioni Generali di Fornitura ─────────────────────────────────────
+
 const generateCondizioni = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
-  await addHeader(doc, logoBase64, 'CONDIZIONI GENERALI DI FORNITURA', 'Termini e condizioni del servizio di vendita energia', company);
 
-  let y = 76;
-  const left = 14;
+  addCompanyHeader(doc, logoBase64, company, data);
+  let y = addDocTitle(doc, 'Condizioni Generali di Fornitura', 40);
 
   const articles = [
-    { title: 'Art. 1 – Oggetto del contratto', text: `Le presenti condizioni generali disciplinano il rapporto di fornitura di energia elettrica e/o gas naturale tra ${company} (di seguito "Venditore") e il Cliente finale (di seguito "Cliente") nel mercato libero italiano, ai sensi del D.Lgs. 79/99 e del D.Lgs. 164/00.` },
-    { title: 'Art. 2 – Conclusione del contratto', text: 'Il contratto si intende concluso con la sottoscrizione della Proposta di Adesione (PDA) e l\'accettazione delle presenti Condizioni Generali. Il contratto è soggetto a diritto di ripensamento entro 14 giorni dalla sottoscrizione, ai sensi del D.Lgs. 206/2005 (Codice del Consumo).' },
-    { title: 'Art. 3 – Durata e rinnovo', text: 'Il contratto ha la durata indicata nella PDA e si rinnova tacitamente alla scadenza, salvo disdetta comunicata con almeno 30 giorni di preavviso. In caso di rinnovo, il Venditore comunicherà le nuove condizioni economiche con almeno 3 mesi di anticipo.' },
-    { title: 'Art. 4 – Diritto di recesso', text: 'Il Cliente domestico ha diritto di recedere dal contratto entro 14 giorni dalla sottoscrizione senza penali né costi di disattivazione, mediante comunicazione scritta. Per contratti a distanza o fuori dai locali commerciali, si applicano le tutele del Codice del Consumo.' },
-    { title: 'Art. 5 – Fatturazione e pagamenti', text: 'La fatturazione avviene con la periodicità indicata nella PDA, sulla base dei consumi rilevati dal distributore locale o stimati secondo i profili ARERA. Il pagamento deve avvenire entro la scadenza indicata in fattura tramite la modalità prescelta dal Cliente.' },
-    { title: 'Art. 6 – Morosità e sospensione', text: 'In caso di mancato pagamento, il Venditore invierà sollecito e potrà applicare interessi moratori. Dopo il termine previsto dalla regolazione ARERA, potrà richiedere la sospensione della fornitura al distributore locale, previa comunicazione con preavviso.' },
-    { title: 'Art. 7 – Qualità del servizio', text: 'La qualità tecnica della fornitura (continuità, tensione, pressione) è responsabilità del distributore locale. Il Venditore è responsabile della qualità commerciale del servizio (fatturazione, assistenza, gestione reclami) secondo gli standard ARERA.' },
-    { title: 'Art. 8 – Reclami e conciliazione', text: `Il Cliente può presentare reclamo scritto a ${company} che risponderà entro 30 giorni solari. In caso di mancata risoluzione, il Cliente può attivare la procedura di conciliazione presso il Servizio Conciliazione di ARERA (conciliazione.arera.it).` },
-    { title: 'Art. 9 – Trattamento dati personali', text: 'I dati personali del Cliente sono trattati ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003, per le finalità connesse all\'esecuzione del contratto e agli obblighi di legge. L\'informativa completa è disponibile sul sito del Venditore.' },
-    { title: 'Art. 10 – Foro competente', text: 'Per le controversie derivanti dal presente contratto è competente il Foro del luogo di residenza/domicilio del Cliente consumatore. Per i clienti business, il Foro competente è quello della sede legale del Venditore.' },
+    {
+      title: 'Art. 1 – Oggetto del contratto e richiami normativi',
+      text: `1.1 Oggetto esclusivo del Contratto è la fornitura di energia elettrica da ${company} al Cliente presso i punti di prelievo di cui all'allegato "Punti di Prelievo", nonché presso i punti che venissero aggiunti successivamente. I richiami al "punto di prelievo" si intendono validi per la fornitura di energia elettrica.\n\n1.2 ${company} si riserva la facoltà di richiedere un indennizzo (Corrispettivo CMOR) qualora il Cliente eserciti il recesso senza adempiere ai propri obblighi di pagamento.\n\n1.3 L'Autorità di Regolazione per Energia Reti e Ambiente viene abbreviata in "ARERA", i cui provvedimenti sono reperibili su https://arera.it.`,
+    },
+    {
+      title: 'Art. 2 – Conclusione del contratto',
+      text: `Il contratto si intende concluso con la sottoscrizione della Proposta di Contratto e l'accettazione delle presenti Condizioni Generali. Il Cliente domestico ha diritto di ripensamento entro 14 giorni dalla sottoscrizione, ai sensi del D.Lgs. 206/2005 (Codice del Consumo).`,
+    },
+    {
+      title: 'Art. 3 – Mandati',
+      text: `Il Cliente conferisce a ${company} mandato senza rappresentanza per la stipula dei contratti di trasmissione, distribuzione e dispacciamento in prelievo di cui all'art. 4 dell'Allegato A alla deliberazione n. 111/06, nonché mandato con rappresentanza per la stipula del contratto di connessione. I mandati conferiti dal Cliente a ${company} si intendono a titolo gratuito e conferiti nell'interesse del Cliente.`,
+    },
+    {
+      title: 'Art. 4 – Inizio e durata della fornitura',
+      text: `La fornitura decorre dalla data di attivazione comunicata dal distributore locale. Il contratto ha la durata indicata nella Proposta e si rinnova tacitamente alla scadenza, salvo disdetta con almeno 30 giorni di preavviso. In caso di cambio fornitore, l'attivazione avverrà il primo giorno del mese successivo o del secondo mese successivo, a seconda della data di ricezione della richiesta.`,
+    },
+    {
+      title: 'Art. 5 – Recesso',
+      text: `Il Cliente può recedere dal contratto in qualsiasi momento, senza penali per punti allacciati in bassa tensione, con comunicazione scritta. Per i clienti domestici, il recesso per cambio fornitore avviene tramite procura al venditore entrante. Per cessazione della fornitura: raccomandata A/R o PEC a ${company}.`,
+    },
+    {
+      title: 'Art. 6 – Fatturazione e pagamenti',
+      text: `La fatturazione avviene con la periodicità indicata nella Proposta, sulla base dei consumi rilevati dal distributore locale. Qualora i dati non siano disponibili, ${company} potrà fatturare in acconto. Il pagamento deve avvenire entro la scadenza indicata in fattura. Per ogni giorno di ritardo si applicano interessi moratori ai sensi del D.Lgs. 231/2002. Il tasso è pari al T.U.R. aumentato di 3,5 punti percentuali.`,
+    },
+    {
+      title: 'Art. 7 – Sospensione della fornitura',
+      text: `In caso di morosità, dopo formale costituzione in mora tramite raccomandata, ${company} potrà richiedere al distributore la sospensione della fornitura, con il preavviso previsto dalla delibera ARERA 258/2015/R/com. Il Cliente sarà tenuto al pagamento dei costi di sospensione e riattivazione determinati dal distributore.`,
+    },
+    {
+      title: 'Art. 8 – Garanzie e deposito cauzionale',
+      text: `${company} potrà richiedere un deposito cauzionale o fideiussione, secondo le modalità previste dalla regolazione ARERA. Il deposito cauzionale è produttivo di interessi al tasso individuato dall'ARERA e viene restituito con l'ultima fattura.`,
+    },
+    {
+      title: 'Art. 9 – Reclami e qualità commerciale',
+      text: `Il Cliente può presentare reclamo scritto a ${company}. La risposta motivata sarà inviata entro 30 giorni solari. ${company} si impegna al rispetto dei livelli di qualità commerciale previsti dal TIQV dell'ARERA, corrispondendo gli indennizzi automatici previsti in caso di mancato rispetto.`,
+    },
+    {
+      title: 'Art. 10 – Conciliazione',
+      text: `In caso di controversie, il Cliente può attivare la procedura di conciliazione presso il Servizio Conciliazione ARERA (conciliazione.arera.it), obbligatoria prima del ricorso giudiziario. La procedura è gratuita. ${company} si impegna a partecipare al tentativo obbligatorio di conciliazione.`,
+    },
+    {
+      title: 'Art. 11 – Trattamento dati personali',
+      text: `I dati personali del Cliente sono trattati ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003. L'informativa completa è allegata al Contratto e disponibile sul sito di ${company}.`,
+    },
+    {
+      title: 'Art. 12 – Foro competente',
+      text: `Per le controversie derivanti dal presente contratto è competente il Foro del luogo di residenza/domicilio del Cliente consumatore. Per i clienti business, il Foro competente è quello della sede legale di ${company}.`,
+    },
   ];
 
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   articles.forEach(a => {
-    if (y > 260) {
-      doc.addPage();
-      y = 20;
-    }
+    y = checkPageBreak(doc, y, 30);
     doc.setFont('helvetica', 'bold');
-    doc.text(a.title, left, y); y += 5;
+    doc.setTextColor(...PRIMARY_COLOR);
+    doc.text(a.title, 14, y);
+    doc.setTextColor(0);
+    y += 5;
     doc.setFont('helvetica', 'normal');
-    const lines = doc.splitTextToSize(a.text, 180);
-    doc.text(lines, left, y);
-    y += lines.length * 4.5 + 6;
+    const lines = doc.splitTextToSize(a.text, 182);
+    doc.text(lines, 14, y);
+    y += lines.length * 3.8 + 5;
   });
 
-  addFooter(doc, company);
+  addPageFooter(doc, company, data);
   return doc;
 };
 
-// --- Scheda Sintetica ---
+// ─── 4. Scheda Sintetica – Delibera 426/2020 ────────────────────────────────
+
 const generateSchedaSintetica = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
-  await addHeader(doc, logoBase64, 'SCHEDA SINTETICA DI CONFRONTABILITÀ', 'Riepilogo offerta ai sensi della regolazione ARERA', company);
-
-  let y = 76;
-  const left = 14;
-
-  const commodity = data.commodityType || 'luce';
-  const label = commodity === 'dual' ? 'Energia Elettrica e Gas Naturale' : commodity === 'gas' ? 'Gas Naturale' : 'Energia Elettrica';
-
+  const cl = data.client || defaultSampleClient;
   const sim = data.simulation;
-  const fmtV = (v?: number, d = 4) => v != null ? v.toFixed(d) : '________';
+  const codice = codiceContratto();
+  const fmtN = (v?: number, d = 4) => v != null ? v.toFixed(d) : '—';
 
-  const infoRows = [
-    ['Denominazione venditore', company],
-    ['Codice ARERA', data.areaCode || '________'],
-    ['Denominazione offerta', '________'],
-    ['Tipologia fornitura', label],
-    ['Segmento clienti', '[ ] Domestico  [ ] Business'],
-    ['Tipologia prezzo', '[X] Variabile (PUN/PSV + spread)'],
-    ['Durata offerta', '12 mesi'],
-    ['Prezzo energia (luce)', sim?.punPerKwh != null && sim?.spreadPerKwh != null ? `${(sim.punPerKwh + sim.spreadPerKwh).toFixed(4)} €/kWh` : '________ €/kWh'],
-    ['Spread reseller (luce)', `${fmtV(sim?.spreadPerKwh)} €/kWh`],
-    ['CCV mensile (luce)', `${fmtV(sim?.ccvMonthly, 2)} €/mese`],
-    ...(commodity === 'gas' || commodity === 'dual' ? [
-      ['Prezzo energia (gas)', sim?.psvPerSmc != null && sim?.spreadGasPerSmc != null ? `${(sim.psvPerSmc + sim.spreadGasPerSmc).toFixed(4)} €/Smc` : '________ €/Smc'],
-      ['Spread reseller (gas)', `${fmtV(sim?.spreadGasPerSmc)} €/Smc`],
-      ['CCV mensile (gas)', `${fmtV(sim?.ccvGasMonthly, 2)} €/mese`],
-    ] : []),
-    ['Spesa annua stimata (ARERA)', '________ €/anno'],
-    ['Deposito cauzionale', '[ ] Sì  [ ] No – Importo: ________'],
-    ['Penali per recesso anticipato', 'Nessuna'],
-    ['Modalità di pagamento accettate', 'RID/SDD, Bollettino, Bonifico'],
-    ['Canale di vendita', '[ ] Porta a porta  [ ] Online  [ ] Telefonico  [ ] Agenzia'],
-  ];
-
-  autoTable(doc, {
-    startY: y,
-    head: [['Caratteristica', 'Dettaglio']],
-    body: infoRows,
-    theme: 'striped',
-    headStyles: { fillColor: [232, 121, 24], fontSize: 9 },
-    styles: { fontSize: 8, cellPadding: 3 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 65 } },
-    margin: { left },
-  });
-  y = (doc as any).lastAutoTable.finalY + 12;
+  addCompanyHeader(doc, logoBase64, company, data);
+  let y = addDocTitle(doc, 'Scheda sintetica ai sensi della delibera 426/2020', 40);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100);
-  const note = 'Nota: La spesa annua stimata è calcolata secondo le metodologie ARERA per un cliente tipo con consumi medi. I valori effettivi possono variare in base ai consumi reali, alla zona geografica e alla tipologia di utenza. Per maggiori informazioni consultare il Portale Offerte ARERA (ilportaleofferte.it).';
-  const noteLines = doc.splitTextToSize(note, 180);
-  doc.text(noteLines, left, y);
-  doc.setTextColor(0);
+  doc.text('destinata a clienti allacciati in bassa tensione', 14, y);
+  y += 6;
 
-  addFooter(doc, company);
+  y = sectionTitle(doc, 'Offerta di energia elettrica', y);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Codice offerta: ${codice} | Valida dal ${today()}`, 14, y);
+  y += 8;
+
+  // Venditore
+  y = sectionTitle(doc, 'Venditore', y);
+  const vendRows = [
+    [company],
+    [data.companyAddress || '____________________'],
+    [data.companyPhone || '____________________'],
+    [data.companyEmail || '____________________'],
+    [data.companyWebsite || '____________________'],
+  ];
+  vendRows.forEach(r => { doc.text(r[0], 14, y); y += 4; });
+  y += 4;
+
+  // Condizioni generali
+  const infoItems = [
+    ['Durata del contratto', 'Fino alla data di scadenza del prezzo, a seguire tacito rinnovo annuale.'],
+    ['Condizioni dell\'offerta', 'Clienti finali allacciati in bassa tensione.'],
+    ['Metodi di pagamento', 'Domiciliazione bancaria (SEPA).'],
+    ['Frequenza di fatturazione', 'Mensile, nel corso del mese successivo a quello di somministrazione.'],
+    ['Garanzie richieste', 'Valutazione in base ai consumi e alla posizione creditizia: deposito cauzionale o fideiussione.'],
+  ];
+  infoItems.forEach(([label, value]) => {
+    y = checkPageBreak(doc, y, 15);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PRIMARY_COLOR);
+    doc.setFontSize(8);
+    doc.text(label, 14, y);
+    doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal');
+    y += 4;
+    doc.text(doc.splitTextToSize(value, 182), 14, y);
+    y += 6;
+  });
+
+  // Condizioni economiche
+  y = checkPageBreak(doc, y, 60);
+  y = sectionTitle(doc, 'Condizioni economiche', y);
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Voce', 'Dettaglio']],
+    body: [
+      ['Prezzo materia prima energia', 'Prezzo variabile (PUN + spread)'],
+      ['Costo per consumi', `PUN + ${fmtN(sim?.spreadPerKwh)} €/kWh`],
+      ['Indice', 'PUN (Prezzo Unico Nazionale): prezzo di riferimento rilevato sulla borsa elettrica italiana'],
+      ['Periodicità indice', 'Mensile'],
+      ['Costo fisso anno', '0,00 €/anno'],
+      ['Costo per potenza impegnata', '0,00 €/kW'],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60, fillColor: LIGHT_BG } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Oneri di sistema
+  y = checkPageBreak(doc, y, 50);
+  y = sectionTitle(doc, 'Oneri di sistema', y);
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Componente', '≤3 kW', '3–6 kW', '6–10 kW', '>10 kW']],
+    body: [
+      ['Quota fissa (€/anno)', '39,55', '40,33', '40,33', '40,33'],
+      ['di cui ASOS', '20,56', '20,96', '20,96', '20,96'],
+      ['Quota energia (€/kWh)', fmtN(sim?.oneriAsosKwh), fmtN(sim?.oneriAsosKwh), fmtN(sim?.oneriAsosKwh), fmtN(sim?.oneriAsosKwh)],
+      ['di cui ASOS (€/kWh)', '0,0733', '0,0733', '0,0733', '0,0733'],
+      ['di cui ARIM (€/kWh)', fmtN(sim?.oneriArimKwh), fmtN(sim?.oneriArimKwh), fmtN(sim?.oneriArimKwh), fmtN(sim?.oneriArimKwh)],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 7 },
+    styles: { fontSize: 7, cellPadding: 2 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Trasporto e gestione contatore
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, 'Trasporto e gestione contatore', y);
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Componente', 'Valore']],
+    body: [
+      ['Quota fissa (€/anno)', fmtN(sim?.trasportoQuotaFissaAnno, 2)],
+      ['Quota energia (€/kWh)', fmtN(sim?.trasportoQuotaEnergiaKwh)],
+      ['Quota potenza (€/kW/anno)', fmtN(sim?.trasportoQuotaPotenzaKwAnno, 2)],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60, fillColor: LIGHT_BG } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Imposte
+  y = checkPageBreak(doc, y, 20);
+  y = sectionTitle(doc, 'Imposte', y);
+  y = bodyText(doc, `Accise stabilite in base al D.Lgs. 26/10/1995 n. 504 (T.U.A.): ${fmtN(sim?.acciseKwh)} €/kWh. IVA: ${fmtN(sim?.ivaPercent, 0)}%.`, y);
+  y += 4;
+
+  // Altre info: attivazione fornitura
+  y = checkPageBreak(doc, y, 60);
+  y = sectionTitle(doc, 'Attivazione della fornitura', y);
+  y = bodyText(doc, `Il Cliente conferisce a ${company} mandato per la stipula dei contratti di trasmissione, distribuzione e dispacciamento. In caso di cambio fornitore: attivazione il primo giorno del mese successivo alla richiesta (se entro il giorno 10) o del secondo mese successivo (se dopo il giorno 10). In caso di voltura: non prima del 4° giorno successivo all'invio della documentazione.`, y);
+
+  // Recesso
+  y = checkPageBreak(doc, y, 30);
+  y = sectionTitle(doc, 'Modalità e oneri per il recesso', y);
+  y = bodyText(doc, `Recesso senza penali per punti allacciati in bassa tensione. Recesso per cambio fornitore: procura al venditore entrante. Recesso per cessazione: comunicazione a ${company} tramite raccomandata A/R o PEC.`, y);
+
+  // Livelli di qualità
+  y = checkPageBreak(doc, y, 50);
+  y = sectionTitle(doc, 'Livelli di qualità commerciale della vendita', y);
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Indicatore', 'Standard', 'Indennizzo']],
+    body: [
+      ['Risposta motivata ai reclami scritti', '30 giorni solari', '25 €'],
+      ['Rettifica di fatturazione', '60 giorni solari', '25 €'],
+      ['Rettifica di doppia fatturazione', '20 giorni solari', '25 €'],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Note
+  y = checkPageBreak(doc, y, 20);
+  y = bodyText(doc, `Per informazioni sulla spesa personalizzata e su altre offerte: Portale Offerte Luce e Gas www.ilportaleofferte.it. Il cliente è invitato a verificare la presenza di oneri di recesso anticipato dal contratto in essere prima della sottoscrizione.`, y);
+
+  y += 6;
+  doc.setFontSize(8);
+  doc.text('Firma e data: ......................................................', 14, y);
+
+  addPageFooter(doc, company, data);
   return doc;
 };
 
-// --- Fattura Tipo Bolletta 2.0 ---
+// ─── 5. Punti di Prelievo ────────────────────────────────────────────────────
+
+const generatePDP = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+  const doc = new jsPDF();
+  const company = data.companyName || data.projectName;
+  const cl = data.client || defaultSampleClient;
+
+  addCompanyHeader(doc, logoBase64, company, data);
+  let y = addDocTitle(doc, 'Punti di Prelievo – Allegato alla Proposta di Contratto', 40);
+
+  // Punto di prelievo
+  y = sectionTitle(doc, 'Punto di Prelievo n. 1', y);
+
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['POD', cl.pod],
+      ['Indirizzo di fornitura', cl.indirizzoFornitura],
+      ['Consumi annuali', `${cl.consumoAnnuo.toLocaleString('it-IT')} kWh/anno`],
+      ['Tensione', cl.tensione],
+      ['Potenza', `${cl.potenzaKw} kW`],
+      ['Tipo misuratore', cl.tipoMisuratore],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 3 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG, textColor: PRIMARY_COLOR } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Distributore locale
+  y = sectionTitle(doc, 'Distributore locale', y);
+  doc.setFontSize(8);
+  doc.text(cl.distributoreLocale, 14, y);
+  y += 8;
+
+  // Attuale fornitore
+  y = sectionTitle(doc, 'Attuale fornitore di energia elettrica', y);
+  doc.setFontSize(8);
+  doc.text(cl.exFornitore || '—', 14, y);
+  y += 8;
+
+  // Fatturazione di cortesia
+  y = sectionTitle(doc, 'Fatturazione di cortesia (bolletta)', y);
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['[X] SÌ – Email fattura digitale', cl.email],
+      ['[ ] NO – Indirizzo postale', `${cl.indirizzo} - ${cl.cap} ${cl.citta}`],
+    ],
+    theme: 'plain',
+    styles: { fontSize: 8, cellPadding: 2 },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 6;
+
+  // Regime IVA
+  y = sectionTitle(doc, 'Regime IVA', y);
+  doc.setFontSize(8);
+  const ivaPerc = data.simulation?.ivaPercent ?? 22;
+  doc.text(ivaPerc <= 10 ? '[ ] ordinario (22%)    [X] agevolato (10%)' : '[X] ordinario (22%)    [ ] agevolato (10%)', 14, y);
+  y += 8;
+
+  // Pagamento SEPA
+  y = sectionTitle(doc, 'Pagamento – Addebito diretto SEPA', y);
+  y = bodyText(doc, `Con il presente mandato si autorizza ${company} a richiedere all'istituto di credito del Cliente debitore l'addebito sul conto corrente. Il Cliente ha diritto di richiedere la restituzione entro le tempistiche previste dalla disciplina SEPA.`, y);
+  y += 2;
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['IBAN', cl.ibanCliente],
+      ['Sottoscrittore conto corrente', `${cl.nome} ${cl.cognome}`],
+      ['Codice Fiscale', cl.codiceFiscale],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60, fillColor: LIGHT_BG, textColor: PRIMARY_COLOR } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Referente aziendale
+  y = sectionTitle(doc, 'Referente aziendale', y);
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['Nome e Cognome', `${cl.nome} ${cl.cognome}`],
+      ['Telefono', cl.telefono],
+      ['Email', cl.email],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50, fillColor: LIGHT_BG, textColor: PRIMARY_COLOR } },
+    margin: { left: 14 },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Immobile declaration
+  y = checkPageBreak(doc, y, 30);
+  y = bodyText(doc, `Consapevole delle sanzioni penali in caso di dichiarazioni mendaci (art. 76 DPR 445/2000), il Cliente dichiara di essere titolare dell'unità immobiliare allacciata.`, y);
+
+  y += 6;
+  doc.text('Firma del Cliente ......................................................', 14, y);
+  doc.text('Timbro ..............................', 140, y);
+
+  addPageFooter(doc, company, data);
+  return doc;
+};
+
+// ─── 6. Fattura Tipo – Bolletta 2.0 ─────────────────────────────────────────
+
 const generateBolletta2 = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const sim = data.simulation;
   const cl = data.client || defaultSampleClient;
+  const sim = data.simulation;
+  const pageWidth = doc.internal.pageSize.getWidth();
   const left = 14;
-  const consumption = cl.consumoMensile || sim?.avgMonthlyConsumption || 200;
-  const commodity = data.commodityType || 'luce';
 
-  // Helper calculations for electricity
-  const punSpread = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
-  const dispacc = sim?.dispacciamentoPerKwh ?? 0.01;
-  const traspEnKwh = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
+  const consumption = cl.consumoMensile || sim?.avgMonthlyConsumption || 200;
+  const potKw = parseFloat(cl.potenzaKw) || sim?.potenzaImpegnataKw || 3;
+
+  const punSp = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
+  const disp = sim?.dispacciamentoPerKwh ?? 0.01;
+  const traspEn = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
   const traspFissaMese = (sim?.trasportoQuotaFissaAnno ?? 23) / 12;
-  const potenzaKw = parseFloat(cl.potenzaKw) || sim?.potenzaImpegnataKw || 3;
-  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * potenzaKw) / 12;
+  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * potKw) / 12;
   const asosKwh = sim?.oneriAsosKwh ?? 0.025;
   const arimKwh = sim?.oneriArimKwh ?? 0.007;
   const acciseKwh = sim?.acciseKwh ?? 0.0227;
@@ -489,278 +846,208 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   const ccv = sim?.ccvMonthly ?? 8.5;
   const gestPod = sim?.gestionePodPerPod ?? 2.5;
 
-  const spesaMateria = punSpread * consumption + dispacc * consumption + ccv + gestPod;
-  const spesaTrasporto = traspFissaMese + traspPotMese + traspEnKwh * consumption;
-  const spesaOneri = (asosKwh + arimKwh) * consumption;
-  const imponibile = spesaMateria + spesaTrasporto + spesaOneri;
+  const spMateria = punSp * consumption + disp * consumption + ccv + gestPod;
+  const spTrasporto = traspFissaMese + traspPotMese + traspEn * consumption;
+  const spOneri = (asosKwh + arimKwh) * consumption;
+  const imponibile = spMateria + spTrasporto + spOneri;
   const acciseTot = acciseKwh * consumption;
   const iva = (imponibile + acciseTot) * ivaPerc;
   const totale = imponibile + acciseTot + iva;
 
-  // Header
-  if (logoBase64) {
-    try { doc.addImage(logoBase64, 'JPEG', 14, 8, 28, 28); } catch { /* skip */ }
-  }
-  const xH = logoBase64 ? 48 : 14;
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text(company, xH, 20);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100);
-  doc.text('Mercato Libero – Codice Operatore ARERA: ' + (data.areaCode || '________'), xH, 27);
-  doc.setTextColor(0);
+  // ── Page 1: Header + Summary ──
+  addCompanyHeader(doc, logoBase64, company, data);
 
-  // Title bar
-  doc.setFillColor(232, 121, 24);
-  doc.rect(0, 40, pageWidth, 10, 'F');
+  let y = addDocTitle(doc, 'LA BOLLETTA DELLA TUA FORNITURA LUCE', 40);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100);
+  doc.text('Mercato Libero – Documento fac-simile conforme alla struttura Bolletta 2.0 ARERA', 14, y);
+  doc.setTextColor(0);
+  y += 8;
+
+  // I DATI DELLA TUA FORNITURA
+  y = sectionTitle(doc, 'I DATI DELLA TUA FORNITURA', y);
+
+  autoTable(doc, {
+    startY: y,
+    body: [
+      ['Intestatario', `${cl.nome} ${cl.cognome}`],
+      ['Codice Fiscale', cl.codiceFiscale],
+      ['Indirizzo fornitura', cl.indirizzoFornitura],
+      ['POD', cl.pod],
+      ['Tipologia cliente', cl.tipologiaUso],
+      ['Potenza disponibile', `${(potKw * 1.1).toFixed(1)} kW`],
+      ['Potenza impegnata', `${potKw} kW`],
+      ['Tensione', cl.tensione],
+      ['Distributore', cl.distributoreLocale],
+    ],
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 55, fillColor: LIGHT_BG, textColor: PRIMARY_COLOR } },
+    margin: { left },
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // QUANDO E QUANTO PAGHI
+  y = sectionTitle(doc, 'QUANDO E QUANTO PAGHI', y);
+  doc.setFontSize(8);
+  doc.text(`Periodo: ${cl.periodo}  |  Consumo fatturato: ${consumption} kWh`, left, y);
+  y += 6;
+
+  // Total box
+  doc.setFillColor(...PRIMARY_COLOR);
+  doc.roundedRect(left, y, pageWidth - 28, 14, 2, 2, 'F');
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255);
-  doc.text('BOLLETTA 2.0 – FATTURA TIPO ENERGIA ELETTRICA', 14, 47);
-  doc.setTextColor(0);
-
-  let y = 58;
-  doc.setFontSize(8);
-
-  // Customer data box
-  doc.setDrawColor(200);
-  doc.rect(left, y, pageWidth - 28, 28);
-  doc.setFont('helvetica', 'bold');
-  doc.text('DATI CLIENTE', left + 2, y + 5);
+  doc.text(`${totale.toFixed(2)} €`, pageWidth / 2, y + 9, { align: 'center' });
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Intestatario: ${cl.nome} ${cl.cognome}`, left + 2, y + 10);
-  doc.text(`Codice Fiscale: ${cl.codiceFiscale}`, left + 2, y + 15);
-  doc.text(`Codice POD: ${cl.pod}`, left + 100, y + 10);
-  doc.text(`Tipologia: ${cl.tipologiaUso} – ${potenzaKw} kW`, left + 100, y + 15);
-  doc.text(`Periodo: ${cl.periodo}  |  Consumo: ${consumption} kWh`, left + 2, y + 22);
-  y += 34;
+  doc.text('TOTALE DA PAGARE', pageWidth / 2, y + 4, { align: 'center' });
+  doc.setTextColor(0);
+  y += 20;
 
-  // SEZIONE 1: Sintesi importi
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('SINTESI DEGLI IMPORTI FATTURATI', left, y); y += 6;
+  doc.setFontSize(8);
+  doc.text('Modalità di pagamento: ADDEBITO SU CONTO CORRENTE (SEPA)', left, y);
+  y += 8;
 
-  const summaryRows = [
-    ['Spesa per la materia energia', spesaMateria.toFixed(2) + ' €'],
-    ['Spesa per il trasporto e gestione del contatore', spesaTrasporto.toFixed(2) + ' €'],
-    ['Spesa per oneri di sistema', spesaOneri.toFixed(2) + ' €'],
-    ['Imposte (Accise + IVA)', (acciseTot + iva).toFixed(2) + ' €'],
-  ];
+  // SINTESI DELLA SPESA
+  y = sectionTitle(doc, 'LA SINTESI DELLA SPESA', y);
 
   autoTable(doc, {
     startY: y,
-    body: summaryRows,
-    theme: 'plain',
-    styles: { fontSize: 9, cellPadding: 3 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 130 }, 1: { halign: 'right' } },
+    head: [['QUELLO CHE PAGHI', '€']],
+    body: [
+      ['Spesa per la materia energia', spMateria.toFixed(2)],
+      ['Spesa per il trasporto e la gestione del contatore', spTrasporto.toFixed(2)],
+      ['Spesa per oneri di sistema', spOneri.toFixed(2)],
+      ['Imposte (accise)', acciseTot.toFixed(2)],
+      ['Totale IVA', iva.toFixed(2)],
+      ['TOTALE BOLLETTA', totale.toFixed(2)],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 3 },
+    columnStyles: { 0: { cellWidth: 130 }, 1: { halign: 'right', fontStyle: 'bold' } },
     margin: { left },
-  });
-  y = (doc as any).lastAutoTable.finalY + 2;
-
-  // Total
-  doc.setFillColor(245, 245, 245);
-  doc.rect(left, y, pageWidth - 28, 8, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('TOTALE FATTURA', left + 2, y + 6);
-  doc.text(totale.toFixed(2) + ' €', pageWidth - 14, y + 6, { align: 'right' });
-  y += 14;
-
-  // SEZIONE 2: Dettaglio Spesa Materia
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('DETTAGLIO: Spesa per la materia energia', left, y); y += 5;
-
-  const materiaRows = [
-    ['Prezzo energia (PUN + spread)', `${consumption} kWh × ${punSpread.toFixed(4)} €/kWh`, (punSpread * consumption).toFixed(2)],
-    ['Dispacciamento', `${consumption} kWh × ${dispacc.toFixed(4)} €/kWh`, (dispacc * consumption).toFixed(2)],
-    ['CCV (Commercializzazione)', 'Quota fissa mensile', ccv.toFixed(2)],
-    ['Gestione POD', 'Quota fissa mensile', gestPod.toFixed(2)],
-    ['Subtotale materia', '', spesaMateria.toFixed(2)],
-  ];
-
-  autoTable(doc, {
-    startY: y,
-    head: [['Componente', 'Calcolo', 'Importo (€)']],
-    body: materiaRows,
-    theme: 'striped',
-    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
-    styles: { fontSize: 8, cellPadding: 2 },
-    columnStyles: { 2: { halign: 'right' } },
-    margin: { left },
+    didParseCell: (hookData: any) => {
+      if (hookData.row.index === 5) {
+        hookData.cell.styles.fillColor = LIGHT_BG;
+        hookData.cell.styles.fontStyle = 'bold';
+      }
+    },
   });
   y = (doc as any).lastAutoTable.finalY + 8;
 
-  // SEZIONE 3: Dettaglio Trasporto
-  doc.setFont('helvetica', 'bold');
-  doc.text('DETTAGLIO: Spesa per trasporto e gestione contatore', left, y); y += 5;
+  // HAI BISOGNO DI AIUTO
+  y = checkPageBreak(doc, y, 30);
+  y = sectionTitle(doc, 'HAI BISOGNO DI AIUTO', y);
+  y = bodyText(doc, `Per informazioni sulla tua utenza: ${data.companyPhone || '800 XXX XXX'}. In caso di guasto: ${cl.distributoreLocale} – Numero verde pronto intervento (attivo 24/7).`, y);
 
-  const traspRows = [
-    ['Quota fissa', `${(sim?.trasportoQuotaFissaAnno ?? 23).toFixed(2)} €/anno ÷ 12`, traspFissaMese.toFixed(2)],
-    ['Quota potenza', `${potenzaKw.toFixed(1)} kW × ${(sim?.trasportoQuotaPotenzaKwAnno ?? 22).toFixed(2)} €/kW/anno ÷ 12`, traspPotMese.toFixed(2)],
-    ['Quota energia', `${consumption} kWh × ${traspEnKwh.toFixed(4)} €/kWh`, (traspEnKwh * consumption).toFixed(2)],
-    ['Subtotale trasporto', '', spesaTrasporto.toFixed(2)],
-  ];
+  // ── Page 2: Dettaglio ──
+  doc.addPage();
+  let y2 = 20;
 
+  y2 = sectionTitle(doc, 'LETTURE E CONSUMI', y2);
   autoTable(doc, {
-    startY: y,
+    startY: y2,
+    head: [['Periodo', 'U.M.', 'Lettura', 'Tipo lettura', 'Consumo', 'Tipo consumo']],
+    body: [
+      [cl.periodo.split('–')[0]?.trim() || '01/01', 'kWh', '—', 'Rilevata', String(consumption), 'Effettivo'],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 7 },
+    styles: { fontSize: 7, cellPadding: 2 },
+    margin: { left },
+  });
+  y2 = (doc as any).lastAutoTable.finalY + 8;
+
+  // Dettaglio Materia
+  y2 = sectionTitle(doc, 'DETTAGLIO – Spesa per la materia energia', y2);
+  autoTable(doc, {
+    startY: y2,
     head: [['Componente', 'Calcolo', 'Importo (€)']],
-    body: traspRows,
+    body: [
+      ['Energia (PUN + spread)', `${consumption} kWh × ${punSp.toFixed(4)} €/kWh`, (punSp * consumption).toFixed(2)],
+      ['Dispacciamento', `${consumption} kWh × ${disp.toFixed(4)} €/kWh`, (disp * consumption).toFixed(2)],
+      ['CCV (commercializzazione)', 'Quota fissa mensile', ccv.toFixed(2)],
+      ['Gestione POD', 'Quota fissa mensile', gestPod.toFixed(2)],
+      ['Subtotale materia', '', spMateria.toFixed(2)],
+    ],
     theme: 'striped',
-    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
-    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 7 },
+    styles: { fontSize: 7, cellPadding: 2 },
     columnStyles: { 2: { halign: 'right' } },
     margin: { left },
   });
-  y = (doc as any).lastAutoTable.finalY + 8;
+  y2 = (doc as any).lastAutoTable.finalY + 6;
 
-  // SEZIONE 4: Oneri + Imposte
-  doc.setFont('helvetica', 'bold');
-  doc.text('DETTAGLIO: Oneri di sistema e Imposte', left, y); y += 5;
-
-  const oneriRows = [
-    ['ASOS', `${consumption} kWh × ${asosKwh.toFixed(4)} €/kWh`, (asosKwh * consumption).toFixed(2)],
-    ['ARIM', `${consumption} kWh × ${arimKwh.toFixed(4)} €/kWh`, (arimKwh * consumption).toFixed(2)],
-    ['Subtotale oneri', '', spesaOneri.toFixed(2)],
-    ['Accise (imposta erariale)', `${consumption} kWh × ${acciseKwh.toFixed(4)} €/kWh`, acciseTot.toFixed(2)],
-    ['IVA ' + ((sim?.ivaPercent ?? 10)) + '%', `su ${(imponibile + acciseTot).toFixed(2)} €`, iva.toFixed(2)],
-  ];
-
+  // Dettaglio Trasporto
+  y2 = sectionTitle(doc, 'DETTAGLIO – Spesa per trasporto e gestione contatore', y2);
   autoTable(doc, {
-    startY: y,
+    startY: y2,
     head: [['Componente', 'Calcolo', 'Importo (€)']],
-    body: oneriRows,
+    body: [
+      ['Quota fissa', `${(sim?.trasportoQuotaFissaAnno ?? 23).toFixed(2)} €/anno ÷ 12`, traspFissaMese.toFixed(2)],
+      ['Quota potenza', `${potKw} kW × ${(sim?.trasportoQuotaPotenzaKwAnno ?? 22).toFixed(2)} €/kW/anno ÷ 12`, traspPotMese.toFixed(2)],
+      ['Quota energia', `${consumption} kWh × ${traspEn.toFixed(4)} €/kWh`, (traspEn * consumption).toFixed(2)],
+      ['Subtotale trasporto', '', spTrasporto.toFixed(2)],
+    ],
     theme: 'striped',
-    headStyles: { fillColor: [232, 121, 24], fontSize: 8 },
-    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 7 },
+    styles: { fontSize: 7, cellPadding: 2 },
     columnStyles: { 2: { halign: 'right' } },
     margin: { left },
   });
-  y = (doc as any).lastAutoTable.finalY + 10;
+  y2 = (doc as any).lastAutoTable.finalY + 6;
 
-  // Note
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(7);
-  doc.setTextColor(120);
-  const noteText = 'Documento fac-simile generato a scopo illustrativo. Formato conforme alla struttura Bolletta 2.0 ARERA. I valori sono basati sulla simulazione finanziaria del progetto per un cliente tipo domestico residente.';
-  doc.text(doc.splitTextToSize(noteText, 180), left, y);
-  doc.setTextColor(0);
+  // Dettaglio Oneri e Imposte
+  y2 = sectionTitle(doc, 'DETTAGLIO – Oneri di sistema e Imposte', y2);
+  autoTable(doc, {
+    startY: y2,
+    head: [['Componente', 'Calcolo', 'Importo (€)']],
+    body: [
+      ['ASOS', `${consumption} kWh × ${asosKwh.toFixed(4)} €/kWh`, (asosKwh * consumption).toFixed(2)],
+      ['ARIM', `${consumption} kWh × ${arimKwh.toFixed(4)} €/kWh`, (arimKwh * consumption).toFixed(2)],
+      ['Subtotale oneri', '', spOneri.toFixed(2)],
+      ['Accise', `${consumption} kWh × ${acciseKwh.toFixed(4)} €/kWh`, acciseTot.toFixed(2)],
+      [`IVA ${(sim?.ivaPercent ?? 10)}%`, `su ${(imponibile + acciseTot).toFixed(2)} €`, iva.toFixed(2)],
+    ],
+    theme: 'striped',
+    headStyles: { fillColor: PRIMARY_COLOR, fontSize: 7 },
+    styles: { fontSize: 7, cellPadding: 2 },
+    columnStyles: { 2: { halign: 'right' } },
+    margin: { left },
+  });
+  y2 = (doc as any).lastAutoTable.finalY + 10;
 
-  addFooter(doc, company);
+  // Glossario
+  y2 = checkPageBreak(doc, y2, 60);
+  y2 = sectionTitle(doc, 'GLOSSARIO ESSENZIALE', y2);
+  const glossary = [
+    ['Spesa per la materia energia', 'Prezzo della materia prima, costi di commercializzazione e vendita e costi di dispacciamento.'],
+    ['Spesa per il trasporto', 'Costi per il trasporto, distribuzione e misura. Stabiliti e aggiornati dall\'ARERA.'],
+    ['Spesa per oneri di sistema', 'Importi a copertura di costi di interesse generale per il sistema elettrico. Aggiornati trimestralmente dall\'ARERA.'],
+    ['Imposte', 'Imposta di consumo (accisa) e IVA. Uguali per ciascun fornitore.'],
+  ];
+  glossary.forEach(([term, def]) => {
+    y2 = checkPageBreak(doc, y2, 15);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.text(term + ':', left, y2);
+    doc.setFont('helvetica', 'normal');
+    y2 += 3.5;
+    const lines = doc.splitTextToSize(def, 182);
+    doc.text(lines, left, y2);
+    y2 += lines.length * 3.5 + 3;
+  });
+
+  addPageFooter(doc, company, data);
   return doc;
 };
 
-// --- Scontrino dell'Energia ---
-const generateScontrinoEnergia = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
-  const doc = new jsPDF({ format: [80, 200] });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const sim = data.simulation;
-  const cl = data.client || defaultSampleClient;
-  const company = data.companyName || data.projectName;
-  const consumption = cl.consumoMensile || sim?.avgMonthlyConsumption || 200;
-  const left = 4;
-  const center = pageWidth / 2;
-
-  const punSpread = (sim?.punPerKwh ?? 0.12) + (sim?.spreadPerKwh ?? 0.015);
-  const dispacc = sim?.dispacciamentoPerKwh ?? 0.01;
-  const traspEnKwh = sim?.trasportoQuotaEnergiaKwh ?? 0.008;
-  const traspFissaMese = (sim?.trasportoQuotaFissaAnno ?? 23) / 12;
-  const potenzaKw = parseFloat(cl.potenzaKw) || sim?.potenzaImpegnataKw || 3;
-  const traspPotMese = ((sim?.trasportoQuotaPotenzaKwAnno ?? 22) * potenzaKw) / 12;
-  const asosKwh = sim?.oneriAsosKwh ?? 0.025;
-  const arimKwh = sim?.oneriArimKwh ?? 0.007;
-  const acciseKwh = sim?.acciseKwh ?? 0.0227;
-  const ivaPerc = (sim?.ivaPercent ?? 10) / 100;
-  const ccv = sim?.ccvMonthly ?? 8.5;
-  const gestPod = sim?.gestionePodPerPod ?? 2.5;
-
-  const spesaMateria = punSpread * consumption + dispacc * consumption + ccv + gestPod;
-  const spesaTrasporto = traspFissaMese + traspPotMese + traspEnKwh * consumption;
-  const spesaOneri = (asosKwh + arimKwh) * consumption;
-  const acciseTot = acciseKwh * consumption;
-  const imponibile = spesaMateria + spesaTrasporto + spesaOneri;
-  const iva = (imponibile + acciseTot) * ivaPerc;
-  const totale = imponibile + acciseTot + iva;
-
-  let y = 6;
-
-  if (logoBase64) {
-    try { doc.addImage(logoBase64, 'JPEG', center - 8, y, 16, 16); y += 18; } catch { /* skip */ }
-  }
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text(company, center, y, { align: 'center' }); y += 4;
-  doc.setFontSize(6);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100);
-  doc.text('Cod. ARERA: ' + (data.areaCode || '________'), center, y, { align: 'center' }); y += 5;
-  doc.setTextColor(0);
-
-  const drawSep = () => {
-    doc.setDrawColor(180);
-    doc.setLineDashPattern([1, 1], 0);
-    doc.line(left, y, pageWidth - left, y);
-    doc.setLineDashPattern([], 0);
-    y += 3;
-  };
-  drawSep();
-
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'bold');
-  doc.text('SCONTRINO DELL\'ENERGIA', center, y, { align: 'center' }); y += 4;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
-  doc.text(`${cl.nome} ${cl.cognome} – ${cl.tipologiaUso}`, center, y, { align: 'center' }); y += 3;
-  doc.text(`Periodo: ${cl.periodo}`, center, y, { align: 'center' }); y += 3;
-  doc.text('Consumo: ' + consumption + ' kWh', center, y, { align: 'center' }); y += 4;
-
-  drawSep();
-
-  const addLine = (label: string, value: string, bold = false) => {
-    doc.setFont('helvetica', bold ? 'bold' : 'normal');
-    doc.setFontSize(6);
-    doc.text(label, left, y);
-    doc.text(value, pageWidth - left, y, { align: 'right' });
-    y += 3.5;
-  };
-
-  addLine('Materia energia', spesaMateria.toFixed(2) + ' €');
-  addLine('  di cui PUN+spread', (punSpread * consumption).toFixed(2));
-  addLine('  di cui dispacciamento', (dispacc * consumption).toFixed(2));
-  addLine('  di cui CCV', ccv.toFixed(2));
-  addLine('  di cui gestione POD', gestPod.toFixed(2));
-  y += 1;
-  addLine('Trasporto e contatore', spesaTrasporto.toFixed(2) + ' €');
-  addLine('Oneri di sistema', spesaOneri.toFixed(2) + ' €');
-  addLine('Accise', acciseTot.toFixed(2) + ' €');
-  addLine('IVA ' + (sim?.ivaPercent ?? 10) + '%', iva.toFixed(2) + ' €');
-
-  y += 1;
-  drawSep();
-
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TOTALE', left, y);
-  doc.text(totale.toFixed(2) + ' €', pageWidth - left, y, { align: 'right' });
-  y += 5;
-  drawSep();
-
-  const costoKwh = totale / consumption;
-  doc.setFontSize(6);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Costo medio: ' + costoKwh.toFixed(4) + ' €/kWh', center, y, { align: 'center' }); y += 3;
-  doc.text('Costo giornaliero: ~' + (totale / 30).toFixed(2) + ' €/giorno', center, y, { align: 'center' }); y += 5;
-
-  doc.setFontSize(5);
-  doc.setTextColor(140);
-  doc.text('Documento illustrativo – Bolletta 2.0 ARERA', center, y, { align: 'center' }); y += 3;
-  doc.text('Valori da simulazione finanziaria progetto', center, y, { align: 'center' });
-  doc.setTextColor(0);
-
-  return doc;
-};
+// ─── Hook ────────────────────────────────────────────────────────────────────
 
 export const useContractPackage = () => {
   const [generating, setGenerating] = useState(false);
@@ -771,22 +1058,22 @@ export const useContractPackage = () => {
     try {
       const logoBase64 = data.logoUrl ? await loadImageAsBase64(data.logoUrl) : null;
 
-      const [pda, cte, condizioni, scheda, bolletta, scontrino] = await Promise.all([
+      const [pda, condPart, condGen, scheda, pdp, bolletta] = await Promise.all([
         generatePDA(data, logoBase64),
-        generateCTE(data, logoBase64),
+        generateCondizioniParticolari(data, logoBase64),
         generateCondizioni(data, logoBase64),
         generateSchedaSintetica(data, logoBase64),
+        generatePDP(data, logoBase64),
         generateBolletta2(data, logoBase64),
-        generateScontrinoEnergia(data, logoBase64),
       ]);
 
       const zip = new JSZip();
-      zip.file('PDA_Proposta_di_Adesione.pdf', pda.output('blob'));
-      zip.file('CTE_Condizioni_Tecnico_Economiche.pdf', cte.output('blob'));
-      zip.file('Condizioni_Generali_Fornitura.pdf', condizioni.output('blob'));
-      zip.file('Scheda_Sintetica_Confrontabilita.pdf', scheda.output('blob'));
-      zip.file('Fattura_Tipo_Bolletta_2_0.pdf', bolletta.output('blob'));
-      zip.file('Scontrino_Energia.pdf', scontrino.output('blob'));
+      zip.file('01_Proposta_di_Contratto.pdf', pda.output('blob'));
+      zip.file('02_Condizioni_Particolari_Fornitura.pdf', condPart.output('blob'));
+      zip.file('03_Condizioni_Generali_Fornitura.pdf', condGen.output('blob'));
+      zip.file('04_Scheda_Sintetica_ARERA.pdf', scheda.output('blob'));
+      zip.file('05_Punti_di_Prelievo.pdf', pdp.output('blob'));
+      zip.file('06_Fattura_Tipo_Bolletta_2_0.pdf', bolletta.output('blob'));
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const safeName = (data.companyName || data.projectName).replace(/[^a-zA-Z0-9]/g, '_');
@@ -794,7 +1081,7 @@ export const useContractPackage = () => {
 
       toast({
         title: 'Plico contrattuale generato',
-        description: '6 documenti PDF scaricati in un archivio ZIP.',
+        description: '6 documenti professionali PDF scaricati in archivio ZIP.',
       });
     } catch (err: any) {
       toast({

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Download, Loader2, User, MapPin, Zap, Receipt } from 'lucide-react';
+import { Download, Loader2, User, MapPin, Zap } from 'lucide-react';
 import { type SampleClientData, defaultSampleClient } from '@/hooks/useContractPackage';
 
 interface ContractPreviewDialogProps {
@@ -24,29 +24,23 @@ export const ContractPreviewDialog = ({
   onOpenChange,
   onGenerate,
   generating,
-  commodityType,
   simAvgConsumption,
-  simAvgConsumptionGas,
 }: ContractPreviewDialogProps) => {
   const [client, setClient] = useState<SampleClientData>({
     ...defaultSampleClient,
     consumoMensile: simAvgConsumption || defaultSampleClient.consumoMensile,
-    consumoMensileGas: simAvgConsumptionGas || defaultSampleClient.consumoMensileGas,
   });
 
   const update = (field: keyof SampleClientData, value: string | number) => {
     setClient(prev => ({ ...prev, [field]: value }));
   };
 
-  const isGas = commodityType === 'gas' || commodityType === 'dual';
-  const isElec = commodityType !== 'gas';
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-primary" />
+            <Zap className="h-5 w-5 text-primary" />
             Anteprima Plico Contrattuale
           </DialogTitle>
           <DialogDescription>
@@ -67,7 +61,7 @@ export const ContractPreviewDialog = ({
               </TabsTrigger>
               <TabsTrigger value="consumi" className="flex items-center gap-1.5">
                 <Zap className="h-3.5 w-3.5" />
-                Consumi
+                Consumi e Pagamento
               </TabsTrigger>
             </TabsList>
 
@@ -89,7 +83,7 @@ export const ContractPreviewDialog = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cl-piva">Partita IVA</Label>
-                  <Input id="cl-piva" value={client.partitaIva} onChange={e => update('partitaIva', e.target.value)} placeholder="Opzionale" />
+                  <Input id="cl-piva" value={client.partitaIva} onChange={e => update('partitaIva', e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -104,7 +98,7 @@ export const ContractPreviewDialog = ({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cl-pec">PEC</Label>
-                <Input id="cl-pec" value={client.pec} onChange={e => update('pec', e.target.value)} placeholder="Opzionale" />
+                <Input id="cl-pec" value={client.pec} onChange={e => update('pec', e.target.value)} />
               </div>
             </TabsContent>
 
@@ -131,21 +125,29 @@ export const ContractPreviewDialog = ({
                 <Label htmlFor="cl-indforn">Indirizzo di fornitura</Label>
                 <Input id="cl-indforn" value={client.indirizzoFornitura} onChange={e => update('indirizzoFornitura', e.target.value)} />
               </div>
-              {isElec && (
-                <div className="space-y-2">
-                  <Label htmlFor="cl-pod">Codice POD</Label>
-                  <Input id="cl-pod" value={client.pod} onChange={e => update('pod', e.target.value)} />
-                </div>
-              )}
-              {isGas && (
-                <div className="space-y-2">
-                  <Label htmlFor="cl-pdr">Codice PDR</Label>
-                  <Input id="cl-pdr" value={client.pdr} onChange={e => update('pdr', e.target.value)} />
-                </div>
-              )}
               <div className="space-y-2">
-                <Label htmlFor="cl-uso">Tipologia uso</Label>
-                <Input id="cl-uso" value={client.tipologiaUso} onChange={e => update('tipologiaUso', e.target.value)} placeholder="Es: Domestico residente" />
+                <Label htmlFor="cl-pod">Codice POD</Label>
+                <Input id="cl-pod" value={client.pod} onChange={e => update('pod', e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cl-uso">Tipologia uso</Label>
+                  <Input id="cl-uso" value={client.tipologiaUso} onChange={e => update('tipologiaUso', e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cl-distr">Distributore locale</Label>
+                  <Input id="cl-distr" value={client.distributoreLocale} onChange={e => update('distributoreLocale', e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cl-tensione">Tensione</Label>
+                  <Input id="cl-tensione" value={client.tensione} onChange={e => update('tensione', e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cl-misuratore">Tipo misuratore</Label>
+                  <Input id="cl-misuratore" value={client.tipoMisuratore} onChange={e => update('tipoMisuratore', e.target.value)} />
+                </div>
               </div>
             </TabsContent>
 
@@ -153,31 +155,39 @@ export const ContractPreviewDialog = ({
               <Card className="border-primary/20 bg-primary/5">
                 <CardContent className="pt-4">
                   <p className="text-xs text-muted-foreground mb-3">
-                    Questi valori determinano gli importi nella Fattura Tipo (Bolletta 2.0) e nello Scontrino dell'Energia.
+                    Questi valori determinano gli importi nella Fattura Tipo (Bolletta 2.0) e nei documenti contrattuali.
                   </p>
-                  {isElec && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cl-consumo">Consumo mensile (kWh)</Label>
-                        <Input id="cl-consumo" type="number" value={client.consumoMensile} onChange={e => update('consumoMensile', parseFloat(e.target.value) || 0)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cl-potenza">Potenza impegnata (kW)</Label>
-                        <Input id="cl-potenza" value={client.potenzaKw} onChange={e => update('potenzaKw', e.target.value)} />
-                      </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="cl-consumo-annuo">Consumo annuo (kWh)</Label>
+                      <Input id="cl-consumo-annuo" type="number" value={client.consumoAnnuo} onChange={e => update('consumoAnnuo', parseFloat(e.target.value) || 0)} />
                     </div>
-                  )}
-                  {isGas && (
-                    <div className="space-y-2 mt-4">
-                      <Label htmlFor="cl-consumo-gas">Consumo mensile gas (Smc)</Label>
-                      <Input id="cl-consumo-gas" type="number" value={client.consumoMensileGas} onChange={e => update('consumoMensileGas', parseFloat(e.target.value) || 0)} />
+                    <div className="space-y-2">
+                      <Label htmlFor="cl-consumo">Consumo mensile (kWh)</Label>
+                      <Input id="cl-consumo" type="number" value={client.consumoMensile} onChange={e => update('consumoMensile', parseFloat(e.target.value) || 0)} />
                     </div>
-                  )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="cl-potenza">Potenza impegnata (kW)</Label>
+                      <Input id="cl-potenza" value={client.potenzaKw} onChange={e => update('potenzaKw', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cl-exforn">Ex fornitore</Label>
+                      <Input id="cl-exforn" value={client.exFornitore} onChange={e => update('exFornitore', e.target.value)} />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-              <div className="space-y-2">
-                <Label htmlFor="cl-periodo">Periodo fatturazione</Label>
-                <Input id="cl-periodo" value={client.periodo} onChange={e => update('periodo', e.target.value)} />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cl-periodo">Periodo fatturazione</Label>
+                  <Input id="cl-periodo" value={client.periodo} onChange={e => update('periodo', e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cl-iban">IBAN</Label>
+                  <Input id="cl-iban" value={client.ibanCliente} onChange={e => update('ibanCliente', e.target.value)} />
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -187,7 +197,6 @@ export const ContractPreviewDialog = ({
           <Button variant="outline" onClick={() => setClient({
             ...defaultSampleClient,
             consumoMensile: simAvgConsumption || defaultSampleClient.consumoMensile,
-            consumoMensileGas: simAvgConsumptionGas || defaultSampleClient.consumoMensileGas,
           })}>
             Ripristina valori default
           </Button>
