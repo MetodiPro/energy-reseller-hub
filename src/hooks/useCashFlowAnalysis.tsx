@@ -83,7 +83,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
   const simLoading = options?.simulationData?.loading ?? ownSimHook.loading;
 
   const { summary, loading: summaryLoading } = useSimulationSummary(projectId, options?.simulationData ? { data: simData, loading: simLoading } : undefined);
-  const { loading: costsLoading } = useStepCosts(projectId);
+  const { getGrandTotal, loading: costsLoading } = useStepCosts(projectId);
 
   const ownChannelsHook = useSalesChannels(options?.salesChannelsData ? null : projectId);
   const channels = options?.salesChannelsData?.channels ?? ownChannelsHook.channels;
@@ -220,7 +220,8 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
         });
       }
 
-      const investimentiIniziali = 0; // Placeholder
+      // Step costs (investimento iniziale) distributed in month 0
+      const investimentiIniziali = m === 0 ? getGrandTotal() : 0;
 
       const monthIndex = (startMonth + m) % 12;
       const yearOffset = Math.floor((startMonth + m) / 12);
@@ -318,7 +319,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali,
       totaleDepositi,
     };
-  }, [summary, simData, channels, taxFlows, calculateCommissionCosts]);
+  }, [summary, simData, channels, taxFlows, calculateCommissionCosts, getGrandTotal]);
 
   return { cashFlowData, loading: summaryLoading || simLoading || costsLoading || channelsLoading || taxLoading };
 };
