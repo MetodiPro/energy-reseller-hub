@@ -92,16 +92,29 @@ export interface ContractData {
   companyPiva?: string;
 }
 
-const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+interface LoadedImage {
+  base64: string;
+  width: number;
+  height: number;
+}
+
+const loadImageWithDimensions = async (url: string): Promise<LoadedImage | null> => {
   try {
     const res = await fetch(url);
     const blob = await res.blob();
-    return new Promise((resolve) => {
+    const base64: string = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
+      reader.onerror = () => reject();
       reader.readAsDataURL(blob);
     });
+    const dims: { width: number; height: number } = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => resolve({ width: 1, height: 1 });
+      img.src = base64;
+    });
+    return { base64, width: dims.width, height: dims.height };
   } catch {
     return null;
   }
@@ -118,12 +131,22 @@ const codiceContratto = () => Math.floor(1000000 + Math.random() * 9000000).toSt
 
 // ─── Shared layout helpers ───────────────────────────────────────────────────
 
-const addCompanyHeader = (doc: jsPDF, logoBase64: string | null, company: string, data: ContractData) => {
+const addCompanyHeader = (doc: jsPDF, logoImg: LoadedImage | null, company: string, data: ContractData) => {
   const pageWidth = doc.internal.pageSize.getWidth();
-  if (logoBase64) {
-    try { doc.addImage(logoBase64, 'JPEG', 14, 8, 24, 24); } catch { /* skip */ }
+  let xStart = 14;
+  if (logoImg) {
+    try {
+      // Maintain aspect ratio: fit within max 28w × 24h
+      const maxW = 28;
+      const maxH = 24;
+      const ratio = Math.min(maxW / logoImg.width, maxH / logoImg.height);
+      const drawW = logoImg.width * ratio;
+      const drawH = logoImg.height * ratio;
+      const yOffset = 8 + (maxH - drawH) / 2; // vertically center
+      doc.addImage(logoImg.base64, 'PNG', 14, yOffset, drawW, drawH);
+      xStart = 14 + drawW + 4;
+    } catch { /* skip */ }
   }
-  const xStart = logoBase64 ? 44 : 14;
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...PRIMARY_COLOR);
@@ -211,13 +234,13 @@ const checkPageBreak = (doc: jsPDF, y: number, needed = 40): number => {
 
 // ─── 1. PDA – Proposta di Contratto ──────────────────────────────────────────
 
-const generatePDA = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+const generatePDA = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
   const cl = data.client || defaultSampleClient;
   const codice = codiceContratto();
 
-  addCompanyHeader(doc, logoBase64, company, data);
+  addCompanyHeader(doc, logoImg, company, data);
 
   let y = addDocTitle(doc, 'Proposta di Contratto', 40);
 
@@ -296,7 +319,7 @@ const generatePDA = async (data: ContractData, logoBase64: string | null): Promi
     'CONSENTE / NON CONSENTE il trattamento dei propri dati personali con l\'uso di sistemi automatizzati ovvero mediante posta elettronica e/o SMS, per finalità di marketing.',
     'CONSENTE / NON CONSENTE il trattamento dei propri dati personali per le finalità di profilazione.',
   ];
-  consents.forEach(c => { y = bodyText(doc, `☐ ${c}`, y); });
+  consents.forEach(c => { y = bodyText(doc, `[ ] ${c}`, y); });
   y += 4;
 
   // Signature section
@@ -327,7 +350,7 @@ const generatePDA = async (data: ContractData, logoBase64: string | null): Promi
 
 // ─── 2. Condizioni Particolari di Fornitura ──────────────────────────────────
 
-const generateCondizioniParticolari = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+const generateCondizioniParticolari = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
   const sim = data.simulation;
@@ -336,7 +359,7 @@ const generateCondizioniParticolari = async (data: ContractData, logoBase64: str
   const fmtN = (v?: number, d = 4) => v != null ? v.toFixed(d) : '0,0000';
   const fmtN2 = (v?: number) => fmtN(v, 2);
 
-  addCompanyHeader(doc, logoBase64, company, data);
+  addCompanyHeader(doc, logoImg, company, data);
 
   let y = addDocTitle(doc, 'Condizioni Particolari di Fornitura di energia elettrica', 40);
 
@@ -467,11 +490,11 @@ const generateCondizioniParticolari = async (data: ContractData, logoBase64: str
 
 // ─── 3. Condizioni Generali di Fornitura ─────────────────────────────────────
 
-const generateCondizioni = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+const generateCondizioni = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
 
-  addCompanyHeader(doc, logoBase64, company, data);
+  addCompanyHeader(doc, logoImg, company, data);
   let y = addDocTitle(doc, 'Condizioni Generali di Fornitura', 40);
 
   const articles = [
@@ -545,7 +568,7 @@ const generateCondizioni = async (data: ContractData, logoBase64: string | null)
 
 // ─── 4. Scheda Sintetica – Delibera 426/2020 ────────────────────────────────
 
-const generateSchedaSintetica = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+const generateSchedaSintetica = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
   const cl = data.client || defaultSampleClient;
@@ -553,7 +576,7 @@ const generateSchedaSintetica = async (data: ContractData, logoBase64: string | 
   const codice = codiceContratto();
   const fmtN = (v?: number, d = 4) => v != null ? v.toFixed(d) : '—';
 
-  addCompanyHeader(doc, logoBase64, company, data);
+  addCompanyHeader(doc, logoImg, company, data);
   let y = addDocTitle(doc, 'Scheda sintetica ai sensi della delibera 426/2020', 40);
 
   doc.setFontSize(8);
@@ -714,12 +737,12 @@ const generateSchedaSintetica = async (data: ContractData, logoBase64: string | 
 
 // ─── 5. Punti di Prelievo ────────────────────────────────────────────────────
 
-const generatePDP = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+const generatePDP = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
   const cl = data.client || defaultSampleClient;
 
-  addCompanyHeader(doc, logoBase64, company, data);
+  addCompanyHeader(doc, logoImg, company, data);
   let y = addDocTitle(doc, 'Punti di Prelievo – Allegato alla Proposta di Contratto', 40);
 
   // Punto di prelievo
@@ -823,7 +846,7 @@ const generatePDP = async (data: ContractData, logoBase64: string | null): Promi
 
 // ─── 6. Fattura Tipo – Bolletta 2.0 ─────────────────────────────────────────
 
-const generateBolletta2 = async (data: ContractData, logoBase64: string | null): Promise<jsPDF> => {
+const generateBolletta2 = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
   const company = data.companyName || data.projectName;
   const cl = data.client || defaultSampleClient;
@@ -855,7 +878,7 @@ const generateBolletta2 = async (data: ContractData, logoBase64: string | null):
   const totale = imponibile + acciseTot + iva;
 
   // ── Page 1: Header + Summary ──
-  addCompanyHeader(doc, logoBase64, company, data);
+  addCompanyHeader(doc, logoImg, company, data);
 
   let y = addDocTitle(doc, 'LA BOLLETTA DELLA TUA FORNITURA LUCE', 40);
 
@@ -1056,15 +1079,15 @@ export const useContractPackage = () => {
   const generatePackage = useCallback(async (data: ContractData) => {
     setGenerating(true);
     try {
-      const logoBase64 = data.logoUrl ? await loadImageAsBase64(data.logoUrl) : null;
+      const logoImg = data.logoUrl ? await loadImageWithDimensions(data.logoUrl) : null;
 
       const [pda, condPart, condGen, scheda, pdp, bolletta] = await Promise.all([
-        generatePDA(data, logoBase64),
-        generateCondizioniParticolari(data, logoBase64),
-        generateCondizioni(data, logoBase64),
-        generateSchedaSintetica(data, logoBase64),
-        generatePDP(data, logoBase64),
-        generateBolletta2(data, logoBase64),
+        generatePDA(data, logoImg),
+        generateCondizioniParticolari(data, logoImg),
+        generateCondizioni(data, logoImg),
+        generateSchedaSintetica(data, logoImg),
+        generatePDP(data, logoImg),
+        generateBolletta2(data, logoImg),
       ]);
 
       const zip = new JSZip();
