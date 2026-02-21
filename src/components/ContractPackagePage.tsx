@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { 
   FileText, Download, Upload, Image, Loader2, Trash2, CheckCircle2, 
-  FileCheck, BookOpen, Scale, Receipt, ClipboardList, AlertTriangle
+  FileCheck, BookOpen, Scale, Receipt, ClipboardList, AlertTriangle, ShieldCheck
 } from 'lucide-react';
 import { useContractPackage, type SampleClientData } from '@/hooks/useContractPackage';
 import { useProjectLogo } from '@/hooks/useProjectLogo';
@@ -36,6 +36,7 @@ const documents = [
   { icon: BookOpen, title: 'Condizioni Generali di Fornitura', description: '12 articoli che regolano il rapporto contrattuale: oggetto, mandati, durata, recesso, fatturazione, sospensione, garanzie, reclami, conciliazione ARERA, GDPR e foro competente.' },
   { icon: Scale, title: 'Scheda Sintetica ARERA 426/2020', description: 'Documento obbligatorio per clienti BT: condizioni economiche, oneri di sistema per fascia di potenza, trasporto, imposte, modalità recesso e livelli di qualità commerciale.' },
   { icon: FileCheck, title: 'Punti di Prelievo (PDP)', description: 'Allegato tecnico con dati POD, distributore locale, consumi, regime IVA, mandato SEPA e referente aziendale.' },
+  { icon: ShieldCheck, title: 'Informativa Privacy (GDPR)', description: 'Informativa completa ai sensi degli artt. 13-14 del Reg. UE 2016/679: titolare, finalità, basi giuridiche, destinatari, conservazione, diritti dell\'interessato e trasferimento dati.' },
   { icon: FileText, title: 'Fattura Tipo – Bolletta 2.0', description: 'Fac-simile conforme alla struttura Bolletta 2.0 ARERA con sintesi spesa, dettaglio componenti, letture/consumi e glossario essenziale.' },
 ];
 
@@ -69,7 +70,7 @@ export const ContractPackagePage = ({ project, projectId }: ContractPackagePageP
             Energia Reti e Ambiente) e devono rispettare specifici requisiti di trasparenza e completezza informativa verso il cliente finale.
           </p>
           <p className="text-sm text-foreground leading-relaxed">
-            Il pacchetto generato da questa sezione include <strong>6 documenti PDF</strong> in formato ZIP, pre-compilati con i dati del progetto 
+            Il pacchetto generato da questa sezione include <strong>7 documenti PDF</strong> in formato ZIP, pre-compilati con i dati del progetto 
             e i parametri della simulazione finanziaria. I dati del cliente tipo possono essere personalizzati prima della generazione tramite 
             il pannello di anteprima.
           </p>
@@ -156,7 +157,7 @@ export const ContractPackagePage = ({ project, projectId }: ContractPackagePageP
             )}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-            Include: PDA, Condizioni Particolari, Condizioni Generali, Scheda Sintetica, Punti di Prelievo, Fattura Tipo Bolletta 2.0
+            Include: PDA, Condizioni Particolari, Condizioni Generali, Scheda Sintetica, Punti di Prelievo, Informativa Privacy, Fattura Tipo Bolletta 2.0
           </p>
           {simData.id && (
             <p className="text-xs text-success text-center flex items-center justify-center gap-1">
