@@ -306,17 +306,20 @@ export const useProjectFinancials = (projectId: string | null) => {
 
     const totalCosts = passthroughCosts + operationalCosts;
     
-    // Gross Margin = Revenue - Passthrough Costs (what you keep before operational expenses)
-    const grossMargin = totalRevenue - passthroughCosts;
-    const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+    // Imponibile = Revenue (no IVA component in manual costs mode)
+    const imponibile = totalRevenue;
+    
+    // Gross Margin = Imponibile - Passthrough Costs
+    const grossMargin = imponibile - passthroughCosts;
+    const grossMarginPercent = imponibile > 0 ? (grossMargin / imponibile) * 100 : 0;
     
     // Contribution Margin = Gross Margin - Commercial Costs
     const contributionMargin = grossMargin - costsByType.commercial;
-    const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
+    const contributionMarginPercent = imponibile > 0 ? (contributionMargin / imponibile) * 100 : 0;
     
-    // Net Margin = Revenue - All Costs (passthrough + operational)
-    const netMargin = totalRevenue - totalCosts;
-    const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
+    // Net Margin = Imponibile - All Costs (passthrough + operational)
+    const netMargin = imponibile - totalCosts;
+    const netMarginPercent = imponibile > 0 ? (netMargin / imponibile) * 100 : 0;
 
     return {
       totalRevenue,

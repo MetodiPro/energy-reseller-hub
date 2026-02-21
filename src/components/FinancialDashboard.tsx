@@ -241,6 +241,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
     return {
       totalRevenue,
+      imponibile,
+      totalIva: iva,
       totalCosts,
       passthroughCosts,
       operationalCosts,
@@ -561,7 +563,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
                     </CardTitle>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Fatturato meno costi passanti in fattura (energia, trasporto, oneri, accise, IVA). Indica quanto resta al reseller prima delle spese operative.</p>
+                    <p>Imponibile (fatturato al netto IVA) meno costi passanti in fattura (energia, trasporto, oneri, accise). Indica quanto resta al reseller prima delle spese operative.</p>
                   </TooltipContent>
                 </UITooltip>
                 <Target className="h-4 w-4 text-muted-foreground" />
@@ -579,7 +581,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
                   <span className={summary.grossMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
                     {formatPercent(summary.grossMarginPercent)}
                   </span>
-                  <span className="text-muted-foreground">sui ricavi</span>
+                  <span className="text-muted-foreground">sull'imponibile</span>
                 </div>
               </CardContent>
             </Card>
