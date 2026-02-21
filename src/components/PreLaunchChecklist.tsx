@@ -557,6 +557,15 @@ export const PreLaunchChecklist = ({
             />
           </div>
 
+          {/* Disclaimer */}
+          <div className="p-3 rounded-lg border border-warning/30 bg-warning/5">
+            <p className="text-xs text-warning font-medium">⚠️ Facsimile essenziale e incompleto</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Il plico generato è un facsimile dimostrativo che fornisce un'idea della documentazione necessaria per lo svolgimento delle attività commerciali. 
+              Non ha valore legale né contrattuale. Per i documenti definitivi conformi alla normativa ARERA, si raccomanda di rivolgersi a un consulente legale specializzato nel settore energetico.
+            </p>
+          </div>
+
           {/* Generate Button */}
           <Button
             size="lg"

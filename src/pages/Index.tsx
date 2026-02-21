@@ -23,6 +23,8 @@ import { PreLaunchChecklist } from "@/components/PreLaunchChecklist";
 import { ConsultantsManager } from "@/components/ConsultantsManager";
 import { FAQ } from "@/components/FAQ";
 import { SettingsPage } from "@/components/SettingsPage";
+import { PageGuide } from "@/components/PageGuide";
+import { pageGuides } from "@/data/pageGuides";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
@@ -532,6 +534,9 @@ const Index = () => {
               </div>
             )}
 
+            {pageGuides[activeTab] && (
+              <PageGuide {...pageGuides[activeTab]} />
+            )}
             {renderContent()}
           </main>
         </SidebarInset>
