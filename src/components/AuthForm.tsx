@@ -53,9 +53,9 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
 
         toast({
           title: "Registrazione completata",
-          description: "Account creato con successo!",
+          description: "Ti abbiamo inviato un'email di verifica. Controlla la tua casella di posta e clicca sul link per attivare il tuo account.",
+          duration: 10000,
         });
-        onSuccess();
       }
     } catch (error: any) {
       toast({
