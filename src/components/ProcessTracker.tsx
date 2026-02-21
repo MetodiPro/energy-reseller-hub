@@ -52,6 +52,7 @@ interface ProcessTrackerProps {
   projectEndDate?: string | null;
   onUpdateProjectStartDate?: (date: Date | null) => void;
   onUpdateProjectEndDate?: (date: Date | null) => void;
+  initialPhase?: number | null;
 }
 
 export const ProcessTracker = ({ 
@@ -62,9 +63,18 @@ export const ProcessTracker = ({
   projectEndDate,
   onUpdateProjectStartDate,
   onUpdateProjectEndDate,
+  initialPhase,
 }: ProcessTrackerProps) => {
   const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
-  const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
+  const [selectedPhase, setSelectedPhase] = useState<number | null>(initialPhase ?? null);
+  
+  // Sync with initialPhase when navigating from dashboard
+  useEffect(() => {
+    if (initialPhase !== undefined && initialPhase !== null) {
+      setSelectedPhase(initialPhase);
+    }
+  }, [initialPhase]);
+
   const [userId, setUserId] = useState<string | undefined>();
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);

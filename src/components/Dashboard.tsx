@@ -40,6 +40,7 @@ interface DashboardProps {
   projectEndDate?: string | null;
   getCostAmount: (stepId: string, costItemId: string) => number;
   projectId?: string | null;
+  onNavigateToPhase?: (phaseId: number) => void;
 }
 
 export const Dashboard = ({ 
@@ -48,7 +49,8 @@ export const Dashboard = ({
   projectStartDate,
   projectEndDate,
   getCostAmount,
-  projectId
+  projectId,
+  onNavigateToPhase
 }: DashboardProps) => {
   
   // Cash flow analysis for financial BEP
@@ -527,7 +529,15 @@ export const Dashboard = ({
                 : 'hsl(var(--muted))';
             
             return (
-              <div key={idx} className="flex flex-col items-center gap-2">
+              <div 
+                key={idx} 
+                className={cn(
+                  "flex flex-col items-center gap-2 rounded-lg p-2 transition-all duration-200",
+                  onNavigateToPhase && "cursor-pointer hover:bg-accent/50 hover:scale-105 active:scale-95"
+                )}
+                onClick={() => onNavigateToPhase?.(idx + 1)}
+                title={`Vai a ${phase.fullName}`}
+              >
                 <div className="relative w-24 h-24">
                   <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
                     <circle
