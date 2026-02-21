@@ -48,6 +48,13 @@ interface Project {
   arera_code: string | null;
   go_live_date: string | null;
   created_at: string;
+  company_address: string | null;
+  company_phone: string | null;
+  company_email: string | null;
+  company_pec: string | null;
+  company_website: string | null;
+  company_cf: string | null;
+  company_piva: string | null;
 }
 
 interface ProjectOverviewProps {
@@ -112,6 +119,13 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
       evg_license_date: project.evg_license_date,
       arera_code: project.arera_code,
       go_live_date: project.go_live_date,
+      company_address: project.company_address,
+      company_phone: project.company_phone,
+      company_email: project.company_email,
+      company_pec: project.company_pec,
+      company_website: project.company_website,
+      company_cf: project.company_cf,
+      company_piva: project.company_piva,
     });
     setIsEditing(true);
   };
@@ -138,6 +152,13 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
           evg_license_date: formData.evg_license_date,
           arera_code: formData.arera_code,
           go_live_date: formData.go_live_date,
+          company_address: formData.company_address,
+          company_phone: formData.company_phone,
+          company_email: formData.company_email,
+          company_pec: formData.company_pec,
+          company_website: formData.company_website,
+          company_cf: formData.company_cf,
+          company_piva: formData.company_piva,
         })
         .eq('id', project.id)
         .select()
@@ -483,6 +504,77 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
           </CardContent>
         </Card>
       </div>
+
+      {/* Dati Aziendali */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-primary" />
+            Dati Aziendali
+          </CardTitle>
+          <CardDescription>Dati societari utilizzati nei documenti contrattuali</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Indirizzo Sede Legale</Label>
+              {isEditing ? (
+                <Input placeholder="Via Roma 1, 00100 Roma (RM)" value={formData.company_address || ''} onChange={(e) => setFormData({ ...formData, company_address: e.target.value || null })} />
+              ) : (
+                <div className="text-sm">{project.company_address || <span className="text-muted-foreground">Non inserito</span>}</div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Telefono</Label>
+              {isEditing ? (
+                <Input placeholder="+39 06 12345678" value={formData.company_phone || ''} onChange={(e) => setFormData({ ...formData, company_phone: e.target.value || null })} />
+              ) : (
+                <div className="text-sm">{project.company_phone || <span className="text-muted-foreground">Non inserito</span>}</div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              {isEditing ? (
+                <Input placeholder="info@azienda.it" value={formData.company_email || ''} onChange={(e) => setFormData({ ...formData, company_email: e.target.value || null })} />
+              ) : (
+                <div className="text-sm">{project.company_email || <span className="text-muted-foreground">Non inserito</span>}</div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>PEC</Label>
+              {isEditing ? (
+                <Input placeholder="azienda@pec.it" value={formData.company_pec || ''} onChange={(e) => setFormData({ ...formData, company_pec: e.target.value || null })} />
+              ) : (
+                <div className="text-sm">{project.company_pec || <span className="text-muted-foreground">Non inserito</span>}</div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Sito Web</Label>
+              {isEditing ? (
+                <Input placeholder="https://www.azienda.it" value={formData.company_website || ''} onChange={(e) => setFormData({ ...formData, company_website: e.target.value || null })} />
+              ) : (
+                <div className="text-sm">{project.company_website || <span className="text-muted-foreground">Non inserito</span>}</div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Codice Fiscale</Label>
+              {isEditing ? (
+                <Input placeholder="12345678901" value={formData.company_cf || ''} onChange={(e) => setFormData({ ...formData, company_cf: e.target.value || null })} />
+              ) : (
+                <div className="text-sm font-mono">{project.company_cf || <span className="text-muted-foreground font-sans">Non inserito</span>}</div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>Partita IVA</Label>
+              {isEditing ? (
+                <Input placeholder="IT12345678901" value={formData.company_piva || ''} onChange={(e) => setFormData({ ...formData, company_piva: e.target.value || null })} />
+              ) : (
+                <div className="text-sm font-mono">{project.company_piva || <span className="text-muted-foreground font-sans">Non inserito</span>}</div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Operating Regions */}
       <Card>

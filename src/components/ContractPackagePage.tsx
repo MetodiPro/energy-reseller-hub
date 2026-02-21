@@ -19,6 +19,13 @@ interface ContractPackagePageProps {
     go_live_date: string | null;
     commodity_type?: string | null;
     logo_url?: string | null;
+    company_address?: string | null;
+    company_phone?: string | null;
+    company_email?: string | null;
+    company_pec?: string | null;
+    company_website?: string | null;
+    company_cf?: string | null;
+    company_piva?: string | null;
   } | null;
   projectId?: string | null;
 }
@@ -175,6 +182,13 @@ export const ContractPackagePage = ({ project, projectId }: ContractPackagePageP
                 companyName: project.name,
                 areaCode: project.arera_code || undefined,
                 wholesalerName: project.wholesaler_name || undefined,
+                companyAddress: project.company_address || undefined,
+                companyPhone: project.company_phone || undefined,
+                companyEmail: project.company_email || undefined,
+                companyPec: project.company_pec || undefined,
+                companyWebsite: project.company_website || undefined,
+                companyCf: project.company_cf || undefined,
+                companyPiva: project.company_piva || undefined,
                 client: clientData,
                 simulation: {
                   punPerKwh: sp.punPerKwh,

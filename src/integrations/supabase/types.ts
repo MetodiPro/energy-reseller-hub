@@ -1124,6 +1124,13 @@ export type Database = {
         Row: {
           arera_code: string | null
           commodity_type: string | null
+          company_address: string | null
+          company_cf: string | null
+          company_email: string | null
+          company_pec: string | null
+          company_phone: string | null
+          company_piva: string | null
+          company_website: string | null
           created_at: string | null
           description: string | null
           eve_license_date: string | null
@@ -1145,6 +1152,13 @@ export type Database = {
         Insert: {
           arera_code?: string | null
           commodity_type?: string | null
+          company_address?: string | null
+          company_cf?: string | null
+          company_email?: string | null
+          company_pec?: string | null
+          company_phone?: string | null
+          company_piva?: string | null
+          company_website?: string | null
           created_at?: string | null
           description?: string | null
           eve_license_date?: string | null
@@ -1166,6 +1180,13 @@ export type Database = {
         Update: {
           arera_code?: string | null
           commodity_type?: string | null
+          company_address?: string | null
+          company_cf?: string | null
+          company_email?: string | null
+          company_pec?: string | null
+          company_phone?: string | null
+          company_piva?: string | null
+          company_website?: string | null
           created_at?: string | null
           description?: string | null
           eve_license_date?: string | null
