@@ -844,7 +844,153 @@ const generatePDP = async (data: ContractData, logoImg: LoadedImage | null): Pro
   return doc;
 };
 
-// ─── 6. Fattura Tipo – Bolletta 2.0 ─────────────────────────────────────────
+// ─── 6. Informativa Privacy ──────────────────────────────────────────────────
+
+const generateInformativaPrivacy = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
+  const doc = new jsPDF();
+  const company = data.companyName || data.projectName;
+
+  addCompanyHeader(doc, logoImg, company, data);
+
+  let y = addDocTitle(doc, 'Informativa sul trattamento dei dati personali', 40);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100);
+  doc.text('ai sensi degli artt. 13 e 14 del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003 (Codice Privacy)', 14, y);
+  doc.setTextColor(0);
+  y += 8;
+
+  // 1. Titolare
+  y = sectionTitle(doc, '1. Titolare del trattamento', y);
+  const titolareLines = [
+    `Il Titolare del trattamento è ${company}`,
+    data.companyAddress ? `Sede legale: ${data.companyAddress}` : '',
+    data.companyCf ? `C.F./P.IVA: ${data.companyCf}` : '',
+    data.companyPec ? `PEC: ${data.companyPec}` : '',
+    data.companyEmail ? `Email: ${data.companyEmail}` : '',
+    data.companyPhone ? `Tel.: ${data.companyPhone}` : '',
+  ].filter(Boolean).join('\n');
+  y = bodyText(doc, titolareLines, y);
+  y += 2;
+
+  // 2. Finalità
+  y = sectionTitle(doc, '2. Finalità e base giuridica del trattamento', y);
+  const finalita = [
+    'a) Esecuzione del contratto: gestione della fornitura di energia elettrica, fatturazione, incasso, gestione del rapporto contrattuale, switching, volture, subentri e attivazioni presso il distributore locale (base giuridica: art. 6.1.b GDPR – esecuzione di un contratto).',
+    'b) Adempimento di obblighi di legge: obblighi fiscali, contabili, regolatori (ARERA, CSEA, Agenzia delle Dogane), antiriciclaggio e segnalazioni obbligatorie (base giuridica: art. 6.1.c GDPR – obbligo legale).',
+    'c) Legittimo interesse del Titolare: prevenzione frodi, recupero crediti, analisi statistiche aggregate, miglioramento del servizio (base giuridica: art. 6.1.f GDPR – legittimo interesse).',
+    'd) Marketing diretto: invio di comunicazioni commerciali, offerte promozionali, newsletter relative ai servizi del Titolare, previo consenso dell\'interessato (base giuridica: art. 6.1.a GDPR – consenso).',
+    'e) Profilazione: analisi delle abitudini di consumo energetico per la personalizzazione delle offerte commerciali, previo consenso dell\'interessato (base giuridica: art. 6.1.a GDPR – consenso).',
+  ];
+  finalita.forEach(f => {
+    y = checkPageBreak(doc, y, 20);
+    y = bodyText(doc, f, y);
+  });
+  y += 2;
+
+  // 3. Dati trattati
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, '3. Categorie di dati personali trattati', y);
+  y = bodyText(doc, 'Il Titolare tratta le seguenti categorie di dati personali:', y);
+  const datiCateg = [
+    '- Dati anagrafici e di contatto: nome, cognome, codice fiscale, partita IVA, indirizzo, telefono, email, PEC.',
+    '- Dati relativi alla fornitura: codice POD, indirizzo di fornitura, dati tecnici del punto di prelievo, consumi storici e previsionali, dati del misuratore.',
+    '- Dati di pagamento: coordinate bancarie (IBAN), storico pagamenti, eventuali morosità.',
+    '- Dati di navigazione e interazione: in caso di utilizzo dell\'area riservata online, dati di log, indirizzo IP, cookie tecnici e analitici.',
+  ];
+  datiCateg.forEach(d => {
+    y = checkPageBreak(doc, y, 15);
+    y = bodyText(doc, d, y);
+  });
+  y += 2;
+
+  // 4. Destinatari
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, '4. Destinatari e categorie di destinatari', y);
+  y = bodyText(doc, 'I dati personali potranno essere comunicati a:', y);
+  const destinatari = [
+    '- Distributori locali di energia elettrica per le operazioni di switching, attivazione e gestione tecnica dei punti di prelievo.',
+    '- Grossisti e operatori del mercato elettrico per l\'approvvigionamento dell\'energia.',
+    '- ARERA, GSE, CSEA, Agenzia delle Dogane e Monopoli, Agenzia delle Entrate e altre autorità competenti per adempimenti regolatori e fiscali.',
+    '- Istituti bancari e finanziari per la gestione degli incassi e dei pagamenti.',
+    '- Società di recupero crediti, in caso di morosità del Cliente.',
+    '- Fornitori di servizi IT, hosting, manutenzione software, in qualità di responsabili del trattamento ex art. 28 GDPR.',
+    '- Consulenti legali, fiscali e contabili del Titolare, in qualità di soggetti autorizzati al trattamento.',
+  ];
+  destinatari.forEach(d => {
+    y = checkPageBreak(doc, y, 15);
+    y = bodyText(doc, d, y);
+  });
+  y += 2;
+
+  // 5. Conservazione
+  y = checkPageBreak(doc, y, 40);
+  y = sectionTitle(doc, '5. Periodo di conservazione dei dati', y);
+  y = bodyText(doc, 'I dati personali saranno conservati per il periodo strettamente necessario al perseguimento delle finalità per cui sono stati raccolti:', y);
+  const conservazione = [
+    '- Dati contrattuali: per tutta la durata del rapporto contrattuale e per i successivi 10 anni dalla cessazione, in conformità agli obblighi civilistici e fiscali.',
+    '- Dati di fatturazione: per 10 anni dalla data di emissione della fattura (art. 2220 c.c.).',
+    '- Dati per finalità di marketing: fino alla revoca del consenso da parte dell\'interessato, e comunque non oltre 24 mesi dall\'ultimo contatto.',
+    '- Dati per finalità di profilazione: fino alla revoca del consenso, e comunque non oltre 12 mesi dalla raccolta.',
+    '- Dati regolatori (ARERA, ADM): secondo i termini previsti dalla normativa di settore applicabile.',
+  ];
+  conservazione.forEach(c => {
+    y = checkPageBreak(doc, y, 15);
+    y = bodyText(doc, c, y);
+  });
+  y += 2;
+
+  // 6. Diritti
+  y = checkPageBreak(doc, y, 50);
+  y = sectionTitle(doc, '6. Diritti dell\'interessato', y);
+  y = bodyText(doc, 'Ai sensi degli artt. 15-22 del GDPR, l\'interessato ha il diritto di:', y);
+  const diritti = [
+    '- Accesso: ottenere conferma dell\'esistenza di un trattamento e accedere ai propri dati personali (art. 15).',
+    '- Rettifica: ottenere la correzione dei dati inesatti o l\'integrazione dei dati incompleti (art. 16).',
+    '- Cancellazione ("diritto all\'oblio"): ottenere la cancellazione dei dati, nei casi previsti dalla legge (art. 17).',
+    '- Limitazione del trattamento: ottenere la limitazione del trattamento nei casi previsti (art. 18).',
+    '- Portabilità: ricevere i dati in formato strutturato e leggibile da dispositivo automatico (art. 20).',
+    '- Opposizione: opporsi al trattamento per motivi legittimi, incluso il marketing diretto (art. 21).',
+    '- Revoca del consenso: revocare in qualsiasi momento il consenso prestato, senza pregiudizio per la liceità del trattamento basata sul consenso prima della revoca (art. 7.3).',
+  ];
+  diritti.forEach(d => {
+    y = checkPageBreak(doc, y, 15);
+    y = bodyText(doc, d, y);
+  });
+  y += 2;
+
+  y = checkPageBreak(doc, y, 20);
+  y = bodyText(doc, `Per esercitare i propri diritti, l'interessato può inviare una richiesta scritta a: ${data.companyPec || data.companyEmail || company}.`, y);
+  y = bodyText(doc, 'L\'interessato ha inoltre il diritto di proporre reclamo all\'Autorità Garante per la protezione dei dati personali (www.garanteprivacy.it).', y);
+  y += 2;
+
+  // 7. Trasferimento dati
+  y = checkPageBreak(doc, y, 30);
+  y = sectionTitle(doc, '7. Trasferimento dei dati all\'estero', y);
+  y = bodyText(doc, 'I dati personali sono trattati all\'interno dell\'Unione Europea. Qualora si rendesse necessario il trasferimento verso Paesi terzi, il Titolare garantirà l\'adozione di adeguate garanzie ai sensi degli artt. 46-49 del GDPR (clausole contrattuali tipo, decisioni di adeguatezza della Commissione Europea).', y);
+  y += 2;
+
+  // 8. Conferimento obbligatorio
+  y = checkPageBreak(doc, y, 30);
+  y = sectionTitle(doc, '8. Natura del conferimento dei dati', y);
+  y = bodyText(doc, 'Il conferimento dei dati anagrafici, di contatto e relativi alla fornitura è necessario per la conclusione e l\'esecuzione del contratto di somministrazione di energia elettrica. Il mancato conferimento comporta l\'impossibilità di attivare e gestire la fornitura.', y);
+  y = bodyText(doc, 'Il conferimento dei dati per le finalità di marketing e profilazione è facoltativo. Il mancato consenso non pregiudica in alcun modo l\'esecuzione del contratto.', y);
+
+  // Signature
+  y = checkPageBreak(doc, y, 30);
+  y += 6;
+  doc.setFontSize(8);
+  doc.text('Il Cliente dichiara di aver ricevuto e preso visione della presente informativa.', 14, y);
+  y += 8;
+  doc.text('Firma del Cliente ......................................................', 14, y);
+  doc.text('Luogo e data ..............................', 120, y);
+
+  addPageFooter(doc, company, data);
+  return doc;
+};
+
+// ─── 7. Fattura Tipo – Bolletta 2.0 ─────────────────────────────────────────
 
 const generateBolletta2 = async (data: ContractData, logoImg: LoadedImage | null): Promise<jsPDF> => {
   const doc = new jsPDF();
@@ -1081,12 +1227,13 @@ export const useContractPackage = () => {
     try {
       const logoImg = data.logoUrl ? await loadImageWithDimensions(data.logoUrl) : null;
 
-      const [pda, condPart, condGen, scheda, pdp, bolletta] = await Promise.all([
+      const [pda, condPart, condGen, scheda, pdp, privacy, bolletta] = await Promise.all([
         generatePDA(data, logoImg),
         generateCondizioniParticolari(data, logoImg),
         generateCondizioni(data, logoImg),
         generateSchedaSintetica(data, logoImg),
         generatePDP(data, logoImg),
+        generateInformativaPrivacy(data, logoImg),
         generateBolletta2(data, logoImg),
       ]);
 
@@ -1096,7 +1243,8 @@ export const useContractPackage = () => {
       zip.file('03_Condizioni_Generali_Fornitura.pdf', condGen.output('blob'));
       zip.file('04_Scheda_Sintetica_ARERA.pdf', scheda.output('blob'));
       zip.file('05_Punti_di_Prelievo.pdf', pdp.output('blob'));
-      zip.file('06_Fattura_Tipo_Bolletta_2_0.pdf', bolletta.output('blob'));
+      zip.file('06_Informativa_Privacy.pdf', privacy.output('blob'));
+      zip.file('07_Fattura_Tipo_Bolletta_2_0.pdf', bolletta.output('blob'));
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const safeName = (data.companyName || data.projectName).replace(/[^a-zA-Z0-9]/g, '_');
@@ -1104,7 +1252,7 @@ export const useContractPackage = () => {
 
       toast({
         title: 'Plico contrattuale generato',
-        description: '6 documenti professionali PDF scaricati in archivio ZIP.',
+        description: '7 documenti professionali PDF scaricati in archivio ZIP.',
       });
     } catch (err: any) {
       toast({
