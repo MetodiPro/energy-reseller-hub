@@ -584,16 +584,16 @@ export const PreLaunchChecklist = ({
             open={previewOpen}
             onOpenChange={setPreviewOpen}
             generating={generating}
-            commodityType={project?.commodity_type || null}
+            commodityType={'solo-luce'}
             simAvgConsumption={simData.params.avgMonthlyConsumption}
-            simAvgConsumptionGas={simData.params.avgMonthlyConsumptionGas}
+            simAvgConsumptionGas={0}
             onGenerate={(clientData: SampleClientData) => {
               if (!project) return;
               const sp = simData.params;
               generatePackage({
                 projectName: project.name || 'Reseller',
                 logoUrl: project.logo_url || null,
-                commodityType: project.commodity_type || null,
+                commodityType: 'solo-luce',
                 companyName: project.name,
                 areaCode: project.arera_code || undefined,
                 wholesalerName: project.wholesaler_name || undefined,
@@ -612,19 +612,19 @@ export const PreLaunchChecklist = ({
                   ccvMonthly: sp.ccvMonthly,
                   gestionePodPerPod: sp.gestionePodPerPod,
                   potenzaImpegnataKw: sp.potenzaImpegnataKw,
-                  psvPerSmc: sp.psvPerSmc,
-                  spreadGasPerSmc: sp.spreadGasPerSmc,
-                  trasportoGasQuotaFissaAnno: sp.trasportoGasQuotaFissaAnno,
-                  trasportoGasQuotaEnergiaSmc: sp.trasportoGasQuotaEnergiaSmc,
-                  oneriGasReSmc: sp.oneriGasReSmc,
-                  oneriGasUgSmc: sp.oneriGasUgSmc,
-                  acciseGasSmc: sp.acciseGasSmc,
-                  addizionaleRegionaleGasSmc: sp.addizionaleRegionaleGasSmc,
-                  ivaPercentGas: sp.ivaPercentGas,
-                  ccvGasMonthly: sp.ccvGasMonthly,
-                  gestionePdrPerPdr: sp.gestionePdrPerPdr,
+                  psvPerSmc: 0,
+                  spreadGasPerSmc: 0,
+                  trasportoGasQuotaFissaAnno: 0,
+                  trasportoGasQuotaEnergiaSmc: 0,
+                  oneriGasReSmc: 0,
+                  oneriGasUgSmc: 0,
+                  acciseGasSmc: 0,
+                  addizionaleRegionaleGasSmc: 0,
+                  ivaPercentGas: 0,
+                  ccvGasMonthly: 0,
+                  gestionePdrPerPdr: 0,
                   avgMonthlyConsumption: sp.avgMonthlyConsumption,
-                  avgMonthlyConsumptionGas: sp.avgMonthlyConsumptionGas,
+                  avgMonthlyConsumptionGas: 0,
                 },
               }).then(() => setPreviewOpen(false));
             }}

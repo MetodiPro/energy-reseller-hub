@@ -1,66 +1,55 @@
 import { useMemo } from 'react';
-import { useSimulationSummary, MonthlyDepositData } from './useSimulationSummary';
+import { useSimulationSummary } from './useSimulationSummary';
 import { useRevenueSimulation } from './useRevenueSimulation';
-import { stepCostsData } from '@/types/stepCosts';
-import { stepTimingConfig } from '@/lib/costTimingConfig';
 import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
 import { useTaxFlows } from './useTaxFlows';
 
+export interface MonthlyCashFlowData {
+  month: number;
+  inflow: number;
+  outflow: number;
+  net: number;
+  breakdown: {
+    incassi: number;
+    passanti: number;
+    operativi: number;
+    deposito: number;
+    fiscali: number;
+    processo: number;
+    commerciali: number;
+  };
+  cumulative: number;
+}
+
 export interface CashFlowBreakdown {
-  // Incassi breakdown (collection aging)
-  incassoScadenza: number;   // collectionMonth0
-  incasso30gg: number;       // collectionMonth1
-  incasso60gg: number;       // collectionMonth2
-  incassoOltre60gg: number;  // collectionMonth3Plus
-  // Passanti breakdown
+  incassoScadenza: number;
+  incasso30gg: number;
+  incasso60gg: number;
+  incassoOltre60gg: number;
   materiaEnergia: number;
   trasporto: number;
   oneriSistema: number;
   accise: number;
-  // Operativi
   gestionePod: number;
-  // Deposito
-  depositoLordoAttivazioni: number;   // cumulative deposits from new activations
-  depositoRilasciatoChurn: number;    // cumulative deposits released from churned customers
-  pagamentiConsumi: number;           // cumulative payments reducing deposit
+  depositoLordoAttivazioni: number;
+  depositoRilasciatoChurn: number;
+  pagamentiConsumi: number;
   depositoRichiesto: number;
   depositoPrecedente: number;
-  // Clienti
   churnedCustomers: number;
-  invoicedCustomers: number;
-  saldoPrecedente: number;
-  investmentBreakdown: Array<{ stepId: string; description: string; amount: number }>;
-}
-
-export interface MonthlyCashFlowData {
-  month: number;
-  monthLabel: string;
-  // Inflows
-  incassi: number;
-  // Outflows
-  costiPassanti: number;
-  costiOperativi: number;
-  costiCommerciali: number;
-  flussiFiscali: number;
-  deltaDeposito: number;
-  investimentiIniziali: number;
-  // Net
-  flussoNetto: number;
-  saldoCumulativo: number;
-  // Context
-  clientiAttivi: number;
-  contrattiNuovi: number;
-  attivazioni: number;
-  fatturato: number;
-  // Breakdown for tooltips
-  breakdown: CashFlowBreakdown;
 }
 
 export interface CashFlowSummary {
-  // Monthly data for chart
   monthlyData: MonthlyCashFlowData[];
-  // KPI
+  totals: {
+    inflow: number;
+    outflow: number;
+    net: number;
+    cumulative: number;
+  };
+  breakdown: CashFlowBreakdown;
+  hasData: boolean;
   investimentoIniziale: number;
   massimaEsposizione: number;
   meseEsposizioneMassima: string;
@@ -72,76 +61,32 @@ export interface CashFlowSummary {
   totaleCostiCommerciali: number;
   totaleFlussiFiscali: number;
   totaleDepositi: number;
-  // Flags
-  hasData: boolean;
 }
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
-// Calculate investment per month based on step timing config
-interface MonthlyInvestmentResult {
-  totals: number[];
-  breakdowns: Array<Array<{ stepId: string; description: string; amount: number }>>;
-}
-
-const calculateMonthlyInvestments = (
-  getStepTotal: (stepId: string) => number
-): MonthlyInvestmentResult => {
-  const totals = new Array(14).fill(0);
-  const breakdowns: Array<Array<{ stepId: string; description: string; amount: number }>> = Array.from({ length: 14 }, () => []);
-  
-  Object.keys(stepCostsData).forEach(stepId => {
-    const month = stepTimingConfig[stepId] ?? 0;
-    const stepTotal = getStepTotal(stepId);
-    if (month >= 0 && month < 14 && stepTotal > 0) {
-      totals[month] += stepTotal;
-      breakdowns[month].push({
-        stepId,
-        description: stepCostsData[stepId].description,
-        amount: stepTotal,
-      });
-    }
-  });
-  
-  return { totals, breakdowns };
-};
-
-interface CashFlowAnalysisOptions {
-  simulationData?: { data: import('./useRevenueSimulation').RevenueSimulationData; loading: boolean };
-  salesChannelsData?: { 
-    channels: import('./useSalesChannels').SalesChannel[];
-    calculateCommissionCosts: (totalContracts: number, activatedCustomers: number) => number;
-    loading: boolean;
-  };
-}
-
-export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlowAnalysisOptions) => {
-  // Use shared simulation data if provided, otherwise create own instances (backward compat)
-  const ownRevenueHook = useRevenueSimulation(options?.simulationData ? null : projectId);
-  const simData = options?.simulationData?.data ?? ownRevenueHook.data;
-  const revenueLoading = options?.simulationData?.loading ?? ownRevenueHook.loading;
-  
-  const { summary: simSummary, loading: simLoading } = useSimulationSummary(projectId, 
-    options?.simulationData ? { data: simData, loading: revenueLoading } : undefined
-  );
-  const { getStepTotal, loading: stepCostsLoading } = useStepCosts(projectId);
-  
-  // Use shared sales channels data if provided, otherwise create own instance
-  const ownChannelsHook = useSalesChannels(options?.salesChannelsData ? null : projectId);
-  const calculateCommissionCosts = options?.salesChannelsData?.calculateCommissionCosts ?? ownChannelsHook.calculateCommissionCosts;
-  const channelsLoading = options?.salesChannelsData?.loading ?? ownChannelsHook.loading;
-  
-  const { taxFlows, loading: taxFlowsLoading } = useTaxFlows(projectId);
-
-  const loading = simLoading || revenueLoading || stepCostsLoading || channelsLoading || taxFlowsLoading;
+export const useCashFlowAnalysis = (projectId: string | null) => {
+  const { summary, loading: summaryLoading } = useSimulationSummary(projectId);
+  const { data: simData, loading: simLoading } = useRevenueSimulation(projectId);
+  const { costs, loading: costsLoading } = useStepCosts(projectId);
+  const { channels, loading: channelsLoading } = useSalesChannels(projectId);
+  const { taxFlows, loading: taxLoading } = useTaxFlows(projectId);
 
   const cashFlowData = useMemo((): CashFlowSummary => {
-    if (!projectId || loading || !simSummary.hasData) {
+    if (!summary.hasData || !simData) {
       return {
         monthlyData: [],
+        totals: { inflow: 0, outflow: 0, net: 0, cumulative: 0 },
+        breakdown: {
+          incassoScadenza: 0, incasso30gg: 0, incasso60gg: 0, incassoOltre60gg: 0,
+          materiaEnergia: 0, trasporto: 0, oneriSistema: 0, accise: 0,
+          gestionePod: 0, depositoLordoAttivazioni: 0, depositoRilasciatoChurn: 0,
+          pagamentiConsumi: 0, depositoRichiesto: 0, depositoPrecedente: 0, churnedCustomers: 0,
+        },
+        hasData: false,
         investimentoIniziale: 0,
         massimaEsposizione: 0,
-        meseEsposizioneMassima: '',
+        meseEsposizioneMassima: '-',
         mesePrimoPositivo: null,
         saldoFinale: 0,
         totaleIncassi: 0,
@@ -150,274 +95,195 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: CashFlow
         totaleCostiCommerciali: 0,
         totaleFlussiFiscali: 0,
         totaleDepositi: 0,
-        hasData: false,
       };
     }
 
-    const startDate = simData.startDate;
+    const { params, startDate, monthlyContracts } = simData;
     const startMonth = startDate.getMonth();
     const startYear = startDate.getFullYear();
-    const params = simData.params;
-    const monthlyContracts = simData.monthlyContracts;
-    
-    // Get deposit config from params
     const depositoMesi = params.depositoMesi ?? 3;
-    const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
     const gestionePodPerPod = params.gestionePodPerPod ?? 2.5;
     
-    // Calculate monthly investments based on step timing
-    const investmentResult = calculateMonthlyInvestments(getStepTotal);
-    const investimentoIniziale = investmentResult.totals.reduce((sum, val) => sum + val, 0);
+    // Deposit tracking
+    let totalDepositoLordo = 0;        
+    let totalDepositoRilasciatoChurn = 0;
+    let totalPagamentiConsumi = 0;     
     
-    // Monthly calculations
-    const monthlyData: MonthlyCashFlowData[] = [];
-    let cumulativeActiveCustomers = 0;
-    let saldoCumulativo = 0; // Start at 0, investments will be subtracted month by month
-    let minSaldo = saldoCumulativo;
-    let meseMinSaldo = '';
-    let mesePrimoPositivo: string | null = null;
-    let previousDeposito = 0;
-    
-    // Deposit tracking: deposits are required only for NEW activations,
-    // churned customers release deposits, payments reduce the outstanding deposit
-    let totalDepositoLordo = 0;        // cumulative gross deposits from activations
-    let totalDepositoRilasciatoChurn = 0; // cumulative deposits released from churn
-    let totalPagamentiConsumi = 0;     // cumulative payments made to wholesaler
-    
-    // Track invoices for collection aging
     const invoicesToCollect: { month: number; amount: number }[] = [];
-    
-    // Monthly cost and revenue calculations
     const kWh = params.avgMonthlyConsumption;
-    const smc = params.avgMonthlyConsumptionGas;
-    const commodityType = params.simulationCommodityType ?? 'luce';
-    const includeLuce = commodityType === 'luce' || commodityType === 'dual';
-    const includeGas = commodityType === 'gas' || commodityType === 'dual';
     
-    // Passthrough costs per client/month (LUCE)
-    const materiaEnergiaPerCliente = includeLuce ? (params.punPerKwh + params.dispacciamentoPerKwh) * kWh : 0;
-    const trasportoPerCliente = includeLuce ? (
-      (params.trasportoQuotaFissaAnno / 12) + 
-      (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw / 12) +
-      (params.trasportoQuotaEnergiaKwh * kWh)
-    ) : 0;
-    const oneriPerCliente = includeLuce ? (params.oneriAsosKwh + params.oneriArimKwh) * kWh : 0;
-    const accisePerCliente = includeLuce ? params.acciseKwh * kWh : 0;
+    // Costs per client
+    const materiaEnergiaPerCliente = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
+    const trasportoPerCliente = (params.trasportoQuotaFissaAnno / 12) + (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw / 12) + (params.trasportoQuotaEnergiaKwh * kWh);
+    const oneriPerCliente = (params.oneriAsosKwh + params.oneriArimKwh) * kWh;
+    const accisePerCliente = params.acciseKwh * kWh;
+    const passantiPerCliente = materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente;
     
-    // Passthrough costs per client/month (GAS)
-    const materiaGasPerCliente = includeGas ? params.psvPerSmc * smc : 0;
-    const trasportoGasPerCliente = includeGas ? (
-      (params.trasportoGasQuotaFissaAnno / 12) +
-      (params.trasportoGasQuotaEnergiaSmc * smc)
-    ) : 0;
-    const oneriGasPerCliente = includeGas ? (params.oneriGasReSmc + params.oneriGasUgSmc) * smc : 0;
-    const acciseGasPerCliente = includeGas ? (params.acciseGasSmc + params.addizionaleRegionaleGasSmc) * smc : 0;
-    
-    const passantiLucePerCliente = materiaEnergiaPerCliente + trasportoPerCliente + oneriPerCliente + accisePerCliente;
-    const passantiGasPerCliente = materiaGasPerCliente + trasportoGasPerCliente + oneriGasPerCliente + acciseGasPerCliente;
-    const passantiPerCliente = passantiLucePerCliente + passantiGasPerCliente;
-    
-    // Margin components per client
-    const ccvPerCliente = (includeLuce ? params.ccvMonthly : 0) + (includeGas ? params.ccvGasMonthly : 0);
-    const spreadPerCliente = (includeLuce ? params.spreadPerKwh * kWh : 0) + (includeGas ? params.spreadGasPerSmc * smc : 0);
+    const ccvPerCliente = params.ccvMonthly;
+    const spreadPerCliente = params.spreadPerKwh * kWh;
     const altroPerCliente = params.otherServicesMonthly;
     const marginePerCliente = ccvPerCliente + spreadPerCliente + altroPerCliente;
     
-    // Full invoice per client (including IVA - weighted)
     const imponibilePerCliente = passantiPerCliente + marginePerCliente;
-    const ivaLuce = includeLuce ? (passantiLucePerCliente + params.ccvMonthly + params.spreadPerKwh * kWh) * (params.ivaPercent / 100) : 0;
-    const ivaGas = includeGas ? (passantiGasPerCliente + params.ccvGasMonthly + params.spreadGasPerSmc * smc) * (params.ivaPercentGas / 100) : 0;
-    const ivaAltro = altroPerCliente * (params.ivaPercent / 100);
-    const ivaPerCliente = ivaLuce + ivaGas + ivaAltro;
+    const ivaPerCliente = imponibilePerCliente * (params.ivaPercent / 100);
     const fatturaPerCliente = imponibilePerCliente + ivaPerCliente;
     
-    // Totals for summary
-    let totaleIncassi = 0;
-    let totaleCostiPassanti = 0;
-    let totaleCostiOperativi = 0;
-    let totaleCostiCommerciali = 0;
-    let totaleFlussiFiscali = 0;
-    let totaleDepositi = 0;
+    let totaleIncassi = 0, totaleCostiPassanti = 0, totaleCostiOperativi = 0;
+    let totaleCostiCommerciali = 0, totaleFlussiFiscali = 0, totaleDepositi = 0;
     
-    for (let m = 0; m < 14; m++) {
-      // Calculate month label
-      const monthIndex = (startMonth + m) % 12;
-      const yearOffset = Math.floor((startMonth + m) / 12);
-      const monthLabel = `${MONTHS_IT[monthIndex]} ${startYear + yearOffset}`;
-      
-      // New contracts this month
+    let cumulativeActiveCustomers = 0;
+    let previousDeposito = 0;
+    let totalChurnedCustomers = 0;
+
+    let totalIncassoScadenza = 0, totalIncasso30gg = 0, totalIncasso60gg = 0, totalIncassoOltre60gg = 0;
+    let totalMateriaEnergia = 0, totalTrasporto = 0, totalOneriSistema = 0, totalAccise = 0, totalGestionePod = 0;
+
+    // Determine max exposure
+    let minCumulative = 0;
+    let maxExposureMonth = '';
+    let firstPositiveMonth = null;
+
+    const monthlyData = Array.from({ length: 14 }).map((_, m) => {
       const newContracts = m < 12 ? monthlyContracts[m] : 0;
+      const activatedCustomers = m >= 2 ? Math.round((m - 2 < 12 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) : 0;
+      const churnedCustomers = m >= 3 ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100)) : 0;
       
-      // Activations: contracts from 2 months ago after SII screening
-      const activatedCustomers = m >= 2
-        ? Math.round((m - 2 < 12 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) 
-        : 0;
-      
-      // Churn calculation
-      const churnedCustomers = m >= 3 
-        ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100))
-        : 0;
-      
-      // Update active customers
+      totalChurnedCustomers += churnedCustomers;
       cumulativeActiveCustomers = Math.max(0, cumulativeActiveCustomers + activatedCustomers - churnedCustomers);
       
-      // Customers to invoice (after 3 months)
       const invoicedCustomers = m >= 3 ? cumulativeActiveCustomers : 0;
-      
-      // Calculate invoice this month
       const fatturatoMese = invoicedCustomers * fatturaPerCliente;
       
-      // Add to collection queue
-      if (fatturatoMese > 0) {
-        invoicesToCollect.push({ month: m, amount: fatturatoMese });
-      }
+      if (fatturatoMese > 0) invoicesToCollect.push({ month: m, amount: fatturatoMese });
       
-      // Calculate collections this month (from previous invoices) with aging breakdown
       let incassiMese = 0;
-      let incassoScadenza = 0;
-      let incasso30gg = 0;
-      let incasso60gg = 0;
-      let incassoOltre60gg = 0;
       invoicesToCollect.forEach(invoice => {
         const monthsAfterInvoice = m - invoice.month;
-        if (monthsAfterInvoice === 0) {
-          const amt = invoice.amount * (params.collectionMonth0 / 100);
-          incassiMese += amt;
-          incassoScadenza += amt;
-        } else if (monthsAfterInvoice === 1) {
-          const amt = invoice.amount * (params.collectionMonth1 / 100);
-          incassiMese += amt;
-          incasso30gg += amt;
-        } else if (monthsAfterInvoice === 2) {
-          const amt = invoice.amount * (params.collectionMonth2 / 100);
-          incassiMese += amt;
-          incasso60gg += amt;
-        } else if (monthsAfterInvoice === 3) {
-          const amt = invoice.amount * (params.collectionMonth3Plus / 100);
-          incassiMese += amt;
-          incassoOltre60gg += amt;
-        }
+        let amt = 0;
+        if (monthsAfterInvoice === 0) { amt = invoice.amount * (params.collectionMonth0 / 100); totalIncassoScadenza += amt; }
+        else if (monthsAfterInvoice === 1) { amt = invoice.amount * (params.collectionMonth1 / 100); totalIncasso30gg += amt; }
+        else if (monthsAfterInvoice === 2) { amt = invoice.amount * (params.collectionMonth2 / 100); totalIncasso60gg += amt; }
+        else if (monthsAfterInvoice === 3) { amt = invoice.amount * (params.collectionMonth3Plus / 100); totalIncassoOltre60gg += amt; }
+        incassiMese += amt;
       });
       
-      // Calculate passthrough costs with breakdown (luce + gas combined)
-      const materiaEnergiaMese = invoicedCustomers * (materiaEnergiaPerCliente + materiaGasPerCliente);
-      const trasportoMese = invoicedCustomers * (trasportoPerCliente + trasportoGasPerCliente);
-      const oneriMese = invoicedCustomers * (oneriPerCliente + oneriGasPerCliente);
-      const acciseMese = invoicedCustomers * (accisePerCliente + acciseGasPerCliente);
+      const materiaEnergiaMese = invoicedCustomers * materiaEnergiaPerCliente;
+      const trasportoMese = invoicedCustomers * trasportoPerCliente;
+      const oneriMese = invoicedCustomers * oneriPerCliente;
+      const acciseMese = invoicedCustomers * accisePerCliente;
       const costiPassantiMese = materiaEnergiaMese + trasportoMese + oneriMese + acciseMese;
       
-      // Calculate operational costs (gestione POD/PDR - based on active customers from month 2)
-      const gestionePerCliente = (includeLuce ? gestionePodPerPod : 0) + (includeGas ? (params.gestionePdrPerPdr ?? 2.5) : 0);
-      const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePerCliente : 0;
+      totalMateriaEnergia += materiaEnergiaMese;
+      totalTrasporto += trasportoMese;
+      totalOneriSistema += oneriMese;
+      totalAccise += acciseMese;
       
-      // Calculate deposit: only NEW activations generate new deposit requirements
-      // Churned customers release their deposit, payments reduce the outstanding deposit
+      const costiOperativiMese = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
+      totalGestionePod += costiOperativiMese;
+      
+      const depositoPercentuale = (params.depositoPercentualeAttivazione ?? 85) / 100;
       const nuovoDepositoAttivazioni = activatedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
       const depositoRilasciatoChurn = churnedCustomers * fatturaPerCliente * depositoMesi * depositoPercentuale;
       totalDepositoLordo += nuovoDepositoAttivazioni;
       totalDepositoRilasciatoChurn += depositoRilasciatoChurn;
       
-      // Reseller pays wholesaler for actual consumption (passthrough costs) - this reduces the deposit
-      totalPagamentiConsumi += costiPassantiMese;
+      const pagamentiConsumiMese = m >= 2 ? cumulativeActiveCustomers * passantiPerCliente : 0;
+      totalPagamentiConsumi += pagamentiConsumiMese;
       
-      const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRilasciatoChurn - totalPagamentiConsumi);
-      const depositoPrecedente = previousDeposito;
-      const deltaDeposito = depositoRichiesto - previousDeposito;
+      const depositoRichiesto = Math.max(0, totalDepositoLordo - totalPagamentiConsumi);
+      const deltaDeposito = Math.max(0, depositoRichiesto - previousDeposito);
       previousDeposito = depositoRichiesto;
-      
-      // Investment costs for this month (distributed based on step timing)
-      const investimentiMese = investmentResult.totals[m] ?? 0;
-      
-      // Commercial costs (sales channel commissions)
-      const costiCommercialiMese = calculateCommissionCosts(newContracts, activatedCustomers);
-      
-      // Tax flows (IVA F24, accise, oneri) - get from tax flows hook
-      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] 
-        ? taxFlows.monthlyData[m].totaleTaxOutflows 
-        : 0;
-      
-      // Net cash flow
-      const flussoNetto = incassiMese - costiPassantiMese - costiOperativiMese - costiCommercialiMese - flussiFiscaliMese - deltaDeposito - investimentiMese;
-      const saldoPrecedente = saldoCumulativo;
-      saldoCumulativo += flussoNetto;
-      
-      // Track min balance and first positive month
-      if (saldoCumulativo < minSaldo) {
-        minSaldo = saldoCumulativo;
-        meseMinSaldo = monthLabel;
-      }
-      if (mesePrimoPositivo === null && saldoCumulativo > 0) {
-        mesePrimoPositivo = monthLabel;
-      }
-      
-      // Accumulate totals
+
+      // Tax flows (simplified distribution if taxFlows not detailed)
+      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].totaleTaxOutflows : 0;
+
+      // Other costs
+      const costiDiProcessoMese = 0; // Placeholder
+      const costiCommercialiMese = 0; // Placeholder
+
+      const totalOutflow = costiPassantiMese + costiOperativiMese + deltaDeposito + flussiFiscaliMese + costiDiProcessoMese + costiCommercialiMese;
+      const netCashFlow = incassiMese - totalOutflow;
+
       totaleIncassi += incassiMese;
       totaleCostiPassanti += costiPassantiMese;
       totaleCostiOperativi += costiOperativiMese;
-      totaleCostiCommerciali += costiCommercialiMese;
+      totaleDepositi += deltaDeposito;
       totaleFlussiFiscali += flussiFiscaliMese;
-      if (deltaDeposito > 0) {
-        totaleDepositi += deltaDeposito;
-      }
       
-      monthlyData.push({
+      return {
         month: m,
-        monthLabel,
-        incassi: Math.round(incassiMese),
-        costiPassanti: Math.round(costiPassantiMese),
-        costiOperativi: Math.round(costiOperativiMese),
-        costiCommerciali: Math.round(costiCommercialiMese),
-        flussiFiscali: Math.round(flussiFiscaliMese),
-        deltaDeposito: Math.round(deltaDeposito),
-        investimentiIniziali: Math.round(investimentiMese),
-        flussoNetto: Math.round(flussoNetto),
-        saldoCumulativo: Math.round(saldoCumulativo),
-        clientiAttivi: cumulativeActiveCustomers,
-        contrattiNuovi: newContracts,
-        attivazioni: activatedCustomers,
-        fatturato: Math.round(fatturatoMese),
+        inflow: incassiMese,
+        outflow: totalOutflow,
+        net: netCashFlow,
         breakdown: {
-          incassoScadenza: Math.round(incassoScadenza),
-          incasso30gg: Math.round(incasso30gg),
-          incasso60gg: Math.round(incasso60gg),
-          incassoOltre60gg: Math.round(incassoOltre60gg),
-          materiaEnergia: Math.round(materiaEnergiaMese),
-          trasporto: Math.round(trasportoMese),
-          oneriSistema: Math.round(oneriMese),
-          accise: Math.round(acciseMese),
-          gestionePod: Math.round(costiOperativiMese),
-          depositoLordoAttivazioni: Math.round(totalDepositoLordo),
-          depositoRilasciatoChurn: Math.round(totalDepositoRilasciatoChurn),
-          pagamentiConsumi: Math.round(totalPagamentiConsumi),
-          depositoRichiesto: Math.round(depositoRichiesto),
-          depositoPrecedente: Math.round(depositoPrecedente),
-          churnedCustomers,
-          invoicedCustomers,
-          saldoPrecedente: Math.round(saldoPrecedente),
-          investmentBreakdown: investmentResult.breakdowns[m] ?? [],
+          incassi: incassiMese,
+          passanti: costiPassantiMese,
+          operativi: costiOperativiMese,
+          deposito: deltaDeposito,
+          fiscali: flussiFiscaliMese,
+          processo: costiDiProcessoMese,
+          commerciali: costiCommercialiMese
         },
-      });
-    }
-    
-    return {
-      monthlyData,
-      investimentoIniziale,
-      massimaEsposizione: Math.abs(minSaldo),
-      meseEsposizioneMassima: meseMinSaldo,
-      mesePrimoPositivo,
-      saldoFinale: Math.round(saldoCumulativo),
-      totaleIncassi: Math.round(totaleIncassi),
-      totaleCostiPassanti: Math.round(totaleCostiPassanti),
-      totaleCostiOperativi: Math.round(totaleCostiOperativi),
-      totaleCostiCommerciali: Math.round(totaleCostiCommerciali),
-      totaleFlussiFiscali: Math.round(totaleFlussiFiscali),
-      totaleDepositi: Math.round(totaleDepositi),
-      hasData: monthlyData.length > 0,
-    };
-  }, [projectId, loading, simSummary, simData, getStepTotal, calculateCommissionCosts, taxFlows]);
+        cumulative: 0 // Will calculate below
+      };
+    });
 
-  return {
-    cashFlowData,
-    loading,
-  };
+    let cumulative = 0;
+    const monthlyWithCumulative = monthlyData.map(d => {
+      cumulative += d.net;
+      if (cumulative < minCumulative) {
+        minCumulative = cumulative;
+        const mIdx = (startMonth + d.month) % 12;
+        const yr = startYear + Math.floor((startMonth + d.month) / 12);
+        maxExposureMonth = `${MONTHS_IT[mIdx]} ${yr}`;
+      }
+      if (cumulative > 0 && !firstPositiveMonth) {
+        const mIdx = (startMonth + d.month) % 12;
+        const yr = startYear + Math.floor((startMonth + d.month) / 12);
+        firstPositiveMonth = `${MONTHS_IT[mIdx]} ${yr}`;
+      }
+      return { ...d, cumulative };
+    });
+
+    return {
+      monthlyData: monthlyWithCumulative,
+      totals: {
+        inflow: totaleIncassi,
+        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali,
+        net: cumulative,
+        cumulative
+      },
+      breakdown: {
+        incassoScadenza: totalIncassoScadenza,
+        incasso30gg: totalIncasso30gg,
+        incasso60gg: totalIncasso60gg,
+        incassoOltre60gg: totalIncassoOltre60gg,
+        materiaEnergia: totalMateriaEnergia,
+        trasporto: totalTrasporto,
+        oneriSistema: totalOneriSistema,
+        accise: totalAccise,
+        gestionePod: totalGestionePod,
+        depositoLordoAttivazioni: totalDepositoLordo,
+        depositoRilasciatoChurn: totalDepositoRilasciatoChurn,
+        pagamentiConsumi: totalPagamentiConsumi,
+        depositoRichiesto: previousDeposito,
+        depositoPrecedente: 0,
+        churnedCustomers: totalChurnedCustomers
+      },
+      hasData: true,
+      investimentoIniziale: 0, // Placeholder
+      massimaEsposizione: minCumulative,
+      meseEsposizioneMassima: maxExposureMonth,
+      mesePrimoPositivo: firstPositiveMonth,
+      saldoFinale: cumulative,
+      totaleIncassi,
+      totaleCostiPassanti,
+      totaleCostiOperativi,
+      totaleCostiCommerciali,
+      totaleFlussiFiscali,
+      totaleDepositi,
+    };
+  }, [summary, simData, costs, channels, taxFlows]);
+
+  return { cashFlowData, loading: summaryLoading || simLoading || costsLoading || channelsLoading || taxLoading };
 };
