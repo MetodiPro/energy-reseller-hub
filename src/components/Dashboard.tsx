@@ -102,9 +102,7 @@ export const Dashboard = ({
   const filterStep = (step: ProcessStep) => {
     if (!step.commodityType || step.commodityType === 'all') return true;
     if (!commodityType) return true;
-    if (commodityType === 'dual-fuel') return true;
     if (commodityType === 'solo-luce') return step.commodityType === 'solo-luce';
-    if (commodityType === 'solo-gas') return step.commodityType === 'solo-gas';
     return true;
   };
 
@@ -503,9 +501,7 @@ export const Dashboard = ({
       {commodityType && (
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
-            {commodityType === 'solo-luce' && '⚡ Solo Energia Elettrica'}
-            {commodityType === 'solo-gas' && '🔥 Solo Gas Naturale'}
-            {commodityType === 'dual-fuel' && '⚡🔥 Dual Fuel'}
+            ⚡ Solo Energia Elettrica
           </Badge>
           <span className="text-xs text-muted-foreground">
             • {visibleSteps.length} step applicabili

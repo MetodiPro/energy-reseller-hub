@@ -103,9 +103,7 @@ export const ProcessTracker = ({
       .filter(step => {
         if (!step.commodityType || step.commodityType === 'all') return true;
         if (!commodityType) return true;
-        if (commodityType === 'dual-fuel') return true;
         if (commodityType === 'solo-luce') return step.commodityType === 'solo-luce';
-        if (commodityType === 'solo-gas') return step.commodityType === 'solo-gas';
         return true;
       })
       .map(s => s.id);
@@ -214,19 +212,11 @@ export const ProcessTracker = ({
   // Filter steps based on commodity type
   const filterStepByCommodity = (step: ProcessStep): boolean => {
     if (!step.commodityType || step.commodityType === 'all') return true;
-    if (!commodityType) return true; // Show all if project has no type set
-    
-    // dual-fuel includes both luce and gas steps
-    if (commodityType === 'dual-fuel') return true;
+    if (!commodityType) return true;
     
     // solo-luce: show steps with 'solo-luce' or no commodity type
     if (commodityType === 'solo-luce') {
       return step.commodityType === 'solo-luce';
-    }
-    
-    // solo-gas: show steps with 'solo-gas' or no commodity type
-    if (commodityType === 'solo-gas') {
-      return step.commodityType === 'solo-gas';
     }
     
     return true;

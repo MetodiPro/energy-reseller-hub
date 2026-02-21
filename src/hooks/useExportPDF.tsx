@@ -11,19 +11,11 @@ interface ExportOptions {
 
 // Filter steps by commodity type (same logic as ProcessTracker)
 const filterStepsByCommodity = (steps: typeof processSteps, commodityType?: string) => {
-  if (!commodityType || commodityType === 'dual-fuel') {
-    return steps;
-  }
-  
   return steps.filter(step => {
-    if (!step.commodityType || step.commodityType === 'all') {
-      return true;
-    }
+    if (!step.commodityType || step.commodityType === 'all') return true;
+    if (!commodityType) return true;
     if (commodityType === 'solo-luce') {
       return step.commodityType === 'solo-luce';
-    }
-    if (commodityType === 'solo-gas') {
-      return step.commodityType === 'solo-gas';
     }
     return true;
   });
