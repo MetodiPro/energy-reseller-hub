@@ -51,21 +51,21 @@ const features = [
     icon: ClipboardCheck,
     title: "Processo Guidato Step-by-Step",
     description:
-      "Segui un percorso strutturato in 6 fasi: dalla costituzione societaria fino al go-live commerciale, con checklist operative e scadenze regolatorie integrate.",
+      "Segui un percorso strutturato in 6 fasi: dalla costituzione societaria fino al go-live commerciale, con checklist operative, scadenze regolatorie e costi per step integrati nel cash flow.",
     image: processImage,
   },
   {
     icon: BarChart3,
-    title: "Simulazione Finanziaria Completa",
+    title: "Simulazione Finanziaria con IVA Separata",
     description:
-      "Modella ricavi, costi, spread, PUN e break-even point. Simula scenari what-if per validare la sostenibilità del tuo business prima di partire.",
+      "Modella ricavi, costi e margini calcolati correttamente sull'imponibile (al netto IVA). Integra costi di avvio step nel cash flow, analisi break-even e simulazioni what-if per canale.",
     image: financeImage,
   },
   {
     icon: Users,
-    title: "Gestione Team e Consulenti",
+    title: "Gestione Team, Profilo e Consulenti",
     description:
-      "Assegna compiti, monitora l'avanzamento e coordina commercialista, avvocato e consulente ARERA in un'unica dashboard condivisa.",
+      "Gestisci il tuo profilo utente, invita collaboratori con ruoli dedicati e coordina commercialista, avvocato e consulente ARERA in un'unica dashboard con Error Boundaries per la massima stabilità.",
     image: teamImage,
   },
 ];
@@ -87,23 +87,23 @@ const steps = [
     number: "03",
     title: "Valida la sostenibilità finanziaria",
     description:
-      "Usa il simulatore di ricavi per calcolare margini, cash flow e punto di pareggio su orizzonti a 12-36 mesi.",
+      "Usa il simulatore per calcolare margini sull'imponibile (IVA esclusa), cash flow con costi di avvio distribuiti e punto di pareggio finanziario.",
   },
   {
     number: "04",
     title: "Lancia la tua attività",
     description:
-      "Supera la checklist pre-lancio, genera il report unificato e parti con la tua attività di reseller energia elettrica.",
+      "Supera la checklist pre-lancio, gestisci il tuo profilo, genera il report unificato e parti con la tua attività di reseller energia elettrica.",
   },
 ];
 
 const benefits = [
   "Conformità regolatoria ARERA integrata",
   "Business Plan e Marketing Plan auto-generati",
-  "Simulazione ricavi con PUN in tempo reale",
-  "Gestione scadenze e adempimenti fiscali",
-  "Esportazione report PDF professionali",
-  "Collaborazione multi-utente con ruoli",
+  "Margini calcolati sull'imponibile (IVA separata)",
+  "Costi di avvio step integrati nel cash flow",
+  "Profilo utente con gestione password e dati",
+  "Collaborazione multi-utente con ruoli e Error Boundaries",
 ];
 
 const partners = [
