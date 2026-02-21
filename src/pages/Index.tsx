@@ -50,6 +50,7 @@ const Index = () => {
   const [showWizard, setShowWizard] = useState(false);
   const [showStartupDialog, setShowStartupDialog] = useState(false);
   const [regulatoryDeadlines, setRegulatoryDeadlines] = useState<any[]>([]);
+  const [navigateToPhase, setNavigateToPhase] = useState<number | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -244,6 +245,10 @@ const Index = () => {
             projectEndDate={(currentProject as any)?.go_live_date}
             getCostAmount={getCostAmount}
             projectId={currentProjectId}
+            onNavigateToPhase={(phaseId) => {
+              setNavigateToPhase(phaseId);
+              setActiveTab("process");
+            }}
           />
         );
       case "process":
@@ -254,6 +259,7 @@ const Index = () => {
             projectName={(currentProject as any)?.name}
             projectStartDate={(currentProject as any)?.planned_start_date}
             projectEndDate={(currentProject as any)?.go_live_date}
+            initialPhase={navigateToPhase}
             onUpdateProjectStartDate={(date) => {
               if (currentProjectId) {
                 updateProjectStartDate(currentProjectId, date);
