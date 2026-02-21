@@ -136,6 +136,21 @@ export const pageGuides: Record<string, PageGuideData> = {
       'I parametri della simulazione vengono usati anche per pre-compilare il plico contrattuale.',
     ],
   },
+  'contract-package': {
+    title: 'Guida – Plico Contrattuale',
+    description: 'Questa sezione genera un pacchetto documentale facsimile composto da 6 PDF in formato ZIP, conformi alla struttura prevista dalla normativa ARERA per la vendita di energia elettrica nel mercato libero. I documenti vengono pre-compilati con i dati del progetto e della simulazione finanziaria.',
+    steps: [
+      'Carica il logo del brand per personalizzare tutti i documenti.',
+      'Clicca su "Genera Plico Contrattuale" per aprire il pannello di anteprima.',
+      'Personalizza i dati del cliente tipo (anagrafica, consumi, POD) nel pannello.',
+      'Scarica il pacchetto ZIP con i 6 documenti PDF.',
+    ],
+    tips: [
+      'Il plico è un facsimile dimostrativo: per i documenti definitivi rivolgiti a un consulente legale.',
+      'I parametri economici vengono pre-compilati dalla simulazione finanziaria configurata nella sezione Finanza.',
+      'Include: PDA, Condizioni Particolari, Condizioni Generali, Scheda Sintetica ARERA, Punti di Prelievo e Fattura Tipo Bolletta 2.0.',
+    ],
+  },
   'business-plan': {
     title: 'Guida – Business Plan',
     description: 'Redigi il Business Plan strutturato del tuo progetto. Il documento è organizzato in sezioni standard: Executive Summary, Descrizione Azienda, Prodotti/Servizi, Analisi di Mercato, Strategia Marketing, Organizzazione e Piano Finanziario.',
