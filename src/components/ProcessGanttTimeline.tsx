@@ -44,9 +44,7 @@ export const ProcessGanttTimeline = ({
   const filterStep = (step: ProcessStep) => {
     if (!step.commodityType || step.commodityType === 'all') return true;
     if (!commodityType) return true;
-    if (commodityType === 'dual-fuel') return true;
     if (commodityType === 'solo-luce') return step.commodityType === 'solo-luce';
-    if (commodityType === 'solo-gas') return step.commodityType === 'solo-gas';
     return true;
   };
 

@@ -4,7 +4,7 @@ export interface OfficialLink {
   description?: string;
 }
 
-export type CommodityType = 'solo-luce' | 'solo-gas' | 'dual-fuel' | 'all';
+export type CommodityType = 'solo-luce' | 'all';
 
 export interface ProcessStep {
   id: string;
@@ -54,7 +54,7 @@ export const processSteps: ProcessStep[] = [
       'Capitale sociale minimo: €10.000 (consigliato €99.000)',
       'Versamento minimo alla costituzione: €2.500 (25%)',
       'Preferire SRL ordinaria rispetto a semplificata',
-      'Oggetto sociale deve includere: "Commercializzazione e vendita di energia elettrica e gas naturale"'
+      'Oggetto sociale deve includere: "Commercializzazione e vendita di energia elettrica"'
     ],
     checklist: [
       'Apertura conto corrente per deposito capitale',
@@ -236,71 +236,7 @@ export const processSteps: ProcessStep[] = [
     ],
     commodityType: 'solo-luce' // Also shown for dual-fuel (handled in filter logic)
   },
-  {
-    id: 'step-3-1b',
-    phase: 3,
-    title: 'Iscrizione EVG - Elenco Venditori Gas Naturale',
-    description: 'Iscrizione all\'Elenco Venditori Gas Naturale (EVG) presso MASE - Obbligatorio dal 2025',
-    category: 'administrative',
-    estimatedDays: 30,
-    priority: 'high',
-    dependencies: ['step-2-2'],
-    documents: [
-      'Visura camerale aggiornata',
-      'Certificato carichi pendenti amministratori',
-      'Autocertificazione requisiti onorabilità',
-      'Descrizione struttura organizzativa',
-      'Dichiarazione capacità tecnica e finanziaria',
-      'Garanzia finanziaria (fideiussione o deposito cauzionale)',
-      'Piano di contingenza per emergenze'
-    ],
-    costs: {
-      min: 10000,
-      max: 50000,
-      description: 'Garanzia finanziaria obbligatoria (importo proporzionale ai volumi previsti)'
-    },
-    notes: [
-      'NOVITÀ 2025: Nuovo regolamento DM 19 maggio 2025 n. 85',
-      'Obbligatoria per vendita gas naturale ai clienti finali',
-      'Requisiti più stringenti rispetto a EVE',
-      'Garanzia finanziaria minima richiesta (varia in base ai volumi)',
-      'Iscrizione provvisoria possibile in attesa documentazione completa',
-      'Termine iscrizione definitiva: verificare scadenze sul portale MASE',
-      'Requisiti capacità tecnica: personale qualificato, procedure operative'
-    ],
-    checklist: [
-      'Verifica requisiti giuridici e onorabilità',
-      'Valutazione volumi gas previsti per calcolo garanzia',
-      'Richiesta fideiussione bancaria/assicurativa',
-      'Predisposizione piano di contingenza',
-      'Accesso portale EVG con SPID/CIE',
-      'Compilazione domanda online',
-      'Upload garanzia finanziaria',
-      'Upload piano contingenza',
-      'Invio domanda',
-      'Ottenimento iscrizione provvisoria (se applicabile)',
-      'Completamento documentazione per iscrizione definitiva',
-      'Ricezione decreto iscrizione definitiva'
-    ],
-    officialLinks: [
-      {
-        name: 'Portale EVG - MASE',
-        url: 'https://www.mase.gov.it/portale/vendita',
-        description: 'Elenco Venditori Gas Naturale'
-      },
-      {
-        name: 'Decreto EVG n. 85/2025',
-        url: 'https://www.mase.gov.it/portale/vendita',
-        description: 'Regolamento iscrizione venditori gas naturale'
-      },
-      {
-        name: 'ARERA - Delibera 70/2024/R/gas',
-        url: 'https://www.arera.it/atti-e-provvedimenti/dettaglio/24/70-24',
-        description: 'Condizioni di accesso EVG'
-      }
-    ],
-    commodityType: 'solo-gas' // Also shown for dual-fuel (handled in filter logic)
-  },
+  // EVG step removed - electricity only
   {
     id: 'step-3-1c',
     phase: 3,
@@ -309,7 +245,7 @@ export const processSteps: ProcessStep[] = [
     category: 'legal',
     estimatedDays: 5,
     priority: 'high',
-    dependencies: ['step-3-1', 'step-3-1b'],
+    dependencies: ['step-3-1'],
     documents: [
       'Dispensa normativa reseller vs UDD',
       'Schema filiera energetica italiana',
@@ -328,7 +264,7 @@ export const processSteps: ProcessStep[] = [
       'Il reseller NON ha contratti di trasporto/distribuzione diretti',
       'Il grossista gestisce: bilanciamento, dispacciamento, switching, volture',
       'Il reseller gestisce: contratti clienti, fatturazione, customer care, marketing',
-      'Obblighi comuni: EVE/EVG, ARERA, accise ADM, privacy (oneri CSEA gestiti come partite di giro)',
+      'Obblighi comuni: EVE, ARERA, accise ADM, privacy (oneri CSEA gestiti come partite di giro)',
       'Il reseller è responsabile della fatturazione e incasso verso il cliente finale'
     ],
     checklist: [
@@ -487,8 +423,7 @@ export const processSteps: ProcessStep[] = [
       'Configurazione credenziali accesso',
       'Preparazione schede offerte formato richiesto',
       'Inserimento offerte energia elettrica',
-      'Inserimento offerte gas naturale',
-      'Inserimento offerte dual fuel (se presenti)',
+      'Verifica correttezza dati pubblicati',
       'Verifica correttezza dati pubblicati',
       'Setup procedure aggiornamento periodico',
       'Monitoraggio offerte concorrenza'
@@ -644,14 +579,13 @@ export const processSteps: ProcessStep[] = [
     id: 'step-4-3',
     phase: 4,
     title: 'Iscrizione Agenzia Dogane e Monopoli (Accise)',
-    description: 'Registrazione come operatore accise presso l\'Agenzia delle Dogane per la vendita di energia elettrica e gas naturale',
+    description: 'Registrazione come operatore accise presso l\'Agenzia delle Dogane per la vendita di energia elettrica',
     category: 'administrative',
     estimatedDays: 30,
     priority: 'high',
     dependencies: ['step-3-2'],
     documents: [
       'Istanza di registrazione accise energia elettrica',
-      'Istanza di registrazione accise gas naturale',
       'Visura camerale aggiornata',
       'Documenti identità legale rappresentante',
       'Dichiarazione inizio attività',
@@ -664,11 +598,10 @@ export const processSteps: ProcessStep[] = [
       description: 'Costi amministrativi, consulenza fiscale accise e eventuale diritto di licenza'
     },
     notes: [
-      'OBBLIGATORIA per tutti i venditori di energia elettrica e gas naturale',
+      'OBBLIGATORIA per tutti i venditori di energia elettrica',
       'Codice accise necessario per la fatturazione con addebito accise al cliente finale',
       'Dichiarazioni periodiche: mensili per grandi volumi, annuali per tutti',
       'Dichiarazione annuale energia elettrica: entro febbraio anno successivo',
-      'Dichiarazione annuale gas naturale: entro marzo anno successivo',
       'Il reseller applica e versa le accise per conto dello Stato',
       'Diritto di Licenza annuale: circa €23 per energia elettrica',
       'Sanzioni severe per inadempimenti (fino a 5 volte l\'imposta evasa)',
@@ -677,11 +610,9 @@ export const processSteps: ProcessStep[] = [
     checklist: [
       'Richiesta credenziali portale Agenzia Dogane (SPID/CNS)',
       'Compilazione istanza registrazione energia elettrica',
-      'Compilazione istanza registrazione gas naturale',
       'Predisposizione documentazione societaria',
       'Invio telematico istanze',
       'Ottenimento codice accise energia elettrica',
-      'Ottenimento codice accise gas naturale',
       'Pagamento Diritto di Licenza annuale',
       'Setup calendario scadenze dichiarazioni',
       'Configurazione software per calcolo accise in bolletta',

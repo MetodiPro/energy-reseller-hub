@@ -52,7 +52,6 @@ interface RegulatoryCalendarProps {
 
 const deadlineTypeConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   eve_renewal: { label: 'Rinnovo EVE', icon: Zap, color: 'text-blue-500' },
-  evg_renewal: { label: 'Rinnovo EVG', icon: Zap, color: 'text-orange-500' },
   arera_data: { label: 'Comunicazione ARERA', icon: FileText, color: 'text-purple-500' },
   csea_payment: { label: 'Contributo CSEA', icon: Building2, color: 'text-green-500' },
   adm_excise: { label: 'Dichiarazione Accise ADM', icon: FileText, color: 'text-red-500' },
@@ -67,20 +66,8 @@ const defaultDeadlines = [
     reminder_days: 30,
     is_recurring: true,
     recurrence_pattern: 'yearly',
-    default_month: 1, // January
+    default_month: 1,
     default_day: 31,
-    commodity: 'luce', // Only for electricity
-  },
-  {
-    deadline_type: 'evg_renewal',
-    title: 'Rinnovo Autocertificazione EVG',
-    description: 'Rinnovo annuale autocertificazione Elenco Venditori Gas presso MASE',
-    reminder_days: 30,
-    is_recurring: true,
-    recurrence_pattern: 'yearly',
-    default_month: 1, // January
-    default_day: 31,
-    commodity: 'gas', // Only for gas
   },
   {
     deadline_type: 'arera_data',
@@ -89,9 +76,8 @@ const defaultDeadlines = [
     reminder_days: 30,
     is_recurring: true,
     recurrence_pattern: 'yearly',
-    default_month: 3, // March
+    default_month: 3,
     default_day: 31,
-    commodity: 'all', // Both luce and gas
   },
   {
     deadline_type: 'csea_payment',
@@ -102,18 +88,16 @@ const defaultDeadlines = [
     recurrence_pattern: 'quarterly',
     default_month: 1,
     default_day: 20,
-    commodity: 'all', // Both luce and gas
   },
   {
     deadline_type: 'adm_excise',
     title: 'Dichiarazione Accise ADM',
-    description: 'Dichiarazione annuale accise energia elettrica e gas presso Agenzia delle Dogane',
+    description: 'Dichiarazione annuale accise energia elettrica presso Agenzia delle Dogane',
     reminder_days: 30,
     is_recurring: true,
     recurrence_pattern: 'yearly',
     default_month: 3,
     default_day: 31,
-    commodity: 'all', // Both luce and gas
   },
 ];
 
@@ -164,17 +148,7 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1; // 1-indexed
     
-    // Filter deadlines based on commodity type
-    const relevantDeadlines = defaultDeadlines.filter((d) => {
-      if (d.commodity === 'all') return true;
-      if (!commodityType) return true; // Show all if commodity type not set
-      if (commodityType === 'solo-luce' && d.commodity === 'luce') return true;
-      if (commodityType === 'solo-gas' && d.commodity === 'gas') return true;
-      if (commodityType === 'dual-fuel') return true; // Dual fuel gets all deadlines
-      return false;
-    });
-
-    const deadlinesToCreate = relevantDeadlines.map((d) => {
+    const deadlinesToCreate = defaultDeadlines.map((d) => {
       // Calculate the due date: if the default date is in the past this year, use next year
       let dueYear = currentYear;
       const defaultDate = new Date(currentYear, d.default_month - 1, d.default_day);

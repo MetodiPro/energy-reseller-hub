@@ -124,7 +124,6 @@ export const useExportProjectReportPDF = () => {
 
     const licenseData = [
       ['Iscrizione EVE', project.eve_license_date ? format(parseISO(project.eve_license_date), 'dd/MM/yyyy') : 'Non registrato', project.eve_license_date ? '✓' : '✗'],
-      ['Iscrizione EVG', project.evg_license_date ? format(parseISO(project.evg_license_date), 'dd/MM/yyyy') : 'Non registrato', project.evg_license_date ? '✓' : '✗'],
       ['Codice ARERA', project.arera_code || 'Non assegnato', project.arera_code ? '✓' : '✗'],
     ];
 

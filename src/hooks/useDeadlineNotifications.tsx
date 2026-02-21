@@ -14,36 +14,19 @@ interface RegulatoryDeadline {
 }
 
 // Map deadline types to commodity - used for filtering
-const deadlineTypeCommodity: Record<string, 'luce' | 'gas' | 'all'> = {
-  eve_renewal: 'luce',
-  evg_renewal: 'gas',
-  arera_data: 'all',
-  csea_payment: 'all',
-  adm_excise: 'all',
-  custom: 'all',
-};
-
 const deadlineTypeLabels: Record<string, { emoji: string; label: string }> = {
   eve_renewal: { emoji: '⚡', label: 'EVE' },
-  evg_renewal: { emoji: '🔥', label: 'EVG' },
   arera_data: { emoji: '📊', label: 'ARERA' },
   csea_payment: { emoji: '💰', label: 'CSEA' },
   adm_excise: { emoji: '🏛️', label: 'Accise ADM' },
   custom: { emoji: '📅', label: 'Scadenza' },
 };
 
-// Helper to filter deadlines by commodity type
-const isDeadlineRelevantForCommodity = (deadlineType: string, commodityType?: string | null): boolean => {
-  if (!commodityType) return true; // Show all if no commodity type set
-  
-  const deadlineCommodity = deadlineTypeCommodity[deadlineType] || 'all';
-  
-  if (deadlineCommodity === 'all') return true;
-  if (commodityType === 'dual-fuel') return true;
-  if (commodityType === 'solo-luce' && deadlineCommodity === 'luce') return true;
-  if (commodityType === 'solo-gas' && deadlineCommodity === 'gas') return true;
-  
-  return false;
+// EVG is not relevant for electricity-only reseller
+const isDeadlineRelevantForCommodity = (deadlineType: string, _commodityType?: string | null): boolean => {
+  // Exclude gas-related deadlines
+  if (deadlineType === 'evg_renewal') return false;
+  return true;
 };
 
 export const useDeadlineNotifications = (

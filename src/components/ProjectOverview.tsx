@@ -72,8 +72,6 @@ const marketTypeLabels: Record<string, string> = {
 
 const commodityTypeConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
   'solo-luce': { label: 'Solo Energia Elettrica', icon: Zap, color: 'text-yellow-500' },
-  'solo-gas': { label: 'Solo Gas Naturale', icon: Flame, color: 'text-orange-500' },
-  'dual-fuel': { label: 'Luce + Gas (Dual Fuel)', icon: Plug, color: 'text-purple-500' },
 };
 
 const italianRegions = [
@@ -244,8 +242,6 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="solo-luce">Solo Energia Elettrica</SelectItem>
-                  <SelectItem value="solo-gas">Solo Gas Naturale</SelectItem>
-                  <SelectItem value="dual-fuel">Luce + Gas (Dual Fuel)</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
@@ -331,91 +327,45 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
         <CardContent>
           {/* Helper to determine which licenses to show */}
           {(() => {
-            const showEVE = !project.commodity_type || project.commodity_type === 'solo-luce' || project.commodity_type === 'dual-fuel';
-            const showEVG = !project.commodity_type || project.commodity_type === 'solo-gas' || project.commodity_type === 'dual-fuel';
-            const gridCols = showEVE && showEVG ? 'md:grid-cols-3' : 'md:grid-cols-2';
-
             return (
-              <div className={cn("grid grid-cols-1 gap-6", gridCols)}>
-                {showEVE && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-yellow-500" />
-                      Iscrizione EVE (Energia Elettrica)
-                    </Label>
-                    {isEditing ? (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start">
-                            <CalendarIcon className="h-4 w-4 mr-2" />
-                            {formData.eve_license_date 
-                              ? format(new Date(formData.eve_license_date), 'dd/MM/yyyy', { locale: it })
-                              : 'Seleziona data'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={formData.eve_license_date ? new Date(formData.eve_license_date) : undefined}
-                            onSelect={(date) => setFormData({ ...formData, eve_license_date: date?.toISOString().split('T')[0] || null })}
-                            locale={it}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        {project.eve_license_date ? (
-                          <Badge variant="default" className="bg-success/10 text-success">
-                            <FileCheck className="h-3 w-3 mr-1" />
-                            {format(new Date(project.eve_license_date), 'dd/MM/yyyy', { locale: it })}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-muted-foreground">Non registrato</Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {showEVG && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Flame className="h-4 w-4 text-orange-500" />
-                      Iscrizione EVG (Gas Naturale)
-                    </Label>
-                    {isEditing ? (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start">
-                            <CalendarIcon className="h-4 w-4 mr-2" />
-                            {formData.evg_license_date 
-                              ? format(new Date(formData.evg_license_date), 'dd/MM/yyyy', { locale: it })
-                              : 'Seleziona data'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={formData.evg_license_date ? new Date(formData.evg_license_date) : undefined}
-                            onSelect={(date) => setFormData({ ...formData, evg_license_date: date?.toISOString().split('T')[0] || null })}
-                            locale={it}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        {project.evg_license_date ? (
-                          <Badge variant="default" className="bg-success/10 text-success">
-                            <FileCheck className="h-3 w-3 mr-1" />
-                            {format(new Date(project.evg_license_date), 'dd/MM/yyyy', { locale: it })}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-muted-foreground">Non registrato</Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+              <div className={cn("grid grid-cols-1 gap-6", "md:grid-cols-2")}>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-yellow-500" />
+                    Iscrizione EVE (Energia Elettrica)
+                  </Label>
+                  {isEditing ? (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <CalendarIcon className="h-4 w-4 mr-2" />
+                          {formData.eve_license_date 
+                            ? format(new Date(formData.eve_license_date), 'dd/MM/yyyy', { locale: it })
+                            : 'Seleziona data'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={formData.eve_license_date ? new Date(formData.eve_license_date) : undefined}
+                          onSelect={(date) => setFormData({ ...formData, eve_license_date: date?.toISOString().split('T')[0] || null })}
+                          locale={it}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {project.eve_license_date ? (
+                        <Badge variant="default" className="bg-success/10 text-success">
+                          <FileCheck className="h-3 w-3 mr-1" />
+                          {format(new Date(project.eve_license_date), 'dd/MM/yyyy', { locale: it })}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">Non registrato</Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   <Label>Codice Operatore ARERA</Label>
