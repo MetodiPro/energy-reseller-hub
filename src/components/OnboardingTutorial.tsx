@@ -130,12 +130,10 @@ export const OnboardingTutorial = ({ onNavigate }: OnboardingTutorialProps) => {
               <X className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                <Zap className="h-5 w-5 text-white" fill="white" />
-              </div>
+              <img src="/favicon.png" alt="Metodi Res Builder" className="h-10 w-10 rounded-xl shadow-lg" />
               <div>
                 <p className="text-xs font-medium text-muted-foreground">Tutorial Guidato</p>
-                <p className="font-bold text-sm">Scopri Power Reseller</p>
+                <p className="font-bold text-sm">Scopri Metodi Res Builder</p>
               </div>
             </div>
             {/* Progress bar */}

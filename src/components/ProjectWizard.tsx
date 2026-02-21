@@ -306,7 +306,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <Rocket className="h-8 w-8 text-primary" />
         </div>
-        <h3 className="text-xl font-semibold">Benvenuto in Power Reseller Start Up!</h3>
+        <h3 className="text-xl font-semibold">Benvenuto in Metodi Res Builder!</h3>
         <p className="text-muted-foreground mt-2">
           Iniziamo creando il tuo primo progetto. Come vuoi chiamarlo?
         </p>
