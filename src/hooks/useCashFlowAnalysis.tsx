@@ -4,6 +4,8 @@ import { useRevenueSimulation, RevenueSimulationData } from './useRevenueSimulat
 import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
 import { useTaxFlows } from './useTaxFlows';
+import { stepTimingConfig } from '@/lib/costTimingConfig';
+import { stepCostsData } from '@/types/stepCosts';
 
 export interface MonthlyBreakdown {
   incassoScadenza: number;
@@ -83,7 +85,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
   const simLoading = options?.simulationData?.loading ?? ownSimHook.loading;
 
   const { summary, loading: summaryLoading } = useSimulationSummary(projectId, options?.simulationData ? { data: simData, loading: simLoading } : undefined);
-  const { getGrandTotal, loading: costsLoading } = useStepCosts(projectId);
+  const { getGrandTotal, getStepTotal, getCostAmount, loading: costsLoading } = useStepCosts(projectId);
 
   const ownChannelsHook = useSalesChannels(options?.salesChannelsData ? null : projectId);
   const channels = options?.salesChannelsData?.channels ?? ownChannelsHook.channels;
@@ -220,8 +222,23 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
         });
       }
 
-      // Step costs (investimento iniziale) distributed in month 0
-      const investimentiIniziali = m === 0 ? getGrandTotal() : 0;
+      // Step costs distributed by costTimingConfig phase
+      let investimentiIniziali = 0;
+      const investmentBreakdownItems: { stepId: string; description: string; amount: number }[] = [];
+      Object.keys(stepCostsData).forEach(stepId => {
+        const scheduledMonth = stepTimingConfig[stepId] ?? 0;
+        if (scheduledMonth === m) {
+          const stepTotal = getStepTotal(stepId);
+          if (stepTotal > 0) {
+            investimentiIniziali += stepTotal;
+            investmentBreakdownItems.push({
+              stepId,
+              description: stepCostsData[stepId]?.description ?? stepId,
+              amount: stepTotal,
+            });
+          }
+        }
+      });
 
       const monthIndex = (startMonth + m) % 12;
       const yearOffset = Math.floor((startMonth + m) / 12);
@@ -269,7 +286,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
           depositoRichiesto,
           depositoPrecedente,
           saldoPrecedente: 0, // filled below
-          investmentBreakdown: [],
+          investmentBreakdown: investmentBreakdownItems,
         },
       });
     }
@@ -302,12 +319,12 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       monthlyData,
       totals: {
         inflow: totaleIncassi,
-        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali,
+        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + getGrandTotal(),
         net: cumulative,
         cumulative,
       },
       hasData: true,
-      investimentoIniziale: 0,
+      investimentoIniziale: getGrandTotal(),
       massimaEsposizione: minCumulative,
       meseEsposizioneMassima: maxExposureMonth,
       mesePrimoPositivo: firstPositiveMonth,
@@ -319,7 +336,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali,
       totaleDepositi,
     };
-  }, [summary, simData, channels, taxFlows, calculateCommissionCosts, getGrandTotal]);
+  }, [summary, simData, channels, taxFlows, calculateCommissionCosts, getGrandTotal, getStepTotal, getCostAmount]);
 
   return { cashFlowData, loading: summaryLoading || simLoading || costsLoading || channelsLoading || taxLoading };
 };
