@@ -123,16 +123,20 @@ export const pageGuides: Record<string, PageGuideData> = {
   },
   financials: {
     title: 'Guida – Dashboard Finanziaria',
-    description: 'La Dashboard Finanziaria offre una visione completa della situazione economica del progetto: costi di avvio, ricavi previsti, simulazione ricavi da vendita energia, analisi cash flow, break-even e margini.',
+    description: 'La Dashboard Finanziaria offre una visione completa della situazione economica del progetto. I margini (Lordo, Contribuzione, Netto) sono calcolati correttamente sull\'imponibile, al netto dell\'IVA. I costi di avvio degli step del processo sono integrati nel cash flow, distribuiti nelle mensilità corrette.',
     steps: [
-      'Inserisci i costi del progetto organizzati per categoria.',
-      'Configura la simulazione ricavi con i parametri commerciali (spread, CCV, clienti previsti).',
-      'Analizza il cash flow mensile e il punto di break-even.',
+      'Configura le ipotesi operative nella tab "Ipotesi": parametri simulazione, canali vendita e costi grossista.',
+      'Analizza i KPI nella "Panoramica": fatturato, margini sull\'imponibile, break-even.',
+      'Inserisci costi strutturali e commerciali nella tab "Costi".',
+      'Configura la simulazione ricavi con contratti mensili e parametri tariffari.',
+      'Analizza il cash flow mensile nella tab "Liquidità" (include investimenti iniziali dagli step).',
+      'Usa la tab "Margini" per l\'analisi dettagliata e il simulatore What-If.',
       'Esporta i report finanziari in PDF o Excel.',
     ],
     tips: [
-      'La simulazione dei ricavi si basa sul modello di business del reseller energetico.',
-      'Configura i canali di vendita per una stima più accurata dei costi di acquisizione.',
+      'I margini sono calcolati sull\'imponibile (fatturato al netto IVA), non sul fatturato lordo.',
+      'I costi di ogni step del processo sono distribuiti nel cash flow in base alla fase (costituzione, licenze, ecc.).',
+      'Configura i canali di vendita per una stima accurata dei costi commerciali.',
       'I parametri della simulazione vengono usati anche per pre-compilare il plico contrattuale.',
     ],
   },
@@ -199,11 +203,22 @@ export const pageGuides: Record<string, PageGuideData> = {
   },
   settings: {
     title: 'Guida – Impostazioni',
-    description: 'Gestisci il tuo profilo, le preferenze di notifica e le impostazioni dell\'applicazione. Puoi anche riavviare il tutorial introduttivo.',
+    description: 'Gestisci le preferenze di notifica e le impostazioni dell\'applicazione. Puoi anche riavviare il tutorial introduttivo.',
     steps: [
-      'Aggiorna il tuo nome e le informazioni del profilo.',
       'Configura le preferenze di notifica (scadenze, completamento step, aggiornamenti team).',
       'Riavvia il tutorial introduttivo se necessario.',
+    ],
+  },
+  profile: {
+    title: 'Guida – Profilo Utente',
+    description: 'Gestisci le informazioni del tuo account: aggiorna il nome completo (visibile in tutto il sistema) e modifica la password di accesso.',
+    steps: [
+      'Aggiorna il tuo nome completo nel campo dedicato e clicca "Aggiorna Nome".',
+      'Per cambiare la password, inserisci la nuova password (minimo 6 caratteri) e conferma.',
+    ],
+    tips: [
+      'Il nome viene sincronizzato automaticamente su tutto il sistema.',
+      'La password deve avere almeno 6 caratteri.',
     ],
   },
 };
