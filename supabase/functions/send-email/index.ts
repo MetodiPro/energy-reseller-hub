@@ -40,7 +40,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: from || 'Metodi Res Builder <onboarding@resend.dev>',
+        from: from || 'Metodi Res Builder <noreply@metodi.pro>',
         to: Array.isArray(to) ? to : [to],
         subject,
         html,
