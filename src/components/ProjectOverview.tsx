@@ -22,13 +22,15 @@ import {
   Users,
   FileCheck,
   Flame,
-  Plug
+  Plug,
+  Download
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useExportProjectOverviewPDF } from '@/hooks/useExportProjectOverviewPDF';
 
 interface Project {
   id: string;
@@ -85,6 +87,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<Project>>({});
+  const { exportProjectOverviewPDF } = useExportProjectOverviewPDF();
 
   if (!project) {
     return (
@@ -180,10 +183,16 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
           <p className="text-muted-foreground">Panoramica completa del reseller</p>
         </div>
         {!isEditing ? (
-          <Button onClick={startEditing}>
-            <Edit className="h-4 w-4 mr-2" />
-            Modifica
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => exportProjectOverviewPDF(project)}>
+              <Download className="h-4 w-4 mr-2" />
+              Esporta PDF
+            </Button>
+            <Button onClick={startEditing}>
+              <Edit className="h-4 w-4 mr-2" />
+              Modifica
+            </Button>
+          </div>
         ) : (
           <div className="flex gap-2">
             <Button variant="outline" onClick={cancelEditing}>

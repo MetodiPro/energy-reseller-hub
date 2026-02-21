@@ -509,12 +509,62 @@ export const Dashboard = ({
         </div>
       )}
 
+      {/* Phase Progress Radial Gauges */}
+      <Card className="p-6 shadow-custom-lg">
+        <div className="flex items-center gap-2 mb-6">
+          <Flag className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold">Avanzamento per Fase</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+          {phaseProgressData.map((phase, idx) => {
+            const radius = 40;
+            const circumference = 2 * Math.PI * radius;
+            const strokeDashoffset = circumference - (circumference * phase.percentuale) / 100;
+            const phaseColor = phase.percentuale === 100 
+              ? 'hsl(var(--success))' 
+              : phase.percentuale > 0 
+                ? 'hsl(var(--warning))' 
+                : 'hsl(var(--muted))';
+            
+            return (
+              <div key={idx} className="flex flex-col items-center gap-2">
+                <div className="relative w-24 h-24">
+                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50" cy="50" r={radius}
+                      fill="none"
+                      stroke="hsl(var(--muted))"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50" cy="50" r={radius}
+                      fill="none"
+                      stroke={phaseColor}
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      className="transition-all duration-700 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-lg font-bold">{phase.percentuale}%</span>
+                    <span className="text-[10px] text-muted-foreground">{phase.completati}/{phase.totali}</span>
+                  </div>
+                </div>
+                <span className="text-xs text-center font-medium leading-tight">{phase.fullName}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
       {/* Phase Progress Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6 shadow-custom-lg">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">Progresso per Fase</h2>
+            <h2 className="text-xl font-bold">Step per Fase</h2>
           </div>
           {phaseProgressData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
