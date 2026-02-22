@@ -23,7 +23,7 @@ export function validateBusinessPlan(ctx: ProjectContext): BusinessPlanIssue[] {
       severity: 'critical',
       section: 'executive_summary',
       title: 'Tipologia commodity non definita',
-      description: 'Il tipo di fornitura (Luce, Gas o Dual Fuel) non è stato configurato. Il BP utilizza un generico "energia".',
+      description: 'Il tipo di fornitura non è stato configurato. Il BP utilizza un generico "energia".',
       action: 'Vai in Impostazioni Progetto e seleziona la tipologia commodity.',
       navigationHint: 'settings',
     });

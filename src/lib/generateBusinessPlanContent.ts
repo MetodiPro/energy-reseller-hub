@@ -55,8 +55,6 @@ export interface ProjectContext {
 const commodityLabel = (type: string | null): string => {
   switch (type) {
     case 'solo-luce': return 'energia elettrica';
-    case 'solo-gas': return 'gas naturale';
-    case 'dual-fuel': return 'energia elettrica e gas naturale';
     default: return 'energia';
   }
 };
@@ -258,15 +256,6 @@ export function generateProductsServices(ctx: ProjectContext): string {
     text += `• Pubblicazione obbligatoria sul Portale Offerte\n\n`;
   }
 
-  if (ctx.commodityType !== 'solo-luce') {
-    text += `OFFERTA GAS NATURALE:\n`;
-    if (ctx.simulation) {
-      text += `• Prezzo: PSV + spread reseller di ${(ctx.simulation.spreadGasPerSmc * 100).toFixed(1)} c€/Smc\n`;
-      text += `• Componente commerciale (CCV Gas): ${formatCurrency(ctx.simulation.ccvGasMonthly)}/mese per cliente\n`;
-    }
-    text += `• Offerte indicizzate al PSV o a prezzo fisso\n`;
-    text += `• Conformità al Codice di Rete gas\n\n`;
-  }
 
   text += `SERVIZI COMPLEMENTARI:\n`;
   text += `• Area clienti online per consultazione bollette e consumi\n`;

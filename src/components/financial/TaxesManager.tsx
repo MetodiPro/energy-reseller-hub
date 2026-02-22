@@ -56,9 +56,7 @@ interface TaxesManagerProps {
 
 const TAX_TYPE_OPTIONS = [
   { value: 'accise_energia', label: 'Accise Energia Elettrica', recipient: 'ADM' },
-  { value: 'accise_gas', label: 'Accise Gas Naturale', recipient: 'ADM' },
   { value: 'addizionali_comunali', label: 'Addizionali Comunali', recipient: 'Comuni' },
-  { value: 'addizionali_regionali', label: 'Addizionali Regionali', recipient: 'Regioni' },
   { value: 'iva', label: 'IVA', recipient: 'Erario' },
   { value: 'csea', label: 'Contributi CSEA', recipient: 'CSEA' },
   { value: 'arera', label: 'Contributo ARERA', recipient: 'ARERA' },

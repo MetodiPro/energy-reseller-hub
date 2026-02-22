@@ -884,7 +884,7 @@ export const processSteps: ProcessStep[] = [
       'Conformità a delibere ARERA su trasparenza prezzi',
       'Definizione margini target',
       'Segmentazione clientela (domestico/business)',
-      'Offerte luce, gas, dual fuel'
+      'Offerte energia elettrica per segmento'
     ],
     checklist: [
       'Analisi prezzi mercato',

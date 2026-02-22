@@ -43,7 +43,6 @@ const COST_TYPE_OPTIONS = [
 
 const REVENUE_TYPE_OPTIONS = [
   { value: 'energia_elettrica', label: 'Energia Elettrica', description: 'Fatturato vendita kWh' },
-  { value: 'gas_naturale', label: 'Gas Naturale', description: 'Fatturato vendita Smc' },
   { value: 'servizi_accessori', label: 'Servizi Accessori', description: 'Manutenzione, consulenza, ecc.' },
   { value: 'one_time', label: 'Una Tantum', description: 'Pagamento unico' },
   { value: 'recurring', label: 'Ricorrente', description: 'Pagamento periodico' },
