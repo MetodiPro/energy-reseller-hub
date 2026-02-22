@@ -155,17 +155,6 @@ export function validateBusinessPlan(ctx: ProjectContext): BusinessPlanIssue[] {
       });
     }
 
-    if ((ctx.simulation.commodityType === 'dual' || ctx.simulation.commodityType === 'gas') && ctx.simulation.spreadGasPerSmc <= 0) {
-      issues.push({
-        id: 'zero_spread_gas',
-        severity: 'warning',
-        section: 'products_services',
-        title: 'Spread reseller gas a zero',
-        description: 'Lo spread di margine sul gas è nullo. I ricavi gas nel piano finanziario saranno assenti.',
-        action: 'Configura lo spread gas nella sezione Finanze > Ipotesi Operative.',
-        navigationHint: 'finance',
-      });
-    }
 
     if (ctx.simulation.monthlyChurnRate <= 0) {
       issues.push({

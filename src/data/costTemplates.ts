@@ -168,7 +168,7 @@ export const projectTemplates: ProjectTemplate[] = [
   {
     id: 'reseller-residenziale',
     name: 'Reseller Residenziale',
-    description: 'Vendita luce e gas a famiglie e utenze domestiche. Ideale per chi punta su volumi, sportelli territoriali e assistenza al consumatore.',
+    description: 'Vendita energia elettrica a famiglie e utenze domestiche. Ideale per chi punta su volumi, sportelli territoriali e assistenza al consumatore.',
     icon: 'Home',
     color: 'hsl(200, 80%, 50%)',
     // COSTI PASSANTI - Vanno al grossista/distributore, non impattano il margine operativo
@@ -187,21 +187,6 @@ export const projectTemplates: ProjectTemplate[] = [
         calculation_basis: '500 clienti × 300 kWh/mese × €0,12/kWh',
         calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.12 },
         commodity_filter: 'luce'
-      },
-      { 
-        name: 'Gas Acquistato da Grossista', 
-        description: 'Costo all\'ingrosso gas naturale - componente commodity da rifatturare ai clienti',
-        amount: 0.80, 
-        quantity: 50000, 
-        unit: 'Smc/mese', 
-        cost_type: 'direct', 
-        is_recurring: true, 
-        recurrence_period: 'monthly',
-        is_passthrough: true,
-        passthrough_recipient: 'Grossista',
-        calculation_basis: '300 clienti gas × 166 Smc/mese × €0,80/Smc',
-        calculation_params: { num_clients: 300, consumption_smc: 166, price_per_smc: 0.80 },
-        commodity_filter: 'gas'
       },
       { 
         name: 'Corrispettivi Trasporto e Distribuzione', 
@@ -739,18 +724,6 @@ export const projectTemplates: ProjectTemplate[] = [
         calculation_params: { num_clients: 500, consumption_kwh: 300, price_per_kwh: 0.25 }
       },
       { 
-        name: 'Fatturato Gas Naturale', 
-        description: 'Fatturato lordo gas emesso ai clienti finali (commodity + distribuzione + oneri + margine)',
-        amount: 1.20, 
-        quantity: 50000, 
-        unit: 'Smc/mese', 
-        revenue_type: 'gas_naturale', 
-        status: 'expected',
-        margin_type: 'per_smc',
-        calculation_basis: '300 clienti × 166 Smc/mese × €1,20/Smc prezzo vendita finale',
-        calculation_params: { num_clients: 300, consumption_smc: 166, price_per_smc: 1.20 }
-      },
-      { 
         name: 'Fee Attivazione Nuovi Contratti', 
         description: 'Contributo una tantum richiesto ai nuovi clienti per costi amministrativi',
         amount: 30, 
@@ -786,20 +759,6 @@ export const projectTemplates: ProjectTemplate[] = [
         passthrough_recipient: 'Grossista',
         calculation_basis: '100 clienti business × 4.000 kWh/mese × €0,11/kWh (prezzo wholesale più basso per volumi)',
         calculation_params: { num_clients: 100, consumption_kwh: 4000, price_per_kwh: 0.11 }
-      },
-      { 
-        name: 'Gas Acquistato da Grossista', 
-        description: 'Costo all\'ingrosso gas naturale per clienti business',
-        amount: 0.75, 
-        quantity: 80000, 
-        unit: 'Smc/mese', 
-        cost_type: 'direct', 
-        is_recurring: true, 
-        recurrence_period: 'monthly',
-        is_passthrough: true,
-        passthrough_recipient: 'Grossista',
-        calculation_basis: '50 clienti gas business × 1.600 Smc/mese × €0,75/Smc',
-        calculation_params: { num_clients: 50, consumption_smc: 1600, price_per_smc: 0.75 }
       },
       { 
         name: 'Corrispettivi Trasporto e Distribuzione', 
@@ -1292,18 +1251,6 @@ export const projectTemplates: ProjectTemplate[] = [
         margin_type: 'per_kwh',
         calculation_basis: '100 clienti business × 4.000 kWh/mese × €0,19/kWh prezzo vendita finale',
         calculation_params: { num_clients: 100, consumption_kwh: 4000, price_per_kwh: 0.19 }
-      },
-      { 
-        name: 'Fatturato Gas Naturale Business', 
-        description: 'Fatturato lordo gas emesso a clienti business',
-        amount: 1.08, 
-        quantity: 80000, 
-        unit: 'Smc/mese', 
-        revenue_type: 'gas_naturale', 
-        status: 'expected',
-        margin_type: 'per_smc',
-        calculation_basis: '50 clienti gas business × 1.600 Smc/mese × €1,08/Smc prezzo vendita finale',
-        calculation_params: { num_clients: 50, consumption_smc: 1600, price_per_smc: 1.08 }
       },
       { 
         name: 'Fee Gestione Grandi Clienti', 

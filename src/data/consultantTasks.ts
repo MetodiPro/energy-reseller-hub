@@ -184,7 +184,7 @@ const commercialistaOperational: ConsultantTaskTemplate[] = [
     category: 'Fiscale',
     subcategory: 'Accise',
     title: 'Dichiarazione mensile accise energia',
-    description: 'Compilazione e invio dichiarazione accise ADM per energia elettrica e gas naturale venduti',
+    description: 'Compilazione e invio dichiarazione accise ADM per energia elettrica venduta',
     phase: 'operational',
     priority: 'high',
     estimatedCost: 200,
