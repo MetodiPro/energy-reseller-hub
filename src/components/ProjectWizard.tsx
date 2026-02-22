@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Rocket, Home, Building2, Zap, ArrowRight, ArrowLeft, Check, Sparkles, Info, Users, Landmark, Shield } from 'lucide-react';
+import { Rocket, Home, Building2, ArrowRight, ArrowLeft, Check, Sparkles, Info, Landmark, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { projectTemplates, type ProjectTemplate } from '@/data/costTemplates';
 import { toast } from '@/hooks/use-toast';
@@ -22,7 +22,6 @@ interface ProjectWizardProps {
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Home,
   Building2,
-  Zap,
 };
 
 // Only electricity reseller is supported
@@ -37,28 +36,16 @@ interface TemplateRequirements {
 
 const templateRequirements: Record<string, TemplateRequirements> = {
   'reseller-residenziale': {
-    garanzie: '€25.000 - Fideiussioni standard per grossisti',
-    personale: '2-3 risorse: 1 back-office, 1 operatore SII, agenti esterni',
-    investimento: '€80.000 - €120.000 primo anno',
-    complessita: 'Media',
-  },
-  'reseller-business': {
-    garanzie: '€50.000 - Fideiussioni maggiorate per volumi B2B',
-    personale: '4-5 risorse: team back-office, specialista SII, key account manager',
-    investimento: '€150.000 - €200.000 primo anno',
-    complessita: 'Alta',
-  },
-  'reseller-misto': {
-    garanzie: '€60.000 - Fideiussioni combinate residenziale + business',
-    personale: '5-7 risorse: team dedicati per segmento, compliance officer',
-    investimento: '€200.000 - €280.000 primo anno',
-    complessita: 'Alta',
-  },
-  'reseller-elettrico-residenziale': {
-    garanzie: '€20.000 - Fideiussioni ridotte (solo luce)',
+    garanzie: '€20.000 - Fideiussioni ridotte (solo domestici)',
     personale: '1-2 risorse: 1 back-office multifunzione',
     investimento: '€50.000 - €80.000 primo anno',
     complessita: 'Bassa',
+  },
+  'reseller-residenziale-piva': {
+    garanzie: '€30.000 - Fideiussioni per portafoglio misto',
+    personale: '2-3 risorse: back-office, operatore SII, agenti esterni',
+    investimento: '€90.000 - €130.000 primo anno',
+    complessita: 'Media',
   },
 };
 
@@ -71,12 +58,10 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
 
   const totalSteps = 3;
 
-  // Filter templates for electricity only
-  const filteredTemplates = useMemo(() => {
-    return projectTemplates.filter((t) => t.id.includes('elettrico') || t.id === 'reseller-residenziale' || t.id === 'reseller-business');
-  }, []);
+  // All templates are already filtered to electricity-only
+  const filteredTemplates = projectTemplates;
 
-  const recommendedTemplateId = 'reseller-elettrico-residenziale';
+  const recommendedTemplateId = 'reseller-residenziale';
 
   const handleNext = () => {
     if (step === 1 && !projectName.trim()) {
@@ -285,7 +270,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
       <TooltipProvider delayDuration={300}>
         <div className="grid gap-4">
           {filteredTemplates.map((template) => {
-            const IconComponent = iconMap[template.icon] || Zap;
+            const IconComponent = iconMap[template.icon] || Home;
             const isSelected = selectedTemplate?.id === template.id;
             const requirements = templateRequirements[template.id];
             const isRecommended = template.id === recommendedTemplateId;
@@ -339,7 +324,7 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
                                   </div>
                                 </div>
                                 <div className="flex items-start gap-2">
-                                  <Users className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                                  <Building2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                                   <div>
                                     <p className="text-xs font-medium">Personale</p>
                                     <p className="text-xs text-muted-foreground">{requirements.personale}</p>
