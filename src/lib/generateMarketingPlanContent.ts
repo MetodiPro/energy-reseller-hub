@@ -50,9 +50,6 @@ export function generateTargetMarket(ctx: ProjectContext): string {
     text += `• Esigenze differenziate: prezzo competitivo (domestici) e personalizzazione (business)\n`;
   }
 
-  if (ctx.simulation?.commodityType === 'dual' || ctx.simulation?.commodityType === 'gas') {
-    text += `• Consumo gas medio mensile: ${ctx.simulation?.avgMonthlyConsumptionGas || 80} Smc/mese\n`;
-  }
   text += `\n`;
 
   text += `AREA GEOGRAFICA:\n`;
@@ -124,7 +121,7 @@ export function generatePricingStrategy(ctx: ProjectContext): string {
   text += `MODELLO TARIFFARIO:\n`;
   text += `L'offerta commerciale per la fornitura di ${commodity} si basa su un modello di pricing trasparente e competitivo.\n\n`;
 
-  if (ctx.simulation && ctx.commodityType !== 'solo-gas') {
+  if (ctx.simulation) {
     text += `OFFERTA ENERGIA ELETTRICA:\n`;
     text += `• Componente energia: PUN (Prezzo Unico Nazionale) + spread reseller di ${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
     text += `• Componente commerciale (CCV): ${formatCurrency(ctx.simulation.ccvMonthly)}/mese per cliente\n`;

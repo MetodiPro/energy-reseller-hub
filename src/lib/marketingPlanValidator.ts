@@ -94,17 +94,6 @@ export function validateMarketingPlan(ctx: ProjectContext): MarketingPlanIssue[]
       });
     }
 
-    if ((ctx.simulation.commodityType === 'dual' || ctx.simulation.commodityType === 'gas') && ctx.simulation.spreadGasPerSmc <= 0) {
-      issues.push({
-        id: 'mp_zero_spread_gas',
-        severity: 'warning',
-        section: 'pricing_strategy',
-        title: 'Spread reseller gas a zero',
-        description: 'Il piano pricing per il gas non è realistico con spread nullo.',
-        action: 'Configura lo spread gas in Finanze > Ipotesi Operative.',
-        navigationHint: 'finance',
-      });
-    }
   }
 
   if (activeChannels.length > 0) {

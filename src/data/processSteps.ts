@@ -432,7 +432,7 @@ export const processSteps: ProcessStep[] = [
       {
         name: 'Portale Offerte',
         url: 'https://www.ilportaleofferte.it',
-        description: 'Confronto offerte luce e gas per i consumatori'
+        description: 'Confronto offerte energia elettrica per i consumatori'
       },
       {
         name: 'Area Operatori Portale Offerte',

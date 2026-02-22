@@ -10,7 +10,7 @@ export const pageGuides: Record<string, PageGuideData> = {
     title: 'Guida – Scheda Progetto',
     description: 'Questa pagina contiene tutte le informazioni anagrafiche e operative del tuo progetto di vendita energia. Qui puoi configurare i dati fondamentali come il tipo di commodity, le date chiave, le licenze e il grossista partner.',
     steps: [
-      'Compila i dati del progetto: nome, descrizione, tipo di commodity (luce, gas o dual).',
+      'Compila i dati del progetto: nome, descrizione e configurazione per la vendita di energia elettrica.',
       'Inserisci le date di licenza EVE/EVG e la data di Go-Live prevista.',
       'Configura il codice operatore ARERA e il grossista partner.',
       'Definisci il mercato target (residenziale, business, misto) e le regioni operative.',

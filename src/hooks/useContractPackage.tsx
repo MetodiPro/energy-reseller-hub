@@ -725,7 +725,7 @@ const generateSchedaSintetica = async (data: ContractData, logoImg: LoadedImage 
 
   // Note
   y = checkPageBreak(doc, y, 20);
-  y = bodyText(doc, `Per informazioni sulla spesa personalizzata e su altre offerte: Portale Offerte Luce e Gas www.ilportaleofferte.it. Il cliente è invitato a verificare la presenza di oneri di recesso anticipato dal contratto in essere prima della sottoscrizione.`, y);
+  y = bodyText(doc, `Per informazioni sulla spesa personalizzata e su altre offerte: Portale Offerte www.ilportaleofferte.it. Il cliente è invitato a verificare la presenza di oneri di recesso anticipato dal contratto in essere prima della sottoscrizione.`, y);
 
   y += 6;
   doc.setFontSize(8);
