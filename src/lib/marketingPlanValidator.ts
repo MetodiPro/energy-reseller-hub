@@ -35,7 +35,7 @@ export function validateMarketingPlan(ctx: ProjectContext): MarketingPlanIssue[]
       severity: 'critical',
       section: 'pricing_strategy',
       title: 'Tipologia commodity non definita',
-      description: 'Il tipo di fornitura (Luce, Gas, Dual Fuel) determina l\'intera strategia di pricing e comunicazione.',
+      description: 'Il tipo di fornitura non è stato configurato. Determina l\'intera strategia di pricing e comunicazione.',
       action: 'Seleziona la commodity nelle Impostazioni Progetto.',
       navigationHint: 'settings',
     });

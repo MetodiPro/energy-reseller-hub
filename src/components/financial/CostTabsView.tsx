@@ -706,10 +706,7 @@ export const CostTabsView = ({
           <CardDescription className="flex items-center gap-2">
             <span>Totale costi: {formatCurrency(totalCosts)}</span>
             {commodityType && (
-              <Badge variant="secondary">
-                {commodityType === 'solo-luce' ? 'Solo Energia Elettrica' : 
-                 commodityType === 'solo-gas' ? 'Solo Gas' : 'Dual Fuel'}
-              </Badge>
+              <Badge variant="secondary">Solo Energia Elettrica</Badge>
             )}
           </CardDescription>
         </div>

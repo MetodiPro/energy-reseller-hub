@@ -6,8 +6,6 @@ const formatCurrency = (n: number): string =>
 const commodityLabel = (type: string | null): string => {
   switch (type) {
     case 'solo-luce': return 'energia elettrica';
-    case 'solo-gas': return 'gas naturale';
-    case 'dual-fuel': return 'energia elettrica e gas naturale';
     default: return 'energia';
   }
 };
@@ -133,17 +131,9 @@ export function generatePricingStrategy(ctx: ProjectContext): string {
     text += `• Costi passanti: trasporto, oneri di sistema, accise e IVA (addebitati al cliente secondo tariffe regolamentate)\n\n`;
   }
 
-  if (ctx.simulation && ctx.commodityType !== 'solo-luce') {
-    text += `OFFERTA GAS NATURALE:\n`;
-    text += `• Componente materia prima: PSV + spread reseller di ${(ctx.simulation.spreadGasPerSmc * 100).toFixed(1)} c€/Smc\n`;
-    text += `• Componente commerciale (CCV Gas): ${formatCurrency(ctx.simulation.ccvGasMonthly)}/mese per cliente\n`;
-    text += `• Costi passanti: trasporto, stoccaggio, oneri e imposte\n\n`;
-  }
-
   text += `TIPOLOGIE DI OFFERTA:\n`;
-  text += `• Offerta a prezzo variabile: indicizzata al PUN/PSV, ideale per chi vuole seguire il mercato\n`;
-  text += `• Offerta a prezzo fisso: stabilità tariffaria per 12/24 mesi, maggior margine per il reseller\n`;
-  text += `• Offerta dual fuel: condizioni agevolate per forniture congiunte luce+gas\n\n`;
+  text += `• Offerta a prezzo variabile: indicizzata al PUN, ideale per chi vuole seguire il mercato\n`;
+  text += `• Offerta a prezzo fisso: stabilità tariffaria per 12/24 mesi, maggior margine per il reseller\n\n`;
 
   text += `VANTAGGIO COMPETITIVO SUL PREZZO:\n`;
   text += `Il modello reseller consente di offrire tariffe competitive grazie a:\n`;
