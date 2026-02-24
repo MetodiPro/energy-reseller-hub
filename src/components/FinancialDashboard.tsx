@@ -1,48 +1,19 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  PieChart, 
-  BarChart3,
-  ArrowUpRight,
-  ArrowDownRight,
-  Target,
-  Percent,
-  FileDown,
-  Receipt,
-  Calculator,
-  Zap,
-  Users,
-  Wallet,
-  Info,
-  Settings2
+import {
+  TrendingUp, TrendingDown, PieChart, FileDown, Receipt,
+  Calculator, Wallet, Zap, Settings2, Users,
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
-import { supabase } from '@/integrations/supabase/client';
-import { FinancialTrendChart } from '@/components/financial/FinancialTrendChart';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useSalesChannels } from '@/hooks/useSalesChannels';
+
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
-import { FinancialAlerts } from '@/components/financial/FinancialAlerts';
-import { BreakEvenAnalysis } from '@/components/financial/BreakEvenAnalysis';
-import { FinancialGlossary } from '@/components/financial/FinancialGlossary';
-
-
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
@@ -51,22 +22,10 @@ import { CostTabsView } from '@/components/financial/CostTabsView';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
-import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
-import { MonthlyChannelCostsChart } from '@/components/financial/MonthlyChannelCostsChart';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
-import {
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from 'recharts';
+import { OverviewTab } from '@/components/financial/OverviewTab';
+import { CostEditDialog } from '@/components/financial/CostEditDialog';
 
 interface FinancialDashboardProps {
   projectId: string;
@@ -74,34 +33,8 @@ interface FinancialDashboardProps {
   commodityType?: string | null;
 }
 
-const COLORS = {
-  commercial: 'hsl(var(--chart-1))',
-  structural: 'hsl(var(--chart-2))',
-  direct: 'hsl(var(--chart-3))',
-  indirect: 'hsl(var(--chart-4))',
-};
-
-const COST_TYPE_LABELS = {
-  commercial: 'Commerciali',
-  structural: 'Strutturali',
-  direct: 'Diretti',
-  indirect: 'Indiretti',
-};
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('it-IT', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
-const formatPercent = (value: number) => {
-  return `${value.toFixed(1)}%`;
-};
-
 export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
+  // ─── Data hooks ───
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const revenueSimulation = useRevenueSimulation(projectId);
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
@@ -110,166 +43,44 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData });
   const { exportToPDF } = useExportFinancialPDF();
+
+  // ─── Derived summary ───
+  const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
+
+  // ─── UI state ───
   const [activeTab, setActiveTab] = useState('hypotheses');
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
-  const [costFormData, setCostFormData] = useState<any>({
-    name: '', description: '', amount: '', quantity: 1, unit: 'unità',
-    cost_type: 'direct', category_id: '', is_recurring: false, recurrence_period: '', date: '', notes: '',
-  });
 
-  const COST_TYPE_OPTIONS = [
-    { value: 'direct', label: 'Diretto', description: 'Collegato direttamente al progetto' },
-    { value: 'indirect', label: 'Indiretto', description: 'Non direttamente collegato' },
-    { value: 'commercial', label: 'Commerciale', description: 'Marketing e vendite' },
-    { value: 'structural', label: 'Strutturale', description: 'Costi fissi aziendali' },
-  ];
-
-  useEffect(() => {
-    if (editingCost && showCostDialog) {
-      setCostFormData({
-        name: editingCost.name,
-        description: editingCost.description || '',
-        amount: editingCost.amount,
-        quantity: editingCost.quantity,
-        unit: editingCost.unit,
-        cost_type: editingCost.cost_type,
-        category_id: editingCost.category_id || '',
-        is_recurring: editingCost.is_recurring,
-        recurrence_period: editingCost.recurrence_period || '',
-        date: editingCost.date || '',
-        notes: editingCost.notes || '',
-      });
-    } else if (!editingCost && showCostDialog) {
-      setCostFormData({
-        name: '', description: '', amount: '', quantity: 1, unit: 'unità',
-        cost_type: 'direct', category_id: '', is_recurring: false, recurrence_period: '', date: '', notes: '',
-      });
-    }
-  }, [editingCost, showCostDialog]);
-
-  const handleCostSubmit = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const costData = {
-      project_id: projectId,
-      name: costFormData.name,
-      description: costFormData.description || null,
-      amount: parseFloat(costFormData.amount) || 0,
-      quantity: parseFloat(costFormData.quantity) || 1,
-      unit: costFormData.unit || 'unità',
-      cost_type: costFormData.cost_type,
-      category_id: costFormData.category_id || null,
-      is_recurring: costFormData.is_recurring,
-      recurrence_period: costFormData.is_recurring ? costFormData.recurrence_period : null,
-      date: costFormData.date || null,
-      notes: costFormData.notes || null,
-      created_by: user.id,
-    };
-    if (editingCost) {
-      await updateCost(editingCost.id, costData);
-    } else {
-      await addCost(costData as any);
-    }
-    setShowCostDialog(false);
-    setEditingCost(null);
-  };
-  
-  // Filter costs by commodity type
+  // ─── Commodity filtering ───
   const filteredCosts = useMemo(() => {
     return costs.filter(cost => {
       const costName = cost.name.toLowerCase();
       const commodityFilter = (cost as any).commodity_filter;
-      
-      // If cost has explicit filter, use it
       if (commodityFilter) {
         if (commodityType === 'solo-luce' && commodityFilter === 'gas') return false;
         if (commodityType === 'solo-gas' && commodityFilter === 'luce') return false;
       }
-      
-      // Pattern-based filtering
       const gasPatterns = ['gas', 'smc', 'evg', 'metano'];
       const lucePatterns = ['energia elettrica', 'kwh', 'eve'];
-      
       const isGasRelated = gasPatterns.some(p => costName.includes(p)) && !costName.includes('energia');
       const isLuceRelated = lucePatterns.some(p => costName.includes(p));
-      
-      // If it's clearly gas-related and project is solo-luce, hide it
-      if (commodityType === 'solo-luce' && isGasRelated && !isLuceRelated) {
-        return false;
-      }
-      
-      // If it's clearly luce-related and project is solo-gas, hide it
-      if (commodityType === 'solo-gas' && isLuceRelated && !isGasRelated) {
-        return false;
-      }
-      
+      if (commodityType === 'solo-luce' && isGasRelated && !isLuceRelated) return false;
+      if (commodityType === 'solo-gas' && isLuceRelated && !isGasRelated) return false;
       return true;
     });
   }, [costs, commodityType]);
 
-  // Integrated summary using simulation data for revenues
-  const summary = useMemo(() => {
-    // Use simulation revenue as the source of truth
-    const totalRevenue = simulationSummary.hasData ? simulationSummary.totalFatturato : costSummary.totalRevenue;
-    const resellerMargin = simulationSummary.hasData ? simulationSummary.totalMargine : 0;
-    const passthroughCosts = simulationSummary.hasData ? simulationSummary.totalPassanti : costSummary.passthroughCosts;
-    
-    // Simulated commercial costs from sales channels (commissions)
-    const costiCommercialiSimulati = cashFlowData.hasData ? cashFlowData.totaleCostiCommerciali : 0;
-    
-    // Operational costs from cost manager (exclude manual commercial costs to avoid duplication)
-    const manualCommercialCosts = costSummary.costsByType.commercial;
-    const operationalCosts = costSummary.operationalCosts - manualCommercialCosts + costiCommercialiSimulati;
-    const totalCosts = passthroughCosts + operationalCosts;
-    
-    // Imponibile = Fatturato - IVA (base di calcolo corretta per i margini)
-    const iva = simulationSummary.hasData ? simulationSummary.totalIva : 0;
-    const imponibile = totalRevenue - iva;
-    
-    // Gross Margin = Imponibile - Passanti (what you keep before operational expenses)
-    const grossMargin = imponibile - passthroughCosts;
-    const grossMarginPercent = imponibile > 0 ? (grossMargin / imponibile) * 100 : 0;
-    
-    // Contribution Margin = Gross Margin - Commercial Costs (simulated from channels)
-    const contributionMargin = grossMargin - costiCommercialiSimulati;
-    const contributionMarginPercent = imponibile > 0 ? (contributionMargin / imponibile) * 100 : 0;
-    
-    // Net Margin = Imponibile - All Costs (passthrough + operational including commercial)
-    const netMargin = imponibile - totalCosts;
-    const netMarginPercent = imponibile > 0 ? (netMargin / imponibile) * 100 : 0;
-
-    return {
-      totalRevenue,
-      imponibile,
-      totalIva: iva,
-      totalCosts,
-      passthroughCosts,
-      operationalCosts,
-      costiCommercialiSimulati,
-      grossMargin,
-      grossMarginPercent,
-      costsByType: costSummary.costsByType,
-      netMargin,
-      netMarginPercent,
-      contributionMargin,
-      contributionMarginPercent,
-      // Additional simulation data
-      resellerMargin,
-      clientiAttivi: simulationSummary.clientiAttivi,
-      contrattiTotali: simulationSummary.contrattiTotali,
-      totalIncassato: simulationSummary.totalIncassato,
-      totalInsoluti: simulationSummary.totalInsoluti,
-      hasSimulationData: simulationSummary.hasData,
-    };
-  }, [costSummary, simulationSummary, cashFlowData]);
-
-  const handleExportPDF = () => {
-    exportToPDF(projectName, costs, revenues, summary);
-  };
-
-  const handleTemplateApplied = () => {
-    refetch();
+  // ─── Handlers ───
+  const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
+  const handleTemplateApplied = () => refetch();
+  const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
+    if (isEdit && editId) {
+      await updateCost(editId, costData);
+    } else {
+      await addCost(costData as any);
+    }
+    setEditingCost(null);
   };
 
   if (loading) {
@@ -280,62 +91,9 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
     );
   }
 
-  // Build comprehensive pie data including simulated costs
-  const pieData = (() => {
-    const entries: { name: string; value: number; color: string }[] = [];
-    
-    // Add passthrough costs from simulation
-    if (summary.hasSimulationData && summary.passthroughCosts > 0) {
-      entries.push({
-        name: 'Passanti (energia, trasporto, oneri)',
-        value: summary.passthroughCosts,
-        color: 'hsl(var(--chart-5))',
-      });
-    }
-    
-    // Add simulated commercial costs
-    if (summary.costiCommercialiSimulati > 0) {
-      entries.push({
-        name: 'Commerciali (canali vendita)',
-        value: summary.costiCommercialiSimulati,
-        color: COLORS.commercial,
-      });
-    }
-    
-    // Add manual costs by type (excluding commercial if already covered by simulation)
-    Object.entries(summary.costsByType)
-      .filter(([key, value]) => {
-        if (value <= 0) return false;
-        // Skip manual commercial costs if we have simulated ones
-        if (key === 'commercial' && summary.costiCommercialiSimulati > 0) return false;
-        return true;
-      })
-      .forEach(([key, value]) => {
-        entries.push({
-          name: COST_TYPE_LABELS[key as keyof typeof COST_TYPE_LABELS],
-          value,
-          color: COLORS[key as keyof typeof COLORS],
-        });
-      });
-    
-    return entries;
-  })();
-
-  const barData = [
-    { name: 'Ricavi', value: summary.totalRevenue, fill: 'hsl(var(--chart-1))' },
-    { name: 'Costi Totali', value: summary.totalCosts, fill: 'hsl(var(--chart-4))' },
-    { name: 'Margine Lordo', value: summary.grossMargin, fill: 'hsl(var(--chart-2))' },
-    { name: 'Margine Netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
-  ];
-
-  const marginData = [
-    { name: 'Margine Lordo', percent: summary.grossMarginPercent },
-    { name: 'Margine Contributivo', percent: summary.contributionMarginPercent },
-    { name: 'Margine Netto', percent: summary.netMarginPercent },
-  ];
-
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Dashboard Finanziaria</h2>
@@ -350,46 +108,22 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </div>
       </div>
 
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="hypotheses" className="flex items-center gap-2">
-            <Settings2 className="h-4 w-4" />
-            Ipotesi
-          </TabsTrigger>
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <PieChart className="h-4 w-4" />
-            Panoramica
-          </TabsTrigger>
-          <TabsTrigger value="costs" className="flex items-center gap-2">
-            <TrendingDown className="h-4 w-4" />
-            Costi
-          </TabsTrigger>
-          <TabsTrigger value="revenues" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Ricavi
-          </TabsTrigger>
-          <TabsTrigger value="margins" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            Margini
-          </TabsTrigger>
-          <TabsTrigger value="liquidity" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            Liquidità
-          </TabsTrigger>
-          <TabsTrigger value="taxflows" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            Flussi Fiscali
-          </TabsTrigger>
+          <TabsTrigger value="hypotheses" className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Ipotesi</TabsTrigger>
+          <TabsTrigger value="overview" className="flex items-center gap-2"><PieChart className="h-4 w-4" />Panoramica</TabsTrigger>
+          <TabsTrigger value="costs" className="flex items-center gap-2"><TrendingDown className="h-4 w-4" />Costi</TabsTrigger>
+          <TabsTrigger value="revenues" className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />Ricavi</TabsTrigger>
+          <TabsTrigger value="margins" className="flex items-center gap-2"><Calculator className="h-4 w-4" />Margini</TabsTrigger>
+          <TabsTrigger value="liquidity" className="flex items-center gap-2"><Wallet className="h-4 w-4" />Liquidità</TabsTrigger>
+          <TabsTrigger value="taxflows" className="flex items-center gap-2"><Receipt className="h-4 w-4" />Flussi Fiscali</TabsTrigger>
         </TabsList>
 
-        {/* Tab Ipotesi Operative - All simulation parameters, sales channels, wholesaler */}
+        {/* ─── Ipotesi Operative ─── */}
         <TabsContent value="hypotheses" className="space-y-6">
           <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
-          
-          {/* Sales Channels Configuration */}
           <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
-          
-          {/* Wholesaler Costs Configuration */}
           <WholesalerCostsConfig
             config={{
               punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
@@ -402,21 +136,11 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             }}
             consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
             onConfigChange={(updates) => {
-              if (updates.spreadGrossistaPerKwh !== undefined) {
-                revenueSimulation.updateParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
-              }
-              if (updates.punPerKwh !== undefined) {
-                revenueSimulation.updateParams('punPerKwh', updates.punPerKwh);
-              }
-              if (updates.gestionePodPerPod !== undefined) {
-                revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
-              }
-              if (updates.depositoMesi !== undefined) {
-                revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
-              }
-              if (updates.depositoPercentualeAttivazione !== undefined) {
-                revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
-              }
+              if (updates.spreadGrossistaPerKwh !== undefined) revenueSimulation.updateParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
+              if (updates.punPerKwh !== undefined) revenueSimulation.updateParams('punPerKwh', updates.punPerKwh);
+              if (updates.gestionePodPerPod !== undefined) revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
+              if (updates.depositoMesi !== undefined) revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
+              if (updates.depositoPercentualeAttivazione !== undefined) revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
               setTimeout(() => revenueSimulation.saveSimulation(), 500);
             }}
             costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
@@ -431,577 +155,28 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           />
         </TabsContent>
 
+        {/* ─── Panoramica ─── */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Financial Alerts */}
-          <FinancialAlerts summary={summary} />
-
-          {/* KPI Cards */}
-          <TooltipProvider delayDuration={200}>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Fatturato Totale
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Tutto ciò che il reseller fattura ai clienti finali nei 14 mesi di simulazione. Include margine, costi passanti e IVA.</p>
-                  </TooltipContent>
-                </UITooltip>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-primary">{formatCurrency(summary.totalRevenue)}</div>
-                <p className="text-xs text-muted-foreground">
-                  {summary.hasSimulationData ? 'Da simulatore (14 mesi)' : 'Nessun dato simulazione'}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Margine Reseller
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Il guadagno lordo del reseller: somma di CCV (commercializzazione), Spread al cliente e altri servizi. È ciò che resta prima dei costi operativi.</p>
-                  </TooltipContent>
-                </UITooltip>
-                <TrendingUp className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.resellerMargin)}</div>
-                <p className="text-xs text-muted-foreground">
-                  CCV + Spread + Altro
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Clienti Attivi
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Clienti con fornitura attiva a fine simulazione, al netto degli switch-out. I contratti firmati diventano attivi dopo ~2 mesi (verifica SII).</p>
-                  </TooltipContent>
-                </UITooltip>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{summary.clientiAttivi}</div>
-                <p className="text-xs text-muted-foreground">
-                  su {summary.contrattiTotali} contratti
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Costi Commerciali
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Provvigioni e commissioni pagate ai canali di vendita (agenti, call center, web, ecc.) per l'acquisizione clienti. Calcolati dal simulatore in base ai canali configurati.</p>
-                  </TooltipContent>
-                </UITooltip>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{formatCurrency(summary.costiCommercialiSimulati)}</div>
-                <p className="text-xs text-muted-foreground">
-                  {summary.costiCommercialiSimulati > 0 ? 'Da canali di vendita' : 'Configura i canali'}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Costi Operativi
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Totale costi del reseller: provvigioni canali + spese strutturali (affitto, personale, software). Non includono i costi passanti (energia, trasporto, oneri).</p>
-                  </TooltipContent>
-                </UITooltip>
-                <TrendingDown className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-destructive">{formatCurrency(summary.operationalCosts)}</div>
-                <p className="text-xs text-muted-foreground">
-                  Commerciali + strutturali
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Margine Lordo
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Imponibile (fatturato al netto IVA) meno costi passanti in fattura (energia, trasporto, oneri, accise). Indica quanto resta al reseller prima delle spese operative.</p>
-                  </TooltipContent>
-                </UITooltip>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${summary.grossMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                  {formatCurrency(summary.grossMargin)}
-                </div>
-                <div className="flex items-center gap-1 text-xs">
-                  {summary.grossMarginPercent >= 0 ? (
-                    <ArrowUpRight className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <ArrowDownRight className="h-3 w-3 text-destructive" />
-                  )}
-                  <span className={summary.grossMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
-                    {formatPercent(summary.grossMarginPercent)}
-                  </span>
-                  <span className="text-muted-foreground">sull'imponibile</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <UITooltip>
-                  <TooltipTrigger asChild>
-                    <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                      Margine Netto
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </CardTitle>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p>Margine Lordo meno i Costi Operativi (affitto, personale, ecc.). È il profitto effettivo del reseller.</p>
-                  </TooltipContent>
-                </UITooltip>
-                <Percent className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                  {formatCurrency(summary.netMargin)}
-                </div>
-                <div className="flex items-center gap-1 text-xs">
-                  {summary.netMarginPercent >= 0 ? (
-                    <ArrowUpRight className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <ArrowDownRight className="h-3 w-3 text-destructive" />
-                  )}
-                  <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
-                    {formatPercent(summary.netMarginPercent)}
-                  </span>
-                  <span className="text-muted-foreground">sui ricavi</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          </TooltipProvider>
-
-          {/* Cash Flow Summary if simulation data available */}
-          {summary.hasSimulationData && (
-            <TooltipProvider delayDuration={200}>
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card className="bg-green-50 dark:bg-green-950/20">
-                <CardHeader className="pb-2">
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300 flex items-center gap-1 cursor-help">
-                        Incassato
-                        <Info className="h-3 w-3 opacity-60" />
-                      </CardTitle>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
-                      <p>Quanto è stato effettivamente incassato dai clienti, considerando i tempi di pagamento (alla scadenza, entro 30/60/90+ gg).</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-orange-50 dark:bg-orange-950/20">
-                <CardHeader className="pb-2">
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1 cursor-help">
-                        Costi Passanti in Fattura
-                        <Info className="h-3 w-3 opacity-60" />
-                      </CardTitle>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
-                      <p>Voci addebitate al cliente e girate a terzi: PUN, dispacciamento, trasporto, oneri di sistema, accise e IVA. Non sono un guadagno per il reseller.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-red-50 dark:bg-red-950/20">
-                <CardHeader className="pb-2">
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300 flex items-center gap-1 cursor-help">
-                        Insoluti
-                        <Info className="h-3 w-3 opacity-60" />
-                      </CardTitle>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
-                      <p>Importi fatturati ma non incassati dopo 4+ mesi. Rappresentano perdite definitive sul credito verso i clienti.</p>
-                    </TooltipContent>
-                  </UITooltip>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold text-red-600">{formatCurrency(summary.totalInsoluti)}</div>
-                </CardContent>
-              </Card>
-            </div>
-            </TooltipProvider>
-          )}
-
-          {/* Charts */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Cost Breakdown Pie Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
-                  Ripartizione Costi
-                </CardTitle>
-                <CardDescription>Suddivisione per tipologia</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {pieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RechartsPie>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    </RechartsPie>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-                    Nessun costo registrato
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  {pieData.map((entry) => (
-                    <div key={entry.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="truncate">{entry.name}</span>
-                      </div>
-                      <span className="font-medium">{formatCurrency(entry.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Revenue vs Costs Bar Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Ricavi vs Costi
-                </CardTitle>
-                <CardDescription>Confronto economico</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={barData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-                    <YAxis type="category" dataKey="name" width={120} />
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    <Bar dataKey="value" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sales Channel Cost Breakdown */}
-          {(() => {
-            const totalContracts = summary.contrattiTotali || 0;
-            const breakdown = getChannelBreakdown(totalContracts);
-            const totalChannelCost = breakdown.reduce((s, ch) => s + ch.cost, 0);
-            const channelPieData = breakdown
-              .filter(ch => ch.cost > 0)
-              .map((ch, i) => ({
-                name: ch.channel_name,
-                value: ch.cost,
-                percent: totalChannelCost > 0 ? (ch.cost / totalChannelCost) * 100 : 0,
-                color: `hsl(var(--chart-${(i % 5) + 1}))`,
-              }));
-
-            return channelPieData.length > 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Peso Canali di Vendita sui Costi Commerciali
-                  </CardTitle>
-                  <CardDescription>
-                    Distribuzione percentuale delle provvigioni per canale ({formatCurrency(totalChannelCost)} totali)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <ResponsiveContainer width="100%" height={250}>
-                      <RechartsPie>
-                        <Pie
-                          data={channelPieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={3}
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${percent.toFixed(0)}%`}
-                        >
-                          {channelPieData.map((entry, index) => (
-                            <Cell key={`ch-cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      </RechartsPie>
-                    </ResponsiveContainer>
-                    <div className="space-y-3 flex flex-col justify-center">
-                      {channelPieData.map((entry) => (
-                        <div key={entry.name} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-sm font-medium">{entry.name}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-sm font-bold">{formatCurrency(entry.value)}</span>
-                            <span className="text-xs text-muted-foreground ml-2">({entry.percent.toFixed(1)}%)</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null;
-          })()}
-
-          {/* Monthly Commercial Costs by Channel - Stacked Bar Chart */}
-          {revenueSimulation.data && (
-            <MonthlyChannelCostsChart
-              channels={salesChannels}
-              monthlyContracts={revenueSimulation.data.monthlyContracts}
-              startDate={revenueSimulation.data.startDate}
-            />
-          )}
-
-          {/* ROI Indicator */}
-          {cashFlowData.hasData && cashFlowData.investimentoIniziale > 0 && (
-            <Card className="border-primary/30 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  ROI — Return on Investment
-                </CardTitle>
-                <CardDescription>
-                  Confronto tra margine netto e investimento iniziale dal Processo
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Investimento Totale</p>
-                    <p className="text-2xl font-bold text-destructive">{formatCurrency(cashFlowData.investimentoIniziale)}</p>
-                    <p className="text-xs text-muted-foreground">Costi step del Processo</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Margine Netto (14m)</p>
-                    <p className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                      {formatCurrency(summary.netMargin)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Ricavi − Tutti i costi</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">ROI</p>
-                    {(() => {
-                      const roi = cashFlowData.investimentoIniziale > 0
-                        ? ((summary.netMargin / cashFlowData.investimentoIniziale) * 100)
-                        : 0;
-                      return (
-                        <>
-                          <p className={`text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                            {roi.toFixed(1)}%
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {roi >= 100 ? 'Investimento recuperato' : roi >= 0 ? 'In recupero' : 'Negativo'}
-                          </p>
-                        </>
-                      );
-                    })()}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Payback</p>
-                    {(() => {
-                      const avgMonthlyNetMargin = summary.netMargin / 14;
-                      const paybackMonths = avgMonthlyNetMargin > 0
-                        ? Math.ceil(cashFlowData.investimentoIniziale / avgMonthlyNetMargin)
-                        : null;
-                      return (
-                        <>
-                          <p className="text-2xl font-bold">
-                            {paybackMonths ? `${paybackMonths} mesi` : 'N/D'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {paybackMonths && paybackMonths <= 14 ? 'Entro la simulazione' : 'Oltre 14 mesi'}
-                          </p>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Margin Analysis */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Analisi Margini</CardTitle>
-              <CardDescription>Indicatori di redditività del progetto</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {marginData.map((margin) => (
-                <div key={margin.name} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{margin.name}</span>
-                    <Badge variant={margin.percent >= 20 ? 'default' : margin.percent >= 0 ? 'secondary' : 'destructive'}>
-                      {formatPercent(margin.percent)}
-                    </Badge>
-                  </div>
-                  <Progress 
-                    value={Math.max(0, Math.min(100, margin.percent))} 
-                    className="h-2"
-                  />
-                </div>
-              ))}
-              
-              <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-                <p><strong>Margine Lordo:</strong> Fatturato - Costi Passanti (energia, trasporto, oneri, accise, IVA)</p>
-                <p><strong>Margine Contributivo:</strong> Margine Lordo - Costi Commerciali (provvigioni canali di vendita)</p>
-                <p><strong>Margine Netto:</strong> Fatturato - Tutti i Costi (passanti + operativi)</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Riepilogo Costi Simulazione - integrato con i dati del simulatore */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                Riepilogo Costi dal Simulatore
-              </CardTitle>
-              <CardDescription>Costi calcolati in base alla base clienti e consumi previsti</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Costo Energia Grossista</p>
-                  <p className="text-xl font-bold">{formatCurrency(simulationSummary.costoEnergiaTotale)}</p>
-                  <p className="text-xs text-muted-foreground">14 mesi simulati</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Fee Gestione POD</p>
-                  <p className="text-xl font-bold">{formatCurrency(simulationSummary.costoGestionePodTotale)}</p>
-                  <p className="text-xs text-muted-foreground">14 mesi simulati</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Costi Commerciali</p>
-                  <p className="text-xl font-bold">{formatCurrency(summary.costiCommercialiSimulati)}</p>
-                  <p className="text-xs text-muted-foreground">Provvigioni canali vendita</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Depositi Cauzionali</p>
-                  <p className="text-xl font-bold">{formatCurrency(simulationSummary.depositoMassimo)}</p>
-                  <p className="text-xs text-muted-foreground">Picco massimo</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Costi Operativi Totali</p>
-                  <p className="text-xl font-bold">{formatCurrency(summary.operationalCosts)}</p>
-                  <p className="text-xs text-muted-foreground">Commerciali + strutturali</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Trend Chart with Forecast - uses same data as Liquidità tab */}
-          <FinancialTrendChart cashFlowData={cashFlowData} loading={cashFlowLoading} />
-
-          {/* Break-Even Analysis */}
-          <BreakEvenAnalysis summary={summary} breakEvenFinanziario={cashFlowData.mesePrimoPositivo} />
-
-          {/* Financial Glossary */}
-          <FinancialGlossary />
+          <OverviewTab
+            summary={summary}
+            simulationSummary={simulationSummary}
+            cashFlowData={cashFlowData}
+            cashFlowLoading={cashFlowLoading}
+            salesChannels={salesChannels}
+            getChannelBreakdown={getChannelBreakdown}
+            simulationData={revenueSimulation.data}
+          />
         </TabsContent>
 
+        {/* ─── Costi ─── */}
         <TabsContent value="costs" className="space-y-6">
-          {/* Costs organized by category tabs */}
           <CostTabsView
             costs={filteredCosts}
             categories={categories}
             commodityType={commodityType || null}
-            onEdit={(cost) => {
-              setEditingCost(cost);
-              setShowCostDialog(true);
-            }}
-            onDelete={async (id) => {
-              if (confirm('Sei sicuro di voler eliminare questo costo?')) {
-                await deleteCost(id);
-              }
-            }}
-            onAdd={() => {
-              setEditingCost(null);
-              setShowCostDialog(true);
-            }}
+            onEdit={(cost) => { setEditingCost(cost); setShowCostDialog(true); }}
+            onDelete={async (id) => { if (confirm('Sei sicuro di voler eliminare questo costo?')) await deleteCost(id); }}
+            onAdd={() => { setEditingCost(null); setShowCostDialog(true); }}
             simulatedPassthrough={{
               costoEnergiaTotale: simulationSummary.costoEnergiaTotale,
               costoGestionePodTotale: simulationSummary.costoGestionePodTotale,
@@ -1045,146 +220,53 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           />
         </TabsContent>
 
+        {/* ─── Ricavi ─── */}
         <TabsContent value="revenues">
           <div className="space-y-6">
-            {/* Spiegazione modello ricavi reseller */}
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                Modello Ricavi Reseller Energia
+                <Zap className="h-4 w-4" />Modello Ricavi Reseller Energia
               </h3>
               <div className="text-sm text-blue-700 dark:text-blue-400 space-y-2">
-                <p>
-                  Il <strong>fatturato</strong> di un reseller è dato dalla somma delle bollette emesse ai clienti finali.
-                  Solo 3 componenti della fattura sono controllabili dal reseller:
-                </p>
+                <p>Il <strong>fatturato</strong> di un reseller è dato dalla somma delle bollette emesse ai clienti finali. Solo 3 componenti della fattura sono controllabili dal reseller:</p>
                 <ul className="list-disc list-inside ml-2 space-y-1">
                   <li><strong>CCV</strong> - Componente Commercializzazione e Vendita (€/mese fisso)</li>
                   <li><strong>Spread</strong> - Ricarico variabile su PUN/PSV (€/kWh o €/Smc)</li>
                   <li><strong>Altro</strong> - Servizi aggiuntivi opzionali</li>
                 </ul>
-                <p className="text-xs mt-2 text-blue-600 dark:text-blue-500">
-                  Tutte le altre componenti (energia, trasporto, distribuzione, oneri) sono passanti verso il grossista/distributore.
-                </p>
+                <p className="text-xs mt-2 text-blue-600 dark:text-blue-500">Tutte le altre componenti (energia, trasporto, distribuzione, oneri) sono passanti verso il grossista/distributore.</p>
               </div>
             </div>
-
-            {/* Simulatore Ricavi Reseller - Fonte unica dei ricavi */}
             <ResellerRevenueSimulator projectId={projectId} simulationHook={revenueSimulation} />
           </div>
         </TabsContent>
 
+        {/* ─── Margini ─── */}
         <TabsContent value="margins" className="space-y-6">
           <MarginAnalysis summary={summary} />
-          <WhatIfSimulator 
-            summary={summary} 
-            channelBreakdown={getChannelBreakdown(simulationSummary.contrattiTotali || 0)} 
-          />
+          <WhatIfSimulator summary={summary} channelBreakdown={getChannelBreakdown(simulationSummary.contrattiTotali || 0)} />
         </TabsContent>
 
+        {/* ─── Liquidità ─── */}
         <TabsContent value="liquidity" className="space-y-6">
-          <CashFlowDashboard 
-            cashFlowData={cashFlowData} 
-            loading={cashFlowLoading}
-            projectId={projectId}
-            projectName={projectName}
-          />
+          <CashFlowDashboard cashFlowData={cashFlowData} loading={cashFlowLoading} projectId={projectId} projectName={projectName} />
         </TabsContent>
 
+        {/* ─── Flussi Fiscali ─── */}
         <TabsContent value="taxflows" className="space-y-6">
           <TaxFlowsDashboard projectId={projectId} simulationData={sharedSimData} onUpdateParams={revenueSimulation.updateParams} onSaveSimulation={revenueSimulation.saveSimulation} />
         </TabsContent>
-
       </Tabs>
 
       {/* Cost Add/Edit Dialog */}
-      <Dialog open={showCostDialog} onOpenChange={(open) => { setShowCostDialog(open); if (!open) setEditingCost(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingCost ? 'Modifica' : 'Aggiungi'} Voce di Costo</DialogTitle>
-            <DialogDescription>Inserisci i dettagli della voce di costo</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cost-name">Nome *</Label>
-                <Input id="cost-name" value={costFormData.name} onChange={(e) => setCostFormData({ ...costFormData, name: e.target.value })} placeholder="es. Software gestionale" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cost-type">Tipo Costo *</Label>
-                <Select value={costFormData.cost_type} onValueChange={(value) => setCostFormData({ ...costFormData, cost_type: value })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {COST_TYPE_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cost-amount">Importo (€) *</Label>
-                <Input id="cost-amount" type="number" step="0.01" value={costFormData.amount} onChange={(e) => setCostFormData({ ...costFormData, amount: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cost-qty">Quantità</Label>
-                <Input id="cost-qty" type="number" value={costFormData.quantity} onChange={(e) => setCostFormData({ ...costFormData, quantity: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cost-unit">Unità</Label>
-                <Input id="cost-unit" value={costFormData.unit} onChange={(e) => setCostFormData({ ...costFormData, unit: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cost-cat">Categoria</Label>
-              <Select value={costFormData.category_id} onValueChange={(value) => setCostFormData({ ...costFormData, category_id: value })}>
-                <SelectTrigger><SelectValue placeholder="Seleziona categoria" /></SelectTrigger>
-                <SelectContent>
-                  {categories.filter(c => c.type === costFormData.cost_type).map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cost-desc">Descrizione</Label>
-              <Textarea id="cost-desc" value={costFormData.description} onChange={(e) => setCostFormData({ ...costFormData, description: e.target.value })} rows={2} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cost-date">Data</Label>
-                <Input id="cost-date" type="date" value={costFormData.date} onChange={(e) => setCostFormData({ ...costFormData, date: e.target.value })} />
-              </div>
-              <div className="flex items-center space-x-2 pt-6">
-                <Switch id="cost-recurring" checked={costFormData.is_recurring} onCheckedChange={(checked) => setCostFormData({ ...costFormData, is_recurring: checked })} />
-                <Label htmlFor="cost-recurring">Costo ricorrente</Label>
-              </div>
-            </div>
-            {costFormData.is_recurring && (
-              <div className="space-y-2">
-                <Label>Periodicità</Label>
-                <Select value={costFormData.recurrence_period} onValueChange={(value) => setCostFormData({ ...costFormData, recurrence_period: value })}>
-                  <SelectTrigger><SelectValue placeholder="Seleziona periodicità" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Mensile</SelectItem>
-                    <SelectItem value="quarterly">Trimestrale</SelectItem>
-                    <SelectItem value="yearly">Annuale</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="cost-notes">Note</Label>
-              <Textarea id="cost-notes" value={costFormData.notes} onChange={(e) => setCostFormData({ ...costFormData, notes: e.target.value })} rows={2} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowCostDialog(false); setEditingCost(null); }}>Annulla</Button>
-            <Button onClick={handleCostSubmit} disabled={!costFormData.name || !costFormData.amount}>{editingCost ? 'Salva Modifiche' : 'Aggiungi Costo'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CostEditDialog
+        open={showCostDialog}
+        onOpenChange={(open) => { setShowCostDialog(open); if (!open) setEditingCost(null); }}
+        editingCost={editingCost}
+        categories={categories}
+        projectId={projectId}
+        onSubmit={handleCostSubmit}
+      />
     </div>
   );
 };
