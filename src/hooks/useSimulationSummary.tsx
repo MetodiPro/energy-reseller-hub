@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { useRevenueSimulation, RevenueSimulationData } from './useRevenueSimulation';
-import { runSimulationEngine, SIM_MONTHS } from '@/lib/simulationEngine';
+import { RevenueSimulationData } from './useRevenueSimulation';
+import { SimulationEngineResult, SIM_MONTHS } from '@/lib/simulationEngine';
+import { useEngineResult } from './useEngineResult';
 
 export interface MonthlyDepositData {
   month: number;
@@ -54,101 +55,114 @@ const EMPTY_SUMMARY: SimulationSummary = {
   depositiMensili: [], costiMensili: [],
 };
 
-export const useSimulationSummary = (projectId: string | null, simulationData?: { data: RevenueSimulationData; loading: boolean }) => {
-  const ownHook = useRevenueSimulation(simulationData ? null : projectId);
-  const data = simulationData?.data ?? ownHook.data;
-  const loading = simulationData?.loading ?? ownHook.loading;
+/** Overload: accepts a pre-computed engine result to avoid re-running the simulation */
+export function buildSimulationSummary(
+  engine: SimulationEngineResult,
+  data: RevenueSimulationData
+): SimulationSummary {
+  const { perClient, monthly } = engine;
+  const kWh = data.params.avgMonthlyConsumption;
 
-  const summary = useMemo((): SimulationSummary => {
-    if (!projectId || loading) return EMPTY_SUMMARY;
+  let totalFatturato = 0, totalMargine = 0, totalPassanti = 0, totalIva = 0;
+  let totalChurned = 0, totalContracts = 0;
+  let costoGestionePodTotale = 0, costoEnergiaTotale = 0;
+  let cumulativeCollection = 0, cumulativeUncollected = 0;
+  let depositoIniziale = 0, depositoMassimo = 0;
 
-    const engine = runSimulationEngine(data.params, data.monthlyContracts, data.startDate);
-    const { perClient, monthly } = engine;
-    const kWh = data.params.avgMonthlyConsumption;
+  const depositiMensili: MonthlyDepositData[] = [];
+  const costiMensili: MonthlyCostBreakdown[] = [];
 
-    let totalFatturato = 0, totalMargine = 0, totalPassanti = 0, totalIva = 0;
-    let totalChurned = 0, totalContracts = 0;
-    let costoGestionePodTotale = 0, costoEnergiaTotale = 0;
-    let cumulativeCollection = 0, cumulativeUncollected = 0;
-    let depositoIniziale = 0, depositoMassimo = 0;
+  for (const m of monthly) {
+    const { customer, deposit, collection } = m;
 
-    const depositiMensili: MonthlyDepositData[] = [];
-    const costiMensili: MonthlyCostBreakdown[] = [];
+    totalContracts += customer.contrattiNuovi;
+    totalChurned += customer.churn;
+    totalFatturato += m.fatturato;
+    totalMargine += m.margineCommerciale;
+    totalPassanti += m.costiPassanti;
+    totalIva += customer.clientiFatturati * perClient.iva;
+    costoGestionePodTotale += m.costiGestionePod;
+    costoEnergiaTotale += m.costoEnergia;
+    cumulativeCollection += collection.totaleIncassi;
 
-    for (const m of monthly) {
-      const { customer, deposit, collection } = m;
-
-      totalContracts += customer.contrattiNuovi;
-      totalChurned += customer.churn;
-      totalFatturato += m.fatturato;
-      totalMargine += m.margineCommerciale;
-      totalPassanti += m.costiPassanti;
-      totalIva += customer.clientiFatturati * perClient.iva;
-      costoGestionePodTotale += m.costiGestionePod;
-      costoEnergiaTotale += m.costoEnergia;
-      cumulativeCollection += collection.totaleIncassi;
-
-      // Insoluti: calcolati 4 mesi dopo la fattura
-      // (il motore non li calcola direttamente, li deriviamo)
-      if (customer.month >= 7) {
-        const invoiceMonth = customer.month - 4;
-        const pastMonthly = monthly[invoiceMonth];
-        if (pastMonthly && pastMonthly.fatturato > 0) {
-          cumulativeUncollected += pastMonthly.fatturato * (data.params.uncollectibleRate / 100);
-        }
+    if (customer.month >= 7) {
+      const invoiceMonth = customer.month - 4;
+      const pastMonthly = monthly[invoiceMonth];
+      if (pastMonthly && pastMonthly.fatturato > 0) {
+        cumulativeUncollected += pastMonthly.fatturato * (data.params.uncollectibleRate / 100);
       }
-
-      const fatturatoMensileStimato = customer.clientiAttivi * perClient.fattura;
-
-      depositiMensili.push({
-        month: customer.month,
-        monthLabel: customer.monthLabel,
-        clientiAttivi: customer.clientiAttivi,
-        fatturatoMensileStimato,
-        depositoRichiesto: deposit.depositoRichiesto,
-        deltaDeposito: deposit.deltaDeposito,
-      });
-
-      if (customer.month === 2) depositoIniziale = deposit.depositoRichiesto;
-      if (deposit.depositoRichiesto > depositoMassimo) depositoMassimo = deposit.depositoRichiesto;
-
-      // Costi mensili breakdown
-      const dispacciamentoMese = customer.clientiFatturati * data.params.dispacciamentoPerKwh * kWh;
-      const trasportoMese = customer.clientiFatturati * perClient.trasporto;
-      const oneriSistemaMese = customer.clientiFatturati * perClient.oneriSistema;
-      const acciseMese = customer.clientiFatturati * perClient.accise;
-
-      costiMensili.push({
-        month: customer.month,
-        monthLabel: customer.monthLabel,
-        clientiAttivi: customer.clientiAttivi,
-        costoEnergia: m.costoEnergia,
-        costoPod: m.costiGestionePod,
-        dispacciamento: dispacciamentoMese,
-        trasporto: trasportoMese,
-        oneriSistema: oneriSistemaMese,
-        accise: acciseMese,
-      });
     }
 
-    const lastMonth = monthly[monthly.length - 1];
-    const totalInvoiced = monthly.reduce((sum, m) => sum + m.fatturato, 0);
-    const pendingReceivables = Math.max(0, totalInvoiced - cumulativeCollection - cumulativeUncollected);
-    const depositoFinale = lastMonth ? lastMonth.deposit.depositoRichiesto : 0;
+    const fatturatoMensileStimato = customer.clientiAttivi * perClient.fattura;
 
-    return {
-      totalFatturato, totalMargine, totalPassanti, totalIva,
-      totalIncassato: cumulativeCollection, totalInsoluti: cumulativeUncollected,
-      totalCrediti: pendingReceivables,
-      clientiAttivi: lastMonth?.customer.clientiAttivi ?? 0,
-      contrattiTotali: totalContracts, switchOutTotali: totalChurned,
-      marginePercent: (totalFatturato - totalIva) > 0 ? (totalMargine / (totalFatturato - totalIva)) * 100 : 0,
-      hasData: totalContracts > 0,
-      costoGestionePodTotale, costoEnergiaTotale,
-      depositoIniziale, depositoFinale, depositoMassimo,
-      depositiMensili, costiMensili,
-    };
-  }, [projectId, loading, data]);
+    depositiMensili.push({
+      month: customer.month,
+      monthLabel: customer.monthLabel,
+      clientiAttivi: customer.clientiAttivi,
+      fatturatoMensileStimato,
+      depositoRichiesto: deposit.depositoRichiesto,
+      deltaDeposito: deposit.deltaDeposito,
+    });
+
+    if (customer.month === 2) depositoIniziale = deposit.depositoRichiesto;
+    if (deposit.depositoRichiesto > depositoMassimo) depositoMassimo = deposit.depositoRichiesto;
+
+    const dispacciamentoMese = customer.clientiFatturati * data.params.dispacciamentoPerKwh * kWh;
+    const trasportoMese = customer.clientiFatturati * perClient.trasporto;
+    const oneriSistemaMese = customer.clientiFatturati * perClient.oneriSistema;
+    const acciseMese = customer.clientiFatturati * perClient.accise;
+
+    costiMensili.push({
+      month: customer.month,
+      monthLabel: customer.monthLabel,
+      clientiAttivi: customer.clientiAttivi,
+      costoEnergia: m.costoEnergia,
+      costoPod: m.costiGestionePod,
+      dispacciamento: dispacciamentoMese,
+      trasporto: trasportoMese,
+      oneriSistema: oneriSistemaMese,
+      accise: acciseMese,
+    });
+  }
+
+  const lastMonth = monthly[monthly.length - 1];
+  const totalInvoiced = monthly.reduce((sum, m) => sum + m.fatturato, 0);
+  const pendingReceivables = Math.max(0, totalInvoiced - cumulativeCollection - cumulativeUncollected);
+  const depositoFinale = lastMonth ? lastMonth.deposit.depositoRichiesto : 0;
+
+  return {
+    totalFatturato, totalMargine, totalPassanti, totalIva,
+    totalIncassato: cumulativeCollection, totalInsoluti: cumulativeUncollected,
+    totalCrediti: pendingReceivables,
+    clientiAttivi: lastMonth?.customer.clientiAttivi ?? 0,
+    contrattiTotali: totalContracts, switchOutTotali: totalChurned,
+    marginePercent: (totalFatturato - totalIva) > 0 ? (totalMargine / (totalFatturato - totalIva)) * 100 : 0,
+    hasData: totalContracts > 0,
+    costoGestionePodTotale, costoEnergiaTotale,
+    depositoIniziale, depositoFinale, depositoMassimo,
+    depositiMensili, costiMensili,
+  };
+}
+
+export const useSimulationSummary = (
+  projectId: string | null,
+  simulationData?: { data: RevenueSimulationData; loading: boolean },
+  sharedEngine?: SimulationEngineResult | null
+) => {
+  // If no shared engine provided, compute our own
+  const ownEngine = useEngineResult(
+    sharedEngine !== undefined ? null : projectId,
+    simulationData ? { simulationData } : undefined
+  );
+
+  const engineResult = sharedEngine !== undefined ? sharedEngine : ownEngine.engineResult;
+  const data = simulationData?.data ?? ownEngine.data;
+  const loading = simulationData?.loading ?? ownEngine.loading;
+
+  const summary = useMemo((): SimulationSummary => {
+    if (!projectId || loading || !engineResult || !data) return EMPTY_SUMMARY;
+    return buildSimulationSummary(engineResult, data);
+  }, [projectId, loading, engineResult, data]);
 
   return { summary, loading };
 };
