@@ -92,7 +92,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
   const channels = options?.salesChannelsData?.channels ?? ownChannelsHook.channels;
   const channelsLoading = options?.salesChannelsData?.loading ?? ownChannelsHook.loading;
 
-  const { taxFlows, loading: taxLoading } = useTaxFlows(projectId);
+  const { taxFlows, loading: taxLoading } = useTaxFlows(projectId, 'monthly', { simulationData: { data: simData, loading: simLoading } });
 
   const cashFlowData = useMemo((): CashFlowSummary => {
     const empty: CashFlowSummary = {

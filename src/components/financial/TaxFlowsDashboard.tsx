@@ -13,8 +13,8 @@ import {
   AlertTriangle,
   Info
 } from 'lucide-react';
-import { useTaxFlows } from '@/hooks/useTaxFlows';
-import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useTaxFlows, TaxFlowsSummary } from '@/hooks/useTaxFlows';
+import { useRevenueSimulation, RevenueSimulationData } from '@/hooks/useRevenueSimulation';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
@@ -27,6 +27,9 @@ import { TaxDeadlinesAlert } from './TaxDeadlinesAlert';
 
 interface TaxFlowsDashboardProps {
   projectId: string | null;
+  simulationData?: { data: RevenueSimulationData; loading: boolean };
+  onUpdateParams?: (key: string, value: any) => void;
+  onSaveSimulation?: () => Promise<any>;
 }
 
 const formatCurrency = (value: number) => {
@@ -47,10 +50,14 @@ const formatCurrencyDecimal = (value: number) => {
   }).format(value);
 };
 
-export const TaxFlowsDashboard = ({ projectId }: TaxFlowsDashboardProps) => {
-  const { data: simData, loading: simLoading, updateParams, saveSimulation } = useRevenueSimulation(projectId);
+export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, onSaveSimulation }: TaxFlowsDashboardProps) => {
+  const ownSimHook = useRevenueSimulation(simulationData ? null : projectId);
+  const simData = simulationData?.data ?? ownSimHook.data;
+  const simLoading = simulationData?.loading ?? ownSimHook.loading;
+  const updateParams = onUpdateParams ?? ownSimHook.updateParams;
+  const saveSimulation = onSaveSimulation ?? ownSimHook.saveSimulation;
   const ivaRegime = simData.params.ivaPaymentRegime;
-  const { taxFlows, loading } = useTaxFlows(projectId, ivaRegime);
+  const { taxFlows, loading } = useTaxFlows(projectId, ivaRegime, { simulationData: { data: simData, loading: simLoading } });
 
   const handleIvaRegimeChange = async (regime: 'monthly' | 'quarterly') => {
     updateParams('ivaPaymentRegime', regime);

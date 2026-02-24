@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { useRevenueSimulation } from './useRevenueSimulation';
-import { useSimulationSummary } from './useSimulationSummary';
+import { useRevenueSimulation, RevenueSimulationData } from './useRevenueSimulation';
 import { runSimulationEngine } from '@/lib/simulationEngine';
 
 export interface MonthlyTaxFlowData {
@@ -55,14 +54,23 @@ const TAX_PAYMENT_CONFIG = {
   trasportoPaymentDelay: 1,
 };
 
-export const useTaxFlows = (projectId: string | null, ivaRegime: 'monthly' | 'quarterly' = 'monthly') => {
-  const { data: simData, loading: simLoading } = useRevenueSimulation(projectId);
-  const { summary: simSummary, loading: summaryLoading } = useSimulationSummary(projectId);
+interface UseTaxFlowsOptions {
+  simulationData?: { data: RevenueSimulationData; loading: boolean };
+}
 
-  const loading = simLoading || summaryLoading;
+export const useTaxFlows = (
+  projectId: string | null,
+  ivaRegime: 'monthly' | 'quarterly' = 'monthly',
+  options?: UseTaxFlowsOptions
+) => {
+  const ownSimHook = useRevenueSimulation(options?.simulationData ? null : projectId);
+  const simData = options?.simulationData?.data ?? ownSimHook.data;
+  const simLoading = options?.simulationData?.loading ?? ownSimHook.loading;
+
+  const loading = simLoading;
 
   const taxFlows = useMemo((): TaxFlowsSummary => {
-    if (!projectId || loading || !simSummary.hasData) return EMPTY_TAX;
+    if (!projectId || loading || !simData?.params) return EMPTY_TAX;
 
     // Usa il motore condiviso per i dati clienti
     const engine = runSimulationEngine(simData.params, simData.monthlyContracts, simData.startDate);
@@ -198,7 +206,7 @@ export const useTaxFlows = (projectId: string | null, ivaRegime: 'monthly' | 'qu
       totaleTaxOutflows: Math.round(totaleTaxOutflows),
       hasData: monthlyData.length > 0,
     };
-  }, [projectId, loading, simSummary, simData, ivaRegime]);
+  }, [projectId, loading, simData, ivaRegime]);
 
   return { taxFlows, loading };
 };
