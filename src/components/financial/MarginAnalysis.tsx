@@ -11,10 +11,10 @@ import {
   Target,
   Percent
 } from 'lucide-react';
-import { FinancialSummary } from '@/hooks/useProjectFinancials';
+import type { FinancialOverviewSummary } from '@/hooks/useFinancialSummary';
 
 interface MarginAnalysisProps {
-  summary: FinancialSummary;
+  summary: FinancialOverviewSummary;
 }
 
 const formatCurrency = (value: number) => {
