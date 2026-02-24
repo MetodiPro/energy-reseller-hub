@@ -186,51 +186,6 @@ export const stepCostsData: Record<string, StepCostDetail> = {
     ],
   },
 
-  'step-3-1b': {
-    min: 15000,
-    max: 60000,
-    description: 'Iscrizione EVG - Elenco Venditori Gas Naturale',
-    items: [
-      {
-        id: 'evg-iscrizione',
-        name: 'Iscrizione EVG',
-        category: 'licenze',
-        defaultAmount: 0,
-        description: 'Iscrizione gratuita al MASE',
-      },
-      {
-        id: 'garanzia-evg',
-        name: 'Garanzia Finanziaria EVG',
-        category: 'garanzie',
-        defaultAmount: 30000,
-        description: 'Fideiussione obbligatoria (importo varia in base ai volumi previsti)',
-        notes: 'Minimo €10.000, tipicamente 3-5% del fatturato previsto',
-      },
-      {
-        id: 'costo-fideiussione-evg',
-        name: 'Costo Emissione Fideiussione',
-        category: 'garanzie',
-        defaultAmount: 1500,
-        description: 'Commissione banca/assicurazione per rilascio garanzia (circa 1.5-3% annuo)',
-      },
-      {
-        id: 'consulenza-evg',
-        name: 'Consulenza Pratica EVG',
-        category: 'consulenza',
-        defaultAmount: 1500,
-        description: 'Assistenza nella compilazione domanda e piano contingenza',
-        isOptional: true,
-      },
-      {
-        id: 'piano-contingenza',
-        name: 'Redazione Piano Contingenza',
-        category: 'consulenza',
-        defaultAmount: 800,
-        description: 'Documento obbligatorio per gestione emergenze',
-      },
-    ],
-  },
-
   'step-3-1c': {
     min: 500,
     max: 3000,

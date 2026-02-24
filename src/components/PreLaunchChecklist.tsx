@@ -79,7 +79,6 @@ const criticalStepIds = [
 ];
 
 const importantStepIds = [
-  'step-3-1b', // EVG (se vendi gas)
   'step-3-3', // Obblighi ARERA
   'step-3-4', // Portale Offerte
   'step-3-5', // Codice Condotta

@@ -19,7 +19,6 @@ export const stepTimingConfig: Record<string, number> = {
   
   // FASE 3: Autorizzazioni (Mese 1-2)
   'step-3-1': 1, // EVE
-  'step-3-1b': 1, // EVG
   'step-3-1c': 2, // Formazione normativa
   'step-3-2': 1, // ARERA
   'step-3-3': 2, // Obblighi informativi ARERA
