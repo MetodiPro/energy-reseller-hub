@@ -18,6 +18,8 @@ import {
   CreditCard,
   Loader2,
   Settings2,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 
@@ -332,13 +334,34 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 />
               </div>
               
-              <div className={`p-2 rounded-lg text-xs ${
-                Math.abs((params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate) - 100) < 0.1
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-red-50 text-red-700'
-              }`}>
-                Totale: {params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate}%
-              </div>
+              {(() => {
+                const total = params.collectionMonth0 + params.collectionMonth1 + params.collectionMonth2 + params.collectionMonth3Plus + params.uncollectibleRate;
+                const isValid = Math.abs(total - 100) < 0.1;
+                return (
+                  <div className={`p-3 rounded-lg text-sm flex items-start gap-2 ${
+                    isValid
+                      ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                      : 'bg-destructive/10 text-destructive border border-destructive/30'
+                  }`}>
+                    {isValid ? (
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                    )}
+                    <div>
+                      <p className="font-medium">
+                        Totale: {total.toFixed(1)}%
+                        {!isValid && (total > 100 ? ` (eccesso di ${(total - 100).toFixed(1)}%)` : ` (mancano ${(100 - total).toFixed(1)}%)`)}
+                      </p>
+                      {!isValid && (
+                        <p className="text-xs mt-1 opacity-80">
+                          La somma dei tassi di incasso e degli insoluti deve essere esattamente 100%. I risultati della simulazione potrebbero non essere attendibili.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
