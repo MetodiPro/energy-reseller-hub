@@ -44,8 +44,7 @@ const EMPTY_TAX: TaxFlowsSummary = {
   totaleTaxOutflows: 0, hasData: false,
 };
 
-const IVA_COSTI_OPERATIVI = 0.22;
-
+const IVA_ALIQUOTA = 0.22;
 const TAX_PAYMENT_CONFIG = {
   ivaPaymentDelay: 1,
   acciseQuarters: [2, 5, 8, 11],
@@ -76,6 +75,7 @@ export const useTaxFlows = (
     const engine = runSimulationEngine(simData.params, simData.monthlyContracts, simData.startDate);
     const { perClient, monthly: engineMonthly } = engine;
 
+    const pendingIvaCredito: { month: number; amount: number }[] = [];
     const pendingIva: { month: number; amount: number }[] = [];
     const pendingAccise: { month: number; amount: number }[] = [];
     const pendingOneri: { month: number; amount: number }[] = [];
@@ -99,20 +99,24 @@ export const useTaxFlows = (
       pendingIva.push({ month: m, amount: ivaDebito });
       totaleIvaDebito += ivaDebito;
 
-      // IVA credito (stima su costi operativi)
-      const stimaCostiConIva = clientiFatturati * perClient.margineTotale * 0.3;
-      const ivaCredito = stimaCostiConIva * IVA_COSTI_OPERATIVI;
+      // IVA credito: calcolata sui costi reali con IVA sostenuti dal reseller
+      // - Costi passanti pagati al grossista (energia, trasporto, oneri, accise)
+      // - Costo energia dal grossista (PUN + spread grossista)
+      // - Costi gestione POD
+      const costiConIva = em.costiPassanti + em.costoEnergia + em.costiGestionePod;
+      const ivaCredito = costiConIva * IVA_ALIQUOTA;
+      pendingIvaCredito.push({ month: m, amount: ivaCredito });
       totaleIvaCredito += ivaCredito;
 
-      // IVA payment
+      // IVA payment (debito - credito del mese di competenza, con delay)
       let ivaPayment = 0;
       if (ivaRegime === 'monthly') {
         const idx = m - TAX_PAYMENT_CONFIG.ivaPaymentDelay;
         if (idx >= 0) {
-          const entry = pendingIva.find(p => p.month === idx);
-          if (entry) {
-            const prevCredito = idx >= 3 ? customer.clientiAttivi * perClient.margineTotale * 0.3 * IVA_COSTI_OPERATIVI : 0;
-            ivaPayment = Math.max(0, entry.amount - prevCredito);
+          const debitoEntry = pendingIva.find(p => p.month === idx);
+          const creditoEntry = pendingIvaCredito.find(p => p.month === idx);
+          if (debitoEntry) {
+            ivaPayment = Math.max(0, debitoEntry.amount - (creditoEntry?.amount ?? 0));
             totaleIvaVersamenti += ivaPayment;
           }
         }
@@ -120,13 +124,13 @@ export const useTaxFlows = (
         const quarterlyPaymentMonths = [4, 7, 10, 2];
         if (quarterlyPaymentMonths.includes(customer.monthIndex)) {
           const quarterStart = m - 4;
-          const quarterlyTotal = pendingIva
+          const quarterlyDebito = pendingIva
             .filter(p => p.month > quarterStart && p.month <= m - 1)
             .reduce((s, p) => s + p.amount, 0);
-          const quarterlyCredito = pendingIva
-            .filter(p => p.month > quarterStart && p.month <= m - 1).length
-            * (customer.clientiAttivi * perClient.margineTotale * 0.3 * IVA_COSTI_OPERATIVI / 3);
-          ivaPayment = Math.max(0, quarterlyTotal - quarterlyCredito) * 1.01;
+          const quarterlyCredito = pendingIvaCredito
+            .filter(p => p.month > quarterStart && p.month <= m - 1)
+            .reduce((s, p) => s + p.amount, 0);
+          ivaPayment = Math.max(0, quarterlyDebito - quarterlyCredito) * 1.01; // +1% interessi trimestrali
           totaleIvaVersamenti += ivaPayment;
         }
       }
