@@ -37,9 +37,9 @@ interface PreLaunchChecklistProps {
     commodity_type?: string | null;
     logo_url?: string | null;
   } | null;
-  hasDocuments: boolean;
-  hasCosts: boolean;
-  hasTeamMembers: boolean;
+  hasDocuments?: boolean;
+  hasCosts?: boolean;
+  hasTeamMembers?: boolean;
   projectId?: string | null;
 }
 
@@ -88,11 +88,32 @@ const importantStepIds = [
 export const PreLaunchChecklist = ({ 
   stepProgress, 
   project, 
-  hasDocuments, 
-  hasCosts, 
-  hasTeamMembers,
+  hasDocuments: hasDocumentsProp, 
+  hasCosts: hasCostsProp, 
+  hasTeamMembers: hasTeamMembersProp,
   projectId
 }: PreLaunchChecklistProps) => {
+  // Self-load data if not provided as props
+  const [selfLoadedData, setSelfLoadedData] = useState<{ docs: boolean; costs: boolean; team: boolean }>({ docs: false, costs: false, team: false });
+
+  useEffect(() => {
+    if (hasDocumentsProp !== undefined) return; // skip if provided
+    if (!projectId) return;
+    const load = async () => {
+      const [{ count: docCount }, { count: costCount }, { count: memberCount }] = await Promise.all([
+        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('project_id', projectId),
+        supabase.from('project_costs').select('id', { count: 'exact', head: true }).eq('project_id', projectId),
+        supabase.from('project_members').select('id', { count: 'exact', head: true }).eq('project_id', projectId),
+      ]);
+      setSelfLoadedData({ docs: (docCount ?? 0) > 0, costs: (costCount ?? 0) > 0, team: (memberCount ?? 0) > 1 });
+    };
+    load();
+  }, [projectId, hasDocumentsProp]);
+
+  const hasDocuments = hasDocumentsProp ?? selfLoadedData.docs;
+  const hasCosts = hasCostsProp ?? selfLoadedData.costs;
+  const hasTeamMembers = hasTeamMembersProp ?? selfLoadedData.team;
+
   const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
   const [loadingChecks, setLoadingChecks] = useState(true);
 

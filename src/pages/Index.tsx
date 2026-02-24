@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, LogOut, Download, FileText } from "lucide-react";
@@ -18,14 +18,9 @@ import { useStepProgress } from "@/hooks/useStepProgress";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 import { useExportPDF } from "@/hooks/useExportPDF";
-import { useExportProjectReportPDF } from "@/hooks/useExportProjectReportPDF";
-import { useTeamAnalytics } from "@/hooks/useTeamAnalytics";
 import { useProjects } from "@/hooks/useProjects";
-import { useProjectFinancials } from "@/hooks/useProjectFinancials";
-import { useStepCosts } from "@/hooks/useStepCosts";
 import { useDeadlineNotifications } from "@/hooks/useDeadlineNotifications";
-import { useExportUnifiedPDF } from "@/hooks/useExportUnifiedPDF";
-import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
+import { useLazyUnifiedExport } from "@/hooks/useLazyUnifiedExport";
 import { DollarSign } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
@@ -100,6 +95,7 @@ const Index = () => {
 
   const currentProjectId = currentProject?.id ?? null;
 
+  // Core hooks always needed at page level
   const { stepProgress, loading: progressLoading } = useStepProgress({
     userId: user?.id,
     projectId: currentProjectId,
@@ -110,32 +106,7 @@ const Index = () => {
     user?.id, stepProgress, notificationSettings, currentProjectId
   );
   const { exportToPDF } = useExportPDF();
-  const { exportProjectReportPDF } = useExportProjectReportPDF();
-  const { analytics, loading: analyticsLoading } = useTeamAnalytics(user?.id, stepProgress);
-  const { costs, revenues, summary: financialSummary } = useProjectFinancials(currentProjectId);
-  const { cashFlowData } = useCashFlowAnalysis(currentProjectId);
-  const { exportUnifiedPDF } = useExportUnifiedPDF();
-  const { getCostAmount } = useStepCosts(currentProjectId);
-
-  const [realHasDocuments, setRealHasDocuments] = useState(false);
-  const [realHasTeamMembers, setRealHasTeamMembers] = useState(false);
-
-  useEffect(() => {
-    if (!currentProjectId) {
-      setRealHasDocuments(false);
-      setRealHasTeamMembers(false);
-      return;
-    }
-    const fetchRealData = async () => {
-      const [{ count: docCount }, { count: memberCount }] = await Promise.all([
-        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('project_id', currentProjectId),
-        supabase.from('project_members').select('id', { count: 'exact', head: true }).eq('project_id', currentProjectId),
-      ]);
-      setRealHasDocuments((docCount ?? 0) > 0);
-      setRealHasTeamMembers((memberCount ?? 0) > 1);
-    };
-    fetchRealData();
-  }, [currentProjectId]);
+  const { exportReport, exporting } = useLazyUnifiedExport();
 
   useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, (currentProject as any)?.commodity_type);
 
@@ -221,7 +192,6 @@ const Index = () => {
               commodityType={(currentProject as any)?.commodity_type}
               projectStartDate={(currentProject as any)?.planned_start_date}
               projectEndDate={(currentProject as any)?.go_live_date}
-              getCostAmount={getCostAmount}
               projectId={currentProjectId}
               onNavigateToPhase={(phaseId) => {
                 setNavigateToPhase(phaseId);
@@ -306,9 +276,6 @@ const Index = () => {
             <PreLaunchChecklist 
               stepProgress={stepProgress}
               project={currentProject as any}
-              hasDocuments={realHasDocuments}
-              hasCosts={costs.length > 0}
-              hasTeamMembers={realHasTeamMembers}
               projectId={currentProjectId}
             />
           );
@@ -430,51 +397,16 @@ const Index = () => {
                   <Download className="h-4 w-4 mr-2" />
                   <span className="hidden md:inline">Processo</span>
                 </Button>
-                {currentProject && (
+                {currentProject && currentProjectId && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={async () => {
-                      const { data: members } = await supabase
-                        .from('project_members')
-                        .select('user_id, role')
-                        .eq('project_id', currentProjectId!);
-                      const userIds = members?.map(m => m.user_id) || [];
-                      const { data: profiles } = userIds.length > 0
-                        ? await supabase.from('profiles').select('id, full_name').in('id', userIds)
-                        : { data: [] };
-                      const profileMap: Record<string, string> = {};
-                      profiles?.forEach(p => { profileMap[p.id] = p.full_name || 'Utente'; });
-                      const teamMembers = members?.map(m => ({
-                        name: profileMap[m.user_id] || 'Utente',
-                        role: m.role,
-                      })) || [];
-
-                      const { processSteps } = await import('@/data/processSteps');
-                      const checkItems = [
-                        { label: 'Iscrizione EVE', isMet: !!(currentProject as any)?.eve_license_date, severity: 'critical', category: 'admin' },
-                        { label: 'Codice ARERA', isMet: !!(currentProject as any)?.arera_code, severity: 'critical', category: 'admin' },
-                        { label: 'Grossista definito', isMet: !!(currentProject as any)?.wholesaler_name, severity: 'critical', category: 'commercial' },
-                        { label: 'Mercato target', isMet: !!(currentProject as any)?.market_type, severity: 'important', category: 'commercial' },
-                        { label: 'Data Go-Live', isMet: !!(currentProject as any)?.go_live_date, severity: 'important', category: 'operational' },
-                        { label: 'Documenti caricati', isMet: realHasDocuments, severity: 'recommended', category: 'admin' },
-                        { label: 'Team definito', isMet: realHasTeamMembers, severity: 'recommended', category: 'operational' },
-                        { label: 'Budget definito', isMet: costs.length > 0, severity: 'recommended', category: 'operational' },
-                      ];
-
-                      exportUnifiedPDF(
-                        currentProject as any,
-                        stepProgress,
-                        financialSummary as any,
-                        cashFlowData,
-                        teamMembers,
-                        checkItems,
-                      );
-                    }}
+                    disabled={exporting}
+                    onClick={() => exportReport(currentProject as any, currentProjectId, stepProgress)}
                     className="text-white hover:bg-white/10"
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    <span className="hidden md:inline">Report</span>
+                    <span className="hidden md:inline">{exporting ? 'Generazione...' : 'Report'}</span>
                   </Button>
                 )}
                 <Button

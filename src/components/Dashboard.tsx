@@ -25,6 +25,7 @@ import {
   Wallet
 } from "lucide-react";
 import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
+import { useStepCosts } from "@/hooks/useStepCosts";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -38,7 +39,7 @@ interface DashboardProps {
   commodityType?: string | null;
   projectStartDate?: string | null;
   projectEndDate?: string | null;
-  getCostAmount: (stepId: string, costItemId: string) => number;
+  getCostAmount?: (stepId: string, costItemId: string) => number;
   projectId?: string | null;
   onNavigateToPhase?: (phaseId: number) => void;
 }
@@ -48,10 +49,13 @@ export const Dashboard = ({
   commodityType,
   projectStartDate,
   projectEndDate,
-  getCostAmount,
+  getCostAmount: getCostAmountProp,
   projectId,
   onNavigateToPhase
 }: DashboardProps) => {
+  // Load step costs internally if not provided as prop
+  const { getCostAmount: ownGetCostAmount } = useStepCosts(getCostAmountProp ? null : projectId ?? null);
+  const getCostAmount = getCostAmountProp ?? ownGetCostAmount;
   
   // Cash flow analysis for financial BEP
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId ?? null);
