@@ -50,13 +50,14 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
     const totalRevenue = summary.totalRevenue;
 
     // ─── Break-Even Commerciale ───
-    // Il BEP commerciale indica se il margine del reseller (fatturato - passanti) copre i costi operativi.
-    // Margine Lordo = Fatturato - Passanti
+    // Il BEP commerciale indica se il margine del reseller (imponibile - passanti) copre i costi operativi.
+    // Margine Lordo = Imponibile (netto IVA) - Passanti
     const grossMargin = summary.grossMargin;
-    const grossMarginRatio = totalRevenue > 0 ? grossMargin / totalRevenue : 0;
+    // Usiamo il grossMarginPercent già calcolato sull'imponibile (netto IVA) dal summary
+    const grossMarginRatio = summary.grossMarginPercent / 100;
 
     // BEP Commerciale = Costi Operativi / (Margine Lordo %)
-    // Cioè: quanto fatturato serve per generare abbastanza margine da coprire i costi operativi
+    // Cioè: quanto imponibile serve per generare abbastanza margine da coprire i costi operativi
     const breakEvenRevenue = grossMarginRatio > 0
       ? operationalCosts / grossMarginRatio
       : 0;
