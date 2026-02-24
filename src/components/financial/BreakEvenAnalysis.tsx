@@ -8,10 +8,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { FinancialSummary } from '@/hooks/useProjectFinancials';
+import type { FinancialOverviewSummary } from '@/hooks/useFinancialSummary';
 
 interface BreakEvenAnalysisProps {
-  summary: FinancialSummary;
+  summary: FinancialOverviewSummary;
   breakEvenFinanziario?: string | null; // from cash flow analysis
 }
 
@@ -48,6 +48,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
     const operationalCosts = summary.operationalCosts;
     const totalCosts = summary.totalCosts;
     const totalRevenue = summary.totalRevenue;
+    const imponibile = summary.imponibile;
 
     // ─── Break-Even Commerciale ───
     // Il BEP commerciale indica se il margine del reseller (imponibile - passanti) copre i costi operativi.
@@ -62,15 +63,16 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
       ? operationalCosts / grossMarginRatio
       : 0;
 
-    const revenueToBreakEven = breakEvenRevenue - totalRevenue;
-    const isAboveBreakEven = totalRevenue >= breakEvenRevenue && breakEvenRevenue > 0;
+    // CRITICO: confrontare BEP (calcolato su imponibile) con imponibile, NON con totalRevenue (che include IVA)
+    const revenueToBreakEven = breakEvenRevenue - imponibile;
+    const isAboveBreakEven = imponibile >= breakEvenRevenue && breakEvenRevenue > 0;
     const breakEvenProgress = breakEvenRevenue > 0
-      ? Math.min(100, (totalRevenue / breakEvenRevenue) * 100)
+      ? Math.min(100, (imponibile / breakEvenRevenue) * 100)
       : 0;
 
-    // Margine di sicurezza: quanto il fatturato può calare prima di andare in perdita
-    const marginOfSafety = isAboveBreakEven && totalRevenue > 0
-      ? ((totalRevenue - breakEvenRevenue) / totalRevenue) * 100
+    // Margine di sicurezza: quanto l'imponibile può calare prima di andare in perdita
+    const marginOfSafety = isAboveBreakEven && imponibile > 0
+      ? ((imponibile - breakEvenRevenue) / imponibile) * 100
       : 0;
 
     // Rapporti strutturali
