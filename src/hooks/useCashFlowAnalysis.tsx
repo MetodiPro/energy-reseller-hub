@@ -168,9 +168,8 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
         }
       });
 
-      // Delta deposito: nel cash flow usiamo lo stesso valore del motore
-      // ma per uscita di cassa consideriamo solo i delta positivi (nuovi esborsi)
-      const deltaDepositoCassa = Math.max(0, deposit.deltaDeposito);
+      // Delta deposito: valore positivo = nuovo esborso, negativo = rilascio liquidità (churn)
+      const deltaDepositoCassa = deposit.deltaDeposito;
 
       const costiPassantiMese = em.costiPassanti;
       const costiOperativiMese = em.costiGestionePod;
