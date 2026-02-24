@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { useTaxFlows } from './useTaxFlows';
+import { useTaxFlows, TaxFlowsSummary } from './useTaxFlows';
 import { addMonths, format, differenceInDays, startOfMonth } from 'date-fns';
 import { it } from 'date-fns/locale';
 
@@ -41,13 +41,20 @@ const ACCISE_QUARTERS = [
   { quarter: 'Q4', dueMonth: 0, dueDay: 16 },   // January 16 (next year)
 ];
 
+interface UseTaxAlertsOptions {
+  sharedTaxFlows?: { taxFlows: TaxFlowsSummary; loading: boolean };
+}
+
 export const useTaxAlerts = (
   projectId: string | null,
   startDate: Date,
   ivaRegime: 'monthly' | 'quarterly' = 'monthly',
-  config: TaxAlertsConfig = DEFAULT_CONFIG
+  config: TaxAlertsConfig = DEFAULT_CONFIG,
+  options?: UseTaxAlertsOptions
 ) => {
-  const { taxFlows, loading } = useTaxFlows(projectId);
+  const ownTaxHook = useTaxFlows(options?.sharedTaxFlows ? null : projectId);
+  const taxFlows = options?.sharedTaxFlows?.taxFlows ?? ownTaxHook.taxFlows;
+  const loading = options?.sharedTaxFlows?.loading ?? ownTaxHook.loading;
   const notifiedDeadlines = useRef<Set<string>>(new Set());
   const lastCheckTime = useRef<Date>(new Date(0));
 

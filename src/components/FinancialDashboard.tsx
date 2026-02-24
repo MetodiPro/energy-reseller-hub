@@ -1092,7 +1092,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </TabsContent>
 
         <TabsContent value="taxflows" className="space-y-6">
-          <TaxFlowsDashboard projectId={projectId} />
+          <TaxFlowsDashboard projectId={projectId} simulationData={sharedSimData} onUpdateParams={revenueSimulation.updateParams} onSaveSimulation={revenueSimulation.saveSimulation} />
         </TabsContent>
 
       </Tabs>
