@@ -91,8 +91,17 @@ export function buildTaxFlows(
     pendingIva.push({ month: m, amount: ivaDebito });
     totaleIvaDebito += ivaDebito;
 
-    const costiConIva = em.costiPassanti + em.costoEnergia + em.costiGestionePod;
-    const ivaCredito = costiConIva * IVA_ALIQUOTA_ACQUISTI;
+    // Costi REALI deducibili IVA del reseller (NO doppio conteggio):
+    // 1. Energia acquistata dal grossista (PUN + spreadGrossista) → em.costoEnergia
+    // 2. Trasporto e Oneri di sistema → pagati al distributore (per clienti fatturati)
+    // 3. Gestione POD → pagata al grossista
+    // NB: Le accise sono imposte erariali NON soggette a IVA
+    // NB: NON usare em.costiPassanti perché include materiaEnergia (PUN + disp.)
+    //     che è la componente in fattura al cliente, non il costo reale del reseller
+    const costiDeducibiliIva = em.costoEnergia
+      + clientiFatturati * (perClient.trasporto + perClient.oneriSistema)
+      + em.costiGestionePod;
+    const ivaCredito = costiDeducibiliIva * IVA_ALIQUOTA_ACQUISTI;
     pendingIvaCredito.push({ month: m, amount: ivaCredito });
     totaleIvaCredito += ivaCredito;
 

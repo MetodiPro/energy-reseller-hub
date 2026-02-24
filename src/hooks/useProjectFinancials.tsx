@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -276,10 +276,9 @@ export const useProjectFinancials = (projectId: string | null) => {
     return true;
   };
 
-  const calculateSummary = (): FinancialSummary => {
+  const calculatedSummary = useMemo((): FinancialSummary => {
     const totalRevenue = revenues.reduce((sum, r) => sum + (r.amount * r.quantity), 0);
     
-    // Separate passthrough costs from operational costs
     let passthroughCosts = 0;
     let operationalCosts = 0;
     
@@ -292,8 +291,6 @@ export const useProjectFinancials = (projectId: string | null) => {
 
     costs.forEach(cost => {
       const total = cost.amount * cost.quantity;
-      
-      // Check if cost is passthrough (from database field)
       const isPassthrough = (cost as any).is_passthrough === true;
       
       if (isPassthrough) {
@@ -305,19 +302,14 @@ export const useProjectFinancials = (projectId: string | null) => {
     });
 
     const totalCosts = passthroughCosts + operationalCosts;
-    
-    // Imponibile = Revenue (no IVA component in manual costs mode)
     const imponibile = totalRevenue;
     
-    // Gross Margin = Imponibile - Passthrough Costs
     const grossMargin = imponibile - passthroughCosts;
     const grossMarginPercent = imponibile > 0 ? (grossMargin / imponibile) * 100 : 0;
     
-    // Contribution Margin = Gross Margin - Commercial Costs
     const contributionMargin = grossMargin - costsByType.commercial;
     const contributionMarginPercent = imponibile > 0 ? (contributionMargin / imponibile) * 100 : 0;
     
-    // Net Margin = Imponibile - All Costs (passthrough + operational)
     const netMargin = imponibile - totalCosts;
     const netMarginPercent = imponibile > 0 ? (netMargin / imponibile) * 100 : 0;
 
@@ -326,7 +318,7 @@ export const useProjectFinancials = (projectId: string | null) => {
       totalCosts,
       passthroughCosts,
       operationalCosts,
-      costiCommercialiSimulati: 0, // Will be set by FinancialDashboard from cashflow
+      costiCommercialiSimulati: 0,
       grossMargin,
       grossMarginPercent,
       costsByType,
@@ -335,7 +327,7 @@ export const useProjectFinancials = (projectId: string | null) => {
       contributionMargin,
       contributionMarginPercent,
     };
-  };
+  }, [costs, revenues]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -355,7 +347,7 @@ export const useProjectFinancials = (projectId: string | null) => {
     revenues,
     categories,
     loading,
-    summary: calculateSummary(),
+    summary: calculatedSummary,
     addCost,
     updateCost,
     deleteCost,
