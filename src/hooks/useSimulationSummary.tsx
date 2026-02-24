@@ -118,15 +118,16 @@ export function buildSimulationSummary(
   }
 
   const lastMonth = monthly[monthly.length - 1];
-  // Insoluti = fatturato totale - incassato totale (derivato dal collection waterfall reale)
-  const totalInsoluti = Math.max(0, totalFatturato - cumulativeCollection);
-  // Crediti residui = insoluti (sono la stessa cosa: ciò che non è stato ancora incassato)
+  // Insoluti reali = quota di fatturato strutturalmente non incassabile (tasso insoluti)
+  const totalInsoluti = totalFatturato * (data.params.uncollectibleRate / 100);
+  // Crediti pendenti = fatturato non ancora incassato ma atteso (crediti in lavorazione waterfall)
+  const totalCrediti = Math.max(0, totalFatturato - cumulativeCollection - totalInsoluti);
   const depositoFinale = lastMonth ? lastMonth.deposit.depositoRichiesto : 0;
 
   return {
     totalFatturato, totalMargine, totalPassanti, totalIva,
     totalIncassato: cumulativeCollection, totalInsoluti,
-    totalCrediti: totalInsoluti,
+    totalCrediti,
     clientiAttivi: lastMonth?.customer.clientiAttivi ?? 0,
     contrattiTotali: totalContracts, switchOutTotali: totalChurned,
     marginePercent: (totalFatturato - totalIva) > 0 ? (totalMargine / (totalFatturato - totalIva)) * 100 : 0,
