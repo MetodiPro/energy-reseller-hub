@@ -108,7 +108,7 @@ const Index = () => {
   const { exportToPDF } = useExportPDF();
   const { exportReport, exporting } = useLazyUnifiedExport();
 
-  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, (currentProject as any)?.commodity_type);
+  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, currentProject?.commodity_type);
 
   useEffect(() => {
     const fetchDeadlines = async () => {
@@ -189,9 +189,9 @@ const Index = () => {
           return (
             <Dashboard 
               stepProgress={stepProgress}
-              commodityType={(currentProject as any)?.commodity_type}
-              projectStartDate={(currentProject as any)?.planned_start_date}
-              projectEndDate={(currentProject as any)?.go_live_date}
+              commodityType={currentProject?.commodity_type}
+              projectStartDate={currentProject?.planned_start_date}
+              projectEndDate={currentProject?.go_live_date}
               projectId={currentProjectId}
               onNavigateToPhase={(phaseId) => {
                 setNavigateToPhase(phaseId);
@@ -203,10 +203,10 @@ const Index = () => {
           return (
             <ProcessTracker 
               projectId={currentProjectId ?? undefined}
-              commodityType={(currentProject as any)?.commodity_type}
-              projectName={(currentProject as any)?.name}
-              projectStartDate={(currentProject as any)?.planned_start_date}
-              projectEndDate={(currentProject as any)?.go_live_date}
+              commodityType={currentProject?.commodity_type}
+              projectName={currentProject?.name}
+              projectStartDate={currentProject?.planned_start_date}
+              projectEndDate={currentProject?.go_live_date}
               initialPhase={navigateToPhase}
               onUpdateProjectStartDate={(date) => {
                 if (currentProjectId) updateProjectStartDate(currentProjectId, date);
@@ -220,9 +220,9 @@ const Index = () => {
           return (
             <RegulatoryCalendar 
               projectId={currentProjectId}
-              eveLicenseDate={(currentProject as any)?.eve_license_date}
-              evgLicenseDate={(currentProject as any)?.evg_license_date}
-              commodityType={(currentProject as any)?.commodity_type}
+              eveLicenseDate={currentProject?.eve_license_date}
+              evgLicenseDate={currentProject?.evg_license_date}
+              commodityType={currentProject?.commodity_type}
             />
           );
         case "step-docs":
@@ -266,8 +266,8 @@ const Index = () => {
           return (
             <GanttTimeline 
               stepProgress={stepProgress}
-              projectStartDate={(currentProject as any)?.planned_start_date}
-              goLiveDate={(currentProject as any)?.go_live_date}
+              projectStartDate={currentProject?.planned_start_date}
+              goLiveDate={currentProject?.go_live_date}
               projectId={currentProjectId}
             />
           );
@@ -390,7 +390,7 @@ const Index = () => {
                   size="sm"
                   onClick={() => exportToPDF(stepProgress, {
                     projectName: currentProject?.name,
-                    commodityType: (currentProject as any)?.commodity_type
+                    commodityType: currentProject?.commodity_type
                   })}
                   className="text-white hover:bg-white/10"
                 >

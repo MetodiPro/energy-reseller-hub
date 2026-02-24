@@ -45,7 +45,10 @@ const EMPTY_TAX: TaxFlowsSummary = {
   totaleTaxOutflows: 0, hasData: false,
 };
 
-const IVA_ALIQUOTA = 0.22;
+// IVA sugli acquisti dal grossista: sempre 22% per legge italiana,
+// indipendentemente dall'aliquota IVA applicata al cliente finale (10% domestico, 22% business).
+// Questo genera un credito IVA strutturale per i reseller con clientela domestica.
+const IVA_ALIQUOTA_ACQUISTI = 0.22;
 const TAX_PAYMENT_CONFIG = {
   ivaPaymentDelay: 1,
   acciseQuarters: [2, 5, 8, 11],
@@ -89,7 +92,7 @@ export function buildTaxFlows(
     totaleIvaDebito += ivaDebito;
 
     const costiConIva = em.costiPassanti + em.costoEnergia + em.costiGestionePod;
-    const ivaCredito = costiConIva * IVA_ALIQUOTA;
+    const ivaCredito = costiConIva * IVA_ALIQUOTA_ACQUISTI;
     pendingIvaCredito.push({ month: m, amount: ivaCredito });
     totaleIvaCredito += ivaCredito;
 

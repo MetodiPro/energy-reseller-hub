@@ -13,6 +13,23 @@ export interface Project {
   logo_url: string | null;
   created_at: string;
   updated_at: string;
+  // Campi estesi del progetto (nullable dal DB)
+  status?: string | null;
+  market_type?: string | null;
+  regions?: string[] | null;
+  expected_volumes?: number | null;
+  eve_license_date?: string | null;
+  evg_license_date?: string | null;
+  arera_code?: string | null;
+  wholesaler_name?: string | null;
+  wholesaler_contact?: string | null;
+  company_address?: string | null;
+  company_phone?: string | null;
+  company_email?: string | null;
+  company_pec?: string | null;
+  company_website?: string | null;
+  company_cf?: string | null;
+  company_piva?: string | null;
 }
 
 export const useProjects = (userId: string | undefined) => {

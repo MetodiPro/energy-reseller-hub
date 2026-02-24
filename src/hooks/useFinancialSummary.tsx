@@ -39,7 +39,11 @@ export const useFinancialSummary = (
     const costiCommercialiSimulati = cashFlowData.hasData ? cashFlowData.totaleCostiCommerciali : 0;
 
     const manualCommercialCosts = costSummary.costsByType.commercial;
-    const operationalCosts = costSummary.operationalCosts - manualCommercialCosts + costiCommercialiSimulati;
+    // Sostituisci i costi commerciali manuali con quelli simulati SOLO se la simulazione è attiva
+    // e ha effettivamente dei canali configurati (costiCommercialiSimulati > 0).
+    // Se nessun canale è attivo, mantieni i costi commerciali manuali.
+    const commercialCostsToUse = costiCommercialiSimulati > 0 ? costiCommercialiSimulati : manualCommercialCosts;
+    const operationalCosts = costSummary.operationalCosts - manualCommercialCosts + commercialCostsToUse;
     const totalCosts = passthroughCosts + operationalCosts;
 
     const iva = simulationSummary.hasData ? simulationSummary.totalIva : 0;

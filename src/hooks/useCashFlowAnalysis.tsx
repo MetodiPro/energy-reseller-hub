@@ -183,7 +183,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       });
 
       const deltaDepositoCassa = deposit.deltaDeposito;
-      const costiPassantiMese = em.costiPassanti;
+      // Costo energia da grossista (include PUN + spread grossista, parte da mese 2)
+      // NON usiamo em.costiPassanti per evitare doppio conteggio con flussiFiscali
+      // (trasporto, oneri, accise sono già contabilizzati in flussiFiscaliMese)
+      const costiPassantiMese = em.costoEnergia;
       const costiOperativiMese = em.costiGestionePod;
       const incassiMese = collection.totaleIncassi;
 
