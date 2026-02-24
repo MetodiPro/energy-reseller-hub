@@ -12,6 +12,7 @@ import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
+import { useEngineResult } from '@/hooks/useEngineResult';
 
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
@@ -38,10 +39,12 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const revenueSimulation = useRevenueSimulation(projectId);
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
-  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, sharedSimData);
+  // ─── Single engine execution shared across all consumers ───
+  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
+  const { summary: simulationSummary, loading: simulationLoading } = useSimulationSummary(projectId, sharedSimData, engineResult);
   const { channels: salesChannels, getChannelBreakdown, calculateCommissionCosts, loading: channelsLoading, refetch: refetchChannels } = useSalesChannels(projectId);
   const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
-  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData });
+  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData, sharedEngine: engineResult });
   const { exportToPDF } = useExportFinancialPDF();
 
   // ─── Derived summary ───

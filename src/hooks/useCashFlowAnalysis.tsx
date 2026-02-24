@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { useSimulationSummary } from './useSimulationSummary';
-import { useRevenueSimulation, RevenueSimulationData } from './useRevenueSimulation';
+import { RevenueSimulationData } from './useRevenueSimulation';
 import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
 import { useTaxFlows } from './useTaxFlows';
+import { useEngineResult } from './useEngineResult';
 import { stepTimingConfig } from '@/lib/costTimingConfig';
 import { stepCostsData } from '@/types/stepCosts';
-import { runSimulationEngine } from '@/lib/simulationEngine';
+import { SimulationEngineResult } from '@/lib/simulationEngine';
 
 export interface MonthlyBreakdown {
   incassoScadenza: number;
@@ -78,21 +79,39 @@ const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set'
 interface UseCashFlowOptions {
   simulationData?: { data: RevenueSimulationData; loading: boolean };
   salesChannelsData?: { channels: any[]; calculateCommissionCosts: any; loading: boolean };
+  sharedEngine?: SimulationEngineResult | null;
 }
 
 export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashFlowOptions) => {
-  const ownSimHook = useRevenueSimulation(options?.simulationData ? null : projectId);
-  const simData = options?.simulationData?.data ?? ownSimHook.data;
-  const simLoading = options?.simulationData?.loading ?? ownSimHook.loading;
+  // Use shared engine if provided, otherwise compute own
+  const ownEngine = useEngineResult(
+    options?.sharedEngine !== undefined ? null : projectId,
+    options?.simulationData ? { simulationData: options.simulationData } : undefined
+  );
 
-  const { summary, loading: summaryLoading } = useSimulationSummary(projectId, options?.simulationData ? { data: simData, loading: simLoading } : undefined);
+  const engineResult = options?.sharedEngine !== undefined ? options.sharedEngine : ownEngine.engineResult;
+  const simData = options?.simulationData?.data ?? ownEngine.data;
+  const simLoading = options?.simulationData?.loading ?? ownEngine.loading;
+
+  const { summary, loading: summaryLoading } = useSimulationSummary(
+    projectId,
+    options?.simulationData ? { data: simData, loading: simLoading } : undefined,
+    engineResult
+  );
   const { getGrandTotal, getStepTotal, loading: costsLoading } = useStepCosts(projectId);
 
   const ownChannelsHook = useSalesChannels(options?.salesChannelsData ? null : projectId);
   const channels = options?.salesChannelsData?.channels ?? ownChannelsHook.channels;
   const channelsLoading = options?.salesChannelsData?.loading ?? ownChannelsHook.loading;
 
-  const { taxFlows, loading: taxLoading } = useTaxFlows(projectId, 'monthly', { simulationData: { data: simData, loading: simLoading } });
+  const { taxFlows, loading: taxLoading } = useTaxFlows(
+    projectId,
+    'monthly',
+    {
+      simulationData: { data: simData, loading: simLoading },
+      sharedEngine: engineResult,
+    }
+  );
 
   const cashFlowData = useMemo((): CashFlowSummary => {
     const empty: CashFlowSummary = {
@@ -112,11 +131,9 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleDepositi: 0,
     };
 
-    if (!summary.hasData || !simData) return empty;
+    if (!summary.hasData || !engineResult || !simData) return empty;
 
-    // Usa il motore condiviso — stessi identici numeri di useSimulationSummary e useTaxFlows
-    const engine = runSimulationEngine(simData.params, simData.monthlyContracts, simData.startDate);
-    const { perClient, monthly: engineMonthly } = engine;
+    const { perClient, monthly: engineMonthly } = engineResult;
 
     const startMonth = simData.startDate.getMonth();
     const startYear = simData.startDate.getFullYear();
@@ -134,10 +151,8 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       const { customer, deposit, collection } = em;
       const m = customer.month;
 
-      // Tax flows
       const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].totaleTaxOutflows : 0;
 
-      // Commercial costs
       let costiCommercialiMese = 0;
       if (activeChannels.length > 0 && (customer.contrattiNuovi > 0 || customer.attivazioni > 0)) {
         activeChannels.forEach((ch: any) => {
@@ -150,7 +165,6 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
         });
       }
 
-      // Step costs
       let investimentiIniziali = 0;
       const investmentBreakdownItems: { stepId: string; description: string; amount: number }[] = [];
       Object.keys(stepCostsData).forEach(stepId => {
@@ -168,9 +182,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
         }
       });
 
-      // Delta deposito: valore positivo = nuovo esborso, negativo = rilascio liquidità (churn)
       const deltaDepositoCassa = deposit.deltaDeposito;
-
       const costiPassantiMese = em.costiPassanti;
       const costiOperativiMese = em.costiGestionePod;
       const incassiMese = collection.totaleIncassi;
@@ -185,7 +197,6 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali += flussiFiscaliMese;
       totaleDepositi += deltaDepositoCassa;
 
-      // Breakdown passanti per componente
       const materiaEnergiaMese = customer.clientiFatturati * perClient.materiaEnergia;
       const trasportoMese = customer.clientiFatturati * perClient.trasporto;
       const oneriMese = customer.clientiFatturati * perClient.oneriSistema;
@@ -231,7 +242,6 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       });
     }
 
-    // Cumulative
     let cumulative = 0;
     const monthlyData: MonthlyCashFlowData[] = rawMonthly.map((d) => {
       const saldoPrecedente = cumulative;
@@ -276,7 +286,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali,
       totaleDepositi,
     };
-  }, [summary, simData, channels, taxFlows, getGrandTotal, getStepTotal]);
+  }, [summary, engineResult, simData, channels, taxFlows, getGrandTotal, getStepTotal]);
 
   return { cashFlowData, loading: summaryLoading || simLoading || costsLoading || channelsLoading || taxLoading };
 };
