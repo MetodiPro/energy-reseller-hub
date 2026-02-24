@@ -66,7 +66,7 @@ export function buildSimulationSummary(
   let totalFatturato = 0, totalMargine = 0, totalPassanti = 0, totalIva = 0;
   let totalChurned = 0, totalContracts = 0;
   let costoGestionePodTotale = 0, costoEnergiaTotale = 0;
-  let cumulativeCollection = 0, cumulativeUncollected = 0;
+  let cumulativeCollection = 0;
   let depositoIniziale = 0, depositoMassimo = 0;
 
   const depositiMensili: MonthlyDepositData[] = [];
@@ -84,14 +84,6 @@ export function buildSimulationSummary(
     costoGestionePodTotale += m.costiGestionePod;
     costoEnergiaTotale += m.costoEnergia;
     cumulativeCollection += collection.totaleIncassi;
-
-    if (customer.month >= 7) {
-      const invoiceMonth = customer.month - 4;
-      const pastMonthly = monthly[invoiceMonth];
-      if (pastMonthly && pastMonthly.fatturato > 0) {
-        cumulativeUncollected += pastMonthly.fatturato * (data.params.uncollectibleRate / 100);
-      }
-    }
 
     const fatturatoMensileStimato = customer.clientiAttivi * perClient.fattura;
 
@@ -126,14 +118,15 @@ export function buildSimulationSummary(
   }
 
   const lastMonth = monthly[monthly.length - 1];
-  const totalInvoiced = monthly.reduce((sum, m) => sum + m.fatturato, 0);
-  const pendingReceivables = Math.max(0, totalInvoiced - cumulativeCollection - cumulativeUncollected);
+  // Insoluti = fatturato totale - incassato totale (derivato dal collection waterfall reale)
+  const totalInsoluti = Math.max(0, totalFatturato - cumulativeCollection);
+  // Crediti residui = insoluti (sono la stessa cosa: ciò che non è stato ancora incassato)
   const depositoFinale = lastMonth ? lastMonth.deposit.depositoRichiesto : 0;
 
   return {
     totalFatturato, totalMargine, totalPassanti, totalIva,
-    totalIncassato: cumulativeCollection, totalInsoluti: cumulativeUncollected,
-    totalCrediti: pendingReceivables,
+    totalIncassato: cumulativeCollection, totalInsoluti,
+    totalCrediti: totalInsoluti,
     clientiAttivi: lastMonth?.customer.clientiAttivi ?? 0,
     contrattiTotali: totalContracts, switchOutTotali: totalChurned,
     marginePercent: (totalFatturato - totalIva) > 0 ? (totalMargine / (totalFatturato - totalIva)) * 100 : 0,
