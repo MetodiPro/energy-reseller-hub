@@ -558,7 +558,16 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
                   <TableHead className="text-right text-cyan-600">Attivazioni</TableHead>
                   <TableHead className="text-right">Clienti</TableHead>
                   <TableHead className="text-right text-green-600">Incassi</TableHead>
-                  <TableHead className="text-right text-orange-600">Passanti</TableHead>
+                  <TableHead className="text-right text-orange-600">
+                    <ShadcnTooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help border-b border-dotted border-orange-400">Energia Gross.</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-left">
+                        <p className="text-xs">Solo costo energia dal grossista (PUN + spread grossista). Trasporto, oneri e accise sono nella colonna Flussi Fiscali.</p>
+                      </TooltipContent>
+                    </ShadcnTooltip>
+                  </TableHead>
                   <TableHead className="text-right text-blue-600">Operativi</TableHead>
                   <TableHead className="text-right text-pink-600">Commerciali</TableHead>
                   <TableHead className="text-right text-amber-600">Fiscali</TableHead>

@@ -36,9 +36,14 @@ const GLOSSARY_ENTRIES: GlossaryEntry[] = [
     example: 'Se i costi operativi sono €5.000/mese e il margine lordo è il 15%, servono almeno €33.333 di fatturato mensile.',
   },
   {
-    term: 'Costi Passanti',
-    definition: 'Sono le componenti della bolletta che il reseller incassa dal cliente ma deve girare ad altri soggetti (grossista per l\'energia, distributore per il trasporto, enti per gli oneri di sistema e le accise). Non rappresentano un guadagno per il reseller.',
+    term: 'Costi Passanti in Fattura',
+    definition: 'Tutte le componenti della bolletta che il reseller addebita al cliente e gira a terzi: materia energia (PUN + dispacciamento), trasporto rete, oneri di sistema (ASOS+ARIM) e accise. Rappresentano il volume d\'affari gestito, non un guadagno. Questa voce appare nel Conto Economico (Panoramica).',
     example: 'Se la bolletta è €200, circa €170 (85%) sono costi passanti che vanno al grossista/distributore.',
+  },
+  {
+    term: 'Costo Energia dal Grossista (Cash Flow)',
+    definition: 'Nel Cash Flow, la colonna "Energia Grossista" indica solo il costo dell\'energia acquistata dal grossista (PUN + spread grossista × kWh). Non include trasporto, oneri e accise, che sono contabilizzati separatamente nei Flussi Fiscali. Questo valore è diverso dai "Costi Passanti in Fattura" della Panoramica.',
+    example: 'Se il PUN è 0.12 €/kWh e lo spread grossista è 0.005 €/kWh, il costo energia per 200 kWh è €25.',
   },
   {
     term: 'Costi Operativi',

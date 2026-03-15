@@ -157,7 +157,7 @@ export const OverviewTab = ({
               <CardContent><div className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</div></CardContent>
             </Card>
             <Card className="bg-orange-50 dark:bg-orange-950/20">
-              <CardHeader className="pb-2"><UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1 cursor-help">Costi Passanti in Fattura<Info className="h-3 w-3 opacity-60" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Voci addebitate al cliente e girate a terzi. Non sono un guadagno per il reseller.</p></TooltipContent></UITooltip></CardHeader>
+              <CardHeader className="pb-2"><UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1 cursor-help">Costi Passanti in Fattura<Info className="h-3 w-3 opacity-60" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Componenti della bolletta addebitate al cliente e girate a terzi: materia energia (PUN + dispacciamento), trasporto rete, oneri di sistema (ASOS+ARIM) e accise. Rappresentano il volume gestito, non il costo effettivo del reseller.</p></TooltipContent></UITooltip></CardHeader>
               <CardContent><div className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</div></CardContent>
             </Card>
             <Card className="bg-red-50 dark:bg-red-950/20">
