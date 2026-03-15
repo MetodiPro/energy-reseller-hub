@@ -141,7 +141,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             // Componenti commerciali
             ccvMonthly: Number(simulation.ccv_monthly),
             spreadPerKwh: Number(simulation.spread_per_kwh),
-            spreadGrossistaPerKwh: Number((simulation as any).spread_grossista_per_kwh ?? DEFAULT_PARAMS.spreadGrossistaPerKwh),
+            spreadGrossistaPerKwh: Number(simulation.spread_grossista_per_kwh ?? DEFAULT_PARAMS.spreadGrossistaPerKwh),
             otherServicesMonthly: Number(simulation.other_services_monthly),
             
             // Componenti fattura
