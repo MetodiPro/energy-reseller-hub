@@ -59,7 +59,7 @@ export const useExportProjectOverviewPDF = () => {
     y += 8;
 
     const generalData = [
-      ['Stato', statusLabels[project.status] || project.status],
+      ['Stato', statusLabels[project.status || 'draft'] || project.status || 'Bozza'],
       ['Tipo Fornitura', project.commodity_type ? commodityLabels[project.commodity_type] || project.commodity_type : 'Non definito'],
       ['Mercato Target', project.market_type ? marketTypeLabels[project.market_type] || project.market_type : 'Non definito'],
       ['Volumi Previsti', project.expected_volumes ? `${project.expected_volumes.toLocaleString('it-IT')} POD/anno` : 'Non definiti'],
