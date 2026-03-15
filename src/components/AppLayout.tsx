@@ -251,7 +251,7 @@ export function AppLayout({ user }: AppLayoutProps) {
           return (
             <PreLaunchChecklist
               stepProgress={stepProgress}
-              project={currentProject as any}
+              project={currentProject}
               projectId={currentProjectId}
             />
           );
