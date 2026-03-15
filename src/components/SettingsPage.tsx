@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { resetOnboardingTutorial } from "@/components/OnboardingTutorial";
+import { MarketTariffsSection } from "@/components/MarketTariffsSection";
 
 interface SettingsPageProps {
   userId?: string;
@@ -351,6 +352,10 @@ export function SettingsPage({ userId, userEmail, userName }: SettingsPageProps)
 
       {/* Appearance Section */}
       <AppearanceSection />
+
+      {/* Market Tariffs Section */}
+      <Separator className="my-8" />
+      <MarketTariffsSection />
     </div>
   );
 }
