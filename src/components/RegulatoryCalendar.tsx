@@ -327,7 +327,22 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
           <h2 className="text-2xl font-bold">Scadenzario Normativo</h2>
           <p className="text-muted-foreground">Gestisci le scadenze obbligatorie del reseller</p>
         </div>
-        <div className="flex gap-2">
+      </div>
+
+      <Tabs defaultValue="calendario">
+        <TabsList>
+          <TabsTrigger value="calendario" className="gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            Calendario
+          </TabsTrigger>
+          <TabsTrigger value="conformita" className="gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            Conformità ARERA
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="calendario" className="space-y-6 mt-4">
+      <div className="flex justify-end gap-2">
           {deadlines.length === 0 && (
             <Button variant="outline" onClick={initializeDefaultDeadlines}>
               <RefreshCw className="h-4 w-4 mr-2" />
