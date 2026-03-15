@@ -39,30 +39,35 @@ export const useFinancialSummary = (
     const costiCommercialiSimulati = cashFlowData.hasData ? cashFlowData.totaleCostiCommerciali : 0;
 
     const manualCommercialCosts = costSummary.costsByType.commercial;
-    // Sostituisci i costi commerciali manuali con quelli simulati SOLO se la simulazione è attiva
-    // e ha effettivamente dei canali configurati (costiCommercialiSimulati > 0).
-    // Se nessun canale è attivo, mantieni i costi commerciali manuali.
     const commercialCostsToUse = costiCommercialiSimulati > 0 ? costiCommercialiSimulati : manualCommercialCosts;
-    const operationalCosts = costSummary.operationalCosts - manualCommercialCosts + commercialCostsToUse;
-    const totalCosts = passthroughCosts + operationalCosts;
+
+    // Ricavi propri del reseller (solo margine, senza passanti)
+    const resellerRevenue = simulationSummary.hasData
+      ? simulationSummary.totalMargine
+      : costSummary.totalRevenue;
+
+    // Costi operativi reali (NO passanti — si annullano tra ricavi e costi)
+    const costiGestionePod = simulationSummary.hasData ? simulationSummary.costoGestionePodTotale : 0;
+    const strutturaliCosts = costSummary.costsByType.structural + costSummary.costsByType.direct + costSummary.costsByType.indirect;
+    const operationalCosts = costiGestionePod + commercialCostsToUse + strutturaliCosts;
+
+    // Margini corretti
+    const grossMargin = resellerRevenue;
+    const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+
+    const contributionMargin = grossMargin - commercialCostsToUse;
+    const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
+
+    const netMargin = resellerRevenue - operationalCosts;
+    const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
 
     const iva = simulationSummary.hasData ? simulationSummary.totalIva : 0;
-    const imponibile = totalRevenue - iva;
-
-    const grossMargin = imponibile - passthroughCosts;
-    const grossMarginPercent = imponibile > 0 ? (grossMargin / imponibile) * 100 : 0;
-
-    const contributionMargin = grossMargin - costiCommercialiSimulati;
-    const contributionMarginPercent = imponibile > 0 ? (contributionMargin / imponibile) * 100 : 0;
-
-    const netMargin = imponibile - totalCosts;
-    const netMarginPercent = imponibile > 0 ? (netMargin / imponibile) * 100 : 0;
 
     return {
       totalRevenue,
-      imponibile,
+      imponibile: resellerRevenue,
       totalIva: iva,
-      totalCosts,
+      totalCosts: operationalCosts,
       passthroughCosts,
       operationalCosts,
       costiCommercialiSimulati,
