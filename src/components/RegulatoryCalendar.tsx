@@ -22,8 +22,10 @@ import {
   Building2,
   Zap,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
+import { ComplianceDashboard } from '@/components/ComplianceDashboard';
 import { format, differenceInDays, addDays, isBefore, isAfter } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
