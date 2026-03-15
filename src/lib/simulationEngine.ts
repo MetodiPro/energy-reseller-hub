@@ -151,7 +151,7 @@ export function runSimulationEngine(
   const invoicesToCollect: { month: number; amount: number }[] = [];
   let cumulativeActiveCustomers = 0;
   let totalDepositoLordo = 0;
-  let totalPagamentiConsumi = 0;
+  let totalDepositoRestituito = 0;
   let previousDeposito = 0;
 
   const monthly: MonthlyEngineResult[] = [];
