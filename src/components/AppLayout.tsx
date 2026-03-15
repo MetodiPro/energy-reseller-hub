@@ -52,7 +52,7 @@ function SectionLoader() {
 
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'deadlines', 'step-docs', 'team',
-  'documents', 'consultants', 'financials', 'business-plan', 'marketing',
+  'documents', 'consultants', 'tariffs', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile',
 ];
 
