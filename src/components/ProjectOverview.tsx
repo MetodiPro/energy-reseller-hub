@@ -84,7 +84,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
 
   const startEditing = () => {
     setFormData({
-      status: project.status,
+      status: project.status || 'draft',
       market_type: project.market_type,
       commodity_type: project.commodity_type,
       expected_volumes: project.expected_volumes,
