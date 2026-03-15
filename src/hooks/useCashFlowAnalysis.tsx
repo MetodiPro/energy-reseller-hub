@@ -187,8 +187,11 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       // Costo energia da grossista (include PUN + spread grossista, parte da mese 2)
       // NON usiamo em.costiPassanti per evitare doppio conteggio con flussiFiscali
       // (trasporto, oneri, accise sono già contabilizzati in flussiFiscaliMese)
-      const costiPassantiMese = em.costoEnergia;
-      const costiOperativiMese = em.costiGestionePod;
+      // Solo il costo netto: spread grossista (il PUN è pass-through, si annulla)
+      const costiPassantiMese = customer.clientiFatturati *
+        simData.params.avgMonthlyConsumption * simData.params.spreadGrossistaPerKwh;
+      const costiOperativiMese = customer.clientiFatturati *
+        (simData.params.gestionePodPerPod ?? 2.5);
       const incassiMese = collection.totaleIncassi;
 
       const totalOutflow = costiPassantiMese + costiOperativiMese + deltaDepositoCassa + flussiFiscaliMese + costiCommercialiMese + investimentiIniziali;
