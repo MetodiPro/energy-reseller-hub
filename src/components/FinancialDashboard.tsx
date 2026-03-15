@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
   TrendingUp, TrendingDown, PieChart, FileDown, Receipt,
-  Calculator, Wallet, Zap, Settings2, Users,
+  Calculator, Wallet, Zap, Settings2, Users, FileSpreadsheet,
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
@@ -14,6 +14,8 @@ import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useEngineResult } from '@/hooks/useEngineResult';
+import { buildTaxFlows } from '@/hooks/useTaxFlows';
+import { exportGrossistaReport, exportFiscaleReport } from '@/lib/exportFinancialExcel';
 
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
@@ -78,6 +80,15 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
   // ─── Handlers ───
   const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
+  const handleExportGrossista = useCallback(() => {
+    if (!engineResult) return;
+    exportGrossistaReport(projectName, engineResult, revenueSimulation.data.params);
+  }, [projectName, engineResult, revenueSimulation.data.params]);
+  const handleExportFiscale = useCallback(() => {
+    if (!engineResult) return;
+    const taxFlows = buildTaxFlows(engineResult, revenueSimulation.data.params.ivaPaymentRegime);
+    exportFiscaleReport(projectName, engineResult, taxFlows, revenueSimulation.data.params);
+  }, [projectName, engineResult, revenueSimulation.data.params]);
   const handleTemplateApplied = () => refetch();
   const handleUsePunLive = useCallback((punPerKwh: number) => {
     revenueSimulation.updateParams('punPerKwh', punPerKwh);
@@ -113,6 +124,14 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         </div>
         <div className="flex items-center gap-2">
           <CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />
+          <Button onClick={handleExportGrossista} variant="outline" className="gap-2" disabled={!engineResult}>
+            <FileSpreadsheet className="h-4 w-4" />
+            Report Grossista
+          </Button>
+          <Button onClick={handleExportFiscale} variant="outline" className="gap-2" disabled={!engineResult}>
+            <FileSpreadsheet className="h-4 w-4" />
+            Report Fiscale
+          </Button>
           <Button onClick={handleExportPDF} variant="outline" className="gap-2">
             <FileDown className="h-4 w-4" />
             Esporta PDF
