@@ -156,7 +156,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             acciseKwh: Number(simulation.accise_kwh ?? DEFAULT_PARAMS.acciseKwh),
             ivaPercent: Number(simulation.iva_percent ?? DEFAULT_PARAMS.ivaPercent),
             clientType: (simulation.client_type as 'domestico' | 'business' | 'pmi') ?? DEFAULT_PARAMS.clientType,
-            ivaPaymentRegime: ((simulation as any).iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
+            ivaPaymentRegime: (simulation.iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
             
             // Clienti e incasso
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
