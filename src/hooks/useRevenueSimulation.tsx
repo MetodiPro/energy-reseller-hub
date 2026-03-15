@@ -161,7 +161,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             // Clienti e incasso
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
             activationRate: Number(simulation.activation_rate),
-            monthlyChurnRate: Number((simulation as any).monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
+            monthlyChurnRate: Number(simulation.monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
             collectionMonth0: Number(simulation.collection_month_0),
             collectionMonth1: Number(simulation.collection_month_1),
             collectionMonth2: Number(simulation.collection_month_2),

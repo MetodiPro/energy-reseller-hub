@@ -9,24 +9,10 @@ import { useContractPackage, type SampleClientData } from '@/hooks/useContractPa
 import { useProjectLogo } from '@/hooks/useProjectLogo';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { ContractPreviewDialog } from '@/components/ContractPreviewDialog';
+import type { Project } from '@/hooks/useProjects';
 
 interface ContractPackagePageProps {
-  project: {
-    id?: string;
-    name?: string;
-    arera_code: string | null;
-    wholesaler_name: string | null;
-    go_live_date: string | null;
-    commodity_type?: string | null;
-    logo_url?: string | null;
-    company_address?: string | null;
-    company_phone?: string | null;
-    company_email?: string | null;
-    company_pec?: string | null;
-    company_website?: string | null;
-    company_cf?: string | null;
-    company_piva?: string | null;
-  } | null;
+  project: Project | null;
   projectId?: string | null;
 }
 

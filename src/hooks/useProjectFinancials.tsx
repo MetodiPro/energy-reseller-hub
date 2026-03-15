@@ -29,6 +29,7 @@ export interface ProjectCost {
   created_by: string;
   created_at: string;
   updated_at: string;
+  commodity_filter: string | null;
   category?: CostCategory;
 }
 

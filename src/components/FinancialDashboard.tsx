@@ -59,7 +59,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const filteredCosts = useMemo(() => {
     return costs.filter(cost => {
       const costName = cost.name.toLowerCase();
-      const commodityFilter = (cost as any).commodity_filter;
+      const commodityFilter = cost.commodity_filter;
       if (commodityFilter) {
         if (commodityType === 'solo-luce' && commodityFilter === 'gas') return false;
         if (commodityType === 'solo-gas' && commodityFilter === 'luce') return false;

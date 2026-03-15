@@ -20,23 +20,11 @@ import {
 import { cn } from '@/lib/utils';
 import { processSteps } from '@/data/processSteps';
 import type { StepProgress } from '@/hooks/useStepProgress';
+import type { Project } from '@/hooks/useProjects';
 
 interface PreLaunchChecklistProps {
   stepProgress: Record<string, StepProgress>;
-  project: {
-    id?: string;
-    name?: string;
-    eve_license_date: string | null;
-    evg_license_date: string | null;
-    arera_code: string | null;
-    wholesaler_name: string | null;
-    go_live_date: string | null;
-    status: string;
-    market_type: string | null;
-    regions: string[] | null;
-    commodity_type?: string | null;
-    logo_url?: string | null;
-  } | null;
+  project: Project | null;
   hasDocuments?: boolean;
   hasCosts?: boolean;
   hasTeamMembers?: boolean;
