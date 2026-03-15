@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -20,8 +21,11 @@ import {
   Settings2,
   AlertTriangle,
   CheckCircle2,
+  RefreshCw,
 } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useSalesChannels } from '@/hooks/useSalesChannels';
+import { useToast } from '@/hooks/use-toast';
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
@@ -58,7 +62,15 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
     updateStartDate, 
   } = simulationHook;
 
+  const { getWeightedActivationRate, channels, loading: channelsLoading } = useSalesChannels(projectId);
+  const { toast } = useToast();
+
   const { startDate, monthlyContracts, params } = data;
+
+  const weightedRate = getWeightedActivationRate();
+  const activeChannelsExist = channels.some(c => c.is_active && c.contract_share > 0);
+  const rateGap = Math.abs(params.activationRate - weightedRate);
+  const showRateWarning = activeChannelsExist && rateGap > 5;
 
   const startMonth = startDate.getMonth();
   const startYear = startDate.getFullYear();
@@ -187,6 +199,27 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   value={params.activationRate}
                   onChange={(e) => updateParams('activationRate', parseFloat(e.target.value) || 0)}
                 />
+                {showRateWarning && (
+                  <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 text-xs">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <p>I canali di vendita hanno un tasso medio del <strong>{weightedRate.toFixed(1)}%</strong> — considera di allineare questo valore.</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-1.5 h-6 text-xs gap-1"
+                        onClick={() => {
+                          const aligned = Math.round(weightedRate * 10) / 10;
+                          updateParams('activationRate', aligned);
+                          toast({ title: 'Tasso allineato', description: `Tasso attivazione impostato a ${aligned}%` });
+                        }}
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Allinea automaticamente
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
