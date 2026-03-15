@@ -80,6 +80,15 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
   // ─── Handlers ───
   const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
+  const handleExportGrossista = useCallback(() => {
+    if (!engineResult) return;
+    exportGrossistaReport(projectName, engineResult, revenueSimulation.data.params);
+  }, [projectName, engineResult, revenueSimulation.data.params]);
+  const handleExportFiscale = useCallback(() => {
+    if (!engineResult) return;
+    const taxFlows = buildTaxFlows(engineResult, revenueSimulation.data.params.ivaPaymentRegime);
+    exportFiscaleReport(projectName, engineResult, taxFlows, revenueSimulation.data.params);
+  }, [projectName, engineResult, revenueSimulation.data.params]);
   const handleTemplateApplied = () => refetch();
   const handleUsePunLive = useCallback((punPerKwh: number) => {
     revenueSimulation.updateParams('punPerKwh', punPerKwh);
