@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
-import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useRevenueSimulation, type RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
@@ -277,7 +277,17 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
         {/* ─── Margini ─── */}
         <TabsContent value="margins" className="space-y-6">
           <MarginAnalysis summary={summary} />
-          <WhatIfSimulator summary={summary} channelBreakdown={getChannelBreakdown(simulationSummary.contrattiTotali || 0)} />
+          <WhatIfSimulator
+            summary={summary}
+            channelBreakdown={getChannelBreakdown(simulationSummary.contrattiTotali || 0)}
+            simulationParams={revenueSimulation.data.params}
+            onApplyToSimulator={(params) => {
+              Object.entries(params).forEach(([key, value]) => {
+                revenueSimulation.updateParams(key as keyof RevenueSimulationParams, value);
+              });
+              revenueSimulation.saveSimulation();
+            }}
+          />
         </TabsContent>
 
         {/* ─── Liquidità ─── */}

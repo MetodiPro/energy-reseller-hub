@@ -6,25 +6,32 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { 
-  Calculator, 
-  RotateCcw, 
-  TrendingUp, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Tooltip as ShadcnTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Calculator,
+  TrendingUp,
   TrendingDown,
-  ArrowRight,
   Target,
   Users,
-  Phone
+  Zap,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
 } from 'lucide-react';
-
-interface ChannelScenario {
-  channelName: string;
-  commissionChange: number; // % variation on commission amount
-  contractShareChange: number; // % variation on contract share
-  originalCommission: number;
-  originalContracts: number;
-  originalCost: number;
-}
+import { useToast } from '@/hooks/use-toast';
+import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 
 interface WhatIfSimulatorProps {
   summary: {
@@ -45,6 +52,7 @@ interface WhatIfSimulatorProps {
       structural: number;
       indirect: number;
     };
+    hasSimulationData?: boolean;
   };
   channelBreakdown: Array<{
     channel_name: string;
@@ -54,483 +62,528 @@ interface WhatIfSimulatorProps {
     activations: number;
     cost: number;
   }>;
+  simulationParams?: RevenueSimulationParams;
+  onApplyToSimulator?: (params: Partial<RevenueSimulationParams>) => void;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('it-IT', {
+const fmt = (value: number, decimals = 0) =>
+  new Intl.NumberFormat('it-IT', {
     style: 'currency',
     currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   }).format(value);
-};
 
-const formatPercent = (value: number) => {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
-};
+const fmtKwh = (value: number) => `€ ${value.toFixed(3)}/kWh`;
 
-export const WhatIfSimulator = ({ summary, channelBreakdown }: WhatIfSimulatorProps) => {
-  const [revenueChange, setRevenueChange] = useState(0);
-  const [structuralCostChange, setStructuralCostChange] = useState(0);
-  const [indirectCostChange, setIndirectCostChange] = useState(0);
-  const [channelScenarios, setChannelScenarios] = useState<Record<string, { commissionChange: number; volumeChange: number }>>(
-    () => {
-      const init: Record<string, { commissionChange: number; volumeChange: number }> = {};
-      channelBreakdown.forEach(ch => {
-        init[ch.channel_name] = { commissionChange: 0, volumeChange: 0 };
-      });
-      return init;
-    }
+interface Scenario {
+  name: string;
+  spreadReseller: number;
+  ccv: number;
+  spreadGrossista: number;
+  feePod: number;
+  recommended?: boolean;
+}
+
+const SCENARIOS: Scenario[] = [
+  { name: 'Default (attuale)', spreadReseller: 0.015, ccv: 8.5, spreadGrossista: 0.008, feePod: 2.5 },
+  { name: 'Sostenibile minimo', spreadReseller: 0.02, ccv: 10, spreadGrossista: 0.008, feePod: 2.5 },
+  { name: 'Raccomandato ✓', spreadReseller: 0.025, ccv: 12, spreadGrossista: 0.008, feePod: 2.5, recommended: true },
+  { name: 'Redditività alta', spreadReseller: 0.03, ccv: 15, spreadGrossista: 0.008, feePod: 2.0 },
+  { name: 'CCV-centric (servizi)', spreadReseller: 0.01, ccv: 20, spreadGrossista: 0.008, feePod: 2.0 },
+];
+
+export const WhatIfSimulator = ({
+  summary,
+  channelBreakdown,
+  simulationParams,
+  onApplyToSimulator,
+}: WhatIfSimulatorProps) => {
+  const { toast } = useToast();
+
+  // Commercial levers
+  const [spreadReseller, setSpreadReseller] = useState(simulationParams?.spreadPerKwh ?? 0.015);
+  const [ccv, setCcv] = useState(simulationParams?.ccvMonthly ?? 8.5);
+  const [spreadGrossista, setSpreadGrossista] = useState(simulationParams?.spreadGrossistaPerKwh ?? 0.008);
+  const [feePod, setFeePod] = useState(simulationParams?.gestionePodPerPod ?? 2.5);
+
+  // Volume
+  const [contratti3m, setContratti3m] = useState(150);
+  const [contratti6m, setContratti6m] = useState(350);
+  const [contratti12m, setContratti12m] = useState(650);
+
+  // Structural
+  const [costiStrutturali, setCostiStrutturali] = useState(
+    (summary.costsByType?.structural || 0) > 0 ? summary.costsByType.structural : 2000
   );
+  const kWh = simulationParams?.avgMonthlyConsumption ?? 200;
 
-  const simulatedSummary = useMemo(() => {
-    const newRevenue = summary.totalRevenue * (1 + revenueChange / 100);
-    
-    // Calculate new commercial costs from channels
-    let newCommercialCosts = 0;
-    channelBreakdown.forEach(ch => {
-      const scenario = channelScenarios[ch.channel_name] || { commissionChange: 0, volumeChange: 0 };
-      const newCommission = ch.commission_amount * (1 + scenario.commissionChange / 100);
-      const newVolume = ch.contracts * (1 + scenario.volumeChange / 100);
-      
-      if (ch.commission_type === 'per_contract') {
-        newCommercialCosts += newCommission * newVolume;
-      } else {
-        const activations = Math.round(newVolume * (ch.activations / (ch.contracts || 1)));
-        newCommercialCosts += newCommission * activations;
-      }
-    });
-    
-    // If no channels configured, fall back to percentage-based
-    if (channelBreakdown.length === 0) {
-      newCommercialCosts = summary.costiCommercialiSimulati;
+  // ──── CALCULATION ENGINE ────
+  const calc = useMemo(() => {
+    const margineNettoPerCliente = ccv + spreadReseller * kWh - spreadGrossista * kWh - feePod;
+
+    // Invoice per client (for deposit calc)
+    const pun = simulationParams?.punPerKwh ?? 0.147;
+    const disp = simulationParams?.dispacciamentoPerKwh ?? 0.01;
+    const trasportoFissa = (simulationParams?.trasportoQuotaFissaAnno ?? 23) / 12;
+    const trasportoPotenza =
+      ((simulationParams?.trasportoQuotaPotenzaKwAnno ?? 22) * (simulationParams?.potenzaImpegnataKw ?? 3)) / 12;
+    const trasportoEnergia = (simulationParams?.trasportoQuotaEnergiaKwh ?? 0.008) * kWh;
+    const trasporto = trasportoFissa + trasportoPotenza + trasportoEnergia;
+    const oneri = ((simulationParams?.oneriAsosKwh ?? 0.025) + (simulationParams?.oneriArimKwh ?? 0.007)) * kWh;
+    const accise = (simulationParams?.acciseKwh ?? 0.0227) * kWh;
+    const passanti = (pun + disp) * kWh + trasporto + oneri + accise;
+    const margineReseller = ccv + spreadReseller * kWh;
+    const imponibile = passanti + margineReseller;
+    const iva = simulationParams?.ivaPercent ?? 10;
+    const fatturaPerCliente = imponibile * (1 + iva / 100);
+
+    const depositoMesi = simulationParams?.depositoMesi ?? 3;
+    const depositoPct = (simulationParams?.depositoPercentualeAttivazione ?? 85) / 100;
+    const depositoPerCliente = fatturaPerCliente * depositoMesi * depositoPct;
+
+    const investimento = summary.hasSimulationData ? 0 : 11000;
+
+    const marginePercent = fatturaPerCliente > 0 ? (margineReseller / fatturaPerCliente) * 100 : 0;
+
+    const breakEvenClienti =
+      margineNettoPerCliente > 0 ? Math.ceil(costiStrutturali / margineNettoPerCliente) : Infinity;
+
+    function calcolaSaldo(clienti: number, mesi: number) {
+      const margineOp = margineNettoPerCliente * clienti * mesi;
+      const depositoTotale = depositoPerCliente * clienti * 0.6;
+      const strutturali = costiStrutturali * mesi;
+      const saldoCassa = margineOp - depositoTotale - strutturali - (mesi <= 3 ? investimento : 0);
+      return { margineOp, deposito: depositoTotale, strutturali, saldoCassa, investimento: mesi <= 3 ? investimento : 0 };
     }
-
-    const newStructuralCosts = summary.costsByType.structural * (1 + structuralCostChange / 100);
-    const newIndirectCosts = summary.costsByType.indirect * (1 + indirectCostChange / 100);
-    
-    // Non-commercial operational costs (operational - commercial simulated)
-    const nonCommercialOps = summary.operationalCosts - summary.costiCommercialiSimulati;
-    const newOperationalCosts = nonCommercialOps + newCommercialCosts + newStructuralCosts + newIndirectCosts;
-    
-    const newTotalCosts = summary.passthroughCosts + newOperationalCosts;
-    const newGrossMargin = newRevenue - summary.passthroughCosts;
-    const newContributionMargin = newGrossMargin - newCommercialCosts;
-    const newNetMargin = newRevenue - newTotalCosts;
-
-    const fixedCosts = newStructuralCosts + newIndirectCosts;
-    const contributionMarginRatio = newRevenue > 0 ? (newRevenue - summary.passthroughCosts - newCommercialCosts) / newRevenue : 0;
-    const breakEvenRevenue = contributionMarginRatio > 0 ? (fixedCosts + nonCommercialOps) / contributionMarginRatio : 0;
 
     return {
-      totalRevenue: newRevenue,
-      totalCosts: newTotalCosts,
-      grossMargin: newGrossMargin,
-      grossMarginPercent: newRevenue > 0 ? (newGrossMargin / newRevenue) * 100 : 0,
-      contributionMargin: newContributionMargin,
-      contributionMarginPercent: newRevenue > 0 ? (newContributionMargin / newRevenue) * 100 : 0,
-      netMargin: newNetMargin,
-      netMarginPercent: newRevenue > 0 ? (newNetMargin / newRevenue) * 100 : 0,
-      commercialCosts: newCommercialCosts,
-      breakEvenRevenue,
-      isAboveBreakEven: newRevenue >= breakEvenRevenue && breakEvenRevenue > 0,
+      margineNettoPerCliente,
+      fatturaPerCliente,
+      depositoPerCliente,
+      marginePercent,
+      breakEvenClienti,
+      investimento,
+      proiezione3m: calcolaSaldo(contratti3m, 3),
+      proiezione6m: calcolaSaldo(contratti6m, 6),
+      proiezione12m: calcolaSaldo(contratti12m, 12),
     };
-  }, [summary, revenueChange, structuralCostChange, indirectCostChange, channelScenarios, channelBreakdown]);
+  }, [spreadReseller, ccv, spreadGrossista, feePod, kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
 
-  const differences = useMemo(() => ({
-    revenue: simulatedSummary.totalRevenue - summary.totalRevenue,
-    costs: simulatedSummary.totalCosts - summary.totalCosts,
-    netMargin: simulatedSummary.netMargin - summary.netMargin,
-    netMarginPercent: simulatedSummary.netMarginPercent - summary.netMarginPercent,
-    commercialCosts: simulatedSummary.commercialCosts - summary.costiCommercialiSimulati,
-  }), [summary, simulatedSummary]);
+  // Scenario comparison table
+  const scenarioRows = useMemo(() => {
+    return SCENARIOS.map((s) => {
+      const m = s.ccv + s.spreadReseller * kWh - s.spreadGrossista * kWh - s.feePod;
+      const bep = m > 0 ? Math.ceil(costiStrutturali / m) : Infinity;
 
-  const resetScenario = () => {
-    setRevenueChange(0);
-    setStructuralCostChange(0);
-    setIndirectCostChange(0);
-    const reset: Record<string, { commissionChange: number; volumeChange: number }> = {};
-    channelBreakdown.forEach(ch => {
-      reset[ch.channel_name] = { commissionChange: 0, volumeChange: 0 };
+      const pun = simulationParams?.punPerKwh ?? 0.147;
+      const disp = simulationParams?.dispacciamentoPerKwh ?? 0.01;
+      const trasporto =
+        (simulationParams?.trasportoQuotaFissaAnno ?? 23) / 12 +
+        ((simulationParams?.trasportoQuotaPotenzaKwAnno ?? 22) * (simulationParams?.potenzaImpegnataKw ?? 3)) / 12 +
+        (simulationParams?.trasportoQuotaEnergiaKwh ?? 0.008) * kWh;
+      const oneri = ((simulationParams?.oneriAsosKwh ?? 0.025) + (simulationParams?.oneriArimKwh ?? 0.007)) * kWh;
+      const accise = (simulationParams?.acciseKwh ?? 0.0227) * kWh;
+      const passanti = (pun + disp) * kWh + trasporto + oneri + accise;
+      const margineRes = s.ccv + s.spreadReseller * kWh;
+      const imponibile = passanti + margineRes;
+      const iva = simulationParams?.ivaPercent ?? 10;
+      const fattura = imponibile * (1 + iva / 100);
+      const depositoMesi = simulationParams?.depositoMesi ?? 3;
+      const depositoPct = (simulationParams?.depositoPercentualeAttivazione ?? 85) / 100;
+      const depPerCl = fattura * depositoMesi * depositoPct;
+      const inv = summary.hasSimulationData ? 0 : 11000;
+
+      const saldo = (clienti: number, mesi: number) => {
+        return m * clienti * mesi - depPerCl * clienti * 0.6 - costiStrutturali * mesi - (mesi <= 3 ? inv : 0);
+      };
+
+      return { ...s, margine: m, bep, saldo3: saldo(contratti3m, 3), saldo6: saldo(contratti6m, 6), saldo12: saldo(contratti12m, 12) };
     });
-    setChannelScenarios(reset);
+  }, [kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
+
+  // Current custom row
+  const customRow = useMemo(() => ({
+    name: '📌 Personalizzato',
+    margine: calc.margineNettoPerCliente,
+    bep: calc.breakEvenClienti,
+    saldo3: calc.proiezione3m.saldoCassa,
+    saldo6: calc.proiezione6m.saldoCassa,
+    saldo12: calc.proiezione12m.saldoCassa,
+  }), [calc]);
+
+  const applyScenario = (s: Scenario) => {
+    setSpreadReseller(s.spreadReseller);
+    setCcv(s.ccv);
+    setSpreadGrossista(s.spreadGrossista);
+    setFeePod(s.feePod);
   };
 
-  const applyPreset = (preset: 'optimistic' | 'pessimistic' | 'cost-reduction') => {
-    const channelPreset: Record<string, { commissionChange: number; volumeChange: number }> = {};
-    channelBreakdown.forEach(ch => {
-      switch (preset) {
-        case 'optimistic':
-          channelPreset[ch.channel_name] = { commissionChange: -10, volumeChange: 20 };
-          break;
-        case 'pessimistic':
-          channelPreset[ch.channel_name] = { commissionChange: 10, volumeChange: -15 };
-          break;
-        case 'cost-reduction':
-          channelPreset[ch.channel_name] = { commissionChange: -20, volumeChange: 0 };
-          break;
-      }
+  const handleApplyToSimulator = () => {
+    if (!onApplyToSimulator) return;
+    onApplyToSimulator({
+      spreadPerKwh: spreadReseller,
+      ccvMonthly: ccv,
+      spreadGrossistaPerKwh: spreadGrossista,
+      gestionePodPerPod: feePod,
     });
-    setChannelScenarios(channelPreset);
-    
-    switch (preset) {
-      case 'optimistic':
-        setRevenueChange(20);
-        setStructuralCostChange(0);
-        setIndirectCostChange(0);
-        break;
-      case 'pessimistic':
-        setRevenueChange(-15);
-        setStructuralCostChange(5);
-        setIndirectCostChange(5);
-        break;
-      case 'cost-reduction':
-        setRevenueChange(0);
-        setStructuralCostChange(-5);
-        setIndirectCostChange(-5);
-        break;
-    }
+    toast({
+      title: 'Parametri applicati',
+      description: 'Parametri applicati al simulatore — rigenera la simulazione per vedere i nuovi risultati.',
+    });
   };
 
-  const updateChannelScenario = (channelName: string, field: 'commissionChange' | 'volumeChange', value: number) => {
-    setChannelScenarios(prev => ({
-      ...prev,
-      [channelName]: { ...prev[channelName], [field]: value },
-    }));
-  };
+  const spreadBadge = (v: number) =>
+    v < 0.015 ? { label: 'Basso', cls: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' } :
+    v <= 0.025 ? { label: 'Mercato', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' } :
+    { label: 'Premium', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' };
 
-  const SliderControl = ({ 
-    label, 
-    value, 
-    onChange, 
-    currentValue 
-  }: { 
-    label: string; 
-    value: number; 
-    onChange: (val: number) => void;
-    currentValue: number;
+  const ccvBadge = (v: number) =>
+    v < 8 ? { label: 'Minimo', cls: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' } :
+    v <= 15 ? { label: 'Standard', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' } :
+    { label: 'Valore aggiunto', cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' };
+
+  const ProiezioneCard = ({
+    title,
+    clienti,
+    setClienti,
+    proiezione,
+    showInvestimento,
+  }: {
+    title: string;
+    clienti: number;
+    setClienti: (v: number) => void;
+    proiezione: { margineOp: number; deposito: number; strutturali: number; saldoCassa: number; investimento: number };
+    showInvestimento: boolean;
   }) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm">{label}</Label>
+    <Card className={`border ${proiezione.saldoCassa >= 0 ? 'border-green-200 dark:border-green-800' : 'border-destructive/30'}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            {formatCurrency(currentValue)}
-          </span>
-          <Badge variant={value === 0 ? 'secondary' : value > 0 ? 'default' : 'destructive'}>
-            {formatPercent(value)}
-          </Badge>
+          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            type="number"
+            value={clienti}
+            onChange={(e) => setClienti(Math.max(0, parseInt(e.target.value) || 0))}
+            className="h-7 w-24 text-sm"
+            min={0}
+          />
+          <span className="text-xs text-muted-foreground">clienti attivi</span>
         </div>
-      </div>
-      <Slider
-        value={[value]}
-        onValueChange={([val]) => onChange(val)}
-        min={-50}
-        max={50}
-        step={1}
-        className="w-full"
-      />
-    </div>
+      </CardHeader>
+      <CardContent className="space-y-1.5 text-sm">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Margine operativo</span>
+          <span className="text-green-600 font-medium">+{fmt(proiezione.margineOp)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Deposito cauzionale</span>
+          <span className="text-orange-600">-{fmt(proiezione.deposito)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Costi strutturali</span>
+          <span className="text-destructive">-{fmt(proiezione.strutturali)}</span>
+        </div>
+        {showInvestimento && proiezione.investimento > 0 && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Investimento startup</span>
+            <span className="text-destructive">-{fmt(proiezione.investimento)}</span>
+          </div>
+        )}
+        <Separator className="my-2" />
+        <div className="flex justify-between items-center">
+          <span className="font-semibold">Saldo di cassa</span>
+          <span className={`text-lg font-bold ${proiezione.saldoCassa >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+            {fmt(proiezione.saldoCassa)}
+          </span>
+        </div>
+        {proiezione.saldoCassa >= 0 ? (
+          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
+            <CheckCircle2 className="h-3 w-3" /> Avanzo
+          </Badge>
+        ) : (
+          <Badge variant="destructive" className="gap-1">
+            <AlertTriangle className="h-3 w-3" /> Deficit — serve capitale circolante di {fmt(Math.abs(proiezione.saldoCassa))}
+          </Badge>
+        )}
+      </CardContent>
+    </Card>
   );
-
-  const ComparisonRow = ({ 
-    label, 
-    original, 
-    simulated, 
-    isPercent = false,
-    highlight = false 
-  }: { 
-    label: string; 
-    original: number; 
-    simulated: number;
-    isPercent?: boolean;
-    highlight?: boolean;
-  }) => {
-    const diff = simulated - original;
-    const isPositive = label.includes('Costi') ? diff < 0 : diff > 0;
-    
-    return (
-      <div className={`flex items-center justify-between py-2 ${highlight ? 'bg-muted/50 px-3 rounded-lg' : ''}`}>
-        <span className={`text-sm ${highlight ? 'font-medium' : ''}`}>{label}</span>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground w-24 text-right">
-            {isPercent ? `${original.toFixed(1)}%` : formatCurrency(original)}
-          </span>
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          <span className={`text-sm font-medium w-24 text-right ${
-            isPositive ? 'text-green-600' : diff !== 0 ? 'text-destructive' : ''
-          }`}>
-            {isPercent ? `${simulated.toFixed(1)}%` : formatCurrency(simulated)}
-          </span>
-          <Badge 
-            variant={diff === 0 ? 'secondary' : isPositive ? 'default' : 'destructive'}
-            className="w-20 justify-center"
-          >
-            {isPercent 
-              ? `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}pp` 
-              : formatPercent((diff / (Math.abs(original) || 1)) * 100)
-            }
-          </Badge>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Simulatore What-If
-            </CardTitle>
-            <CardDescription>Simula variazioni su ricavi, provvigioni canali e costi operativi</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" onClick={resetScenario}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5" />
+          Ottimizzatore Profittabilità e Liquidità
+        </CardTitle>
+        <CardDescription>
+          Trova la combinazione ottimale di spread, CCV e volumi per garantire liquidità positiva a 3, 6 e 12 mesi
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Preset Scenarios */}
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => applyPreset('optimistic')} className="gap-1">
-            <TrendingUp className="h-3 w-3 text-green-600" />
-            Scenario Ottimista
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => applyPreset('pessimistic')} className="gap-1">
-            <TrendingDown className="h-3 w-3 text-destructive" />
-            Scenario Pessimista
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => applyPreset('cost-reduction')} className="gap-1">
-            <Target className="h-3 w-3 text-blue-600" />
-            Riduzione Costi
-          </Button>
+        {/* ─── TWO COLUMNS ─── */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* LEFT: Commercial Parameters */}
+          <div className="space-y-5">
+            <h4 className="font-medium flex items-center gap-2 text-primary">
+              <Zap className="h-4 w-4" /> Parametri Commerciali
+            </h4>
+
+            {/* Spread Reseller */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Spread Reseller (€/kWh)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono">{fmtKwh(spreadReseller)}</span>
+                  <span className="text-xs text-muted-foreground">= {fmt(spreadReseller * kWh, 2)}/cl/mese</span>
+                  <Badge className={`text-xs ${spreadBadge(spreadReseller).cls}`}>{spreadBadge(spreadReseller).label}</Badge>
+                </div>
+              </div>
+              <Slider
+                value={[spreadReseller * 1000]}
+                onValueChange={([v]) => setSpreadReseller(v / 1000)}
+                min={5}
+                max={50}
+                step={1}
+              />
+            </div>
+
+            {/* CCV */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">CCV Mensile (€/cliente)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono">{fmt(ccv, 2)}</span>
+                  <Badge className={`text-xs ${ccvBadge(ccv).cls}`}>{ccvBadge(ccv).label}</Badge>
+                </div>
+              </div>
+              <Slider
+                value={[ccv * 2]}
+                onValueChange={([v]) => setCcv(v / 2)}
+                min={10}
+                max={60}
+                step={1}
+              />
+              <p className="text-xs text-muted-foreground">ARERA consente fino a 25-30€/mese per servizi aggiuntivi</p>
+            </div>
+
+            {/* Spread Grossista */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Spread Grossista (€/kWh)</Label>
+                <span className="text-xs font-mono">{fmtKwh(spreadGrossista)}</span>
+              </div>
+              <Slider
+                value={[spreadGrossista * 1000]}
+                onValueChange={([v]) => setSpreadGrossista(v / 1000)}
+                min={3}
+                max={20}
+                step={1}
+              />
+              <p className="text-xs text-destructive">Costo — negoziabile con volumi &gt; 500 POD</p>
+            </div>
+
+            {/* Fee POD */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Fee Gestione POD (€/POD/mese)</Label>
+                <span className="text-xs font-mono">{fmt(feePod, 2)}</span>
+              </div>
+              <Slider
+                value={[feePod * 4]}
+                onValueChange={([v]) => setFeePod(v / 4)}
+                min={4}
+                max={20}
+                step={1}
+              />
+              <p className="text-xs text-muted-foreground">Tipicamente 1.50-3.00€, negoziabile sopra 300 POD</p>
+            </div>
+
+            {/* Costi strutturali */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Costi Strutturali Mensili (€)</Label>
+                <span className="text-xs font-mono">{fmt(costiStrutturali)}</span>
+              </div>
+              <Slider
+                value={[costiStrutturali]}
+                onValueChange={([v]) => setCostiStrutturali(v)}
+                min={0}
+                max={10000}
+                step={100}
+              />
+              <p className="text-xs text-muted-foreground">Affitto, personale, software, consulenze</p>
+            </div>
+
+            <Separator />
+
+            {/* MARGIN BOX */}
+            <div
+              className={`rounded-lg p-4 border-2 ${
+                calc.margineNettoPerCliente >= 0
+                  ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-950/30'
+                  : 'border-destructive bg-destructive/5'
+              }`}
+            >
+              <div className="text-center space-y-1">
+                <p className="text-sm text-muted-foreground font-medium">Margine netto per cliente / mese</p>
+                <p
+                  className={`text-3xl font-bold ${
+                    calc.margineNettoPerCliente >= 0 ? 'text-green-600' : 'text-destructive'
+                  }`}
+                >
+                  {fmt(calc.margineNettoPerCliente, 2)}
+                </p>
+                {calc.margineNettoPerCliente < 0 && (
+                  <p className="text-xs text-destructive flex items-center justify-center gap-1">
+                    <AlertTriangle className="h-3 w-3" /> Modello non sostenibile
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Margine su fattura: {calc.marginePercent.toFixed(1)}% — Break-even struttura:{' '}
+                  {calc.breakEvenClienti === Infinity ? '∞' : calc.breakEvenClienti} clienti
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: Projections */}
+          <div className="space-y-4">
+            <h4 className="font-medium flex items-center gap-2 text-primary">
+              <Target className="h-4 w-4" /> Proiezioni Liquidità
+            </h4>
+
+            <ProiezioneCard
+              title="A 3 mesi"
+              clienti={contratti3m}
+              setClienti={setContratti3m}
+              proiezione={calc.proiezione3m}
+              showInvestimento
+            />
+            <ProiezioneCard
+              title="A 6 mesi"
+              clienti={contratti6m}
+              setClienti={setContratti6m}
+              proiezione={calc.proiezione6m}
+              showInvestimento={false}
+            />
+            <ProiezioneCard
+              title="A 12 mesi"
+              clienti={contratti12m}
+              setClienti={setContratti12m}
+              proiezione={calc.proiezione12m}
+              showInvestimento={false}
+            />
+          </div>
         </div>
 
         <Separator />
 
-        {/* Sliders */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h4 className="font-medium text-green-600 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Ricavi
-            </h4>
-            <SliderControl
-              label="Variazione Ricavi"
-              value={revenueChange}
-              onChange={setRevenueChange}
-              currentValue={summary.totalRevenue}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="font-medium text-destructive flex items-center gap-2">
-              <TrendingDown className="h-4 w-4" />
-              Costi Fissi
-            </h4>
-            <SliderControl
-              label="Costi Strutturali"
-              value={structuralCostChange}
-              onChange={setStructuralCostChange}
-              currentValue={summary.costsByType.structural}
-            />
-            <SliderControl
-              label="Costi Indiretti"
-              value={indirectCostChange}
-              onChange={setIndirectCostChange}
-              currentValue={summary.costsByType.indirect}
-            />
+        {/* ─── SCENARIO PRESETS ─── */}
+        <div className="space-y-3">
+          <h4 className="font-medium flex items-center gap-2">
+            <Zap className="h-4 w-4" /> Scenari Preimpostati
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {SCENARIOS.map((s) => {
+              const m = s.ccv + s.spreadReseller * kWh - s.spreadGrossista * kWh - s.feePod;
+              return (
+                <Button
+                  key={s.name}
+                  variant={s.recommended ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyScenario(s)}
+                  className="gap-1"
+                >
+                  {s.recommended && <CheckCircle2 className="h-3 w-3" />}
+                  {s.name}
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {fmt(m, 2)}/cl
+                  </Badge>
+                </Button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Channel-specific controls */}
-        {channelBreakdown.length > 0 && (
+        <Separator />
+
+        {/* ─── COMPARISON TABLE ─── */}
+        <div className="space-y-3">
+          <h4 className="font-medium">Tabella Comparativa Scenari</h4>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Scenario</TableHead>
+                  <TableHead className="text-right">€/cl/mese</TableHead>
+                  <TableHead className="text-right">BEP (cl)</TableHead>
+                  <TableHead className="text-right">Saldo 3m</TableHead>
+                  <TableHead className="text-right">Saldo 6m</TableHead>
+                  <TableHead className="text-right">Saldo 12m</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {scenarioRows.map((r) => (
+                  <TableRow
+                    key={r.name}
+                    className={`cursor-pointer hover:bg-muted/50 ${r.recommended ? 'bg-green-50/50 dark:bg-green-950/20' : ''}`}
+                    onClick={() => applyScenario(r)}
+                  >
+                    <TableCell className="font-medium text-sm">
+                      {r.recommended && <CheckCircle2 className="h-3 w-3 inline mr-1 text-green-600" />}
+                      {r.name}
+                    </TableCell>
+                    <TableCell className={`text-right font-mono text-sm ${r.margine >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                      {fmt(r.margine, 2)}
+                    </TableCell>
+                    <TableCell className="text-right text-sm">{r.bep === Infinity ? '∞' : r.bep}</TableCell>
+                    <TableCell className={`text-right font-mono text-sm ${r.saldo3 >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                      {fmt(r.saldo3)}
+                    </TableCell>
+                    <TableCell className={`text-right font-mono text-sm ${r.saldo6 >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                      {fmt(r.saldo6)}
+                    </TableCell>
+                    <TableCell className={`text-right font-mono text-sm ${r.saldo12 >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                      {fmt(r.saldo12)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {/* Custom row */}
+                <TableRow className="bg-primary/5 font-semibold">
+                  <TableCell className="text-sm">{customRow.name}</TableCell>
+                  <TableCell className={`text-right font-mono text-sm ${customRow.margine >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    {fmt(customRow.margine, 2)}
+                  </TableCell>
+                  <TableCell className="text-right text-sm">{customRow.bep === Infinity ? '∞' : customRow.bep}</TableCell>
+                  <TableCell className={`text-right font-mono text-sm ${customRow.saldo3 >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    {fmt(customRow.saldo3)}
+                  </TableCell>
+                  <TableCell className={`text-right font-mono text-sm ${customRow.saldo6 >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    {fmt(customRow.saldo6)}
+                  </TableCell>
+                  <TableCell className={`text-right font-mono text-sm ${customRow.saldo12 >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                    {fmt(customRow.saldo12)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {/* ─── APPLY BUTTON ─── */}
+        {onApplyToSimulator && (
           <>
             <Separator />
-            <div className="space-y-4">
-              <h4 className="font-medium text-orange-600 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Canali di Vendita
-                <Badge variant="outline" className="text-xs font-normal">Provvigioni reali configurate</Badge>
-              </h4>
-              
-              {channelBreakdown.map(ch => {
-                const scenario = channelScenarios[ch.channel_name] || { commissionChange: 0, volumeChange: 0 };
-                const newCommission = ch.commission_amount * (1 + scenario.commissionChange / 100);
-                const newVolume = Math.round(ch.contracts * (1 + scenario.volumeChange / 100));
-                const newCost = ch.commission_type === 'per_contract'
-                  ? newCommission * newVolume
-                  : newCommission * Math.round(newVolume * (ch.activations / (ch.contracts || 1)));
-                
-                return (
-                  <div key={ch.channel_name} className="p-4 rounded-lg border bg-card space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{ch.channel_name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {ch.commission_type === 'per_contract' ? 'Per contratto' : 'Per attivazione'}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm text-muted-foreground mr-2">{formatCurrency(ch.cost)}</span>
-                        <ArrowRight className="h-3 w-3 inline text-muted-foreground mx-1" />
-                        <span className={`text-sm font-medium ${newCost !== ch.cost ? (newCost < ch.cost ? 'text-green-600' : 'text-destructive') : ''}`}>
-                          {formatCurrency(newCost)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs">Provvigione unitaria</Label>
-                          <span className="text-xs text-muted-foreground">€{ch.commission_amount} → €{newCommission.toFixed(0)}</span>
-                        </div>
-                        <Slider
-                          value={[scenario.commissionChange]}
-                          onValueChange={([val]) => updateChannelScenario(ch.channel_name, 'commissionChange', val)}
-                          min={-50}
-                          max={50}
-                          step={1}
-                          className="w-full"
-                        />
-                        <div className="text-right">
-                          <Badge variant={scenario.commissionChange === 0 ? 'secondary' : scenario.commissionChange > 0 ? 'destructive' : 'default'} className="text-xs">
-                            {formatPercent(scenario.commissionChange)}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs">Volume contratti</Label>
-                          <span className="text-xs text-muted-foreground">{ch.contracts} → {newVolume}</span>
-                        </div>
-                        <Slider
-                          value={[scenario.volumeChange]}
-                          onValueChange={([val]) => updateChannelScenario(ch.channel_name, 'volumeChange', val)}
-                          min={-50}
-                          max={50}
-                          step={1}
-                          className="w-full"
-                        />
-                        <div className="text-right">
-                          <Badge variant={scenario.volumeChange === 0 ? 'secondary' : scenario.volumeChange > 0 ? 'default' : 'destructive'} className="text-xs">
-                            {formatPercent(scenario.volumeChange)}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex justify-end">
+              <Button onClick={handleApplyToSimulator} className="gap-2">
+                <ArrowRight className="h-4 w-4" />
+                Applica questi parametri al Simulatore Ricavi
+              </Button>
             </div>
           </>
         )}
-
-        <Separator />
-
-        {/* Results Comparison */}
-        <div>
-          <h4 className="font-medium mb-4">Confronto Risultati</h4>
-          <div className="space-y-1">
-            <ComparisonRow 
-              label="Ricavi Totali" 
-              original={summary.totalRevenue} 
-              simulated={simulatedSummary.totalRevenue} 
-            />
-            <ComparisonRow 
-              label="Costi Commerciali" 
-              original={summary.costiCommercialiSimulati} 
-              simulated={simulatedSummary.commercialCosts} 
-            />
-            <ComparisonRow 
-              label="Costi Totali" 
-              original={summary.totalCosts} 
-              simulated={simulatedSummary.totalCosts} 
-            />
-            <ComparisonRow 
-              label="Margine Lordo" 
-              original={summary.grossMargin} 
-              simulated={simulatedSummary.grossMargin} 
-            />
-            <ComparisonRow 
-              label="Margine Lordo %" 
-              original={summary.grossMarginPercent} 
-              simulated={simulatedSummary.grossMarginPercent}
-              isPercent 
-            />
-            <ComparisonRow 
-              label="Margine Contribuzione" 
-              original={summary.contributionMargin} 
-              simulated={simulatedSummary.contributionMargin} 
-            />
-            <ComparisonRow 
-              label="Margine Netto" 
-              original={summary.netMargin} 
-              simulated={simulatedSummary.netMargin}
-              highlight 
-            />
-            <ComparisonRow 
-              label="Margine Netto %" 
-              original={summary.netMarginPercent} 
-              simulated={simulatedSummary.netMarginPercent}
-              isPercent
-              highlight 
-            />
-          </div>
-        </div>
-
-        {/* Break-Even Status */}
-        <div className="p-4 rounded-lg border bg-card">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              <span className="font-medium">Break-Even Point</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">
-                BEP: {formatCurrency(simulatedSummary.breakEvenRevenue)}
-              </span>
-              <Badge variant={simulatedSummary.isAboveBreakEven ? 'default' : 'secondary'}>
-                {simulatedSummary.isAboveBreakEven ? '✓ Raggiunto' : '○ Non raggiunto'}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Impact Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className={`p-3 rounded-lg text-center ${differences.netMargin >= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
-            <p className="text-xs text-muted-foreground mb-1">Impatto su Margine</p>
-            <p className={`text-lg font-bold ${differences.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {formatCurrency(differences.netMargin)}
-            </p>
-          </div>
-          <div className={`p-3 rounded-lg text-center ${differences.revenue >= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
-            <p className="text-xs text-muted-foreground mb-1">Δ Ricavi</p>
-            <p className={`text-lg font-bold ${differences.revenue >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {formatCurrency(differences.revenue)}
-            </p>
-          </div>
-          <div className={`p-3 rounded-lg text-center ${differences.commercialCosts <= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
-            <p className="text-xs text-muted-foreground mb-1">Δ Provvigioni</p>
-            <p className={`text-lg font-bold ${differences.commercialCosts <= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {formatCurrency(differences.commercialCosts)}
-            </p>
-          </div>
-          <div className={`p-3 rounded-lg text-center ${differences.netMarginPercent >= 0 ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
-            <p className="text-xs text-muted-foreground mb-1">Δ Margine %</p>
-            <p className={`text-lg font-bold ${differences.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {differences.netMarginPercent >= 0 ? '+' : ''}{differences.netMarginPercent.toFixed(1)}pp
-            </p>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
