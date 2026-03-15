@@ -29,23 +29,22 @@ const CURRENT_TARIFFS: AreraTariffs = {
   quarter: 'Q1',
   year: 2026,
   trasporto: {
-    quotaFissaAnno: 23.00,        // €/anno - quota fissa per punto
-    quotaPotenzaKwAnno: 22.00,    // €/kW/anno - quota potenza
-    quotaEnergiaKwh: 0.00812,     // €/kWh - quota energia
+    quotaFissaAnno: 23.00,
+    quotaPotenzaKwAnno: 22.00,
+    quotaEnergiaKwh: 0.00812,
   },
   oneri: {
-    asosKwh: 0.02500,             // €/kWh - oneri generali ASOS
-    arimKwh: 0.00700,             // €/kWh - oneri rimanenti ARIM
+    asosKwh: 0.02500,
+    arimKwh: 0.00700,
   },
   accise: {
-    domesticoKwh: 0.02270,        // €/kWh - accisa domestico (oltre 150 kWh/mese)
-    altriUsiKwh: 0.01250,         // €/kWh - accisa altri usi
+    domesticoKwh: 0.02270,
+    altriUsiKwh: 0.01250,
   },
   source: 'ARERA - Delibere Q1 2026',
   lastUpdate: '2026-01-01',
 };
 
-// Storico tariffe per riferimento
 const TARIFF_HISTORY: Record<string, AreraTariffs> = {
   'Q4-2025': {
     quarter: 'Q4',
@@ -69,6 +68,50 @@ const TARIFF_HISTORY: Record<string, AreraTariffs> = {
   'Q1-2026': CURRENT_TARIFFS,
 };
 
+function getNextQuarterUpdate(quarter: string, year: number): string {
+  const quarterStartMonths: Record<string, string> = {
+    Q1: `${year}-04-01`,
+    Q2: `${year}-07-01`,
+    Q3: `${year}-10-01`,
+    Q4: `${year + 1}-01-01`,
+  };
+  return quarterStartMonths[quarter] || `${year}-04-01`;
+}
+
+async function fetchLivePunFromGME(): Promise<number | null> {
+  try {
+    const res = await fetch(
+      'https://www.mercatoelettrico.org/It/Tools/Accessodati.aspx',
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          Accept: 'application/json, text/html',
+        },
+        signal: AbortSignal.timeout(5000),
+      },
+    );
+    if (!res.ok) return null;
+
+    const text = await res.text();
+    // Try JSON parse first
+    try {
+      const json = JSON.parse(text);
+      if (json?.data?.price || json?.price) {
+        const price = json?.data?.price ?? json?.price;
+        if (typeof price === 'number' && price > 0 && price < 1000) {
+          return price;
+        }
+      }
+    } catch {
+      // Not JSON — ignore
+    }
+    return null;
+  } catch (e) {
+    console.log('GME API not reachable:', e);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -76,112 +119,60 @@ Deno.serve(async (req) => {
 
   try {
     console.log('Fetching ARERA tariffs...');
-    
+
     const { quarter, year, clientType } = await req.json().catch(() => ({}));
-    
-    // Determina il trimestre corrente se non specificato
+
     const now = new Date();
     const currentQuarter = quarter || `Q${Math.ceil((now.getMonth() + 1) / 3)}`;
     const currentYear = year || now.getFullYear();
     const key = `${currentQuarter}-${currentYear}`;
-    
+
     console.log(`Requested tariffs for: ${key}, client type: ${clientType || 'domestico'}`);
-    
-    // Cerca le tariffe nel nostro database
-    let tariffs = TARIFF_HISTORY[key] || CURRENT_TARIFFS;
-    
-    // Tentativo di scraping dal sito ARERA (simulato)
-    // In produzione, si potrebbe implementare uno scraper reale
-    // che legge le delibere pubblicate su https://www.arera.it
+
+    const tariffs = TARIFF_HISTORY[key] || CURRENT_TARIFFS;
+
+    // Try to get live PUN from GME
+    let dataFreshness: 'live' | 'cached' = 'cached';
+    let livePun: number | null = null;
     try {
-      const areraUrl = 'https://www.arera.it/it/elettricita/ele40/ele40.htm';
-      console.log(`Attempting to fetch from ARERA: ${areraUrl}`);
-      
-      const response = await fetch(areraUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml',
-          'Accept-Language': 'it-IT,it;q=0.9',
-        },
-      });
-      
-      if (response.ok) {
-        const html = await response.text();
-        console.log(`Received ARERA page, length: ${html.length}`);
-        
-        // Parsing delle tariffe dal sito ARERA
-        // Cerchiamo pattern tipici nelle tabelle ARERA
-        const patterns = {
-          trasportoFissa: /quota\s+fissa[^0-9]*(\d+[.,]\d+)/i,
-          trasportoPotenza: /quota\s+potenza[^0-9]*(\d+[.,]\d+)/i,
-          trasportoEnergia: /quota\s+energia[^0-9]*(\d+[.,]\d+)/i,
-          asos: /ASOS[^0-9]*(\d+[.,]\d+)/i,
-          arim: /ARIM[^0-9]*(\d+[.,]\d+)/i,
-        };
-        
-        // Estrai valori se trovati
-        const extractValue = (regex: RegExp): number | null => {
-          const match = html.match(regex);
-          if (match) {
-            return parseFloat(match[1].replace(',', '.'));
-          }
-          return null;
-        };
-        
-        const scrapedFissa = extractValue(patterns.trasportoFissa);
-        const scrapedPotenza = extractValue(patterns.trasportoPotenza);
-        const scrapedEnergia = extractValue(patterns.trasportoEnergia);
-        const scrapedAsos = extractValue(patterns.asos);
-        const scrapedArim = extractValue(patterns.arim);
-        
-        // Se troviamo valori validi, aggiorniamo le tariffe
-        if (scrapedFissa && scrapedFissa > 0 && scrapedFissa < 100) {
-          tariffs = {
-            ...tariffs,
-            trasporto: {
-              quotaFissaAnno: scrapedFissa,
-              quotaPotenzaKwAnno: scrapedPotenza || tariffs.trasporto.quotaPotenzaKwAnno,
-              quotaEnergiaKwh: scrapedEnergia ? scrapedEnergia / 100 : tariffs.trasporto.quotaEnergiaKwh,
-            },
-            oneri: {
-              asosKwh: scrapedAsos ? scrapedAsos / 100 : tariffs.oneri.asosKwh,
-              arimKwh: scrapedArim ? scrapedArim / 100 : tariffs.oneri.arimKwh,
-            },
-            source: 'ARERA - Dati aggiornati',
-            lastUpdate: new Date().toISOString().split('T')[0],
-          };
-          console.log('Successfully parsed ARERA data');
-        }
+      livePun = await fetchLivePunFromGME();
+      if (livePun !== null) {
+        dataFreshness = 'live';
+        console.log(`Live PUN from GME: ${livePun} €/MWh`);
       }
-    } catch (scrapeError) {
-      console.log('Could not scrape ARERA, using cached values:', scrapeError);
+    } catch {
+      console.log('GME fetch failed, using cached values');
     }
-    
-    // Prepara la risposta con le tariffe appropriate per il tipo cliente
+
     const isBusinessClient = clientType === 'business' || clientType === 'pmi';
-    
+    const nextUpdate = getNextQuarterUpdate(currentQuarter, currentYear);
+
     const responseData = {
       success: true,
       data: {
         ...tariffs,
-        acciseApplicate: isBusinessClient 
-          ? tariffs.accise.altriUsiKwh 
+        acciseApplicate: isBusinessClient
+          ? tariffs.accise.altriUsiKwh
           : tariffs.accise.domesticoKwh,
         ivaPercent: isBusinessClient ? 22 : 10,
         clientType: clientType || 'domestico',
+        ...(livePun !== null ? { livePunMwh: livePun, livePunKwh: Math.round((livePun / 1000) * 10000) / 10000 } : {}),
       },
+      data_freshness: dataFreshness,
+      next_update: nextUpdate,
     };
-    
+
     console.log('Returning tariffs:', JSON.stringify(responseData.data));
-    
-    return new Response(
-      JSON.stringify(responseData),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+
+    return new Response(JSON.stringify(responseData), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error fetching ARERA tariffs:', error);
-    
-    // Ritorna comunque le tariffe di fallback
+
+    const now = new Date();
+    const currentQuarter = `Q${Math.ceil((now.getMonth() + 1) / 3)}`;
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -191,9 +182,11 @@ Deno.serve(async (req) => {
           ivaPercent: 10,
           clientType: 'domestico',
         },
+        data_freshness: 'cached' as const,
+        next_update: getNextQuarterUpdate(currentQuarter, now.getFullYear()),
         warning: 'Utilizzate tariffe memorizzate. ARERA non raggiungibile.',
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });

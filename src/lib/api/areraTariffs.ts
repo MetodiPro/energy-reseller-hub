@@ -25,7 +25,12 @@ export interface AreraTariffData {
 
 export interface AreraTariffResponse {
   success: boolean;
-  data: AreraTariffData;
+  data: AreraTariffData & {
+    livePunMwh?: number;
+    livePunKwh?: number;
+  };
+  data_freshness: 'live' | 'cached';
+  next_update: string;
   warning?: string;
 }
 
