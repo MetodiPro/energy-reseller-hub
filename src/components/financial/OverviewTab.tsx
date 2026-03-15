@@ -11,6 +11,7 @@ import { FinancialTrendChart } from './FinancialTrendChart';
 import { BreakEvenAnalysis } from './BreakEvenAnalysis';
 import { FinancialGlossary } from './FinancialGlossary';
 import { MonthlyChannelCostsChart } from './MonthlyChannelCostsChart';
+import { MarketDataBar } from './MarketDataBar';
 import type { SalesChannel } from '@/hooks/useSalesChannels';
 import type { FinancialOverviewSummary } from '@/hooks/useFinancialSummary';
 import type { SimulationSummary } from '@/hooks/useSimulationSummary';
