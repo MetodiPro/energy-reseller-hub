@@ -141,6 +141,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
 
     let totaleIncassi = 0, totaleCostiPassanti = 0, totaleCostiOperativi = 0;
     let totaleCostiCommerciali = 0, totaleFlussiFiscali = 0, totaleDepositi = 0;
+    let investimentiTotali = 0;
     let minCumulative = 0;
     let maxExposureMonth = '-';
     let firstPositiveMonth: string | null = null;
@@ -199,6 +200,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleCostiCommerciali += costiCommercialiMese;
       totaleFlussiFiscali += flussiFiscaliMese;
       totaleDepositi += deltaDepositoCassa;
+      investimentiTotali += investimentiIniziali;
 
       const materiaEnergiaMese = customer.clientiFatturati * perClient.materiaEnergia;
       const trasportoMese = customer.clientiFatturati * perClient.trasporto;
@@ -272,7 +274,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       monthlyData,
       totals: {
         inflow: totaleIncassi,
-        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + getGrandTotal(),
+        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + investimentiTotali,
         net: cumulative,
         cumulative,
       },
