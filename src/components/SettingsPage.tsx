@@ -352,6 +352,10 @@ export function SettingsPage({ userId, userEmail, userName }: SettingsPageProps)
 
       {/* Appearance Section */}
       <AppearanceSection />
+
+      {/* Market Tariffs Section */}
+      <Separator className="my-8" />
+      <MarketTariffsSection />
     </div>
   );
 }
