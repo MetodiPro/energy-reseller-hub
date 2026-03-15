@@ -251,6 +251,27 @@ export const ProjectWizard = ({ userId, open, onClose, onProjectCreated }: Proje
             rows={3}
           />
         </div>
+
+        <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+          <div className="flex items-start gap-2">
+            <Zap className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Tipo fornitura:</span> Questo progetto è configurato per la <strong>vendita di energia elettrica</strong> come reseller. L'app gestisce automaticamente licenze (EVE), tariffe ARERA e adempimenti specifici per il settore elettrico.
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <Building2 className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Grossista:</span> Il grossista (o Utente del Dispacciamento) è il fornitore all'ingrosso di energia. Lo configurerai nella Scheda Progetto dopo la creazione.
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <Shield className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Codice ARERA:</span> Il codice operatore ARERA (es. VEN-123456) ti viene assegnato dopo l'iscrizione all'Anagrafica Operatori. Lo inserirai nella Scheda Progetto quando disponibile.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
