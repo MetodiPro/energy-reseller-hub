@@ -1,7 +1,8 @@
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Zap, LogOut, Download, FileText, DollarSign, ContactRound } from 'lucide-react';
+import { processSteps } from '@/data/processSteps';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
 import { ProjectSelector } from '@/components/ProjectSelector';
@@ -12,6 +13,7 @@ import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { AppSidebar } from '@/components/AppSidebar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { OverallProgressRing } from '@/components/OverallProgressRing';
 import { supabase } from '@/integrations/supabase/client';
 import { useStepProgress } from '@/hooks/useStepProgress';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -161,6 +163,7 @@ export function AppLayout({ user }: AppLayoutProps) {
             <ProjectOverview
               project={currentProject}
               onProjectUpdate={(p) => selectProject(p)}
+              stepProgress={stepProgress}
             />
           );
         case 'dashboard':
@@ -436,6 +439,7 @@ export function AppLayout({ user }: AppLayoutProps) {
                     <p className="text-xs text-muted-foreground">{currentProject.description}</p>
                   )}
                 </div>
+                <OverallProgressRing stepProgress={stepProgress} />
               </div>
             )}
 
