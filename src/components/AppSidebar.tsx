@@ -17,6 +17,7 @@ import {
   LogOut,
   User,
   Briefcase,
+  ContactRound,
 } from "lucide-react";
 import {
   Sidebar,
