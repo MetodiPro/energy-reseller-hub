@@ -14,7 +14,7 @@ export const useLazyUnifiedExport = () => {
   const [exporting, setExporting] = useState(false);
 
   const exportReport = useCallback(async (
-    currentProject: { id: string; name: string; commodity_type?: string | null; [key: string]: any },
+    currentProject: Project,
     currentProjectId: string,
     stepProgress: Record<string, StepProgress>,
   ) => {

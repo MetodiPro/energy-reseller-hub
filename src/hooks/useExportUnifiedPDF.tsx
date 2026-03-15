@@ -6,22 +6,7 @@ import { it } from 'date-fns/locale';
 import type { StepProgress } from './useStepProgress';
 import type { FinancialSummary } from './useProjectFinancials';
 import type { CashFlowSummary } from './useCashFlowAnalysis';
-
-interface UnifiedProject {
-  name: string;
-  description: string | null;
-  status: string;
-  market_type: string | null;
-  expected_volumes: number | null;
-  regions: string[] | null;
-  wholesaler_name: string | null;
-  eve_license_date: string | null;
-  evg_license_date: string | null;
-  arera_code: string | null;
-  go_live_date: string | null;
-  created_at: string;
-  commodity_type: string | null;
-}
+import type { Project } from './useProjects';
 
 interface CheckItem {
   label: string;
