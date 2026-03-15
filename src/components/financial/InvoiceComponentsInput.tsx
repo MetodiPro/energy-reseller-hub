@@ -132,7 +132,7 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
         onUpdate('acciseKwh', response.data.acciseApplicate);
         onUpdate('ivaPercent', response.data.ivaPercent);
         
-        setAreraSource(response.data.source);
+        setAreraSource(`Delibera ${response.data.delibera}`);
         setAreraDate(`${response.data.quarter} ${response.data.year}`);
         
         toast({
@@ -146,7 +146,7 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
               <p className="text-xs text-muted-foreground">
                 Oneri: ASOS €{response.data.oneri.asosKwh.toFixed(4)}/kWh + ARIM €{response.data.oneri.arimKwh.toFixed(4)}/kWh
               </p>
-              <p className="text-xs text-muted-foreground">Fonte: {response.data.source}</p>
+              <p className="text-xs text-muted-foreground">Fonte: Delibera {response.data.delibera}</p>
             </div>
           ),
         });

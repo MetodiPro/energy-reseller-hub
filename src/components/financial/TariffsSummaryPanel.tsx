@@ -70,7 +70,7 @@ export const TariffsSummaryPanel = ({ params, onUpdate }: TariffsSummaryPanelPro
         onUpdate('acciseKwh', areraResponse.data.acciseApplicate);
         onUpdate('ivaPercent', areraResponse.data.ivaPercent);
         setAreraInfo({
-          source: areraResponse.data.source,
+          source: `Delibera ${areraResponse.data.delibera}`,
           quarter: `${areraResponse.data.quarter} ${areraResponse.data.year}`,
         });
       }

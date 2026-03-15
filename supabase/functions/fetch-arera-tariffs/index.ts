@@ -1,11 +1,18 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const BUCKET = 'config';
+const TARIFF_PATH = 'arera-tariffs/current.json';
+
 interface AreraTariffs {
   quarter: string;
   year: number;
+  effective_date: string;
+  delibera: string;
   trasporto: {
     quotaFissaAnno: number;
     quotaPotenzaKwAnno: number;
@@ -19,15 +26,16 @@ interface AreraTariffs {
     domesticoKwh: number;
     altriUsiKwh: number;
   };
-  source: string;
-  lastUpdate: string;
+  next_update_date: string;
+  last_updated_at: string;
+  updated_by: string;
 }
 
-// Tariffe ARERA aggiornate - Q1 2026
-// Fonte: Delibere ARERA per il settore elettrico
-const CURRENT_TARIFFS: AreraTariffs = {
+const DEFAULT_TARIFFS: AreraTariffs = {
   quarter: 'Q1',
   year: 2026,
+  effective_date: '2026-01-01',
+  delibera: '588/2025/R/com',
   trasporto: {
     quotaFissaAnno: 23.00,
     quotaPotenzaKwAnno: 22.00,
@@ -41,75 +49,81 @@ const CURRENT_TARIFFS: AreraTariffs = {
     domesticoKwh: 0.02270,
     altriUsiKwh: 0.01250,
   },
-  source: 'ARERA - Delibere Q1 2026',
-  lastUpdate: '2026-01-01',
+  next_update_date: '2026-04-01',
+  last_updated_at: '',
+  updated_by: 'system_init',
 };
 
-const TARIFF_HISTORY: Record<string, AreraTariffs> = {
-  'Q4-2025': {
-    quarter: 'Q4',
-    year: 2025,
-    trasporto: {
-      quotaFissaAnno: 22.50,
-      quotaPotenzaKwAnno: 21.50,
-      quotaEnergiaKwh: 0.00798,
-    },
-    oneri: {
-      asosKwh: 0.02450,
-      arimKwh: 0.00680,
-    },
-    accise: {
-      domesticoKwh: 0.02270,
-      altriUsiKwh: 0.01250,
-    },
-    source: 'ARERA - Delibere Q4 2025',
-    lastUpdate: '2025-10-01',
-  },
-  'Q1-2026': CURRENT_TARIFFS,
-};
+function buildResponse(tariffs: AreraTariffs, freshness: 'storage' | 'default_init', clientType?: string) {
+  const now = new Date();
+  const nextUpdate = new Date(tariffs.next_update_date);
+  const diffMs = nextUpdate.getTime() - now.getTime();
+  const daysUntilUpdate = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const requiresUpdate = now > nextUpdate;
 
-function getNextQuarterUpdate(quarter: string, year: number): string {
-  const quarterStartMonths: Record<string, string> = {
-    Q1: `${year}-04-01`,
-    Q2: `${year}-07-01`,
-    Q3: `${year}-10-01`,
-    Q4: `${year + 1}-01-01`,
+  const isBusinessClient = clientType === 'business' || clientType === 'pmi';
+
+  return {
+    success: true,
+    data: {
+      ...tariffs,
+      acciseApplicate: isBusinessClient ? tariffs.accise.altriUsiKwh : tariffs.accise.domesticoKwh,
+      ivaPercent: isBusinessClient ? 22 : 10,
+      clientType: clientType || 'domestico',
+    },
+    data_freshness: freshness,
+    next_update: tariffs.next_update_date,
+    days_until_update: daysUntilUpdate,
+    requires_update: requiresUpdate,
   };
-  return quarterStartMonths[quarter] || `${year}-04-01`;
 }
 
-async function fetchLivePunFromGME(): Promise<number | null> {
-  try {
-    const res = await fetch(
-      'https://www.mercatoelettrico.org/It/Tools/Accessodati.aspx',
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-          Accept: 'application/json, text/html',
-        },
-        signal: AbortSignal.timeout(5000),
-      },
-    );
-    if (!res.ok) return null;
+function getServiceClient() {
+  const url = Deno.env.get('SUPABASE_URL')!;
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  return createClient(url, serviceKey);
+}
 
-    const text = await res.text();
-    // Try JSON parse first
-    try {
-      const json = JSON.parse(text);
-      if (json?.data?.price || json?.price) {
-        const price = json?.data?.price ?? json?.price;
-        if (typeof price === 'number' && price > 0 && price < 1000) {
-          return price;
-        }
-      }
-    } catch {
-      // Not JSON — ignore
+async function readTariffsFromStorage(supabase: ReturnType<typeof createClient>): Promise<{ tariffs: AreraTariffs; freshness: 'storage' | 'default_init' }> {
+  const { data, error } = await supabase.storage.from(BUCKET).download(TARIFF_PATH);
+
+  if (error || !data) {
+    console.log('Tariff file not found in storage, initializing with defaults...');
+    // Save defaults to storage
+    const blob = new Blob([JSON.stringify(DEFAULT_TARIFFS, null, 2)], { type: 'application/json' });
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(TARIFF_PATH, blob, { contentType: 'application/json', upsert: true });
+
+    if (uploadError) {
+      console.error('Failed to save default tariffs:', uploadError);
     }
-    return null;
-  } catch (e) {
-    console.log('GME API not reachable:', e);
-    return null;
+
+    return { tariffs: { ...DEFAULT_TARIFFS, last_updated_at: new Date().toISOString() }, freshness: 'default_init' };
   }
+
+  const text = await data.text();
+  const tariffs: AreraTariffs = JSON.parse(text);
+  return { tariffs, freshness: 'storage' };
+}
+
+async function writeTariffsToStorage(supabase: ReturnType<typeof createClient>, tariffs: AreraTariffs): Promise<AreraTariffs> {
+  const updated: AreraTariffs = {
+    ...tariffs,
+    last_updated_at: new Date().toISOString(),
+    updated_by: 'admin',
+  };
+
+  const blob = new Blob([JSON.stringify(updated, null, 2)], { type: 'application/json' });
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(TARIFF_PATH, blob, { contentType: 'application/json', upsert: true });
+
+  if (error) {
+    throw new Error(`Failed to save tariffs: ${error.message}`);
+  }
+
+  return updated;
 }
 
 Deno.serve(async (req) => {
@@ -118,73 +132,68 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Fetching ARERA tariffs...');
+    const supabase = getServiceClient();
 
-    const { quarter, year, clientType } = await req.json().catch(() => ({}));
+    if (req.method === 'GET') {
+      // Read tariffs from storage
+      const url = new URL(req.url);
+      const clientType = url.searchParams.get('clientType') || undefined;
 
-    const now = new Date();
-    const currentQuarter = quarter || `Q${Math.ceil((now.getMonth() + 1) / 3)}`;
-    const currentYear = year || now.getFullYear();
-    const key = `${currentQuarter}-${currentYear}`;
+      const { tariffs, freshness } = await readTariffsFromStorage(supabase);
+      const response = buildResponse(tariffs, freshness, clientType);
 
-    console.log(`Requested tariffs for: ${key}, client type: ${clientType || 'domestico'}`);
-
-    const tariffs = TARIFF_HISTORY[key] || CURRENT_TARIFFS;
-
-    // Try to get live PUN from GME
-    let dataFreshness: 'live' | 'cached' = 'cached';
-    let livePun: number | null = null;
-    try {
-      livePun = await fetchLivePunFromGME();
-      if (livePun !== null) {
-        dataFreshness = 'live';
-        console.log(`Live PUN from GME: ${livePun} €/MWh`);
-      }
-    } catch {
-      console.log('GME fetch failed, using cached values');
+      return new Response(JSON.stringify(response), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const isBusinessClient = clientType === 'business' || clientType === 'pmi';
-    const nextUpdate = getNextQuarterUpdate(currentQuarter, currentYear);
+    if (req.method === 'POST') {
+      const body = await req.json();
+      const { clientType, ...tariffData } = body;
 
-    const responseData = {
-      success: true,
-      data: {
-        ...tariffs,
-        acciseApplicate: isBusinessClient
-          ? tariffs.accise.altriUsiKwh
-          : tariffs.accise.domesticoKwh,
-        ivaPercent: isBusinessClient ? 22 : 10,
-        clientType: clientType || 'domestico',
-        ...(livePun !== null ? { livePunMwh: livePun, livePunKwh: Math.round((livePun / 1000) * 10000) / 10000 } : {}),
-      },
-      data_freshness: dataFreshness,
-      next_update: nextUpdate,
-    };
+      // If body contains tariff fields, it's an update
+      if (tariffData.quarter || tariffData.trasporto || tariffData.oneri || tariffData.accise) {
+        // Merge with existing to allow partial updates
+        const { tariffs: existing } = await readTariffsFromStorage(supabase);
+        const merged: AreraTariffs = {
+          ...existing,
+          ...tariffData,
+          trasporto: { ...existing.trasporto, ...(tariffData.trasporto || {}) },
+          oneri: { ...existing.oneri, ...(tariffData.oneri || {}) },
+          accise: { ...existing.accise, ...(tariffData.accise || {}) },
+        };
 
-    console.log('Returning tariffs:', JSON.stringify(responseData.data));
+        const saved = await writeTariffsToStorage(supabase, merged);
+        const response = buildResponse(saved, 'storage', clientType);
 
-    return new Response(JSON.stringify(responseData), {
+        return new Response(JSON.stringify(response), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Otherwise it's just a read with clientType in body (backward compat)
+      const { tariffs, freshness } = await readTariffsFromStorage(supabase);
+      const response = buildResponse(tariffs, freshness, clientType);
+
+      return new Response(JSON.stringify(response), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error fetching ARERA tariffs:', error);
+    console.error('Error in fetch-arera-tariffs:', error);
 
-    const now = new Date();
-    const currentQuarter = `Q${Math.ceil((now.getMonth() + 1) / 3)}`;
+    // Fallback response with defaults
+    const response = buildResponse(DEFAULT_TARIFFS, 'default_init');
 
     return new Response(
       JSON.stringify({
-        success: true,
-        data: {
-          ...CURRENT_TARIFFS,
-          acciseApplicate: CURRENT_TARIFFS.accise.domesticoKwh,
-          ivaPercent: 10,
-          clientType: 'domestico',
-        },
-        data_freshness: 'cached' as const,
-        next_update: getNextQuarterUpdate(currentQuarter, now.getFullYear()),
-        warning: 'Utilizzate tariffe memorizzate. ARERA non raggiungibile.',
+        ...response,
+        warning: `Errore interno. Utilizzate tariffe di default (delibera ${DEFAULT_TARIFFS.delibera}).`,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
