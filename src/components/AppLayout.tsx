@@ -265,6 +265,8 @@ export function AppLayout({ user }: AppLayoutProps) {
           );
         case 'faq':
           return <FAQ onNavigate={setActiveTab} />;
+        case 'tariffs':
+          return <MarketTariffsPage />;
         case 'settings':
           return (
             <SettingsPage
