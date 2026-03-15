@@ -274,7 +274,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       monthlyData,
       totals: {
         inflow: totaleIncassi,
-        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + getGrandTotal(),
+        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + investimentiTotali,
         net: cumulative,
         cumulative,
       },
