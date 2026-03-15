@@ -141,6 +141,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
 
     let totaleIncassi = 0, totaleCostiPassanti = 0, totaleCostiOperativi = 0;
     let totaleCostiCommerciali = 0, totaleFlussiFiscali = 0, totaleDepositi = 0;
+    let investimentiTotali = 0;
     let minCumulative = 0;
     let maxExposureMonth = '-';
     let firstPositiveMonth: string | null = null;
