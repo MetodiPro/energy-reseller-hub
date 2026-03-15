@@ -496,7 +496,7 @@ export const WhatIfSimulator = ({
             <Zap className="h-4 w-4" /> Scenari Preimpostati
           </h4>
           <div className="flex flex-wrap gap-2">
-            {SCENARIOS.map((s) => {
+            {scenarios.map((s) => {
               const m = s.ccv + s.spreadReseller * kWh - s.spreadGrossista * kWh - s.feePod;
               return (
                 <Button
