@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Zap, LogOut, Download, FileText, DollarSign } from 'lucide-react';
+import { Zap, LogOut, Download, FileText, DollarSign, ContactRound } from 'lucide-react';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
 import { ProjectSelector } from '@/components/ProjectSelector';
