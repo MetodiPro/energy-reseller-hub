@@ -41,6 +41,7 @@ const FAQ = lazy(() => import('@/components/FAQ').then(m => ({ default: m.FAQ })
 const SettingsPage = lazy(() => import('@/components/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const MarketTariffsPage = lazy(() => import('@/components/MarketTariffsSection').then(m => ({ default: m.MarketTariffsSection })));
+const CrmDashboard = lazy(() => import('@/components/CrmDashboard').then(m => ({ default: m.CrmDashboard })));
 
 function SectionLoader() {
   return (
