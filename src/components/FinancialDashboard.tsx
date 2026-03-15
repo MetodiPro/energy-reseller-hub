@@ -14,6 +14,8 @@ import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useEngineResult } from '@/hooks/useEngineResult';
+import { buildTaxFlows } from '@/hooks/useTaxFlows';
+import { exportGrossistaReport, exportFiscaleReport } from '@/lib/exportFinancialExcel';
 
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
