@@ -32,7 +32,7 @@ const fmt = (n: number) => `€ ${n.toLocaleString('it-IT', { minimumFractionDig
 
 export const useExportUnifiedPDF = () => {
   const exportUnifiedPDF = (
-    project: UnifiedProject,
+    project: Project,
     stepProgress: Record<string, StepProgress>,
     financialSummary: FinancialSummary,
     cashFlowData: CashFlowSummary,
