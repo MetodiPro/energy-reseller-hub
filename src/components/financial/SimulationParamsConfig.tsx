@@ -62,7 +62,15 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
     updateStartDate, 
   } = simulationHook;
 
+  const { getWeightedActivationRate, channels, loading: channelsLoading } = useSalesChannels(projectId);
+  const { toast } = useToast();
+
   const { startDate, monthlyContracts, params } = data;
+
+  const weightedRate = getWeightedActivationRate();
+  const activeChannelsExist = channels.some(c => c.is_active && c.contract_share > 0);
+  const rateGap = Math.abs(params.activationRate - weightedRate);
+  const showRateWarning = activeChannelsExist && rateGap > 5;
 
   const startMonth = startDate.getMonth();
   const startYear = startDate.getFullYear();
