@@ -85,13 +85,8 @@ interface Scenario {
   recommended?: boolean;
 }
 
-const SCENARIOS: Scenario[] = [
-  { name: 'Default (attuale)', spreadReseller: 0.015, ccv: 8.5, spreadGrossista: 0.008, feePod: 2.5 },
-  { name: 'Sostenibile minimo', spreadReseller: 0.02, ccv: 10, spreadGrossista: 0.008, feePod: 2.5 },
-  { name: 'Raccomandato ✓', spreadReseller: 0.025, ccv: 12, spreadGrossista: 0.008, feePod: 2.5, recommended: true },
-  { name: 'Redditività alta', spreadReseller: 0.03, ccv: 15, spreadGrossista: 0.008, feePod: 2.0 },
-  { name: 'CCV-centric (servizi)', spreadReseller: 0.01, ccv: 20, spreadGrossista: 0.008, feePod: 2.0 },
-];
+// Scenarios are built dynamically inside the component based on simulationParams
+
 
 export const WhatIfSimulator = ({
   summary,
@@ -170,9 +165,24 @@ export const WhatIfSimulator = ({
     };
   }, [spreadReseller, ccv, spreadGrossista, feePod, kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
 
+  // Build scenarios based on actual simulation params (not hardcoded)
+  const scenarios: Scenario[] = useMemo(() => {
+    const baseSpread = simulationParams?.spreadGrossistaPerKwh ?? 0.008;
+    const basePod = simulationParams?.gestionePodPerPod ?? 2.5;
+    const baseCcv = simulationParams?.ccvMonthly ?? 8.5;
+    const baseSpreadRes = simulationParams?.spreadPerKwh ?? 0.015;
+    return [
+      { name: 'Attuale (da Ipotesi)', spreadReseller: baseSpreadRes, ccv: baseCcv, spreadGrossista: baseSpread, feePod: basePod },
+      { name: 'Sostenibile minimo', spreadReseller: Math.max(baseSpreadRes, 0.02), ccv: Math.max(baseCcv, 10), spreadGrossista: baseSpread, feePod: basePod },
+      { name: 'Raccomandato ✓', spreadReseller: Math.max(baseSpreadRes, 0.025), ccv: Math.max(baseCcv, 12), spreadGrossista: baseSpread, feePod: basePod, recommended: true },
+      { name: 'Redditività alta', spreadReseller: Math.max(baseSpreadRes, 0.03), ccv: Math.max(baseCcv, 15), spreadGrossista: baseSpread, feePod: Math.min(basePod, 2.0) },
+      { name: 'CCV-centric (servizi)', spreadReseller: Math.min(baseSpreadRes, 0.01), ccv: Math.max(baseCcv, 20), spreadGrossista: baseSpread, feePod: Math.min(basePod, 2.0) },
+    ];
+  }, [simulationParams?.spreadPerKwh, simulationParams?.ccvMonthly, simulationParams?.spreadGrossistaPerKwh, simulationParams?.gestionePodPerPod]);
+
   // Scenario comparison table
   const scenarioRows = useMemo(() => {
-    return SCENARIOS.map((s) => {
+    return scenarios.map((s) => {
       const m = s.ccv + s.spreadReseller * kWh - s.spreadGrossista * kWh - s.feePod;
       const bep = m > 0 ? Math.ceil(costiStrutturali / m) : Infinity;
 
@@ -200,7 +210,7 @@ export const WhatIfSimulator = ({
 
       return { ...s, margine: m, bep, saldo3: saldo(contratti3m, 3), saldo6: saldo(contratti6m, 6), saldo12: saldo(contratti12m, 12) };
     });
-  }, [kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
+  }, [scenarios, kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
 
   // Current custom row
   const customRow = useMemo(() => ({
@@ -486,7 +496,7 @@ export const WhatIfSimulator = ({
             <Zap className="h-4 w-4" /> Scenari Preimpostati
           </h4>
           <div className="flex flex-wrap gap-2">
-            {SCENARIOS.map((s) => {
+            {scenarios.map((s) => {
               const m = s.ccv + s.spreadReseller * kWh - s.spreadGrossista * kWh - s.feePod;
               return (
                 <Button
