@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,8 +22,10 @@ import {
   Building2,
   Zap,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
+import { ComplianceDashboard } from '@/components/ComplianceDashboard';
 import { format, differenceInDays, addDays, isBefore, isAfter } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -324,123 +327,137 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
           <h2 className="text-2xl font-bold">Scadenzario Normativo</h2>
           <p className="text-muted-foreground">Gestisci le scadenze obbligatorie del reseller</p>
         </div>
-        <div className="flex gap-2">
-          {deadlines.length === 0 && (
-            <Button variant="outline" onClick={initializeDefaultDeadlines}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Carica Scadenze Standard
-            </Button>
-          )}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nuova Scadenza
+      </div>
+
+      <Tabs defaultValue="calendario">
+        <TabsList>
+          <TabsTrigger value="calendario" className="gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            Calendario
+          </TabsTrigger>
+          <TabsTrigger value="conformita" className="gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            Conformità ARERA
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="calendario" className="space-y-6 mt-4">
+          <div className="flex justify-end gap-2">
+            {deadlines.length === 0 && (
+              <Button variant="outline" onClick={initializeDefaultDeadlines}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Carica Scadenze Standard
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Aggiungi Scadenza</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Tipo Scadenza</Label>
-                  <Select 
-                    value={formData.deadline_type} 
-                    onValueChange={(v) => setFormData({ ...formData, deadline_type: v })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(deadlineTypeConfig).map(([key, config]) => (
-                        <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Titolo</Label>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Es. Rinnovo autorizzazione..."
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Descrizione</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Dettagli sulla scadenza..."
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Data Scadenza</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full mt-1 justify-start">
-                        <CalendarIcon className="h-4 w-4 mr-2" />
-                        {formData.due_date 
-                          ? format(new Date(formData.due_date), 'dd/MM/yyyy', { locale: it })
-                          : 'Seleziona data'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={formData.due_date ? new Date(formData.due_date) : undefined}
-                        onSelect={(date) => setFormData({ ...formData, due_date: date?.toISOString().split('T')[0] || '' })}
-                        locale={it}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label>Giorni Preavviso</Label>
-                  <Input
-                    type="number"
-                    value={formData.reminder_days}
-                    onChange={(e) => setFormData({ ...formData, reminder_days: parseInt(e.target.value) || 30 })}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="recurring"
-                    checked={formData.is_recurring}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked as boolean })}
-                  />
-                  <Label htmlFor="recurring">Scadenza ricorrente</Label>
-                </div>
-                {formData.is_recurring && (
+            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuova Scadenza
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Aggiungi Scadenza</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
                   <div>
-                    <Label>Ricorrenza</Label>
+                    <Label>Tipo Scadenza</Label>
                     <Select 
-                      value={formData.recurrence_pattern} 
-                      onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}
+                      value={formData.deadline_type} 
+                      onValueChange={(v) => setFormData({ ...formData, deadline_type: v })}
                     >
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Seleziona" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="monthly">Mensile</SelectItem>
-                        <SelectItem value="quarterly">Trimestrale</SelectItem>
-                        <SelectItem value="yearly">Annuale</SelectItem>
+                        {Object.entries(deadlineTypeConfig).map(([key, config]) => (
+                          <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-                <Button onClick={createDeadline} className="w-full" disabled={!formData.title || !formData.due_date}>
-                  Aggiungi Scadenza
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+                  <div>
+                    <Label>Titolo</Label>
+                    <Input
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="Es. Rinnovo autorizzazione..."
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Descrizione</Label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Dettagli sulla scadenza..."
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Data Scadenza</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full mt-1 justify-start">
+                          <CalendarIcon className="h-4 w-4 mr-2" />
+                          {formData.due_date 
+                            ? format(new Date(formData.due_date), 'dd/MM/yyyy', { locale: it })
+                            : 'Seleziona data'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={formData.due_date ? new Date(formData.due_date) : undefined}
+                          onSelect={(date) => setFormData({ ...formData, due_date: date?.toISOString().split('T')[0] || '' })}
+                          locale={it}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <Label>Giorni Preavviso</Label>
+                    <Input
+                      type="number"
+                      value={formData.reminder_days}
+                      onChange={(e) => setFormData({ ...formData, reminder_days: parseInt(e.target.value) || 30 })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="recurring"
+                      checked={formData.is_recurring}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked as boolean })}
+                    />
+                    <Label htmlFor="recurring">Scadenza ricorrente</Label>
+                  </div>
+                  {formData.is_recurring && (
+                    <div>
+                      <Label>Ricorrenza</Label>
+                      <Select 
+                        value={formData.recurrence_pattern} 
+                        onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Seleziona" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">Mensile</SelectItem>
+                          <SelectItem value="quarterly">Trimestrale</SelectItem>
+                          <SelectItem value="yearly">Annuale</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <Button onClick={createDeadline} className="w-full" disabled={!formData.title || !formData.due_date}>
+                    Aggiungi Scadenza
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
 
       {/* Overdue Alerts */}
       {overdueDeadlines.length > 0 && (
@@ -626,6 +643,12 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
           </Button>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="conformita" className="mt-4">
+          <ComplianceDashboard projectId={projectId!} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
