@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +36,7 @@ interface FinancialDashboardProps {
 }
 
 export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
+  const navigate = useNavigate();
   // ─── Data hooks ───
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const revenueSimulation = useRevenueSimulation(projectId);
@@ -77,6 +79,13 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   // ─── Handlers ───
   const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
   const handleTemplateApplied = () => refetch();
+  const handleUsePunLive = useCallback((punPerKwh: number) => {
+    revenueSimulation.updateParams('punPerKwh', punPerKwh);
+    setTimeout(() => revenueSimulation.saveSimulation(), 500);
+  }, [revenueSimulation]);
+  const handleNavigateToTariffs = useCallback(() => {
+    navigate('/app/tariffs');
+  }, [navigate]);
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
     if (isEdit && editId) {
       await updateCost(editId, costData);
@@ -168,6 +177,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             salesChannels={salesChannels}
             getChannelBreakdown={getChannelBreakdown}
             simulationData={revenueSimulation.data}
+            onUsePunLive={handleUsePunLive}
+            onNavigateToTariffs={handleNavigateToTariffs}
           />
         </TabsContent>
 

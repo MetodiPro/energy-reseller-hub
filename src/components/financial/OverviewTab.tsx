@@ -11,6 +11,7 @@ import { FinancialTrendChart } from './FinancialTrendChart';
 import { BreakEvenAnalysis } from './BreakEvenAnalysis';
 import { FinancialGlossary } from './FinancialGlossary';
 import { MonthlyChannelCostsChart } from './MonthlyChannelCostsChart';
+import { MarketDataBar } from './MarketDataBar';
 import type { SalesChannel } from '@/hooks/useSalesChannels';
 import type { FinancialOverviewSummary } from '@/hooks/useFinancialSummary';
 import type { SimulationSummary } from '@/hooks/useSimulationSummary';
@@ -48,11 +49,14 @@ interface OverviewTabProps {
   salesChannels: SalesChannel[];
   getChannelBreakdown: (total: number) => { channel_name: string; cost: number; commission_amount: number; commission_type: string; contracts: number; activations: number }[];
   simulationData?: RevenueSimulationData;
+  onUsePunLive?: (punPerKwh: number) => void;
+  onNavigateToTariffs?: () => void;
 }
 
 export const OverviewTab = ({
   summary, simulationSummary, cashFlowData, cashFlowLoading,
   salesChannels, getChannelBreakdown, simulationData,
+  onUsePunLive, onNavigateToTariffs,
 }: OverviewTabProps) => {
   // Pie data
   const pieData = (() => {
@@ -102,6 +106,7 @@ export const OverviewTab = ({
 
   return (
     <div className="space-y-6">
+      <MarketDataBar onUsePunLive={onUsePunLive} onNavigateToTariffs={onNavigateToTariffs} />
       <FinancialAlerts summary={summary} />
 
       {/* KPI Cards */}
