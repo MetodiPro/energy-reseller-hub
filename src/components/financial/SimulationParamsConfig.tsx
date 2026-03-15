@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -20,8 +21,11 @@ import {
   Settings2,
   AlertTriangle,
   CheckCircle2,
+  RefreshCw,
 } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useSalesChannels } from '@/hooks/useSalesChannels';
+import { useToast } from '@/hooks/use-toast';
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
