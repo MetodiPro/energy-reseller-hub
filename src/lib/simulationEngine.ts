@@ -225,12 +225,11 @@ export function runSimulationEngine(
     const depositoLordoAttivazioni = attivazioni * perClient.fattura * depositoMesi * depositoPercentuale;
     const depositoRilasciatoChurn = churn * perClient.fattura * depositoMesi * depositoPercentuale;
     totalDepositoLordo += depositoLordoAttivazioni;
-    totalPagamentiConsumi += depositoRilasciatoChurn;
+    totalDepositoRestituito += depositoRilasciatoChurn;
 
     const pagamentiConsumi = m >= 2 ? cumulativeActiveCustomers * perClient.passantiTotale : 0;
-    totalPagamentiConsumi += pagamentiConsumi;
 
-    const depositoRichiesto = Math.max(0, totalDepositoLordo - totalPagamentiConsumi);
+    const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRestituito);
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 
