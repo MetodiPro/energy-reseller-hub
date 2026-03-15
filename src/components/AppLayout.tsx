@@ -379,7 +379,7 @@ export function AppLayout({ user }: AppLayoutProps) {
                     variant="ghost"
                     size="sm"
                     disabled={exporting}
-                    onClick={() => exportReport(currentProject as any, currentProjectId, stepProgress)}
+                    onClick={() => exportReport(currentProject, currentProjectId, stepProgress)}
                     className="text-white hover:bg-white/10"
                   >
                     <FileText className="h-4 w-4 mr-2" />
