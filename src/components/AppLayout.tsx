@@ -157,8 +157,8 @@ export function AppLayout({ user }: AppLayoutProps) {
         case 'overview':
           return (
             <ProjectOverview
-              project={currentProject as any}
-              onProjectUpdate={(p) => selectProject(p as any)}
+              project={currentProject}
+              onProjectUpdate={(p) => selectProject(p)}
             />
           );
         case 'dashboard':
