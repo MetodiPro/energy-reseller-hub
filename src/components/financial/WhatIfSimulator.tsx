@@ -85,13 +85,8 @@ interface Scenario {
   recommended?: boolean;
 }
 
-const SCENARIOS: Scenario[] = [
-  { name: 'Default (attuale)', spreadReseller: 0.015, ccv: 8.5, spreadGrossista: 0.008, feePod: 2.5 },
-  { name: 'Sostenibile minimo', spreadReseller: 0.02, ccv: 10, spreadGrossista: 0.008, feePod: 2.5 },
-  { name: 'Raccomandato ✓', spreadReseller: 0.025, ccv: 12, spreadGrossista: 0.008, feePod: 2.5, recommended: true },
-  { name: 'Redditività alta', spreadReseller: 0.03, ccv: 15, spreadGrossista: 0.008, feePod: 2.0 },
-  { name: 'CCV-centric (servizi)', spreadReseller: 0.01, ccv: 20, spreadGrossista: 0.008, feePod: 2.0 },
-];
+// Scenarios are built dynamically inside the component based on simulationParams
+
 
 export const WhatIfSimulator = ({
   summary,
