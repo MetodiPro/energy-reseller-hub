@@ -72,7 +72,7 @@ const italianRegions = [
   'Toscana', 'Trentino-Alto Adige', 'Umbria', "Valle d'Aosta", 'Veneto'
 ];
 
-export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewProps) => {
+export const ProjectOverview = ({ project, onProjectUpdate, stepProgress = {} }: ProjectOverviewProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<Project>>({});
