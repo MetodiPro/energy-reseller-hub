@@ -132,7 +132,7 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
         onUpdate('acciseKwh', response.data.acciseApplicate);
         onUpdate('ivaPercent', response.data.ivaPercent);
         
-        setAreraSource(response.data.source);
+        setAreraSource(`Delibera ${response.data.delibera}`);
         setAreraDate(`${response.data.quarter} ${response.data.year}`);
         
         toast({
