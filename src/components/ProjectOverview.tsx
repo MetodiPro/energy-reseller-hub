@@ -169,7 +169,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
     }
   };
 
-  const status = statusConfig[project.status] || statusConfig.draft;
+  const status = statusConfig[project.status || 'draft'] || statusConfig.draft;
 
   return (
     <div className="space-y-6">
