@@ -283,8 +283,8 @@ export function AppLayout({ user }: AppLayoutProps) {
         default:
           return (
             <ProjectOverview
-              project={currentProject as any}
-              onProjectUpdate={(p) => selectProject(p as any)}
+              project={currentProject}
+              onProjectUpdate={(p) => selectProject(p)}
             />
           );
       }
