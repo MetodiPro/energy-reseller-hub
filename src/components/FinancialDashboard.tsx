@@ -177,6 +177,8 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
             salesChannels={salesChannels}
             getChannelBreakdown={getChannelBreakdown}
             simulationData={revenueSimulation.data}
+            onUsePunLive={handleUsePunLive}
+            onNavigateToTariffs={handleNavigateToTariffs}
           />
         </TabsContent>
 
