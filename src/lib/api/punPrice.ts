@@ -7,6 +7,8 @@ export interface PunPriceData {
   minPrice: number;
   maxPrice: number;
   source: string;
+  data_freshness: 'live' | 'fallback';
+  reference_date: string;
 }
 
 export interface PunPriceResponse {
