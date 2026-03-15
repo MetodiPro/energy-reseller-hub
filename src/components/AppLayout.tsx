@@ -258,7 +258,7 @@ export function AppLayout({ user }: AppLayoutProps) {
         case 'contract-package':
           return (
             <ContractPackagePage
-              project={currentProject as any}
+              project={currentProject}
               projectId={currentProjectId}
             />
           );
