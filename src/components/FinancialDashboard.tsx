@@ -36,6 +36,7 @@ interface FinancialDashboardProps {
 }
 
 export const FinancialDashboard = ({ projectId, projectName, commodityType }: FinancialDashboardProps) => {
+  const navigate = useNavigate();
   // ─── Data hooks ───
   const { costs, revenues, categories, loading, summary: costSummary, addCost, addRevenue, deleteCost, deleteRevenue, updateCost, updateRevenue, refetch } = useProjectFinancials(projectId);
   const revenueSimulation = useRevenueSimulation(projectId);
