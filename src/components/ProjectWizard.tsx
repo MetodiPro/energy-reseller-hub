@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Rocket, Home, Building2, ArrowRight, ArrowLeft, Check, Sparkles, Info, Landmark, Shield } from 'lucide-react';
+import { Rocket, Home, Building2, ArrowRight, ArrowLeft, Check, Sparkles, Info, Landmark, Shield, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { projectTemplates, type ProjectTemplate } from '@/data/costTemplates';
 import { toast } from '@/hooks/use-toast';
