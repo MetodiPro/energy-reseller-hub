@@ -2,23 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  market_type: string | null;
-  commodity_type: string | null;
-  expected_volumes: number | null;
-  regions: string[] | null;
-  wholesaler_name: string | null;
-  wholesaler_contact: string | null;
-  eve_license_date: string | null;
-  arera_code: string | null;
-  go_live_date: string | null;
-  created_at: string;
-}
+import type { Project } from '@/hooks/useProjects';
 
 const statusLabels: Record<string, string> = {
   draft: 'Bozza',
