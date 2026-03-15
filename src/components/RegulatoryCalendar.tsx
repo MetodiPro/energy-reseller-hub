@@ -644,6 +644,12 @@ export const RegulatoryCalendar = ({ projectId, eveLicenseDate, evgLicenseDate, 
           </Button>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="conformita" className="mt-4">
+          <ComplianceDashboard projectId={projectId!} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
