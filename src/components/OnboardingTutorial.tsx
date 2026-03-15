@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Building2, ListTodo, Users, DollarSign, FileText, Rocket,
-  X, ChevronRight, Sparkles, Zap
+  X, ChevronRight, Sparkles, Zap, FileSpreadsheet, ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ interface TutorialStep {
   description: string;
   icon: React.ElementType;
   position: 'center' | 'sidebar';
+  tips?: string[];
 }
 
 const tutorialSteps: TutorialStep[] = [
@@ -28,6 +29,11 @@ const tutorialSteps: TutorialStep[] = [
     description: 'Segui passo-passo tutti gli step necessari per avviare l\'attività. Ogni step ha checklist e documenti.',
     icon: ListTodo,
     position: 'center',
+    tips: [
+      'Gli step sono in ordine logico: completali dall\'alto verso il basso',
+      'Ogni checklist va completata prima di procedere allo step successivo',
+      'Usa le note per annotare riferimenti e numeri di pratica',
+    ],
   },
   {
     targetTab: 'team',
@@ -42,6 +48,23 @@ const tutorialSteps: TutorialStep[] = [
     description: 'Gestisci costi, simula ricavi, analizza break-even e cash flow. Il motore analitico dell\'app.',
     icon: DollarSign,
     position: 'center',
+    tips: [
+      'Il Simulatore Ricavi calcola fatturato e margini in base ai contratti acquisiti mese per mese',
+      'Imposta il PUN (Prezzo Unico Nazionale) e lo Spread per ottenere proiezioni realistiche',
+      'Configura i canali di vendita per stimare le provvigioni commerciali',
+    ],
+  },
+  {
+    targetTab: 'contract-package',
+    title: 'Plico Contrattuale',
+    description: 'Documenti contrattuali conformi alla normativa ARERA pronti per essere personalizzati.',
+    icon: ClipboardList,
+    position: 'center',
+    tips: [
+      'I documenti sono facsimile basati sulle delibere ARERA vigenti',
+      'Personalizzali inserendo il tuo Codice Operatore ARERA nella Scheda Progetto',
+      'Scarica i modelli e adattali con i dati della tua società',
+    ],
   },
   {
     targetTab: 'business-plan',
