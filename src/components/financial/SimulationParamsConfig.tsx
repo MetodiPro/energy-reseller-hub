@@ -199,6 +199,27 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   value={params.activationRate}
                   onChange={(e) => updateParams('activationRate', parseFloat(e.target.value) || 0)}
                 />
+                {showRateWarning && (
+                  <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 text-xs">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <p>I canali di vendita hanno un tasso medio del <strong>{weightedRate.toFixed(1)}%</strong> — considera di allineare questo valore.</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-1.5 h-6 text-xs gap-1"
+                        onClick={() => {
+                          const aligned = Math.round(weightedRate * 10) / 10;
+                          updateParams('activationRate', aligned);
+                          toast({ title: 'Tasso allineato', description: `Tasso attivazione impostato a ${aligned}%` });
+                        }}
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Allinea automaticamente
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
