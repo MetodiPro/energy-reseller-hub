@@ -79,6 +79,13 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   // ─── Handlers ───
   const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
   const handleTemplateApplied = () => refetch();
+  const handleUsePunLive = useCallback((punPerKwh: number) => {
+    revenueSimulation.updateParams('punPerKwh', punPerKwh);
+    setTimeout(() => revenueSimulation.saveSimulation(), 500);
+  }, [revenueSimulation]);
+  const handleNavigateToTariffs = useCallback(() => {
+    navigate('/app/tariffs');
+  }, [navigate]);
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
     if (isEdit && editId) {
       await updateCost(editId, costData);
