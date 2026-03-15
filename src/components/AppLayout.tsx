@@ -13,6 +13,7 @@ import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { AppSidebar } from '@/components/AppSidebar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { OverallProgressRing } from '@/components/OverallProgressRing';
 import { supabase } from '@/integrations/supabase/client';
 import { useStepProgress } from '@/hooks/useStepProgress';
 import { useNotifications } from '@/hooks/useNotifications';
