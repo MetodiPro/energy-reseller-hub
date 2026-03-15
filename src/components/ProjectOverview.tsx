@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -23,19 +24,24 @@ import {
   FileCheck,
   Flame,
   Plug,
-  Download
+  Download,
+  Rocket,
+  Clock
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useExportProjectOverviewPDF } from '@/hooks/useExportProjectOverviewPDF';
+import { processSteps } from '@/data/processSteps';
 import type { Project } from '@/hooks/useProjects';
+import type { StepProgress } from '@/hooks/useStepProgress';
 
 interface ProjectOverviewProps {
   project: Project | null;
   onProjectUpdate: (project: Project) => void;
+  stepProgress?: Record<string, StepProgress>;
 }
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string; description: string }> = {

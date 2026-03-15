@@ -163,6 +163,7 @@ export function AppLayout({ user }: AppLayoutProps) {
             <ProjectOverview
               project={currentProject}
               onProjectUpdate={(p) => selectProject(p)}
+              stepProgress={stepProgress}
             />
           );
         case 'dashboard':
