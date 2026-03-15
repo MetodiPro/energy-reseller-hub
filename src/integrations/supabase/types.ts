@@ -64,6 +64,50 @@ export type Database = {
           },
         ]
       }
+      compliance_checks: {
+        Row: {
+          check_id: string
+          created_at: string
+          id: string
+          last_verified_at: string | null
+          notes: string | null
+          project_id: string
+          status: string
+          updated_at: string
+          verified_by: string | null
+        }
+        Insert: {
+          check_id: string
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          notes?: string | null
+          project_id: string
+          status?: string
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Update: {
+          check_id?: string
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          notes?: string | null
+          project_id?: string
+          status?: string
+          updated_at?: string
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_checks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultant_tasks: {
         Row: {
           actual_cost: number | null
