@@ -165,9 +165,24 @@ export const WhatIfSimulator = ({
     };
   }, [spreadReseller, ccv, spreadGrossista, feePod, kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
 
+  // Build scenarios based on actual simulation params (not hardcoded)
+  const scenarios: Scenario[] = useMemo(() => {
+    const baseSpread = simulationParams?.spreadGrossistaPerKwh ?? 0.008;
+    const basePod = simulationParams?.gestionePodPerPod ?? 2.5;
+    const baseCcv = simulationParams?.ccvMonthly ?? 8.5;
+    const baseSpreadRes = simulationParams?.spreadPerKwh ?? 0.015;
+    return [
+      { name: 'Attuale (da Ipotesi)', spreadReseller: baseSpreadRes, ccv: baseCcv, spreadGrossista: baseSpread, feePod: basePod },
+      { name: 'Sostenibile minimo', spreadReseller: Math.max(baseSpreadRes, 0.02), ccv: Math.max(baseCcv, 10), spreadGrossista: baseSpread, feePod: basePod },
+      { name: 'Raccomandato ✓', spreadReseller: Math.max(baseSpreadRes, 0.025), ccv: Math.max(baseCcv, 12), spreadGrossista: baseSpread, feePod: basePod, recommended: true },
+      { name: 'Redditività alta', spreadReseller: Math.max(baseSpreadRes, 0.03), ccv: Math.max(baseCcv, 15), spreadGrossista: baseSpread, feePod: Math.min(basePod, 2.0) },
+      { name: 'CCV-centric (servizi)', spreadReseller: Math.min(baseSpreadRes, 0.01), ccv: Math.max(baseCcv, 20), spreadGrossista: baseSpread, feePod: Math.min(basePod, 2.0) },
+    ];
+  }, [simulationParams?.spreadPerKwh, simulationParams?.ccvMonthly, simulationParams?.spreadGrossistaPerKwh, simulationParams?.gestionePodPerPod]);
+
   // Scenario comparison table
   const scenarioRows = useMemo(() => {
-    return SCENARIOS.map((s) => {
+    return scenarios.map((s) => {
       const m = s.ccv + s.spreadReseller * kWh - s.spreadGrossista * kWh - s.feePod;
       const bep = m > 0 ? Math.ceil(costiStrutturali / m) : Infinity;
 
