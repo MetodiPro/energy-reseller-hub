@@ -56,6 +56,7 @@ interface OverviewTabProps {
 export const OverviewTab = ({
   summary, simulationSummary, cashFlowData, cashFlowLoading,
   salesChannels, getChannelBreakdown, simulationData,
+  onUsePunLive, onNavigateToTariffs,
 }: OverviewTabProps) => {
   // Pie data
   const pieData = (() => {
