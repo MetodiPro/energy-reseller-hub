@@ -61,7 +61,7 @@ export const useExportUnifiedPDF = () => {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const info = [
-      ['Stato', statusLabels[project.status] || project.status],
+      ['Stato', statusLabels[project.status || 'draft'] || project.status || 'Bozza'],
       ['Commodity', project.commodity_type || 'N/D'],
       ['Mercato', project.market_type || 'N/D'],
       ['Grossista', project.wholesaler_name || 'N/D'],
