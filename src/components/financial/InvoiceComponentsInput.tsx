@@ -146,7 +146,7 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
               <p className="text-xs text-muted-foreground">
                 Oneri: ASOS €{response.data.oneri.asosKwh.toFixed(4)}/kWh + ARIM €{response.data.oneri.arimKwh.toFixed(4)}/kWh
               </p>
-              <p className="text-xs text-muted-foreground">Fonte: {response.data.source}</p>
+              <p className="text-xs text-muted-foreground">Fonte: Delibera {response.data.delibera}</p>
             </div>
           ),
         });
