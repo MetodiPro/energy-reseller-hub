@@ -106,6 +106,7 @@ export const OverviewTab = ({
 
   return (
     <div className="space-y-6">
+      <MarketDataBar onUsePunLive={onUsePunLive} onNavigateToTariffs={onNavigateToTariffs} />
       <FinancialAlerts summary={summary} />
 
       {/* KPI Cards */}
