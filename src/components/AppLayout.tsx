@@ -437,6 +437,7 @@ export function AppLayout({ user }: AppLayoutProps) {
                     <p className="text-xs text-muted-foreground">{currentProject.description}</p>
                   )}
                 </div>
+                <OverallProgressRing stepProgress={stepProgress} />
               </div>
             )}
 
