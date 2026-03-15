@@ -200,6 +200,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleCostiCommerciali += costiCommercialiMese;
       totaleFlussiFiscali += flussiFiscaliMese;
       totaleDepositi += deltaDepositoCassa;
+      investimentiTotali += investimentiIniziali;
 
       const materiaEnergiaMese = customer.clientiFatturati * perClient.materiaEnergia;
       const trasportoMese = customer.clientiFatturati * perClient.trasporto;
