@@ -280,6 +280,65 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Info box con link e calendario */}
+        <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
+          <h4 className="text-sm font-semibold flex items-center gap-1.5">
+            <ExternalLink className="h-3.5 w-3.5" />
+            Dove trovare i dati aggiornati
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div className="space-y-1.5">
+              <p className="font-medium text-foreground">Oneri di sistema (ASOS, ARIM):</p>
+              <a href="https://www.arera.it/area-operatori/prezzi-e-tariffe/oneri-generali-di-sistema-e-ulteriori-componenti" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                ARERA — Oneri generali di sistema <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="space-y-1.5">
+              <p className="font-medium text-foreground">Trasporto e distribuzione:</p>
+              <a href="https://www.arera.it/area-operatori/prezzi-e-tariffe/tariffe-distribuzione-e-misura-di-energia-elettrica" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                ARERA — Tariffe distribuzione e misura <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="space-y-1.5">
+              <p className="font-medium text-foreground">Accise ed imposte:</p>
+              <a href="https://www.arera.it/area-operatori/prezzi-e-tariffe/accise-e-imposte" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                ARERA — Accise e imposte <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="space-y-1.5">
+              <p className="font-medium text-foreground">Delibere trimestrali:</p>
+              <a href="https://www.arera.it/atti-e-provvedimenti" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                ARERA — Atti e provvedimenti <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Calendario aggiornamenti trimestrali ARERA</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="rounded border px-2.5 py-1.5 text-center">
+                <p className="font-semibold">Q1</p>
+                <p className="text-muted-foreground">1 Gennaio</p>
+                <p className="text-muted-foreground">Delibera entro fine Dicembre</p>
+              </div>
+              <div className="rounded border px-2.5 py-1.5 text-center">
+                <p className="font-semibold">Q2</p>
+                <p className="text-muted-foreground">1 Aprile</p>
+                <p className="text-muted-foreground">Delibera entro fine Marzo</p>
+              </div>
+              <div className="rounded border px-2.5 py-1.5 text-center">
+                <p className="font-semibold">Q3</p>
+                <p className="text-muted-foreground">1 Luglio</p>
+                <p className="text-muted-foreground">Delibera entro fine Giugno</p>
+              </div>
+              <div className="rounded border px-2.5 py-1.5 text-center">
+                <p className="font-semibold">Q4</p>
+                <p className="text-muted-foreground">1 Ottobre</p>
+                <p className="text-muted-foreground">Delibera entro fine Settembre</p>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* Update warning banner */}
         {requiresUpdate && (
           <Alert className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-200">
