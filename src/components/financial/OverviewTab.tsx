@@ -245,20 +245,28 @@ export const OverviewTab = ({
       {/* ROI */}
       {cashFlowData.hasData && cashFlowData.investimentoIniziale > 0 && (
         <Card className="border-primary/30 bg-primary/5">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Target className="h-5 w-5" />ROI — Return on Investment</CardTitle><CardDescription>Confronto tra margine netto e investimento iniziale dal Processo</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Target className="h-5 w-5" />ROI — Return on Investment</CardTitle><CardDescription>Analisi di ritorno sull'investimento basata sui flussi di cassa effettivi</CardDescription></CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="space-y-1"><p className="text-sm text-muted-foreground">Investimento Totale</p><p className="text-2xl font-bold text-destructive">{formatCurrency(cashFlowData.investimentoIniziale)}</p><p className="text-xs text-muted-foreground">Costi step del Processo</p></div>
-              <div className="space-y-1"><p className="text-sm text-muted-foreground">Margine Netto (14m)</p><p className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>{formatCurrency(summary.netMargin)}</p><p className="text-xs text-muted-foreground">Ricavi − Tutti i costi</p></div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">ROI</p>
-                {(() => { const roi = cashFlowData.investimentoIniziale > 0 ? ((summary.netMargin / cashFlowData.investimentoIniziale) * 100) : 0; return (<><p className={`text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-destructive'}`}>{roi.toFixed(1)}%</p><p className="text-xs text-muted-foreground">{roi >= 100 ? 'Investimento recuperato' : roi >= 0 ? 'In recupero' : 'Negativo'}</p></>); })()}
+            <TooltipProvider delayDuration={200}>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                <div className="space-y-1"><p className="text-sm text-muted-foreground">Investimento Totale</p><p className="text-2xl font-bold text-destructive">{formatCurrency(cashFlowData.investimentoIniziale)}</p><p className="text-xs text-muted-foreground">Costi step del Processo</p></div>
+                <div className="space-y-1"><p className="text-sm text-muted-foreground">Saldo Cassa (14m)</p><p className={`text-2xl font-bold ${cashFlowData.saldoFinale >= 0 ? 'text-green-600' : 'text-destructive'}`}>{formatCurrency(cashFlowData.saldoFinale)}</p><p className="text-xs text-muted-foreground">Flusso di cassa cumulativo</p></div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">ROI</p>
+                  {(() => { const roi = cashFlowData.investimentoIniziale > 0 ? ((cashFlowData.saldoFinale / cashFlowData.investimentoIniziale) * 100) : 0; return (<><p className={`text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-destructive'}`}>{roi.toFixed(1)}%</p><p className="text-xs text-muted-foreground">{roi >= 100 ? 'Investimento recuperato' : roi >= 0 ? 'In recupero' : 'Negativo'}</p></>); })()}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Payback</p>
+                  <p className="text-2xl font-bold">{cashFlowData.mesePrimoPositivo ?? 'N/D'}</p>
+                  <p className="text-xs text-muted-foreground">{cashFlowData.mesePrimoPositivo ? 'Primo mese saldo positivo' : 'Oltre 14 mesi'}</p>
+                </div>
+                <div className="space-y-1">
+                  <UITooltip><TooltipTrigger asChild><p className="text-sm text-muted-foreground flex items-center gap-1 cursor-help">Massima Esposizione<Info className="h-3 w-3 opacity-60" /></p></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Il picco di cassa negativa: quanto capitale serve avere disponibile prima di raggiungere l'equilibrio</p></TooltipContent></UITooltip>
+                  <p className={`text-2xl font-bold ${cashFlowData.massimaEsposizione < 0 ? 'text-destructive' : 'text-green-600'}`}>{formatCurrency(cashFlowData.massimaEsposizione)}</p>
+                  <p className="text-xs text-muted-foreground">{cashFlowData.meseEsposizioneMassima}</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Payback</p>
-                {(() => { const avg = summary.netMargin / 14; const months = avg > 0 ? Math.ceil(cashFlowData.investimentoIniziale / avg) : null; return (<><p className="text-2xl font-bold">{months ? `${months} mesi` : 'N/D'}</p><p className="text-xs text-muted-foreground">{months && months <= 14 ? 'Entro la simulazione' : 'Oltre 14 mesi'}</p></>); })()}
-              </div>
-            </div>
+            </TooltipProvider>
           </CardContent>
         </Card>
       )}
