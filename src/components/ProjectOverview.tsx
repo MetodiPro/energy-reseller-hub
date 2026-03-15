@@ -594,6 +594,118 @@ export const ProjectOverview = ({ project, onProjectUpdate, stepProgress = {} }:
           )}
         </CardContent>
       </Card>
+
+      {/* Avanzamento Avvio */}
+      <StartupProgressSection project={project} stepProgress={stepProgress} />
     </div>
   );
 };
+
+// ── Phase config & progress section ──
+
+const phaseLabels: Record<number, string> = {
+  1: 'Costituzione',
+  2: 'Registrazioni',
+  3: 'Autorizzazioni ARERA',
+  4: 'Grossista e Accise',
+  5: 'Sistemi e Commerciale',
+  6: 'Garanzie e Compliance',
+  7: 'Lancio',
+};
+
+function getProjectStatusBadge(project: Project) {
+  const now = new Date();
+  const goLive = project.go_live_date ? new Date(project.go_live_date) : null;
+
+  if (goLive && now > goLive) {
+    return { label: 'Live', className: 'bg-amber-500/15 text-amber-600 border-amber-500/30' };
+  }
+
+  // Check overall completion based on project status
+  const status = project.status || 'draft';
+  if (status === 'active' || status === 'operational') {
+    return { label: 'Pronto al lancio', className: 'bg-success/15 text-success border-success/30' };
+  }
+  if (status === 'in_authorization' || status === 'setup') {
+    return { label: 'In corso', className: 'bg-blue-500/15 text-blue-600 border-blue-500/30' };
+  }
+  return { label: 'In avvio', className: 'bg-muted text-muted-foreground border-border' };
+}
+
+function StartupProgressSection({ project, stepProgress }: { project: Project; stepProgress: Record<string, StepProgress> }) {
+  const phases = useMemo(() => {
+    const uniquePhases = [...new Set(processSteps.map(s => s.phase))].sort((a, b) => a - b);
+    return uniquePhases.map(phase => {
+      const stepsInPhase = processSteps.filter(s => s.phase === phase);
+      const completed = stepsInPhase.filter(s => stepProgress[s.id]?.completed).length;
+      return {
+        phase,
+        label: phaseLabels[phase] || `Fase ${phase}`,
+        total: stepsInPhase.length,
+        completed,
+        percentage: stepsInPhase.length > 0 ? Math.round((completed / stepsInPhase.length) * 100) : 0,
+      };
+    });
+  }, [stepProgress]);
+
+  const statusBadge = getProjectStatusBadge(project);
+
+  const goLiveInfo = useMemo(() => {
+    if (!project.go_live_date) return null;
+    const goLive = new Date(project.go_live_date);
+    const now = new Date();
+    const days = differenceInDays(goLive, now);
+    return { date: goLive, daysRemaining: days };
+  }, [project.go_live_date]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-primary" />
+              Avanzamento Avvio
+            </CardTitle>
+            <CardDescription>Progressi per fase del processo di avvio reseller</CardDescription>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className={cn('text-sm px-3 py-1', statusBadge.className)}>
+              {statusBadge.label}
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {goLiveInfo && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm">
+              <span className="font-medium">Go-Live stimato:</span>{' '}
+              {format(goLiveInfo.date, 'dd MMMM yyyy', { locale: it })}
+              {goLiveInfo.daysRemaining > 0 ? (
+                <span className="text-muted-foreground"> — {goLiveInfo.daysRemaining} giorni rimanenti</span>
+              ) : goLiveInfo.daysRemaining === 0 ? (
+                <span className="text-success font-medium"> — Oggi!</span>
+              ) : (
+                <span className="text-destructive font-medium"> — {Math.abs(goLiveInfo.daysRemaining)} giorni fa</span>
+              )}
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {phases.map(p => (
+            <div key={p.phase} className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Fase {p.phase}: {p.label}</span>
+                <span className="text-muted-foreground">{p.completed}/{p.total} ({p.percentage}%)</span>
+              </div>
+              <Progress value={p.percentage} className="h-2" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
