@@ -268,6 +268,15 @@ export function AppLayout({ user }: AppLayoutProps) {
           return <FAQ onNavigate={setActiveTab} />;
         case 'tariffs':
           return <MarketTariffsPage />;
+        case 'crm':
+          return currentProjectId ? (
+            <CrmDashboard projectId={currentProjectId} userId={user.id} />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <ContactRound className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per accedere al CRM Clienti</p>
+            </div>
+          );
         case 'settings':
           return (
             <SettingsPage

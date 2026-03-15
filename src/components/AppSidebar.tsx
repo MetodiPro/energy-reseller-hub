@@ -61,6 +61,7 @@ const operativeItems = [
   { id: "deadlines", title: "Scadenze", icon: Calendar },
   { id: "step-docs", title: "Documenti Step", icon: Link },
   { id: "documents", title: "Documenti", icon: FolderOpen },
+  { id: "crm", title: "CRM Clienti", icon: ContactRound },
 ];
 
 const teamItems = [
