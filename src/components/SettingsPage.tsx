@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { resetOnboardingTutorial } from "@/components/OnboardingTutorial";
-import { MarketTariffsSection } from "@/components/MarketTariffsSection";
 
 interface SettingsPageProps {
   userId?: string;
