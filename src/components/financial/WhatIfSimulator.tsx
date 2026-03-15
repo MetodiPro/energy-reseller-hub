@@ -210,7 +210,7 @@ export const WhatIfSimulator = ({
 
       return { ...s, margine: m, bep, saldo3: saldo(contratti3m, 3), saldo6: saldo(contratti6m, 6), saldo12: saldo(contratti12m, 12) };
     });
-  }, [kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
+  }, [scenarios, kWh, costiStrutturali, contratti3m, contratti6m, contratti12m, simulationParams, summary.hasSimulationData]);
 
   // Current custom row
   const customRow = useMemo(() => ({
