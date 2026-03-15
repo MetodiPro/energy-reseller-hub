@@ -171,7 +171,7 @@ export const OnboardingTutorial = ({ onNavigate }: OnboardingTutorialProps) => {
 
           {/* Content */}
           <div className="p-5">
-            <div className="flex items-start gap-4 mb-5">
+            <div className="flex items-start gap-4 mb-4">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Icon className="h-6 w-6 text-primary" />
               </div>
@@ -180,6 +180,17 @@ export const OnboardingTutorial = ({ onNavigate }: OnboardingTutorialProps) => {
                 <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
             </div>
+
+            {step.tips && step.tips.length > 0 && (
+              <div className="mb-4 p-3 bg-muted/50 rounded-lg space-y-1.5">
+                {step.tips.map((tip, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Sparkles className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                    <span>{tip}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Step indicators */}
             <div className="flex gap-1.5 mb-5">
