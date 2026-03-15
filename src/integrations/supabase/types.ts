@@ -186,6 +186,65 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_clients: {
+        Row: {
+          activation_date: string | null
+          annual_consumption_kwh: number | null
+          commodity_type: string | null
+          company_name: string
+          contract_expiry_date: string | null
+          contract_status: string
+          created_at: string
+          created_by: string
+          id: string
+          monthly_margin: number | null
+          notes: string | null
+          pod_pdr_code: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          activation_date?: string | null
+          annual_consumption_kwh?: number | null
+          commodity_type?: string | null
+          company_name: string
+          contract_expiry_date?: string | null
+          contract_status?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          monthly_margin?: number | null
+          notes?: string | null
+          pod_pdr_code?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          activation_date?: string | null
+          annual_consumption_kwh?: number | null
+          commodity_type?: string | null
+          company_name?: string
+          contract_expiry_date?: string | null
+          contract_status?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          monthly_margin?: number | null
+          notes?: string | null
+          pod_pdr_code?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_clients_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_categories: {
         Row: {
           color: string | null
