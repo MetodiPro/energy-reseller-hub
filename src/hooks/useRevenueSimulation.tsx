@@ -141,7 +141,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             // Componenti commerciali
             ccvMonthly: Number(simulation.ccv_monthly),
             spreadPerKwh: Number(simulation.spread_per_kwh),
-            spreadGrossistaPerKwh: Number((simulation as any).spread_grossista_per_kwh ?? DEFAULT_PARAMS.spreadGrossistaPerKwh),
+            spreadGrossistaPerKwh: Number(simulation.spread_grossista_per_kwh ?? DEFAULT_PARAMS.spreadGrossistaPerKwh),
             otherServicesMonthly: Number(simulation.other_services_monthly),
             
             // Componenti fattura
@@ -156,12 +156,12 @@ export const useRevenueSimulation = (projectId: string | null) => {
             acciseKwh: Number(simulation.accise_kwh ?? DEFAULT_PARAMS.acciseKwh),
             ivaPercent: Number(simulation.iva_percent ?? DEFAULT_PARAMS.ivaPercent),
             clientType: (simulation.client_type as 'domestico' | 'business' | 'pmi') ?? DEFAULT_PARAMS.clientType,
-            ivaPaymentRegime: ((simulation as any).iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
+            ivaPaymentRegime: (simulation.iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
             
             // Clienti e incasso
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
             activationRate: Number(simulation.activation_rate),
-            monthlyChurnRate: Number((simulation as any).monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
+            monthlyChurnRate: Number(simulation.monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
             collectionMonth0: Number(simulation.collection_month_0),
             collectionMonth1: Number(simulation.collection_month_1),
             collectionMonth2: Number(simulation.collection_month_2),

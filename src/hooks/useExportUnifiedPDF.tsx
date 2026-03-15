@@ -6,22 +6,7 @@ import { it } from 'date-fns/locale';
 import type { StepProgress } from './useStepProgress';
 import type { FinancialSummary } from './useProjectFinancials';
 import type { CashFlowSummary } from './useCashFlowAnalysis';
-
-interface UnifiedProject {
-  name: string;
-  description: string | null;
-  status: string;
-  market_type: string | null;
-  expected_volumes: number | null;
-  regions: string[] | null;
-  wholesaler_name: string | null;
-  eve_license_date: string | null;
-  evg_license_date: string | null;
-  arera_code: string | null;
-  go_live_date: string | null;
-  created_at: string;
-  commodity_type: string | null;
-}
+import type { Project } from './useProjects';
 
 interface CheckItem {
   label: string;
@@ -47,7 +32,7 @@ const fmt = (n: number) => `€ ${n.toLocaleString('it-IT', { minimumFractionDig
 
 export const useExportUnifiedPDF = () => {
   const exportUnifiedPDF = (
-    project: UnifiedProject,
+    project: Project,
     stepProgress: Record<string, StepProgress>,
     financialSummary: FinancialSummary,
     cashFlowData: CashFlowSummary,
@@ -76,7 +61,7 @@ export const useExportUnifiedPDF = () => {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const info = [
-      ['Stato', statusLabels[project.status] || project.status],
+      ['Stato', statusLabels[project.status || 'draft'] || project.status || 'Bozza'],
       ['Commodity', project.commodity_type || 'N/D'],
       ['Mercato', project.market_type || 'N/D'],
       ['Grossista', project.wholesaler_name || 'N/D'],

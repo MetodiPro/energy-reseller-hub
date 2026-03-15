@@ -31,31 +31,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useExportProjectOverviewPDF } from '@/hooks/useExportProjectOverviewPDF';
-
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  market_type: string | null;
-  commodity_type: string | null;
-  expected_volumes: number | null;
-  regions: string[] | null;
-  wholesaler_name: string | null;
-  wholesaler_contact: string | null;
-  eve_license_date: string | null;
-  evg_license_date: string | null;
-  arera_code: string | null;
-  go_live_date: string | null;
-  created_at: string;
-  company_address: string | null;
-  company_phone: string | null;
-  company_email: string | null;
-  company_pec: string | null;
-  company_website: string | null;
-  company_cf: string | null;
-  company_piva: string | null;
-}
+import type { Project } from '@/hooks/useProjects';
 
 interface ProjectOverviewProps {
   project: Project | null;
@@ -108,7 +84,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
 
   const startEditing = () => {
     setFormData({
-      status: project.status,
+      status: project.status || 'draft',
       market_type: project.market_type,
       commodity_type: project.commodity_type,
       expected_volumes: project.expected_volumes,
@@ -193,7 +169,7 @@ export const ProjectOverview = ({ project, onProjectUpdate }: ProjectOverviewPro
     }
   };
 
-  const status = statusConfig[project.status] || statusConfig.draft;
+  const status = statusConfig[project.status || 'draft'] || statusConfig.draft;
 
   return (
     <div className="space-y-6">

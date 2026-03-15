@@ -2,23 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  market_type: string | null;
-  commodity_type: string | null;
-  expected_volumes: number | null;
-  regions: string[] | null;
-  wholesaler_name: string | null;
-  wholesaler_contact: string | null;
-  eve_license_date: string | null;
-  arera_code: string | null;
-  go_live_date: string | null;
-  created_at: string;
-}
+import type { Project } from '@/hooks/useProjects';
 
 const statusLabels: Record<string, string> = {
   draft: 'Bozza',
@@ -75,7 +59,7 @@ export const useExportProjectOverviewPDF = () => {
     y += 8;
 
     const generalData = [
-      ['Stato', statusLabels[project.status] || project.status],
+      ['Stato', statusLabels[project.status || 'draft'] || project.status || 'Bozza'],
       ['Tipo Fornitura', project.commodity_type ? commodityLabels[project.commodity_type] || project.commodity_type : 'Non definito'],
       ['Mercato Target', project.market_type ? marketTypeLabels[project.market_type] || project.market_type : 'Non definito'],
       ['Volumi Previsti', project.expected_volumes ? `${project.expected_volumes.toLocaleString('it-IT')} POD/anno` : 'Non definiti'],

@@ -157,8 +157,8 @@ export function AppLayout({ user }: AppLayoutProps) {
         case 'overview':
           return (
             <ProjectOverview
-              project={currentProject as any}
-              onProjectUpdate={(p) => selectProject(p as any)}
+              project={currentProject}
+              onProjectUpdate={(p) => selectProject(p)}
             />
           );
         case 'dashboard':
@@ -251,14 +251,14 @@ export function AppLayout({ user }: AppLayoutProps) {
           return (
             <PreLaunchChecklist
               stepProgress={stepProgress}
-              project={currentProject as any}
+              project={currentProject}
               projectId={currentProjectId}
             />
           );
         case 'contract-package':
           return (
             <ContractPackagePage
-              project={currentProject as any}
+              project={currentProject}
               projectId={currentProjectId}
             />
           );
@@ -283,8 +283,8 @@ export function AppLayout({ user }: AppLayoutProps) {
         default:
           return (
             <ProjectOverview
-              project={currentProject as any}
-              onProjectUpdate={(p) => selectProject(p as any)}
+              project={currentProject}
+              onProjectUpdate={(p) => selectProject(p)}
             />
           );
       }
@@ -379,7 +379,7 @@ export function AppLayout({ user }: AppLayoutProps) {
                     variant="ghost"
                     size="sm"
                     disabled={exporting}
-                    onClick={() => exportReport(currentProject as any, currentProjectId, stepProgress)}
+                    onClick={() => exportReport(currentProject, currentProjectId, stepProgress)}
                     className="text-white hover:bg-white/10"
                   >
                     <FileText className="h-4 w-4 mr-2" />

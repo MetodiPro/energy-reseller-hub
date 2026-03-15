@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useExportUnifiedPDF } from '@/hooks/useExportUnifiedPDF';
 import { useToast } from '@/hooks/use-toast';
 import type { StepProgress } from './useStepProgress';
+import type { Project } from './useProjects';
 
 /**
  * Hook che esegue l'export del report unificato caricando i dati on-demand
@@ -14,7 +15,7 @@ export const useLazyUnifiedExport = () => {
   const [exporting, setExporting] = useState(false);
 
   const exportReport = useCallback(async (
-    currentProject: any,
+    currentProject: Project,
     currentProjectId: string,
     stepProgress: Record<string, StepProgress>,
   ) => {
