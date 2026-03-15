@@ -49,6 +49,8 @@ interface OverviewTabProps {
   salesChannels: SalesChannel[];
   getChannelBreakdown: (total: number) => { channel_name: string; cost: number; commission_amount: number; commission_type: string; contracts: number; activations: number }[];
   simulationData?: RevenueSimulationData;
+  onUsePunLive?: (punPerKwh: number) => void;
+  onNavigateToTariffs?: () => void;
 }
 
 export const OverviewTab = ({
