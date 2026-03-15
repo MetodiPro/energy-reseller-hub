@@ -68,6 +68,7 @@ const teamItems = [
 ];
 
 const strategyItems = [
+  { id: "tariffs", title: "Tariffe di Mercato", icon: Zap },
   { id: "financials", title: "Finanza", icon: DollarSign },
   { id: "business-plan", title: "Business Plan", icon: FileText },
   { id: "marketing", title: "Marketing", icon: TrendingUp },

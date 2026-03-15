@@ -40,6 +40,7 @@ const ContractPackagePage = lazy(() => import('@/components/ContractPackagePage'
 const FAQ = lazy(() => import('@/components/FAQ').then(m => ({ default: m.FAQ })));
 const SettingsPage = lazy(() => import('@/components/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const MarketTariffsPage = lazy(() => import('@/components/MarketTariffsSection').then(m => ({ default: m.MarketTariffsSection })));
 
 function SectionLoader() {
   return (
@@ -264,6 +265,8 @@ export function AppLayout({ user }: AppLayoutProps) {
           );
         case 'faq':
           return <FAQ onNavigate={setActiveTab} />;
+        case 'tariffs':
+          return <MarketTariffsPage />;
         case 'settings':
           return (
             <SettingsPage
