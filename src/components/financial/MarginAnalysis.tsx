@@ -36,7 +36,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       name: 'Margine Lordo',
       value: summary.grossMargin,
       percent: summary.grossMarginPercent,
-      description: 'Imponibile − Costi Passanti in fattura (grossista, trasporto, oneri, accise)',
+      description: 'Ricavi Reseller (CCV + Net Spread + Servizi) dopo aver sottratto lo spread grossista',
       icon: Target,
     },
     {
@@ -50,7 +50,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       name: 'Margine Netto Operativo',
       value: summary.netMargin,
       percent: summary.netMarginPercent,
-      description: 'Imponibile − Costi Passanti − Costi Commerciali − Costi Strutturali',
+      description: 'Margine Lordo − Costi Commerciali − Gestione POD − Costi Strutturali',
       icon: DollarSign,
     },
   ];
@@ -74,15 +74,15 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Imponibile</CardTitle>
+            <CardTitle className="text-sm font-medium">Imponibile Fattura</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {formatCurrency((summary as any).imponibile ?? (summary.totalRevenue - ((summary as any).totalIva ?? 0)))}
+              {formatCurrency(summary.imponibile)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Fatturato al netto dell'IVA
+              Fatturato totale al netto dell'IVA
             </p>
           </CardContent>
         </Card>
@@ -150,7 +150,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
               <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
                 {formatPercent(summary.netMarginPercent)}
               </span>
-              <span className="text-muted-foreground">del fatturato</span>
+              <span className="text-muted-foreground">sull'imponibile fattura</span>
             </div>
           </CardContent>
         </Card>
