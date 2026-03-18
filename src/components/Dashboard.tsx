@@ -58,14 +58,39 @@ export const Dashboard = ({
   projectEndDate,
   getCostAmount: getCostAmountProp,
   projectId,
-  onNavigateToPhase
+  onNavigateToPhase,
+  currentProject
 }: DashboardProps) => {
   // Load step costs internally if not provided as prop
-  const { getCostAmount: ownGetCostAmount } = useStepCosts(getCostAmountProp ? null : projectId ?? null);
+  const { getCostAmount: ownGetCostAmount, getGrandTotal } = useStepCosts(getCostAmountProp ? null : projectId ?? null);
   const getCostAmount = getCostAmountProp ?? ownGetCostAmount;
   
   // Cash flow analysis for financial BEP
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId ?? null);
+  
+  // Engine result for preliminary report
+  const { engineResult, data: simData, loading: simLoading } = useEngineResult(projectId ?? null);
+  
+  // Report export state
+  const [exportingReport, setExportingReport] = useState(false);
+  
+  const handleExportReport = async () => {
+    if (!currentProject || !engineResult || !simData || !cashFlowData.hasData) return;
+    try {
+      setExportingReport(true);
+      await exportPreliminaryReport({
+        project: currentProject,
+        simulationData: simData,
+        engineResult,
+        cashFlowData,
+        investimentoIniziale: getGrandTotal(),
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExportingReport(false);
+    }
+  };
   
   // BEP trend tracking: compare with previous value
   const [bepTrend, setBepTrend] = useState<'improving' | 'worsening' | 'stable' | null>(null);
