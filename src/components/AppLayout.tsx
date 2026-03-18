@@ -174,6 +174,7 @@ export function AppLayout({ user }: AppLayoutProps) {
               projectStartDate={currentProject?.planned_start_date}
               projectEndDate={currentProject?.go_live_date}
               projectId={currentProjectId}
+              currentProject={currentProject}
               onNavigateToPhase={(phaseId) => {
                 setNavigateToPhase(phaseId);
                 setActiveTab('process');
