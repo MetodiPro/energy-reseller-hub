@@ -22,15 +22,14 @@ import {
   Flag,
   Activity,
   HelpCircle,
-  Wallet
+  Wallet,
+  FileDown
 } from "lucide-react";
 import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useEngineResult } from "@/hooks/useEngineResult";
-import { useRevenueSimulation } from "@/hooks/useRevenueSimulation";
 import { exportPreliminaryReport } from "@/lib/exportPreliminaryReport";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
 import type { Project } from "@/hooks/useProjects";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
