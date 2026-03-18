@@ -150,7 +150,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
               <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
                 {formatPercent(summary.netMarginPercent)}
               </span>
-              <span className="text-muted-foreground">del fatturato</span>
+              <span className="text-muted-foreground">sull'imponibile fattura</span>
             </div>
           </CardContent>
         </Card>
