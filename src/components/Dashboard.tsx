@@ -48,6 +48,7 @@ interface DashboardProps {
   getCostAmount?: (stepId: string, costItemId: string) => number;
   projectId?: string | null;
   onNavigateToPhase?: (phaseId: number) => void;
+  currentProject?: Project | null;
 }
 
 export const Dashboard = ({ 
