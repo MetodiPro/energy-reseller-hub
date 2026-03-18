@@ -288,6 +288,19 @@ export const Dashboard = ({
   return (
     <TooltipProvider delayDuration={100}>
     <div className="space-y-6">
+      {/* Report Preliminare button */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportReport}
+          disabled={exportingReport || !engineResult || !cashFlowData.hasData || simLoading}
+          className="gap-2"
+        >
+          <FileDown className="h-4 w-4" />
+          {exportingReport ? 'Generazione...' : 'Report Preliminare'}
+        </Button>
+      </div>
       {/* Time Progress Banner (if dates are set) */}
       {timeProgress && (
         <Card className={cn(
