@@ -113,7 +113,7 @@ export const OverviewTab = ({
       <TooltipProvider delayDuration={200}>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <KPICard title="Fatturato Totale" tooltip="Tutto ciò che il reseller fattura ai clienti finali nei 14 mesi di simulazione: include il margine reseller (CCV + Spread), i costi passanti (energia, trasporto, oneri, accise) e l'IVA. Non rappresenta il guadagno ma il volume complessivo d'affari." icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.totalRevenue)} valueClass="text-primary" subtitle={summary.hasSimulationData ? 'Da simulatore (14 mesi)' : 'Nessun dato simulazione'} />
-          <KPICard title="Margine Reseller" tooltip="Il guadagno lordo del reseller dopo aver pagato lo spread al grossista. È composto da: CCV (corrispettivo di commercializzazione), lo Spread Netto (spread reseller − spread grossista) e altri servizi a valore aggiunto. Rappresenta quanto il reseller trattiene effettivamente dalla fattura." icon={<TrendingUp className="h-4 w-4 text-green-600" />} value={formatCurrency(summary.resellerMargin)} valueClass="text-green-600" subtitle="CCV + Net Spread + Servizi" />
+          <KPICard title="Margine Reseller" tooltip="Il guadagno lordo del reseller prima delle spese operative. Composto da: CCV (corrispettivo di commercializzazione), Spread applicato al prezzo energia e altri servizi a valore aggiunto. È la differenza tra quanto fatturi al cliente e quanto paghi al grossista per l'energia." icon={<TrendingUp className="h-4 w-4 text-green-600" />} value={formatCurrency(summary.resellerMargin)} valueClass="text-green-600" subtitle="CCV + Spread + Altro" />
           <KPICard title="Clienti Attivi" tooltip="Numero di clienti con fornitura attiva alla fine del periodo di simulazione (14 mesi), al netto del churn (clienti persi per switch-out). Più alto è il tasso di retention, più stabile sarà il margine ricorrente." icon={<Users className="h-4 w-4 text-muted-foreground" />} value={String(summary.clientiAttivi)} subtitle={`su ${summary.contrattiTotali} contratti`} />
           <KPICard title="Costi Commerciali" tooltip="Provvigioni e commissioni pagate ai canali di vendita (agenti, teleselling, web, sportelli) per ogni contratto acquisito e attivato. Configurabili nella sezione Canali di Vendita." icon={<Users className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.costiCommercialiSimulati)} valueClass="text-orange-600" subtitle={summary.costiCommercialiSimulati > 0 ? 'Da canali di vendita' : 'Configura i canali'} />
           <KPICard title="Costi Operativi" tooltip="Somma di tutti i costi sostenuti dal reseller: provvigioni ai canali di vendita + spese strutturali (affitto, personale, software, consulenze). Non include i costi passanti che vengono girati ai fornitori." icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.operationalCosts)} valueClass="text-destructive" subtitle="Commerciali + strutturali" />
@@ -285,10 +285,9 @@ export const OverviewTab = ({
             </div>
           ))}
           <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-            <p><strong>Margine Lordo:</strong> Ricavi Reseller = CCV + (Spread Reseller − Spread Grossista) × kWh + Servizi</p>
+            <p><strong>Margine Lordo:</strong> Imponibile − Costi Passanti in fattura (grossista, trasporto, oneri, accise)</p>
             <p><strong>Margine Contributivo:</strong> Margine Lordo − Provvigioni canali di vendita</p>
-            <p><strong>Margine Netto:</strong> Margine Lordo − Gestione POD − Provvigioni − Costi Strutturali</p>
-            <p className="text-xs italic">Percentuali calcolate sull'imponibile fattura (fatturato al netto dell'IVA)</p>
+            <p><strong>Margine Netto:</strong> Imponibile − Costi Passanti − Costi Commerciali − Costi Strutturali</p>
           </div>
         </CardContent>
       </Card>
