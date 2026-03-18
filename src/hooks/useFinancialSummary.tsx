@@ -5,12 +5,15 @@ import { CashFlowSummary } from './useCashFlowAnalysis';
 
 export interface FinancialOverviewSummary {
   totalRevenue: number;
+  /** Imponibile fattura = fatturato totale - IVA (base per le percentuali) */
   imponibile: number;
   totalIva: number;
   totalCosts: number;
   passthroughCosts: number;
   operationalCosts: number;
   costiCommercialiSimulati: number;
+  /** Costo spread grossista = clientiFatturati × kWh × spreadGrossistaPerKwh */
+  costoSpreadGrossista: number;
   grossMargin: number;
   grossMarginPercent: number;
   costsByType: { commercial: number; structural: number; direct: number; indirect: number };
@@ -18,6 +21,7 @@ export interface FinancialOverviewSummary {
   netMarginPercent: number;
   contributionMargin: number;
   contributionMarginPercent: number;
+  /** Ricavi propri del reseller = CCV + (spreadRes - spreadGross)×kWh + altri servizi */
   resellerMargin: number;
   clientiAttivi: number;
   contrattiTotali: number;
