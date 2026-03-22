@@ -242,8 +242,9 @@ export function runSimulationEngine(
     totalDepositoRestituito += depositoRilasciatoChurn;
 
     const pagamentiConsumi = m >= 2 ? cumulativeActiveCustomers * perClient.passantiTotale : 0;
+    totalPagamentiAccumulati += pagamentiConsumi;
 
-    const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRestituito);
+    const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRestituito - (totalPagamentiAccumulati * svincoloPct));
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 

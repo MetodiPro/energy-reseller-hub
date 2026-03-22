@@ -95,6 +95,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   gestionePodPerPod: 2.50,
   depositoMesi: 3,
   depositoPercentualeAttivazione: 85,
+  depositoSvincoloPagamentiPerc: 50,
   
   // Regime fiscale
   ivaPaymentRegime: 'monthly',
