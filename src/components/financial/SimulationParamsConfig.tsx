@@ -189,6 +189,40 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   onChange={(e) => updateParams('avgMonthlyConsumption', parseInt(e.target.value) || 0)}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label>Tipo Clientela</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={params.clientType}
+                  onChange={(e) => {
+                    const value = e.target.value as 'domestico' | 'business' | 'pmi';
+                    updateParams('clientType', value);
+                    const ivaAutomatic = value === 'domestico' ? 10 : 22;
+                    updateParams('ivaPercent', ivaAutomatic);
+                    toast({ title: 'IVA aggiornata automaticamente', description: `Clienti ${value}: aliquota IVA impostata al ${ivaAutomatic}%` });
+                  }}
+                >
+                  <option value="domestico">Domestico (IVA 10%)</option>
+                  <option value="business">Business (IVA 22%)</option>
+                  <option value="pmi">PMI (IVA 22%)</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Domestico: IVA 10%, accisa 0.0227 €/kWh — Business/PMI: IVA 22%, accisa 0.0125 €/kWh
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Aliquota IVA (%)</Label>
+                <Input
+                  type="number"
+                  value={params.ivaPercent}
+                  readOnly
+                  className="bg-muted cursor-not-allowed font-mono"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Aggiornata automaticamente in base al tipo clientela
+                </p>
               
               <div className="space-y-2">
                 <Label>Tasso attivazione (%)</Label>
