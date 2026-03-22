@@ -34,6 +34,7 @@ export interface TaxFlowsSummary {
   totaleTrasportoIncassato: number;
   totaleTrasportoVersato: number;
   totaleTaxOutflows: number;
+  totaleTaxOutflowsPerCashFlow: number;
   hasData: boolean;
 }
 
