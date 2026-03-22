@@ -887,6 +887,23 @@ export const CostTabsView = ({
                       </div>
                     )}
 
+                    {/* Simulator active warning for infrastructure tab */}
+                    {key === 'infrastructure' && simulatedPassthrough && simulatedPassthrough.costoGestionePodTotale > 0 && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 text-sm mb-4">
+                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-amber-800 dark:text-amber-400">
+                            Simulatore attivo
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            La fee gestione POD e i costi energia sono già calcolati automaticamente
+                            dal simulatore. Inserisci qui solo i costi strutturali aggiuntivi
+                            (affitto ufficio, personale, software, consulenze) per evitare doppi conteggi.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Manual cost entries */}
                     {key === 'commercial' && category.costs.length > 0 && simulatedCommercial && (
                       <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
