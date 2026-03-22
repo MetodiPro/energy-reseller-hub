@@ -244,6 +244,15 @@ export function AppLayout({ user }: AppLayoutProps) {
               userId={user.id}
               projectId={currentProjectId}
               stepProgress={stepProgress}
+              cashFlowSummary={cashFlowData.hasData ? {
+                massimaEsposizione: cashFlowData.massimaEsposizione,
+                meseEsposizioneMassima: cashFlowData.meseEsposizioneMassima,
+                mesePrimoPositivo: cashFlowData.mesePrimoPositivo,
+                saldoFinale: cashFlowData.saldoFinale,
+                investimentoIniziale: cashFlowData.investimentoIniziale,
+                totaleIncassi: cashFlowData.totaleIncassi,
+                totaleDepositi: cashFlowData.totaleDepositi,
+              } : null}
             />
           );
         case 'marketing':
