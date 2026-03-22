@@ -231,7 +231,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
           <div className="space-y-2 ml-6">
             <div className="flex items-start gap-2">
               <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">1</span>
-              <p>Si calcola il <strong>Margine Lordo %</strong>: la percentuale di ogni euro fatturato che resta dopo aver pagato i costi passanti (energia, distribuzione, oneri).</p>
+              <p>Si calcola il <strong>Margine Lordo %</strong>: la percentuale di ogni euro di margine reseller che resta dopo aver pagato i costi passanti (energia, distribuzione, oneri).</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">2</span>
