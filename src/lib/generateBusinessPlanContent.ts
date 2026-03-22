@@ -41,6 +41,16 @@ export interface ProjectContext {
   totalInvestmentCosts: number;
   operationalCosts: number;
   passthroughCosts: number;
+  // Cash flow data (optional)
+  cashFlow?: {
+    massimaEsposizione: number;
+    meseMassimaEsposizione: string;
+    mesePrimoPositivo: string | null;
+    saldoFinale: number;
+    investimentoIniziale: number;
+    totaleIncassi: number;
+    totaleDepositi: number;
+  };
   // Phase data from process
   phaseData: Array<{
     name: string;
