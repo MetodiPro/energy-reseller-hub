@@ -12,10 +12,12 @@ interface HypothesesPageProps {
   projectId: string;
   projectName: string;
   commodityType?: string | null;
+  sharedRevenueSimulation?: ReturnType<typeof useRevenueSimulation>;
 }
 
-export const HypothesesPage = ({ projectId, projectName, commodityType }: HypothesesPageProps) => {
-  const revenueSimulation = useRevenueSimulation(projectId);
+export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRevenueSimulation }: HypothesesPageProps) => {
+  const ownRevenueSimulation = useRevenueSimulation(sharedRevenueSimulation ? null : projectId);
+  const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
   const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
