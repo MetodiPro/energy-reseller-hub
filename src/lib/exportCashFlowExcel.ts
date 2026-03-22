@@ -33,7 +33,7 @@ export const exportCashFlowToExcel = (
   lines.push(`Break-Even (primo mese positivo);${data.mesePrimoPositivo ?? 'Non raggiunto'}`);
   lines.push(`Saldo Finale;${fmt(data.saldoFinale)}`);
   lines.push(`Totale Incassi;${fmt(data.totaleIncassi)}`);
-  lines.push(`Totale Costi Passanti;${fmt(data.totaleCostiPassanti)}`);
+  lines.push(`Totale Costo Grossista;${fmt(data.totaleCostiPassanti)}`);
   lines.push(`Totale Costi Operativi;${fmt(data.totaleCostiOperativi)}`);
   lines.push(`Totale Costi Commerciali;${fmt(data.totaleCostiCommerciali)}`);
   lines.push(`Totale Flussi Fiscali;${fmt(data.totaleFlussiFiscali)}`);
