@@ -181,6 +181,7 @@ export function validateBusinessPlan(ctx: ProjectContext): BusinessPlanIssue[] {
     }
 
 
+    if (ctx.simulation.monthlyChurnRate <= 0) {
       issues.push({
         id: 'zero_churn',
         severity: 'info',
