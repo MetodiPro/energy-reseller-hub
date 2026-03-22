@@ -23,6 +23,7 @@ import { useDeadlineNotifications } from '@/hooks/useDeadlineNotifications';
 import { useLazyUnifiedExport } from '@/hooks/useLazyUnifiedExport';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import type { User } from '@supabase/supabase-js';
 
 // Lazy-loaded section components
@@ -101,6 +102,7 @@ export function AppLayout({ user }: AppLayoutProps) {
   const { exportToPDF } = useExportPDF();
   const { exportReport, exporting } = useLazyUnifiedExport();
   const revenueSimForTariffs = useRevenueSimulation(currentProjectId);
+  const { cashFlowData } = useCashFlowAnalysis(currentProjectId);
 
   const handleImportPun = useCallback((punPerKwh: number) => {
     revenueSimForTariffs.updateParams('punPerKwh', punPerKwh);
@@ -242,6 +244,15 @@ export function AppLayout({ user }: AppLayoutProps) {
               userId={user.id}
               projectId={currentProjectId}
               stepProgress={stepProgress}
+              cashFlowSummary={cashFlowData.hasData ? {
+                massimaEsposizione: cashFlowData.massimaEsposizione,
+                meseEsposizioneMassima: cashFlowData.meseEsposizioneMassima,
+                mesePrimoPositivo: cashFlowData.mesePrimoPositivo,
+                saldoFinale: cashFlowData.saldoFinale,
+                investimentoIniziale: cashFlowData.investimentoIniziale,
+                totaleIncassi: cashFlowData.totaleIncassi,
+                totaleDepositi: cashFlowData.totaleDepositi,
+              } : null}
             />
           );
         case 'marketing':

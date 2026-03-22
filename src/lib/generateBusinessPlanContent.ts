@@ -41,6 +41,16 @@ export interface ProjectContext {
   totalInvestmentCosts: number;
   operationalCosts: number;
   passthroughCosts: number;
+  // Cash flow data (optional)
+  cashFlow?: {
+    massimaEsposizione: number;
+    meseMassimaEsposizione: string;
+    mesePrimoPositivo: string | null;
+    saldoFinale: number;
+    investimentoIniziale: number;
+    totaleIncassi: number;
+    totaleDepositi: number;
+  };
   // Phase data from process
   phaseData: Array<{
     name: string;
@@ -401,12 +411,30 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   }
   text += `• Timeline di implementazione complessiva: ${processSteps.reduce((s, step) => s + step.estimatedDays, 0)} giorni\n\n`;
 
-  text += `GESTIONE DEL CASH FLOW:\n`;
-  text += `Il modello finanziario prevede:\n`;
-  text += `• Deposito cauzionale verso il grossista (proporzionale ai volumi)\n`;
-  text += `• Collection aging sui pagamenti dei clienti\n`;
-  text += `• Versamenti periodici accise (ADM) e IVA (F24)\n`;
-  text += `• Contributi CSEA e ARERA come partite di giro\n`;
+  text += `GESTIONE DEL CASH FLOW E LIQUIDITÀ:\n`;
+  if (ctx.cashFlow) {
+    const cf = ctx.cashFlow;
+    text += `L'analisi della liquidità su 14 mesi mostra:\n\n`;
+    text += `• Investimento iniziale totale: ${formatCurrency(cf.investimentoIniziale)}\n`;
+    text += `• Massima esposizione finanziaria: ${formatCurrency(Math.abs(cf.massimaEsposizione))}`;
+    text += ` (picco nel mese ${cf.meseMassimaEsposizione})\n`;
+    text += `• Break-even di liquidità: ${cf.mesePrimoPositivo ? `mese ${cf.mesePrimoPositivo}` : 'non raggiunto nei 14 mesi'}\n`;
+    text += `• Saldo cassa a fine simulazione: ${formatCurrency(cf.saldoFinale)}\n`;
+    text += `• Depositi cauzionali cumulati: ${formatCurrency(cf.totaleDepositi)} (liquidità vincolata, non costo)\n\n`;
+    text += `FABBISOGNO FINANZIARIO:\n`;
+    text += `Per sostenere il piano, il reseller deve disporre di un capitale iniziale di almeno `;
+    text += `${formatCurrency(Math.abs(cf.massimaEsposizione) + cf.investimentoIniziale)}, `;
+    text += `comprensivo dell'investimento di avvio e della liquidità necessaria a coprire `;
+    text += `il periodo pre-pareggio. In alternativa, è possibile strutturare una linea di `;
+    text += `credito rotativa (fido di cassa) di pari importo presso l'istituto bancario.\n\n`;
+  } else {
+    text += `Il modello finanziario prevede:\n`;
+    text += `• Deposito cauzionale verso il grossista (proporzionale ai volumi)\n`;
+    text += `• Collection aging sui pagamenti dei clienti (waterfall 30/60/90 giorni)\n`;
+    text += `• Versamenti periodici accise (ADM trimestrale) e IVA (F24 mensile)\n`;
+    text += `• Componenti di giro (trasporto, oneri, accise) incassate e riversate a terzi\n`;
+    text += `\nPer i valori numerici di dettaglio consultare la sezione Liquidità della Dashboard Finanziaria.\n`;
+  }
 
   return text;
 }
