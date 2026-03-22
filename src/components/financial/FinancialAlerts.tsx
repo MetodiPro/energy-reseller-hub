@@ -61,8 +61,9 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
     const alertList: FinancialAlert[] = [];
     
     // Calcoli di base - modello reseller: BEP su margine reseller
+    const passthroughCosts = summary.passthroughCosts;
     const operationalCosts = summary.operationalCosts;
-    const resellerRevenue = summary.imponibile > 0 ? summary.imponibile : summary.grossMargin;
+    const resellerRevenue = summary.grossMargin;
     const grossMarginRatio = resellerRevenue > 0 ? 1.0 : 0;
     const breakEvenRevenue = operationalCosts; // BEP = costi operativi da coprire col margine reseller
     const isAboveBreakEven = summary.grossMargin >= breakEvenRevenue && breakEvenRevenue > 0;
