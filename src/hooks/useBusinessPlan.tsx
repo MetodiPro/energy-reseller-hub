@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { processSteps, phases } from '@/data/processSteps';
+import { stepCostsData } from '@/types/stepCosts';
 import type { StepProgress } from './useStepProgress';
 import { generateAllSections, type ProjectContext } from '@/lib/generateBusinessPlanContent';
 
