@@ -91,7 +91,10 @@ export function generateAcquisitionStrategy(ctx: ProjectContext): string {
       text += `  - Provvigione: ${formatCurrency(ch.commission_amount)} ${ch.commission_type === 'per_contract' ? 'per contratto' : 'per attivazione'}\n`;
       text += `  - Costo provvigionale stimato: ${formatCurrency(cost)}\n`;
     });
-    text += `\nCosto totale provvigioni (12 mesi): ${formatCurrency(totalCommissions)}\n\n`;
+    text += `\nCosto totale provvigioni (12 mesi): ${formatCurrency(totalCommissions)}\n`;
+    text += `\nNota: il costo provvigioni riportato è una stima basata sul tasso di `;
+    text += `attivazione configurato per ciascun canale. Il dato definitivo è disponibile `;
+    text += `nella Dashboard Finanziaria (Panoramica → Costi Commerciali).\n\n`;
   } else {
     text += `Nessun canale di vendita configurato. Configurare i canali nella sezione "Finanze > Canali di Vendita".\n\n`;
   }
@@ -232,6 +235,7 @@ export function generateBudgetAllocation(ctx: ProjectContext): string {
   text += `• Investimento iniziale (processo di avvio): ${formatCurrency(ctx.totalInvestmentCosts)}\n`;
   if (totalCommissions > 0) {
     text += `• Costi provvigionali stimati (12 mesi): ${formatCurrency(totalCommissions)}\n`;
+    text += `  (stima indicativa — il dato preciso è nella Dashboard Finanziaria)\n`;
   }
   if (ctx.operationalCosts > 0) {
     text += `• Costi operativi configurati: ${formatCurrency(ctx.operationalCosts)}\n`;
