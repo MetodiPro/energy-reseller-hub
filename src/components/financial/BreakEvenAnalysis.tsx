@@ -205,10 +205,10 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-xs text-muted-foreground mb-1 flex items-center justify-center">
               Margine Lordo %
-              <InfoTip text="Percentuale del fatturato che resta dopo aver sottratto i costi passanti. Indica quanto 'trattieni' su ogni euro fatturato." />
+              <InfoTip text="Percentuale del margine reseller che resta dopo aver sottratto i costi passanti. Calcolata sui ricavi propri (CCV + Spread + Servizi), non sul fatturato lordo." />
             </p>
             <p className="font-bold text-primary">{formatPercent(analysis.grossMarginRatio * 100)}</p>
-            <p className="text-xs text-muted-foreground">su ricavi</p>
+            <p className="text-xs text-muted-foreground">su margine reseller</p>
           </div>
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-xs text-muted-foreground mb-1 flex items-center justify-center">
