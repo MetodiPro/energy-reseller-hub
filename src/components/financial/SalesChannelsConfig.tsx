@@ -263,11 +263,35 @@ export const SalesChannelsConfig = ({ projectId, onChannelChange }: SalesChannel
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Validation Alert */}
-        {!shareValid && (
+        {!shareValid && channels.some(c => c.is_active) && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              La somma delle percentuali dei canali attivi deve essere 100%. Attualmente: {totalShare.toFixed(0)}%
+              <strong>Attenzione:</strong> La somma delle quote dei canali attivi è {totalShare.toFixed(0)}% (deve essere esattamente 100%). Il simulatore distribuirà i contratti in modo errato finché non correggi questa configurazione.
+              {totalShare > 100 && (
+                <span className="block mt-1 text-xs">Riduci la quota di {(totalShare - 100).toFixed(0)}% su uno o più canali.</span>
+              )}
+              {totalShare < 100 && (
+                <span className="block mt-1 text-xs">Aggiungi {(100 - totalShare).toFixed(0)}% su uno o più canali, o disattiva i canali non utilizzati.</span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={async () => {
+                  const activeChannels = channels.filter(c => c.is_active);
+                  if (activeChannels.length === 0) return;
+                  const sharePerChannel = Math.floor(100 / activeChannels.length);
+                  const remainder = 100 - (sharePerChannel * activeChannels.length);
+                  for (let i = 0; i < activeChannels.length; i++) {
+                    const share = i === 0 ? sharePerChannel + remainder : sharePerChannel;
+                    await updateChannel(activeChannels[i].id, { contract_share: share });
+                  }
+                  onChannelChange?.();
+                }}
+              >
+                Auto-bilancia (distribuzione equa)
+              </Button>
             </AlertDescription>
           </Alert>
         )}
