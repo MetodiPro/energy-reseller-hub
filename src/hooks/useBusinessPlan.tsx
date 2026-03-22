@@ -227,6 +227,15 @@ export const useBusinessPlan = (
         totalInvestmentCosts,
         operationalCosts,
         passthroughCosts,
+        cashFlow: cashFlowSummary ? {
+          massimaEsposizione: cashFlowSummary.massimaEsposizione,
+          meseMassimaEsposizione: cashFlowSummary.meseEsposizioneMassima,
+          mesePrimoPositivo: cashFlowSummary.mesePrimoPositivo,
+          saldoFinale: cashFlowSummary.saldoFinale,
+          investimentoIniziale: cashFlowSummary.investimentoIniziale,
+          totaleIncassi: cashFlowSummary.totaleIncassi,
+          totaleDepositi: cashFlowSummary.totaleDepositi,
+        } : undefined,
         phaseData,
       };
 
