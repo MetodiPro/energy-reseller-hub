@@ -156,6 +156,11 @@ export function runSimulationEngine(
 
   const monthly: MonthlyEngineResult[] = [];
 
+  // Coda degli switch-out: i clienti che "decidono" di uscire al mese m
+  // cessano effettivamente al mese m + SWITCH_OUT_DELAY
+  const SWITCH_OUT_DELAY = 2;
+  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+
   for (let m = 0; m < SIM_MONTHS; m++) {
     // ── Ciclo vita clienti ──
     const contrattiNuovi = m < 12 ? monthlyContracts[m] : 0;
