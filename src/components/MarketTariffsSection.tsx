@@ -316,7 +316,7 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
     }
   };
 
-  const handleImport = () => {
+  const handleImportWithAccise = (acciseKwh: number, label: string) => {
     if (!onImportToSimulator) return;
     onImportToSimulator({
       oneriAsosKwh: form.asosKwh,
@@ -324,9 +324,9 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
       trasportoQuotaFissaAnno: form.quotaFissaAnno,
       trasportoQuotaPotenzaKwAnno: form.quotaPotenzaKwAnno,
       trasportoQuotaEnergiaKwh: form.quotaEnergiaKwh,
-      acciseKwh: form.domesticoKwh,
+      acciseKwh,
     });
-    toast.success("Tariffe importate nel simulatore del progetto corrente");
+    toast.success(`Tariffe importate con accisa ${label}`);
   };
 
   const updateField = (field: keyof AreraFormState, value: number | string | Date | undefined) => {
@@ -536,11 +536,22 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
             {saved ? "Salvato ✓" : "Salva tariffe"}
           </Button>
 
-          {saved && onImportToSimulator && (
-            <Button variant="outline" onClick={handleImport}>
-              <ArrowDownToLine className="h-4 w-4 mr-2" />
-              Importa nel simulatore del progetto corrente
-            </Button>
+          {onImportToSimulator && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Seleziona il tipo di clientela del tuo progetto per importare l'aliquota accise corretta. Domestico: {form.domesticoKwh.toFixed(5)} €/kWh — Business/PMI: {form.altriUsiKwh.toFixed(5)} €/kWh
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button size="sm" variant="outline" onClick={() => handleImportWithAccise(form.domesticoKwh, `Domestici (${form.domesticoKwh.toFixed(5)} €/kWh)`)}>
+                  <ArrowDownToLine className="h-4 w-4 mr-2" />
+                  Importa — Clienti Domestici
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => handleImportWithAccise(form.altriUsiKwh, `Business/PMI (${form.altriUsiKwh.toFixed(5)} €/kWh)`)}>
+                  <ArrowDownToLine className="h-4 w-4 mr-2" />
+                  Importa — Clienti Business/PMI
+                </Button>
+              </div>
+            </div>
           )}
         </div>
 
