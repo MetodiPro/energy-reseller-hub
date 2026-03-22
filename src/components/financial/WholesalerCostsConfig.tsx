@@ -10,7 +10,7 @@ import {
   Calculator,
   Info,
 } from 'lucide-react';
-import { fetchCurrentPunPrice, PunPriceData } from '@/lib/api/punPrice';
+
 import { useToast } from '@/hooks/use-toast';
 import {
   Tooltip,
