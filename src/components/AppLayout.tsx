@@ -102,6 +102,7 @@ export function AppLayout({ user }: AppLayoutProps) {
   const { exportToPDF } = useExportPDF();
   const { exportReport, exporting } = useLazyUnifiedExport();
   const revenueSimForTariffs = useRevenueSimulation(currentProjectId);
+  const { cashFlowData } = useCashFlowAnalysis(currentProjectId);
 
   const handleImportPun = useCallback((punPerKwh: number) => {
     revenueSimForTariffs.updateParams('punPerKwh', punPerKwh);
