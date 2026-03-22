@@ -560,7 +560,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
                         <span className="cursor-help border-b border-dotted border-orange-400">Energia Gross.</span>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs text-left">
-                        <p className="text-xs">Costo acquisto energia dal grossista: (PUN + spread grossista) × kWh × clienti fatturati. Rappresenta il costo principale dell'uscita di cassa mensile.</p>
+                        <p className="text-xs">Costo acquisto energia dal grossista: (PUN + spread grossista) × kWh × clienti. È il principale flusso di uscita mensile. Trasporto, oneri di sistema e accise sono partite di giro e non compaiono qui come uscite nette.</p>
                       </TooltipContent>
                     </ShadcnTooltip>
                   </TableHead>
@@ -605,11 +605,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
                       {formatCurrency(row.incassi)}
                     </TipCell>
                     <TipCell className="text-right text-orange-600" lines={row.costiPassanti > 0 ? [
-                      `${row.clientiAttivi} clienti × costi unitari:`,
-                      `Energia: ${formatCurrency(b.materiaEnergia)}`,
-                      `Trasporto: ${formatCurrency(b.trasporto)}`,
-                      `Oneri sistema: ${formatCurrency(b.oneriSistema)}`,
-                      `Accise: ${formatCurrency(b.accise)}`,
+                      `Costo grossista (PUN + spread): ${formatCurrency(row.costiPassanti)}`,
+                      `= em.costoEnergia dal motore di simulazione`,
+                      `Clienti fatturati: ${row.clientiAttivi}`,
                     ] : []}>
                       {formatCurrency(row.costiPassanti)}
                     </TipCell>
