@@ -25,6 +25,7 @@ interface WholesalerConfig {
   gestionePodPerPod: number;
   depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
   depositoPercentualeAttivazione: number; // % fatturato stimato applicata al deposito
+  depositoSvincoloPagamentiPerc?: number; // % pagamenti consumi svincolati dalla garanzia
 }
 
 interface PassthroughTotals {
