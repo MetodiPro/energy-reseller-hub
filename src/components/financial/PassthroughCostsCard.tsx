@@ -32,18 +32,22 @@ const getRecipientIcon = (recipient: string | null) => {
 };
 
 export const PassthroughCostsCard = ({ costs }: PassthroughCostsCardProps) => {
-  // Filter only passthrough costs
-  const passthroughCosts = costs.filter(c => 
-    (c as any).is_passthrough === true || 
-    c.name.toLowerCase().includes('energia acquistata') ||
-    c.name.toLowerCase().includes('gas acquistato') ||
-    c.name.toLowerCase().includes('corrispettivi') ||
-    c.name.toLowerCase().includes('distribuzione') ||
-    c.name.toLowerCase().includes('trasporto')
-  );
+  // Filter only passthrough costs — use ONLY the is_passthrough flag, no name matching
+  const passthroughCosts = costs.filter(c => (c as any).is_passthrough === true);
 
   if (passthroughCosts.length === 0) {
-    return null;
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-6 text-center text-muted-foreground">
+          <ArrowRightLeft className="mx-auto h-8 w-8 mb-2 opacity-40" />
+          <p className="text-sm">Nessun costo passante registrato manualmente.</p>
+          <p className="text-xs mt-1">
+            I costi passanti simulati (energia, trasporto, oneri) sono visibili
+            nella tab Passanti del simulatore.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   // Group by recipient
