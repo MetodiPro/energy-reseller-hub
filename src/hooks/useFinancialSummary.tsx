@@ -11,6 +11,12 @@ export interface FinancialOverviewSummary {
   passthroughCosts: number;
   operationalCosts: number;
   costiCommercialiSimulati: number;
+  // --- Nuovi campi margine a cascata ---
+  costoEnergiaNetto: number;
+  costoGestionePodTotale: number;
+  margineCommercialeLordo: number;
+  margineCommercialePercent: number;
+  // --- Fine nuovi campi ---
   grossMargin: number;
   grossMarginPercent: number;
   costsByType: { commercial: number; structural: number; direct: number; indirect: number };
@@ -41,40 +47,56 @@ export const useFinancialSummary = (
     const manualCommercialCosts = costSummary.costsByType.commercial;
     const commercialCostsToUse = costiCommercialiSimulati > 0 ? costiCommercialiSimulati : manualCommercialCosts;
 
-    // Ricavi propri del reseller (solo margine, senza passanti)
-    const resellerRevenue = simulationSummary.hasData
-      ? simulationSummary.totalMargine
-      : costSummary.totalRevenue;
-
-    // Costi operativi reali (NO passanti — si annullano tra ricavi e costi)
-    // NOTA: costiGestionePod viene dalla simulazione (calcolo automatico).
-    // I costi strutturali manuali (strutturaliCosts) vengono da project_costs.
-    // L'utente dovrebbe usare uno solo dei due metodi: o il simulatore
-    // o l'inserimento manuale, non entrambi per la stessa voce.
-    const costiGestionePod = simulationSummary.hasData ? simulationSummary.costoGestionePodTotale : 0;
-    const strutturaliCosts = costSummary.costsByType.structural + costSummary.costsByType.direct + costSummary.costsByType.indirect;
-    const operationalCosts = costiGestionePod + commercialCostsToUse + strutturaliCosts;
-
-    // Margini corretti
-    const grossMargin = resellerRevenue;
-    const grossMarginPercent = resellerRevenue > 0 ? (grossMargin / resellerRevenue) * 100 : 0;
-
-    const contributionMargin = grossMargin - commercialCostsToUse;
-    const contributionMarginPercent = resellerRevenue > 0 ? (contributionMargin / resellerRevenue) * 100 : 0;
-
-    const netMargin = resellerRevenue - operationalCosts;
-    const netMarginPercent = resellerRevenue > 0 ? (netMargin / resellerRevenue) * 100 : 0;
-
     const iva = simulationSummary.hasData ? simulationSummary.totalIva : 0;
+
+    // === Nuovi calcoli: costi reali grossista ===
+    const costoEnergiaNetto = simulationSummary.hasData
+      ? simulationSummary.costoEnergiaTotale
+      : 0;
+    const costoGestionePodTotale = simulationSummary.hasData
+      ? simulationSummary.costoGestionePodTotale
+      : 0;
+
+    // Margine commerciale lordo = Ricavi Reseller − Costo energia grossista − Fee POD
+    const margineCommercialeLordo = resellerMargin - costoEnergiaNetto - costoGestionePodTotale;
+
+    // Imponibile = fatturato − IVA
+    const imponibile = totalRevenue - iva;
+
+    // % margine commerciale sul fatturato netto (imponibile)
+    const margineCommercialePercent = imponibile > 0
+      ? (margineCommercialeLordo / imponibile) * 100
+      : 0;
+
+    // === Costi operativi propri (senza costo energia/POD, già detratti nel margine commerciale) ===
+    const strutturaliCosts = costSummary.costsByType.structural + costSummary.costsByType.direct + costSummary.costsByType.indirect;
+    const operationalCosts = commercialCostsToUse + strutturaliCosts;
+
+    // === Margini a cascata basati sul margine commerciale ===
+    // Margine lordo = margine commerciale lordo (dopo grossista)
+    const grossMargin = margineCommercialeLordo;
+    const grossMarginPercent = imponibile > 0 ? (grossMargin / imponibile) * 100 : 0;
+
+    // Margine contribuzione = margine commerciale − costi commerciali (provvigioni canali)
+    const contributionMargin = margineCommercialeLordo - commercialCostsToUse;
+    const contributionMarginPercent = imponibile > 0 ? (contributionMargin / imponibile) * 100 : 0;
+
+    // Margine netto = margine commerciale − tutti i costi operativi
+    const netMargin = margineCommercialeLordo - operationalCosts;
+    const netMarginPercent = imponibile > 0 ? (netMargin / imponibile) * 100 : 0;
 
     return {
       totalRevenue,
-      imponibile: resellerRevenue,
+      imponibile,
       totalIva: iva,
-      totalCosts: operationalCosts,
+      totalCosts: operationalCosts + costoEnergiaNetto + costoGestionePodTotale,
       passthroughCosts,
       operationalCosts,
       costiCommercialiSimulati,
+      costoEnergiaNetto,
+      costoGestionePodTotale,
+      margineCommercialeLordo,
+      margineCommercialePercent,
       grossMargin,
       grossMarginPercent,
       costsByType: costSummary.costsByType,

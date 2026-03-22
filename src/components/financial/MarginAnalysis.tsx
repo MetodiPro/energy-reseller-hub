@@ -2,14 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  ArrowUpRight,
   ArrowDownRight,
   Calculator,
   DollarSign,
   Target,
-  Percent
+  Percent,
+  Zap,
 } from 'lucide-react';
 import type { FinancialOverviewSummary } from '@/hooks/useFinancialSummary';
 
@@ -31,26 +29,59 @@ const formatPercent = (value: number) => {
 };
 
 export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
+  const strutturaliCosts = summary.costsByType.structural + summary.costsByType.direct + summary.costsByType.indirect;
+
+  const cascadeSteps = [
+    {
+      label: 'Imponibile (Fatturato Netto)',
+      value: summary.imponibile,
+      isSubtraction: false,
+      color: 'text-primary',
+    },
+    {
+      label: 'Costi Passanti (transit items)',
+      value: -summary.passthroughCosts,
+      isSubtraction: true,
+      color: 'text-muted-foreground',
+      note: 'Trasporto, oneri, accise — girati a terzi, neutrali per il margine',
+    },
+    {
+      label: 'Ricavi Reseller',
+      value: summary.resellerMargin,
+      isSubtraction: false,
+      color: 'text-green-600',
+      note: 'CCV + Spread applicato al cliente',
+      isResult: true,
+    },
+    {
+      label: 'Costo Energia al Grossista',
+      value: -(summary.costoEnergiaNetto + summary.costoGestionePodTotale),
+      isSubtraction: true,
+      color: 'text-destructive',
+      note: `Energia: ${formatCurrency(summary.costoEnergiaNetto)} + Fee POD: ${formatCurrency(summary.costoGestionePodTotale)}`,
+    },
+  ];
+
   const margins = [
     {
-      name: 'Margine Lordo',
-      value: summary.grossMargin,
-      percent: summary.grossMarginPercent,
-      description: 'Ricavi propri del reseller (CCV + Spread Netto + Altri Servizi). % calcolata sui ricavi propri.',
+      name: 'Margine Commerciale',
+      value: summary.margineCommercialeLordo,
+      percent: summary.margineCommercialePercent,
+      description: 'Ricavi Reseller − Costo Energia Grossista − Fee POD. È il vero margine dopo aver pagato il fornitore.',
       icon: Target,
     },
     {
       name: 'Margine di Contribuzione',
       value: summary.contributionMargin,
       percent: summary.contributionMarginPercent,
-      description: `Margine Lordo − Provvigioni canali di vendita (${formatCurrency(summary.costiCommercialiSimulati)}). % sui ricavi propri.`,
+      description: `Margine Commerciale − Provvigioni canali vendita (${formatCurrency(summary.costiCommercialiSimulati)}).`,
       icon: Calculator,
     },
     {
       name: 'Margine Netto Operativo',
       value: summary.netMargin,
       percent: summary.netMarginPercent,
-      description: 'Ricavi propri − Costi Commerciali − Costi Strutturali. % sui ricavi propri, esclusi passanti.',
+      description: `Margine Commerciale − Costi Commerciali (${formatCurrency(summary.costiCommercialiSimulati)}) − Costi Strutturali (${formatCurrency(strutturaliCosts)}).`,
       icon: DollarSign,
     },
   ];
@@ -70,65 +101,51 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      {/* Cascade Summary Cards */}
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Imponibile</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {formatCurrency((summary as any).imponibile ?? (summary.totalRevenue - ((summary as any).totalIva ?? 0)))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Fatturato al netto dell'IVA
-            </p>
+            <div className="text-2xl font-bold text-primary">{formatCurrency(summary.imponibile)}</div>
+            <p className="text-xs text-muted-foreground">Fatturato al netto IVA</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Costi Passanti in Fattura</CardTitle>
-            <ArrowDownRight className="h-4 w-4 text-orange-500" />
+            <CardTitle className="text-sm font-medium">Ricavi Reseller</CardTitle>
+            <Zap className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {formatCurrency(summary.passthroughCosts)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Grossista + distribuzione + oneri
-            </p>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.resellerMargin)}</div>
+            <p className="text-xs text-muted-foreground">CCV + Spread cliente</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Costi Commerciali</CardTitle>
-            <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Costo Grossista</CardTitle>
+            <ArrowDownRight className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {formatCurrency(summary.costiCommercialiSimulati)}
+            <div className="text-2xl font-bold text-destructive">
+              {formatCurrency(summary.costoEnergiaNetto + summary.costoGestionePodTotale)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Provvigioni canali vendita
-            </p>
+            <p className="text-xs text-muted-foreground">Energia + Fee POD</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Costi Operativi</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+            <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              {formatCurrency(summary.operationalCosts)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Commerciali + strutturali
-            </p>
+            <div className="text-2xl font-bold text-orange-600">{formatCurrency(summary.operationalCosts)}</div>
+            <p className="text-xs text-muted-foreground">Commerciali + strutturali</p>
           </CardContent>
         </Card>
 
@@ -141,17 +158,9 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
             <div className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
               {formatCurrency(summary.netMargin)}
             </div>
-            <div className="flex items-center gap-1 text-xs">
-              {summary.netMarginPercent >= 0 ? (
-                <ArrowUpRight className="h-3 w-3 text-green-600" />
-              ) : (
-                <ArrowDownRight className="h-3 w-3 text-destructive" />
-              )}
-              <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>
-                {formatPercent(summary.netMarginPercent)}
-              </span>
-              <span className="text-muted-foreground">del fatturato</span>
-            </div>
+            <Badge variant={getStatusBadge(summary.netMarginPercent)} className="mt-1">
+              {formatPercent(summary.netMarginPercent)}
+            </Badge>
           </CardContent>
         </Card>
       </div>
@@ -161,10 +170,10 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5" />
-            Analisi dei Margini
+            Analisi dei Margini a Cascata
           </CardTitle>
           <CardDescription>
-            Calcolo progressivo della redditività operativa
+            Dal margine commerciale (dopo il grossista) al risultato operativo netto
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -187,7 +196,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
                     {formatCurrency(margin.value)}
                   </div>
                   <Badge variant={getStatusBadge(margin.percent)}>
-                    {formatPercent(margin.percent)}
+                    {formatPercent(margin.percent)} sul fatt. netto
                   </Badge>
                 </div>
               </div>
