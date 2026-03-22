@@ -87,7 +87,7 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
         id: 'margin-warning',
         type: 'warning',
         title: 'Guadagno Molto Ridotto',
-        description: `Il guadagno netto è solo il ${summary.netMarginPercent.toFixed(1)}% del fatturato. Con margini così bassi, basta un imprevisto per andare in perdita.`,
+        description: `Il guadagno netto è solo il ${summary.netMarginPercent.toFixed(1)}% del margine reseller (CCV + Spread). Con margini così bassi, basta un imprevisto per andare in perdita.`,
         explanation: `L'obiettivo consigliato è almeno il ${thresholds.warningMarginPercent}%. Valuta se puoi ottimizzare i costi o migliorare le condizioni commerciali.`,
         icon: AlertTriangle,
         priority: 3,
