@@ -291,12 +291,34 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 />
               </div>
               
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <p className="text-sm font-medium text-primary">Margine per cliente/mese</p>
-                <p className="text-xl font-bold text-primary">
-                  {formatCurrency(params.ccvMonthly + (params.spreadPerKwh * params.avgMonthlyConsumption) + params.otherServicesMonthly)}
-                </p>
-              </div>
+              {(() => {
+                const ricaviPerCliente = params.ccvMonthly + (params.spreadPerKwh * params.avgMonthlyConsumption) + params.otherServicesMonthly;
+                const margineNettoPerCliente = params.ccvMonthly
+                  + ((params.spreadPerKwh ?? 0) - (params.spreadGrossistaPerKwh ?? 0)) * params.avgMonthlyConsumption
+                  + params.otherServicesMonthly
+                  - (params.gestionePodPerPod ?? 0);
+                const isNegative = margineNettoPerCliente <= 0;
+                return (
+                  <div className="p-3 bg-primary/10 rounded-lg space-y-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Ricavi commerciali per cliente/mese</p>
+                      <p className="text-lg font-bold text-primary">{formatCurrency(ricaviPerCliente)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Margine netto stimato per cliente/mese</p>
+                      <p className={`text-lg font-bold ${isNegative ? 'text-destructive' : 'text-green-600'}`}>
+                        {formatCurrency(margineNettoPerCliente)}
+                      </p>
+                      {isNegative && (
+                        <p className="text-xs font-medium text-destructive">⚠ Attenzione: margine negativo</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        = CCV + (spread cliente − spread grossista) × kWh − fee POD
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
