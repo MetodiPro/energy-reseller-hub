@@ -694,6 +694,16 @@ export const CostTabsView = ({
             </AccordionItem>
           </Accordion>
         )}
+
+        {/* Note: simulated vs manual passthrough */}
+        <div className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30 text-sm mt-4">
+          <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            I costi passanti calcolati automaticamente dal simulatore (PUN, trasporto, oneri ARERA,
+            accise) sono mostrati sopra. Eventuali costi passanti inseriti manualmente dall'utente
+            appaiono nella scheda dedicata.
+          </p>
+        </div>
       </div>
     );
   };
