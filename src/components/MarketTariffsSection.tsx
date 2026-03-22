@@ -18,6 +18,7 @@ import { fetchAreraTariffs, updateAreraTariffs, type AreraTariffData } from "@/l
 
 interface MarketTariffsSectionProps {
   onImportToSimulator?: (fields: Record<string, number>) => void;
+  onImportPun?: (punPerKwh: number) => void;
 }
 
 export function MarketTariffsSection({ onImportToSimulator }: MarketTariffsSectionProps) {
