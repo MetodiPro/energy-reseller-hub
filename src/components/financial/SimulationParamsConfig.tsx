@@ -223,7 +223,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 <p className="text-xs text-muted-foreground">
                   Aggiornata automaticamente in base al tipo clientela
                 </p>
-              
+              </div>
               <div className="space-y-2">
                 <Label>Tasso attivazione (%)</Label>
                 <Input
