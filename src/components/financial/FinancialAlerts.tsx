@@ -97,7 +97,7 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
         id: 'margin-target',
         type: 'success',
         title: 'Redditività Ottima',
-        description: `Il guadagno netto è il ${summary.netMarginPercent.toFixed(1)}% del fatturato, sopra l'obiettivo del ${thresholds.targetMarginPercent}%.`,
+        description: `Il guadagno netto è il ${summary.netMarginPercent.toFixed(1)}% del margine reseller, sopra l'obiettivo del ${thresholds.targetMarginPercent}%.`,
         explanation: 'Il progetto ha margini sani che permettono di assorbire eventuali imprevisti e di reinvestire nella crescita.',
         icon: TrendingUp,
         priority: 4,
