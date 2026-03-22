@@ -55,7 +55,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
 
   // ─── UI state ───
-  const [activeTab, setActiveTab] = useState('hypotheses');
+  const [activeTab, setActiveTab] = useState('overview');
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
 
