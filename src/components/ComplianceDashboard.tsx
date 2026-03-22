@@ -244,6 +244,23 @@ export function ComplianceDashboard({ projectId }: ComplianceDashboardProps) {
                           <Badge className={cfg.className}>{cfg.label}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
+                        {item.id === 'pun_monthly' && punLastUpdate && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PUN attuale nel simulatore: €{punLastUpdate.pun.toFixed(5)}/kWh 
+                            (aggiornato {punLastUpdate.days} giorni fa)
+                            {punLastUpdate.days > 35 && (
+                              <span className="text-amber-600 ml-1">— potrebbe essere obsoleto</span>
+                            )}
+                          </p>
+                        )}
+                        {item.id === 'arera_quarterly' && simLastUpdate && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Ultima modifica parametri simulazione: {format(new Date(simLastUpdate.date), "dd/MM/yyyy", { locale: it })}
+                            {simLastUpdate.days > 95 && (
+                              <span className="text-amber-600 ml-1">— verifica aggiornamento trimestrale</span>
+                            )}
+                          </p>
+                        )}
                         {check?.last_verified_at && (
                           <p className="text-xs text-muted-foreground mt-1">
                             Ultima verifica: {format(new Date(check.last_verified_at), "dd/MM/yyyy 'alle' HH:mm", { locale: it })}
