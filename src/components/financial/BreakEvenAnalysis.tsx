@@ -132,10 +132,10 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5" />
           Analisi Break-Even Point
-          <InfoTip text="Il Break-Even Point (BEP) è il livello di fatturato minimo necessario per coprire tutti i costi. Se il fatturato è sotto il BEP, il progetto perde soldi." />
+          <InfoTip text="Il Break-Even Point (BEP) è il livello di margine reseller minimo necessario per coprire tutti i costi operativi. Se il margine è sotto il BEP, il progetto perde soldi." />
         </CardTitle>
         <CardDescription>
-          Quanto devi fatturare per smettere di perdere soldi
+          Quanto margine reseller devi generare per smettere di perdere soldi
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -169,7 +169,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
             <div>
               <p className="text-muted-foreground flex items-center">
                 Break-Even Point
-                <InfoTip text="Il fatturato minimo necessario per coprire i costi operativi con il tuo margine lordo attuale." />
+                <InfoTip text="Importo del margine reseller (CCV + Spread) necessario a coprire i costi operativi. Non include i costi passanti (energia, trasporto, oneri) che il reseller gira ai fornitori." />
               </p>
               <p className="text-lg font-bold">{formatCurrency(analysis.breakEvenRevenue)}</p>
             </div>
@@ -205,15 +205,15 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-xs text-muted-foreground mb-1 flex items-center justify-center">
               Margine Lordo %
-              <InfoTip text="Percentuale del fatturato che resta dopo aver sottratto i costi passanti. Indica quanto 'trattieni' su ogni euro fatturato." />
+              <InfoTip text="Percentuale del margine reseller che resta dopo aver sottratto i costi passanti. Calcolata sui ricavi propri (CCV + Spread + Servizi), non sul fatturato lordo." />
             </p>
             <p className="font-bold text-primary">{formatPercent(analysis.grossMarginRatio * 100)}</p>
-            <p className="text-xs text-muted-foreground">su ricavi</p>
+            <p className="text-xs text-muted-foreground">su margine reseller</p>
           </div>
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-xs text-muted-foreground mb-1 flex items-center justify-center">
               Margine Sicurezza
-              <InfoTip text="Di quanto può calare il fatturato prima di andare sotto il punto di pareggio. Più è alto, più il progetto è resiliente." />
+              <InfoTip text="Di quanto può calare il margine reseller prima di andare sotto il punto di pareggio. Più è alto, più il progetto è resiliente." />
             </p>
             <p className={`font-bold ${analysis.marginOfSafety >= 20 ? 'text-green-600' : analysis.marginOfSafety >= 10 ? 'text-amber-500' : 'text-destructive'}`}>
               {formatPercent(analysis.marginOfSafety)}
@@ -231,7 +231,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
           <div className="space-y-2 ml-6">
             <div className="flex items-start gap-2">
               <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">1</span>
-              <p>Si calcola il <strong>Margine Lordo %</strong>: la percentuale di ogni euro fatturato che resta dopo aver pagato i costi passanti (energia, distribuzione, oneri).</p>
+              <p>Si calcola il <strong>Margine Lordo %</strong>: la percentuale di ogni euro di margine reseller che resta dopo aver pagato i costi passanti (energia, distribuzione, oneri).</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">2</span>
@@ -239,7 +239,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
             </div>
             <div className="flex items-start gap-2">
               <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">3</span>
-              <p>Il risultato è il <strong>fatturato minimo</strong> necessario per coprire tutte le spese e smettere di perdere soldi.</p>
+              <p>Il risultato è il <strong>margine reseller minimo</strong> necessario per coprire tutte le spese e smettere di perdere soldi.</p>
             </div>
           </div>
           <div className="p-3 rounded-md bg-muted/30 text-xs font-mono">
@@ -263,8 +263,8 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                Indica il <strong>fatturato minimo</strong> necessario affinché il margine lordo copra i costi operativi. 
-                Si basa sulla struttura dei margini (fatturato − passanti) e non tiene conto dei tempi di incasso, depositi e flussi fiscali.
+                Indica il <strong>margine reseller minimo</strong> necessario affinché il margine lordo copra i costi operativi. 
+                Si basa sulla struttura dei margini (CCV + Spread − passanti) e non tiene conto dei tempi di incasso, depositi e flussi fiscali.
               </p>
             </div>
             <div className="p-3 rounded-lg border bg-card space-y-1">
