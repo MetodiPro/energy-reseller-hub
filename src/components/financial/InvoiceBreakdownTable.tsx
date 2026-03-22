@@ -80,8 +80,9 @@ export const InvoiceBreakdownTable = ({ projection, params }: InvoiceBreakdownTa
     margineTotale: 0,
   });
 
-  const marginePercentuale = totals.fatturaTotale > 0 
-    ? (totals.margineTotale / totals.fatturaTotale) * 100 
+  const imponibileTotale = totals.fatturaTotale / (1 + (params.ivaPercent / 100));
+  const marginePercentuale = imponibileTotale > 0 
+    ? (totals.margineTotale / imponibileTotale) * 100 
     : 0;
 
   return (
@@ -115,7 +116,7 @@ export const InvoiceBreakdownTable = ({ projection, params }: InvoiceBreakdownTa
             <p className="text-xl font-bold text-green-600">{formatCurrency(totals.margineTotale)}</p>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
-              {marginePercentuale.toFixed(1)}% del fatturato
+              {marginePercentuale.toFixed(1)}% dell'imponibile
             </p>
           </div>
           <div>
