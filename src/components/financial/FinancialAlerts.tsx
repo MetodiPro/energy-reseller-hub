@@ -87,7 +87,7 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
         id: 'margin-warning',
         type: 'warning',
         title: 'Guadagno Molto Ridotto',
-        description: `Il guadagno netto è solo il ${summary.netMarginPercent.toFixed(1)}% del fatturato. Con margini così bassi, basta un imprevisto per andare in perdita.`,
+        description: `Il guadagno netto è solo il ${summary.netMarginPercent.toFixed(1)}% del margine reseller (CCV + Spread). Con margini così bassi, basta un imprevisto per andare in perdita.`,
         explanation: `L'obiettivo consigliato è almeno il ${thresholds.warningMarginPercent}%. Valuta se puoi ottimizzare i costi o migliorare le condizioni commerciali.`,
         icon: AlertTriangle,
         priority: 3,
@@ -97,7 +97,7 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
         id: 'margin-target',
         type: 'success',
         title: 'Redditività Ottima',
-        description: `Il guadagno netto è il ${summary.netMarginPercent.toFixed(1)}% del fatturato, sopra l'obiettivo del ${thresholds.targetMarginPercent}%.`,
+        description: `Il guadagno netto è il ${summary.netMarginPercent.toFixed(1)}% del margine reseller, sopra l'obiettivo del ${thresholds.targetMarginPercent}%.`,
         explanation: 'Il progetto ha margini sani che permettono di assorbire eventuali imprevisti e di reinvestire nella crescita.',
         icon: TrendingUp,
         priority: 4,
@@ -235,7 +235,7 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bell className="h-5 w-5" />
               Stato del Progetto
-              <InfoTooltip text="Questi avvisi ti aiutano a capire se il progetto sta andando bene economicamente. Sono calcolati automaticamente dai costi e ricavi che hai inserito." />
+              <InfoTooltip text="Questi avvisi ti aiutano a capire se il progetto sta andando bene economicamente. Sono calcolati automaticamente. Le % di margine si riferiscono al margine reseller (CCV + Spread), non al fatturato lordo che include i passanti." />
             </CardTitle>
             <CardDescription>Analisi automatica della salute finanziaria</CardDescription>
           </div>
