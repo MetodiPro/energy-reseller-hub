@@ -44,7 +44,7 @@ const EMPTY_TAX: TaxFlowsSummary = {
   totaleAcciseIncassate: 0, totaleAcciseVersate: 0,
   totaleOneriIncassati: 0, totaleOneriRiversati: 0,
   totaleTrasportoIncassato: 0, totaleTrasportoVersato: 0,
-  totaleTaxOutflows: 0, hasData: false,
+  totaleTaxOutflows: 0, totaleTaxOutflowsPerCashFlow: 0, hasData: false,
 };
 
 // IVA sugli acquisti dal grossista: sempre 22% per legge italiana,
