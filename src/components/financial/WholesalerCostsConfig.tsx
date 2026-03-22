@@ -70,44 +70,10 @@ export const WholesalerCostsConfig = ({
   clientiAttiviFinale,
   passthroughTotals,
 }: WholesalerCostsConfigProps) => {
-  const { toast } = useToast();
-  const [punData, setPunData] = useState<PunPriceData | null>(null);
-  const [loadingPun, setLoadingPun] = useState(false);
-  
   // Calculate derived values - tutto in €/kWh
-  const punEffective = config.punOverride ?? config.punPerKwh;
+  const punEffective = config.punPerKwh;
   // Costo per il reseller = PUN + spread grossista
   const costoAcquistoPerKwh = punEffective + config.spreadGrossistaPerKwh;
-  
-  // Fetch PUN price
-  const fetchPun = async () => {
-    setLoadingPun(true);
-    try {
-      const result = await fetchCurrentPunPrice();
-      if (result.success) {
-        setPunData(result.data);
-        if (config.punAutoUpdate && !config.punOverride) {
-          // Salva in €/kWh direttamente
-          onConfigChange({ punPerKwh: result.data.averagePriceKwh });
-        }
-        toast({
-          title: 'PUN aggiornato',
-          description: `Prezzo medio: €${result.data.averagePriceKwh.toFixed(4)}/kWh`,
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile recuperare il PUN',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingPun(false);
-    }
-  };
-  
-  // Auto-fetch PUN rimosso per evitare rate-limit Terna (403 Developer Over Qps).
-  // L'utente può aggiornare manualmente tramite il pulsante dedicato.
   
   return (
     <Card>
