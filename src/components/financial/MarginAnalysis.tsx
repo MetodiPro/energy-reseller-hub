@@ -36,7 +36,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       name: 'Margine Lordo',
       value: summary.grossMargin,
       percent: summary.grossMarginPercent,
-      description: 'Imponibile − Costi Passanti in fattura (grossista, trasporto, oneri, accise)',
+      description: 'Ricavi propri del reseller (CCV + Spread Netto + Altri Servizi). % calcolata sui ricavi propri.',
       icon: Target,
     },
     {
