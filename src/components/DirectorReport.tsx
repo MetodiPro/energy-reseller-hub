@@ -494,7 +494,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
 };
 
 // Mini KPI card for the summary strip
-function MiniKPI({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
+function MiniKPI({ icon, label, value, color, subValue }: { icon: React.ReactNode; label: string; value: string; color: string; subValue?: string }) {
   return (
     <Card className="bg-muted/30">
       <CardContent className="py-3 px-4">
@@ -503,6 +503,7 @@ function MiniKPI({ icon, label, value, color }: { icon: React.ReactNode; label: 
           <span className="text-xs">{label}</span>
         </div>
         <p className={`text-lg font-bold ${color}`}>{value}</p>
+        {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
       </CardContent>
     </Card>
   );
