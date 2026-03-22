@@ -218,10 +218,12 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
         kpis: {
           fatturato: formatCurrency(summary.totalRevenue),
           margineNetto: formatCurrency(summary.netMargin),
-          margineNettoPerc: `${summary.netMarginPercent.toFixed(1)}%`,
+          margineNettoPerc: `${summary.netMarginPercent.toFixed(1)}% (su marg. comm.)`,
           clientiAttivi: String(summary.clientiAttivi),
           breakEven: cashFlowData.mesePrimoPositivo || 'N/D',
-          roi: `${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%`,
+          roi: cashFlowData.investimentoIniziale > 0
+            ? `${(cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100).toFixed(1)}%`
+            : 'N/D (costi non config.)',
         },
         date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }),
       });

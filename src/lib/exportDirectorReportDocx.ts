@@ -286,6 +286,13 @@ export async function exportDirectorReportDocx({ projectName, reportContent, kpi
             font: 'Calibri', size: 17, italics: true, color: GRAY,
           })],
         }),
+        new Paragraph({
+          spacing: { before: 200 },
+          children: [new TextRun({
+            text: '* Le percentuali di margine sono calcolate sul margine commerciale lordo (ricavi CCV+spread meno costo energia grossista e fee POD), non sul fatturato lordo.',
+            font: 'Calibri', size: 16, color: GRAY, italics: true,
+          })],
+        }),
       ],
     }],
   });
