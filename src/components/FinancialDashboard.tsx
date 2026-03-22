@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
-  TrendingUp, TrendingDown, PieChart, FileDown, Receipt,
+  TrendingUp, TrendingDown, FileDown, Receipt,
   Calculator, Wallet, Zap, FileSpreadsheet,
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
