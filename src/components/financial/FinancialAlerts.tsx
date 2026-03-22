@@ -140,14 +140,14 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
         });
       }
     } else if (breakEvenRevenue > 0 && summary.grossMargin > 0) {
-      const percentToBreakEven = (summary.grossMargin / breakEvenRevenue) * 100;
-      const remainingToBreakEven = breakEvenRevenue - summary.grossMargin;
+      const coveragePercent = operationalCosts > 0 ? (resellerRevenue / operationalCosts) * 100 : 0;
+      const remainingToBreakEven = breakEvenRevenue - imponibileProxy;
       alertList.push({
         id: 'bep-not-reached',
         type: 'warning',
         title: 'Punto di Pareggio Non Raggiunto',
-        description: `Il margine reseller copre il ${percentToBreakEven.toFixed(0)}% del necessario. Servono ancora €${remainingToBreakEven.toLocaleString('it-IT', { maximumFractionDigits: 0 })} di margine reseller per coprire i costi operativi.`,
-        explanation: 'Il punto di pareggio è il margine reseller minimo che serve per coprire tutte le spese operative. Finché non lo raggiungi, ogni mese il progetto perde denaro.',
+        description: `Il margine commerciale copre il ${coveragePercent.toFixed(0)}% dei costi operativi. Servono ancora €${Math.max(0, remainingToBreakEven).toLocaleString('it-IT', { maximumFractionDigits: 0 })} di fatturato per raggiungere il pareggio.`,
+        explanation: `Al tasso di margine attuale (${(grossMarginRatio * 100).toFixed(1)}%), il fatturato minimo necessario è €${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}. Finché non lo raggiungi, ogni mese il progetto perde denaro.`,
         icon: Target,
         priority: 2,
       });
