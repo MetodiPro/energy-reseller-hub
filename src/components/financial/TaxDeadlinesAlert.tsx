@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TaxFlowsSummary } from '@/hooks/useTaxFlows';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
@@ -20,6 +21,7 @@ interface TaxDeadlinesAlertProps {
   projectId: string | null;
   startDate: Date;
   ivaRegime: 'monthly' | 'quarterly';
+  sharedTaxFlows?: { taxFlows: TaxFlowsSummary; loading: boolean };
 }
 
 const formatCurrency = (value: number) => {
@@ -65,14 +67,14 @@ const getPriorityColor = (priority: TaxDeadline['priority'], isOverdue: boolean)
   }
 };
 
-export const TaxDeadlinesAlert = ({ projectId, startDate, ivaRegime }: TaxDeadlinesAlertProps) => {
+export const TaxDeadlinesAlert = ({ projectId, startDate, ivaRegime, sharedTaxFlows }: TaxDeadlinesAlertProps) => {
   const { 
     upcomingDeadlines, 
     overdueDeadlines, 
     urgentDeadlines,
     triggerAlertCheck,
     loading 
-  } = useTaxAlerts(projectId, startDate, ivaRegime);
+  } = useTaxAlerts(projectId, startDate, ivaRegime, undefined, sharedTaxFlows ? { sharedTaxFlows } : undefined);
 
   if (loading) {
     return null;

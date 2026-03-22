@@ -235,7 +235,8 @@ export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, o
       <TaxDeadlinesAlert 
         projectId={projectId} 
         startDate={simData.startDate} 
-        ivaRegime={ivaRegime} 
+        ivaRegime={ivaRegime}
+        sharedTaxFlows={{ taxFlows, loading }}
       />
 
       {/* Tax Regime Configuration */}
