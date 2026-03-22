@@ -486,15 +486,35 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
               </TabsContent>
 
               <TabsContent value="cashflow">
+                <TooltipProvider>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Mese</TableHead>
                         <TableHead className="text-right">Contratti</TableHead>
+                        <TableHead className="text-right">
+                          <Tooltip>
+                            <TooltipTrigger className="underline decoration-dotted cursor-help">
+                              Inviati a Grossista
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              I contratti firmati nel mese X vengono inviati al SII/grossista nel mese X+1 e attivati in fornitura nel mese X+2. Questa colonna mostra i contratti in transito verso il grossista.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableHead>
                         <TableHead className="text-right">Attivati</TableHead>
                         <TableHead className="text-right">Switch-out</TableHead>
-                        <TableHead className="text-right">Clienti Attivi</TableHead>
+                        <TableHead className="text-right">
+                          <Tooltip>
+                            <TooltipTrigger className="underline decoration-dotted cursor-help">
+                              Clienti Attivi
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              Clienti effettivamente in fornitura. Include tutti i clienti attivati nei mesi precedenti al netto del churn mensile.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableHead>
                         <TableHead className="text-right">Fatturato</TableHead>
                         <TableHead className="text-right">Incasso</TableHead>
                         <TableHead className="text-right">Crediti</TableHead>
@@ -505,6 +525,9 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
                         <TableRow key={month.month}>
                           <TableCell className="font-medium">{month.label}</TableCell>
                           <TableCell className="text-right">{month.newContracts}</TableCell>
+                          <TableCell className="text-right text-yellow-600">
+                            {month.sentToWholesaler > 0 ? month.sentToWholesaler : '-'}
+                          </TableCell>
                           <TableCell className="text-right">
                             {month.activatedCustomers > 0 ? (
                               <Badge variant="outline" className="text-green-600">
@@ -534,6 +557,7 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
                     </TableBody>
                   </Table>
                 </div>
+                </TooltipProvider>
               </TabsContent>
 
               <TabsContent value="chart">
