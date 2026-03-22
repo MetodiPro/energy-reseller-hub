@@ -133,7 +133,7 @@ export const OverviewTab = ({
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Netto<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Margine Lordo meno i Costi Operativi. È il profitto effettivo del reseller.</p></TooltipContent></UITooltip>
+              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Netto<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Ricavi propri meno tutti i costi operativi. Percentuale calcolata sui ricavi propri del reseller (CCV + Spread + Altro), non sul fatturato lordo che include i costi passanti.</p></TooltipContent></UITooltip>
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
