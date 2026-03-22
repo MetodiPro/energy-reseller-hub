@@ -50,7 +50,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       name: 'Margine Netto Operativo',
       value: summary.netMargin,
       percent: summary.netMarginPercent,
-      description: 'Imponibile − Costi Passanti − Costi Commerciali − Costi Strutturali',
+      description: 'Ricavi propri − Costi Commerciali − Costi Strutturali. % sui ricavi propri, esclusi passanti.',
       icon: DollarSign,
     },
   ];

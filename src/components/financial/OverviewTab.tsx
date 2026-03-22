@@ -141,7 +141,7 @@ export const OverviewTab = ({
               <div className="flex items-center gap-1 text-xs">
                 {summary.netMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
                 <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.netMarginPercent)}</span>
-                <span className="text-muted-foreground">sull'imponibile</span>
+                <span className="text-muted-foreground">sui ricavi propri</span>
               </div>
             </CardContent>
           </Card>
