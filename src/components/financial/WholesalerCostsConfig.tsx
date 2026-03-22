@@ -5,8 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { 
-  RefreshCw, 
-  Loader2, 
   Building2, 
   Zap, 
   Calculator,
