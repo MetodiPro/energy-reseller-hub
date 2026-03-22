@@ -152,7 +152,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       const { customer, deposit, collection } = em;
       const m = customer.month;
 
-      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].totaleTaxOutflows : 0;
+      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].taxOutflowsPerCashFlow : 0;
 
       let costiCommercialiMese = 0;
       if (activeChannels.length > 0 && (customer.contrattiNuovi > 0 || customer.attivazioni > 0)) {

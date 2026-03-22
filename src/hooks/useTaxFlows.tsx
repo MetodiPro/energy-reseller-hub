@@ -207,6 +207,7 @@ export function buildTaxFlows(
     totaleTrasportoIncassato: Math.round(totaleTrasportoIncassato),
     totaleTrasportoVersato: Math.round(totaleTrasportoVersato),
     totaleTaxOutflows: Math.round(totaleTaxOutflows),
+    totaleTaxOutflowsPerCashFlow: Math.round(totaleTaxOutflowsPerCashFlow),
     hasData: monthlyData.length > 0,
   };
 }
