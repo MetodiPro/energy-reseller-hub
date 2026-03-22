@@ -129,7 +129,10 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
         onUpdate('trasportoQuotaEnergiaKwh', response.data.trasporto.quotaEnergiaKwh);
         onUpdate('oneriAsosKwh', response.data.oneri.asosKwh);
         onUpdate('oneriArimKwh', response.data.oneri.arimKwh);
-        onUpdate('acciseKwh', response.data.acciseApplicate);
+        const accisaCorretta = params.clientType === 'domestico'
+          ? response.data.accise?.domesticoKwh ?? response.data.acciseApplicate
+          : response.data.accise?.altriUsiKwh ?? response.data.acciseApplicate;
+        onUpdate('acciseKwh', accisaCorretta);
         onUpdate('ivaPercent', response.data.ivaPercent);
         
         setAreraSource(`Delibera ${response.data.delibera}`);
