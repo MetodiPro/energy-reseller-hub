@@ -69,14 +69,48 @@ CASH FLOW E INVESTIMENTI:
 - Massima esposizione finanziaria: €${financialData.massimaEsposizione?.toLocaleString('it-IT') || '0'} (${financialData.meseEsposizioneMassima || 'N/D'})
 - ROI a 14 mesi: ${financialData.roi?.toFixed(1) || '0'}%
 
-PARAMETRI SIMULAZIONE:
-- PUN (prezzo energia): €${financialData.parametriSimulazione?.punPerKwh || 0}/kWh
-- Spread reseller: €${financialData.parametriSimulazione?.spreadPerKwh || 0}/kWh
+PARAMETRI SIMULAZIONE (IPOTESI OPERATIVE — dati di input):
+- PUN (prezzo energia all'ingrosso): €${financialData.parametriSimulazione?.punPerKwh || 0}/kWh
+- Spread reseller al cliente: €${financialData.parametriSimulazione?.spreadPerKwh || 0}/kWh
 - CCV mensile per cliente: €${financialData.parametriSimulazione?.ccvMensile || 0}
-- Consumo medio mensile: ${financialData.parametriSimulazione?.consumoMedioMensile || 0} kWh
-- Tasso attivazione: ${financialData.parametriSimulazione?.tassoAttivazione || 0}%
-- Churn mensile: ${financialData.parametriSimulazione?.tassoChurn || 0}%
-- Tasso insoluti: ${financialData.parametriSimulazione?.tassoInsoluti || 0}%
+- Consumo medio mensile per cliente: ${financialData.parametriSimulazione?.consumoMedioMensile || 0} kWh
+- Altri servizi mensili per cliente: €${financialData.parametriSimulazione?.altriServiziMensili || 0}
+- Tasso attivazione contratti: ${financialData.parametriSimulazione?.tassoAttivazione || 0}%
+- Churn mensile (tasso abbandono): ${financialData.parametriSimulazione?.tassoChurn || 0}%
+- Tasso insoluti (mancati incassi): ${financialData.parametriSimulazione?.tassoInsoluti || 0}%
+
+IPOTESI INCASSI (dilazioni pagamento):
+- Incasso a 0 mesi (immediato): ${financialData.parametriSimulazione?.incassoMese0 || 70}%
+- Incasso a 1 mese: ${financialData.parametriSimulazione?.incassoMese1 || 18}%
+- Incasso a 2 mesi: ${financialData.parametriSimulazione?.incassoMese2 || 7}%
+- Incasso a 3+ mesi: ${financialData.parametriSimulazione?.incassoMese3Plus || 3}%
+
+IPOTESI COSTI GROSSISTA:
+- Spread grossista: €${financialData.parametriSimulazione?.spreadGrossistaPerKwh ?? 0.008}/kWh
+- Gestione POD/PDR: €${financialData.parametriSimulazione?.gestionePodPerPod ?? 2.50}/pod/mese
+- Deposito cauzionale: ${financialData.parametriSimulazione?.depositoMesi ?? 3} mesi di garanzia
+- Percentuale clienti con deposito: ${financialData.parametriSimulazione?.depositoPercentualeAttivazione ?? 85}%
+
+IPOTESI COMPONENTI REGOLATE (passthrough):
+- Dispacciamento: €${financialData.parametriSimulazione?.dispacciamentoPerKwh || 0.01}/kWh
+- Trasporto quota fissa: €${financialData.parametriSimulazione?.trasportoQuotaFissaAnno || 23}/anno
+- Trasporto quota potenza: €${financialData.parametriSimulazione?.trasportoQuotaPotenzaKwAnno || 22}/kW/anno (potenza impegnata: ${financialData.parametriSimulazione?.potenzaImpegnataKw || 3} kW)
+- Trasporto quota energia: €${financialData.parametriSimulazione?.trasportoQuotaEnergiaKwh || 0.008}/kWh
+- Oneri di sistema ASOS: €${financialData.parametriSimulazione?.oneriAsosKwh || 0.025}/kWh
+- Oneri di sistema ARIM: €${financialData.parametriSimulazione?.oneriArimKwh || 0.007}/kWh
+- Accise: €${financialData.parametriSimulazione?.acciseKwh || 0.0227}/kWh
+- IVA: ${financialData.parametriSimulazione?.ivaPercent || 10}%
+
+RISULTATI COMPONENTI PASSANTI (totali 14 mesi):
+- Costo energia grossista: €${financialData.costoEnergiaTotale?.toLocaleString('it-IT') || '0'}
+- Gestione POD totale: €${financialData.costoGestionePodTotale?.toLocaleString('it-IT') || '0'}
+- Dispacciamento totale: €${financialData.costiPassantiDettaglio?.dispacciamento?.toLocaleString('it-IT') || '0'}
+- Trasporto totale: €${financialData.costiPassantiDettaglio?.trasporto?.toLocaleString('it-IT') || '0'}
+- Oneri di sistema totale: €${financialData.costiPassantiDettaglio?.oneriSistema?.toLocaleString('it-IT') || '0'}
+- Accise totale: €${financialData.costiPassantiDettaglio?.accise?.toLocaleString('it-IT') || '0'}
+
+PIANO CONTRATTI MENSILE:
+${JSON.stringify(financialData.parametriSimulazione?.contrattiMensili || [])}
 
 CANALI DI VENDITA:
 ${(financialData.canaliVendita || []).map((c: any) => `- ${c.nome} (${c.tipo}): commissione €${c.commissione} ${c.tipoCommissione}, quota ${c.quotaContratti}%, attivazione ${c.tassoAttivazione}%`).join('\n') || 'Nessun canale configurato'}
@@ -88,34 +122,55 @@ ${JSON.stringify(financialData.cashFlowMensile || [], null, 1)}
 Struttura il report con queste sezioni, ciascuna approfondita e ben argomentata:
 
 ## 1. Sintesi Esecutiva per il Management
-Un executive summary di 8-10 frasi che catturi: stato del progetto, risultati chiave, fattibilità, fabbisogno di capitale, decisioni urgenti. Deve bastare da solo per capire se il progetto è valido.
+Un executive summary di 8-10 frasi che catturi: stato del progetto, risultati chiave, fattibilità, fabbisogno di capitale, decisioni urgenti.
 
 ## 2. Il Modello di Business del Reseller
-Spiega in dettaglio come funziona il modello reseller energia: cosa sono CCV e Spread, come si genera il margine, qual è la differenza tra fatturato lordo e margine proprio. Commenta se i parametri scelti (CCV, Spread) sono competitivi rispetto al mercato. Contestualizza con i benchmark di settore.
+Spiega come funziona il modello reseller energia: CCV, Spread, margine, differenza tra fatturato lordo e margine proprio. Benchmark di settore.
 
-## 3. Analisi del Portafoglio Clienti
-Commenta la curva di acquisizione (contratti mese per mese), il tasso di attivazione, l'impatto del churn sulla base clienti. Calcola e commenta il Lifetime Value implicito e il costo di acquisizione per cliente.
+## 3. Dettaglio delle Ipotesi Operative
+Questa è la sezione PIÙ IMPORTANTE del report. Devi elencare e commentare OGNI singola ipotesi operativa con il suo valore esatto, organizzata così:
 
-## 4. Performance Economica e Margini
-Analisi dettagliata di ogni livello di margine (lordo, contributivo, netto). Spiega cosa erode il margine a ogni step. Confronta con i benchmark del settore reseller (margine netto tipico 8-15%). Identifica le leve per migliorare la redditività.
+### 3.1 Ipotesi sulla Clientela
+Elenca con i valori esatti: piano contratti mese per mese (riporta la tabella), consumo medio (kWh), tasso attivazione (%), churn mensile (%), tasso insoluti (%). Per ciascuno: spiega cosa significa, se è realistico vs benchmark di settore, e cosa succede se il valore reale è diverso.
 
-## 5. Struttura e Ottimizzazione dei Costi
-Analisi della ripartizione tra costi passanti, commerciali e strutturali. Peso di ciascuna categoria sul totale. Dove ci sono inefficienze? Cosa si può ottimizzare? Commenta il rapporto costi fissi/variabili.
+### 3.2 Ipotesi sui Ricavi Unitari
+Dettaglia con cifre: PUN (€/kWh), spread reseller (€/kWh), CCV mensile (€), altri servizi (€). Calcola il ricavo medio mensile per cliente risultante e commenta la competitività dell'offerta.
 
-## 6. Analisi della Liquidità e Fabbisogno Finanziario
-Il cuore del report per un investitore. Commenta: curva di cassa, mesi di esposizione negativa, capitale necessario, payback. Spiega perché il cash flow è diverso dal margine (dilazioni incasso, depositi, investimenti). ⚠️ Segnala i mesi critici.
+### 3.3 Ipotesi sui Costi Passanti e Regolati
+Elenca TUTTE le componenti con valori esatti: dispacciamento (€/kWh), trasporto quota fissa (€/anno), trasporto quota potenza (€/kW/anno), trasporto quota energia (€/kWh), oneri ASOS (€/kWh), oneri ARIM (€/kWh), accise (€/kWh), IVA (%). Mostra i totali generati (dispacciamento, trasporto, oneri, accise in €). Spiega il peso sulla bolletta.
 
-## 7. Efficacia dei Canali di Vendita
-Per ogni canale: costo per acquisizione, tasso di conversione, contributo al volume. Quali canali sono più efficienti? Raccomandazioni per il mix ottimale.
+### 3.4 Ipotesi sui Costi del Grossista
+Dettaglia: spread grossista (€/kWh), gestione POD (€/pod/mese), deposito cauzionale (mesi e % clienti). Mostra i totali (costo energia, gestione POD). Spiega l'impatto su cash flow e margine.
 
-## 8. Analisi dei Rischi e Scenari
-Identifica almeno 5 rischi concreti dai dati (margini sottili, concentrazione canali, esposizione, churn, insoluti, volatilità PUN). Per ciascuno indica probabilità, impatto e mitigazione.
+### 3.5 Ipotesi sugli Incassi e Dilazioni
+Riporta la distribuzione: incasso immediato (%), a 1 mese (%), a 2 mesi (%), a 3+ mesi (%). Spiega come questa distribuzione impatta il fabbisogno di capitale circolante e la liquidità.
 
-## 9. Raccomandazioni Strategiche Prioritizzate
-5-7 azioni concrete ordinate per priorità e impatto atteso. Per ciascuna indica: cosa fare, perché, impatto stimato, timeline.
+### 3.6 Ipotesi sui Canali di Vendita
+Per ogni canale attivo riporta: nome, tipo commissione (per contratto/per attivazione), importo €, quota contratti %, tasso attivazione %. Calcola il CAC implicito per canale.
 
-## 10. Conclusione e Giudizio di Fattibilità
-Valutazione finale: il progetto è fattibile? A quali condizioni? Qual è il verdetto per un investitore razionale? Usa un rating (es. ✅ Fattibile con riserve, ⚠️ Necessita interventi, ❌ Non raccomandato).`;
+## 4. Analisi del Portafoglio Clienti
+Curva di acquisizione, attivazione, churn, LTV implicito, CAC.
+
+## 5. Performance Economica e Margini
+Analisi di ogni livello di margine. Benchmark settore (margine netto 8-15%). Leve di miglioramento.
+
+## 6. Struttura e Ottimizzazione dei Costi
+Ripartizione costi passanti/commerciali/strutturali. Inefficienze e ottimizzazioni.
+
+## 7. Analisi della Liquidità e Fabbisogno Finanziario
+Curva di cassa, esposizione, payback, mesi critici. ⚠️ Segnala rischi.
+
+## 8. Efficacia dei Canali di Vendita
+CAC per canale, conversione, contributo. Raccomandazioni mix.
+
+## 9. Analisi dei Rischi e Scenari
+Almeno 5 rischi concreti con probabilità, impatto, mitigazione.
+
+## 10. Raccomandazioni Strategiche Prioritizzate
+5-7 azioni con priorità, impatto, timeline.
+
+## 11. Conclusione e Giudizio di Fattibilità
+Rating: ✅ Fattibile / ⚠️ Con riserve / ❌ Non raccomandato.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
