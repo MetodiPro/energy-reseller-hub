@@ -272,6 +272,19 @@ export function AppLayout({ user }: AppLayoutProps) {
           return <FAQ onNavigate={setActiveTab} />;
         case 'tariffs':
           return <MarketTariffsPage />;
+        case 'hypotheses':
+          return currentProjectId ? (
+            <HypothesesPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Settings2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per configurare le ipotesi operative</p>
+            </div>
+          );
         case 'crm':
           return currentProjectId ? (
             <CrmDashboard projectId={currentProjectId} userId={user.id} />
