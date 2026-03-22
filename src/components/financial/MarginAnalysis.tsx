@@ -43,7 +43,7 @@ export const MarginAnalysis = ({ summary }: MarginAnalysisProps) => {
       name: 'Margine di Contribuzione',
       value: summary.contributionMargin,
       percent: summary.contributionMarginPercent,
-      description: `Margine Lordo − Provvigioni canali di vendita (${formatCurrency(summary.costiCommercialiSimulati)})`,
+      description: `Margine Lordo − Provvigioni canali di vendita (${formatCurrency(summary.costiCommercialiSimulati)}). % sui ricavi propri.`,
       icon: Calculator,
     },
     {
