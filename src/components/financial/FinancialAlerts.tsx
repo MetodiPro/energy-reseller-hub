@@ -126,15 +126,15 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
           priority: 2,
         });
       } else {
-        const marginOfSafety = summary.grossMargin > 0
-          ? ((summary.grossMargin - breakEvenRevenue) / summary.grossMargin) * 100
+        const marginOfSafety = imponibileProxy > 0
+          ? ((imponibileProxy - breakEvenRevenue) / imponibileProxy) * 100
           : 0;
         alertList.push({
           id: 'bep-reached',
           type: 'success',
           title: 'Punto di Pareggio Superato',
-          description: `Il margine reseller supera il punto di pareggio con un margine di sicurezza del ${marginOfSafety.toFixed(0)}%. Ogni euro in più è guadagno netto.`,
-          explanation: `Il punto di pareggio è la soglia minima di margine reseller (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}) necessaria per coprire tutti i costi operativi. Superarla significa che il progetto genera profitto.`,
+          description: `Il margine commerciale copre il ${resellerRevenue > 0 ? ((resellerRevenue / operationalCosts) * 100).toFixed(0) : 0}% dei costi operativi, con un margine di sicurezza del ${marginOfSafety.toFixed(0)}%.`,
+          explanation: `Il punto di pareggio (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })} di fatturato) è la soglia minima per coprire tutti i costi operativi al tasso di margine attuale (${(grossMarginRatio * 100).toFixed(1)}%). Superarla significa che il progetto genera profitto.`,
           icon: CheckCircle,
           priority: 1,
         });
