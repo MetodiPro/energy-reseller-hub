@@ -397,7 +397,7 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   text += `PROIEZIONI:\n`;
   if (totalContracts > 0) {
     text += `• Contratti acquisiti (12 mesi): ${totalContracts.toLocaleString('it-IT')}\n`;
-    text += `• Base clienti attiva al 14° mese: ~${activeClients14.toLocaleString('it-IT')} (considerando churn del ${ctx.simulation?.monthlyChurnRate}%/mese)\n`;
+    text += `• Base clienti attiva al 14° mese: ~${activeClients14.toLocaleString('it-IT')} (churn ${ctx.simulation?.monthlyChurnRate}%/mese con preavviso contrattuale di 2 mesi per switching)\n`;
   }
   text += `• Timeline di implementazione complessiva: ${processSteps.reduce((s, step) => s + step.estimatedDays, 0)} giorni\n\n`;
 
