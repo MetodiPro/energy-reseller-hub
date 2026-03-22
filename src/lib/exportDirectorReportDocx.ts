@@ -210,7 +210,7 @@ function createBarChartTable(
   const VALUE_WIDTH = 2526;
   const barColor = opts?.barColor || BLUE;
 
-  const paragraphs: Paragraph[] = [
+  const paragraphs: (Paragraph | Table)[] = [
     new Paragraph({
       spacing: { before: 300, after: 150 },
       children: [new TextRun({ text: title, font: 'Calibri', size: 24, bold: true, color: DARK })],
