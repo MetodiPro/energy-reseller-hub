@@ -201,132 +201,27 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportDocx = async () => {
     if (!report) return;
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    const maxWidth = pageWidth - margin * 2;
-    let y = 20;
-
-    // Title
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Report Direzionale', margin, y);
-    y += 8;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100);
-    doc.text(`${projectName} — ${new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}`, margin, y);
-    y += 6;
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-    doc.setTextColor(0);
-
-    // KPI Summary box
-    doc.setFillColor(245, 247, 250);
-    doc.rect(margin, y, maxWidth, 28, 'F');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    const kpis = [
-      { label: 'Fatturato', value: formatCurrency(summary.totalRevenue) },
-      { label: 'Margine Netto', value: `${formatCurrency(summary.netMargin)} (${summary.netMarginPercent.toFixed(1)}%)` },
-      { label: 'Clienti Attivi', value: String(summary.clientiAttivi) },
-      { label: 'Break-Even', value: cashFlowData.mesePrimoPositivo || 'N/D' },
-      { label: 'ROI', value: `${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%` },
-    ];
-    const kpiWidth = maxWidth / kpis.length;
-    kpis.forEach((kpi, i) => {
-      const x = margin + i * kpiWidth + kpiWidth / 2;
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100);
-      doc.text(kpi.label, x, y + 8, { align: 'center' });
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0);
-      doc.text(kpi.value, x, y + 16, { align: 'center' });
-    });
-    y += 34;
-
-    // Report content
-    doc.setTextColor(0);
-    const lines = report.split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) { y += 3; continue; }
-
-      if (y > 275) {
-        doc.addPage();
-        y = 15;
-      }
-
-      if (trimmed.startsWith('## ')) {
-        y += 4;
-        doc.setFontSize(13);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 64, 175);
-        const heading = trimmed.slice(3).replace(/[⚠️✅❌]/g, '').trim();
-        doc.text(heading, margin, y);
-        y += 2;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.5);
-        doc.line(margin, y, margin + doc.getTextWidth(heading), y);
-        y += 5;
-        doc.setTextColor(0);
-      } else if (trimmed.startsWith('### ')) {
-        y += 2;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(trimmed.slice(4), margin, y);
-        y += 5;
-      } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        const text = trimmed.slice(2).replace(/\*\*/g, '');
-        const wrapped = doc.splitTextToSize(`• ${text}`, maxWidth - 5);
-        for (const wl of wrapped) {
-          if (y > 275) { doc.addPage(); y = 15; }
-          doc.text(wl, margin + 3, y);
-          y += 4.2;
-        }
-      } else if (/^\d+\.\s/.test(trimmed)) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        const text = trimmed.replace(/\*\*/g, '');
-        const wrapped = doc.splitTextToSize(text, maxWidth - 5);
-        for (const wl of wrapped) {
-          if (y > 275) { doc.addPage(); y = 15; }
-          doc.text(wl, margin + 3, y);
-          y += 4.2;
-        }
-      } else {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        const text = trimmed.replace(/\*\*/g, '');
-        const wrapped = doc.splitTextToSize(text, maxWidth);
-        for (const wl of wrapped) {
-          if (y > 275) { doc.addPage(); y = 15; }
-          doc.text(wl, margin, y);
-          y += 4.2;
-        }
-      }
+    try {
+      await exportDirectorReportDocx({
+        projectName,
+        reportContent: report,
+        kpis: {
+          fatturato: formatCurrency(summary.totalRevenue),
+          margineNetto: formatCurrency(summary.netMargin),
+          margineNettoPerc: `${summary.netMarginPercent.toFixed(1)}%`,
+          clientiAttivi: String(summary.clientiAttivi),
+          breakEven: cashFlowData.mesePrimoPositivo || 'N/D',
+          roi: `${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%`,
+        },
+        date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }),
+      });
+      toast({ title: 'Word esportato', description: 'Il report è stato scaricato in formato .docx' });
+    } catch (err) {
+      console.error('Export error:', err);
+      toast({ title: 'Errore', description: 'Impossibile esportare il documento', variant: 'destructive' });
     }
-
-    // Footer on all pages
-    const totalPages = doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(150);
-      doc.text(`Report Direzionale — ${projectName} — Pagina ${i}/${totalPages}`, pageWidth / 2, 290, { align: 'center' });
-      doc.text('Documento riservato — Generato automaticamente', pageWidth / 2, 294, { align: 'center' });
-    }
-
-    doc.save(`Report_Direzionale_${projectName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
-    toast({ title: 'PDF esportato', description: 'Il report è stato scaricato.' });
   };
 
   if (loading) {
