@@ -174,6 +174,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             gestionePodPerPod: Number(simulation.gestione_pod_per_pod ?? DEFAULT_PARAMS.gestionePodPerPod),
             depositoMesi: Number(simulation.deposito_cauzionale_mesi ?? DEFAULT_PARAMS.depositoMesi),
             depositoPercentualeAttivazione: Number(simulation.deposito_percentuale_attivazione ?? DEFAULT_PARAMS.depositoPercentualeAttivazione),
+            depositoSvincoloPagamentiPerc: Number((simulation as any).deposito_svincolo_pagamenti_perc ?? DEFAULT_PARAMS.depositoSvincoloPagamentiPerc),
           },
         });
       } else {
