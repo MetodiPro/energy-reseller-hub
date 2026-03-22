@@ -156,6 +156,11 @@ export function runSimulationEngine(
 
   const monthly: MonthlyEngineResult[] = [];
 
+  // Coda degli switch-out: i clienti che "decidono" di uscire al mese m
+  // cessano effettivamente al mese m + SWITCH_OUT_DELAY
+  const SWITCH_OUT_DELAY = 2;
+  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+
   for (let m = 0; m < SIM_MONTHS; m++) {
     // ── Ciclo vita clienti ──
     const contrattiNuovi = m < 12 ? monthlyContracts[m] : 0;
@@ -167,10 +172,19 @@ export function runSimulationEngine(
           )
         : 0;
 
-    const churn =
-      m >= 3
-        ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100))
-        : 0;
+    // Calcola quanti clienti "comunicano" il recesso questo mese
+    // (tasso mensile applicato alla base attiva corrente)
+    const churnProgrammato = m >= 3
+      ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100))
+      : 0;
+
+    // Registra l'uscita effettiva 2 mesi dopo (realtà SII: switching richiede 2 mesi)
+    if (churnProgrammato > 0 && (m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
+      pendingChurnExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
+    }
+
+    // L'uscita effettiva avviene al mese corrente solo se era stata programmata 2 mesi fa
+    const churn = pendingChurnExits[m] ?? 0;
 
     cumulativeActiveCustomers = Math.max(
       0,
