@@ -33,7 +33,7 @@ export const exportCashFlowToExcel = (
   lines.push(`Break-Even (primo mese positivo);${data.mesePrimoPositivo ?? 'Non raggiunto'}`);
   lines.push(`Saldo Finale;${fmt(data.saldoFinale)}`);
   lines.push(`Totale Incassi;${fmt(data.totaleIncassi)}`);
-  lines.push(`Totale Costi Passanti;${fmt(data.totaleCostiPassanti)}`);
+  lines.push(`Totale Costo Grossista;${fmt(data.totaleCostiPassanti)}`);
   lines.push(`Totale Costi Operativi;${fmt(data.totaleCostiOperativi)}`);
   lines.push(`Totale Costi Commerciali;${fmt(data.totaleCostiCommerciali)}`);
   lines.push(`Totale Flussi Fiscali;${fmt(data.totaleFlussiFiscali)}`);
@@ -53,11 +53,8 @@ export const exportCashFlowToExcel = (
     'di cui 30gg',
     'di cui 60gg',
     'di cui Oltre 60gg',
-    'Costi Passanti',
-    'di cui Energia',
-    'di cui Trasporto',
-    'di cui Oneri Sistema',
-    'di cui Accise',
+    'Costo Grossista',
+    'Costo Grossista (PUN+spread)',
     'Costi Operativi',
     'Costi Commerciali',
     'Flussi Fiscali',
@@ -84,10 +81,7 @@ export const exportCashFlowToExcel = (
       fmt(b.incasso60gg),
       fmt(b.incassoOltre60gg),
       fmt(m.costiPassanti),
-      fmt(b.materiaEnergia),
-      fmt(b.trasporto),
-      fmt(b.oneriSistema),
-      fmt(b.accise),
+      fmt(m.costiPassanti),
       fmt(m.costiOperativi),
       fmt(m.costiCommerciali),
       fmt(m.flussiFiscali),
