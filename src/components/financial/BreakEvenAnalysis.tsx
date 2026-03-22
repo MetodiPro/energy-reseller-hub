@@ -263,8 +263,8 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                Indica il <strong>fatturato minimo</strong> necessario affinché il margine lordo copra i costi operativi. 
-                Si basa sulla struttura dei margini (fatturato − passanti) e non tiene conto dei tempi di incasso, depositi e flussi fiscali.
+                Indica il <strong>margine reseller minimo</strong> necessario affinché il margine lordo copra i costi operativi. 
+                Si basa sulla struttura dei margini (CCV + Spread − passanti) e non tiene conto dei tempi di incasso, depositi e flussi fiscali.
               </p>
             </div>
             <div className="p-3 rounded-lg border bg-card space-y-1">
