@@ -141,6 +141,10 @@ export function exportFiscaleReport(
   const aliquotaIrap = 0.039;
 
   const iresIrapRows = [
+    { 'Voce': '⚠️ STIMA INDICATIVA — NON USARE PER DICHIARAZIONI FISCALI', 'Valore (€)': '' as any },
+    { 'Voce': 'Consultare un commercialista per il calcolo fiscale effettivo', 'Valore (€)': '' as any },
+    { 'Voce': 'La stima non considera ammortamenti, costi strutturali e perdite pregresse', 'Valore (€)': '' as any },
+    { 'Voce': '', 'Valore (€)': '' as any },
     { 'Voce': 'Margine Commerciale Annuo (CCV + Spread + Altro)', 'Valore (€)': fmt(margineAnnuo) },
     { 'Voce': 'Deduzione Costi Operativi (Fee POD)', 'Valore (€)': fmt(-costiOperativi) },
     { 'Voce': '', 'Valore (€)': '' as any },
@@ -156,8 +160,8 @@ export function exportFiscaleReport(
   ];
 
   const wsIresIrap = XLSX.utils.json_to_sheet(iresIrapRows);
-  wsIresIrap['!cols'] = [{ wch: 45 }, { wch: 20 }];
-  XLSX.utils.book_append_sheet(wb, wsIresIrap, 'Stima IRES-IRAP');
+  wsIresIrap['!cols'] = [{ wch: 55 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, wsIresIrap, 'Stima IRES-IRAP (indicativa)');
 
   const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   saveAs(new Blob([buf], { type: 'application/octet-stream' }), `${projectName}_Report_Fiscale.xlsx`);
