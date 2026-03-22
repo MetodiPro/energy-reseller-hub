@@ -102,8 +102,8 @@ interface CostTabsViewProps {
 
 const COST_CATEGORIES = {
   passthrough: {
-    label: 'Passanti',
-    description: 'Costi calcolati dal simulatore (energia, trasporto, oneri)',
+    label: 'Energia & Grossista',
+    description: 'Costi grossista (energia, POD) e componenti pass-through in fattura',
     icon: ArrowLeftRight,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
