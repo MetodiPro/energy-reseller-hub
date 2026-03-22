@@ -42,6 +42,7 @@ export interface WholesalerParams {
   gestionePodPerPod: number;      // Fee gestione POD €/POD/mese
   depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
   depositoPercentualeAttivazione: number; // % fatturato stimato applicata al deposito iniziale
+  depositoSvincoloPagamentiPerc?: number; // % pagamenti consumi accumulati svincolati dalla garanzia (0-100, default 50)
 }
 
 // Parametri fiscali
