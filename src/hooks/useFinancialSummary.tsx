@@ -47,6 +47,10 @@ export const useFinancialSummary = (
       : costSummary.totalRevenue;
 
     // Costi operativi reali (NO passanti — si annullano tra ricavi e costi)
+    // NOTA: costiGestionePod viene dalla simulazione (calcolo automatico).
+    // I costi strutturali manuali (strutturaliCosts) vengono da project_costs.
+    // L'utente dovrebbe usare uno solo dei due metodi: o il simulatore
+    // o l'inserimento manuale, non entrambi per la stessa voce.
     const costiGestionePod = simulationSummary.hasData ? simulationSummary.costoGestionePodTotale : 0;
     const strutturaliCosts = costSummary.costsByType.structural + costSummary.costsByType.direct + costSummary.costsByType.indirect;
     const operationalCosts = costiGestionePod + commercialCostsToUse + strutturaliCosts;
