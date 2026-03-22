@@ -161,6 +161,9 @@ export function runSimulationEngine(
   const SWITCH_OUT_DELAY = 2;
   const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
 
+  const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 50) / 100;
+  let totalPagamentiAccumulati = 0;
+
   for (let m = 0; m < SIM_MONTHS; m++) {
     // ── Ciclo vita clienti ──
     const contrattiNuovi = m < 12 ? monthlyContracts[m] : 0;
@@ -242,8 +245,9 @@ export function runSimulationEngine(
     totalDepositoRestituito += depositoRilasciatoChurn;
 
     const pagamentiConsumi = m >= 2 ? cumulativeActiveCustomers * perClient.passantiTotale : 0;
+    totalPagamentiAccumulati += pagamentiConsumi;
 
-    const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRestituito);
+    const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRestituito - (totalPagamentiAccumulati * svincoloPct));
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 

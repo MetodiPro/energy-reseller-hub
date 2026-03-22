@@ -819,6 +819,7 @@ export type Database = {
           created_by: string
           deposito_cauzionale_mesi: number | null
           deposito_percentuale_attivazione: number | null
+          deposito_svincolo_pagamenti_perc: number | null
           dispacciamento_per_kwh: number | null
           gestione_pdr_per_pdr: number | null
           gestione_pod_per_pod: number | null
@@ -872,6 +873,7 @@ export type Database = {
           created_by: string
           deposito_cauzionale_mesi?: number | null
           deposito_percentuale_attivazione?: number | null
+          deposito_svincolo_pagamenti_perc?: number | null
           dispacciamento_per_kwh?: number | null
           gestione_pdr_per_pdr?: number | null
           gestione_pod_per_pod?: number | null
@@ -925,6 +927,7 @@ export type Database = {
           created_by?: string
           deposito_cauzionale_mesi?: number | null
           deposito_percentuale_attivazione?: number | null
+          deposito_svincolo_pagamenti_perc?: number | null
           dispacciamento_per_kwh?: number | null
           gestione_pdr_per_pdr?: number | null
           gestione_pod_per_pod?: number | null

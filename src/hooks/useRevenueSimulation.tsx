@@ -42,6 +42,7 @@ export interface WholesalerParams {
   gestionePodPerPod: number;      // Fee gestione POD €/POD/mese
   depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
   depositoPercentualeAttivazione: number; // % fatturato stimato applicata al deposito iniziale
+  depositoSvincoloPagamentiPerc?: number; // % pagamenti consumi accumulati svincolati dalla garanzia (0-100, default 50)
 }
 
 // Parametri fiscali
@@ -94,6 +95,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   gestionePodPerPod: 2.50,
   depositoMesi: 3,
   depositoPercentualeAttivazione: 85,
+  depositoSvincoloPagamentiPerc: 50,
   
   // Regime fiscale
   ivaPaymentRegime: 'monthly',
@@ -172,6 +174,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             gestionePodPerPod: Number(simulation.gestione_pod_per_pod ?? DEFAULT_PARAMS.gestionePodPerPod),
             depositoMesi: Number(simulation.deposito_cauzionale_mesi ?? DEFAULT_PARAMS.depositoMesi),
             depositoPercentualeAttivazione: Number(simulation.deposito_percentuale_attivazione ?? DEFAULT_PARAMS.depositoPercentualeAttivazione),
+            depositoSvincoloPagamentiPerc: Number((simulation as any).deposito_svincolo_pagamenti_perc ?? DEFAULT_PARAMS.depositoSvincoloPagamentiPerc),
           },
         });
       } else {
@@ -238,6 +241,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         gestione_pod_per_pod: data.params.gestionePodPerPod,
         deposito_cauzionale_mesi: data.params.depositoMesi,
         deposito_percentuale_attivazione: data.params.depositoPercentualeAttivazione,
+        deposito_svincolo_pagamenti_perc: data.params.depositoSvincoloPagamentiPerc ?? 50,
         
         created_by: user.id,
       };

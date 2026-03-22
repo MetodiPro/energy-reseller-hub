@@ -25,6 +25,7 @@ interface WholesalerConfig {
   gestionePodPerPod: number;
   depositoMesi: number;           // Mesi di fatturato stimato per deposito cauzionale
   depositoPercentualeAttivazione: number; // % fatturato stimato applicata al deposito
+  depositoSvincoloPagamentiPerc?: number; // % pagamenti consumi svincolati dalla garanzia
 }
 
 interface PassthroughTotals {
@@ -277,10 +278,43 @@ export const WholesalerCostsConfig = ({
               />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Deposito = Clienti Attivi × Fattura Media × {config.depositoMesi} mesi × {config.depositoPercentualeAttivazione}%
-          </p>
-        </div>
+           <p className="text-xs text-muted-foreground">
+             Deposito = Clienti Attivi × Fattura Media × {config.depositoMesi} mesi × {config.depositoPercentualeAttivazione}%
+           </p>
+           
+           <Separator className="my-3" />
+           
+           <div className="space-y-2">
+             <div className="flex items-center gap-2">
+               <Label>Svincolo deposito da pagamenti</Label>
+               <TooltipProvider>
+                 <Tooltip>
+                   <TooltipTrigger asChild>
+                     <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                   </TooltipTrigger>
+                   <TooltipContent className="max-w-xs">
+                     Percentuale dei pagamenti mensili accumulati verso il grossista che vengono riconosciuti come riduzione della garanzia richiesta. 0% = deposito fisso (worst case per il cash flow). 50% = il grossista svincola progressivamente metà dei pagamenti ricevuti (scenario realistico). 100% = svincolo totale (scenario ottimistico, raro in pratica nei primi 12 mesi).
+                   </TooltipContent>
+                 </Tooltip>
+               </TooltipProvider>
+             </div>
+             <div className="flex items-center gap-4">
+               <input
+                 type="range"
+                 min="0"
+                 max="100"
+                 step="10"
+                 value={config.depositoSvincoloPagamentiPerc ?? 50}
+                 onChange={(e) => onConfigChange({ depositoSvincoloPagamentiPerc: parseInt(e.target.value) })}
+                 className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-primary"
+               />
+               <span className="font-mono text-sm font-medium w-12 text-right">{config.depositoSvincoloPagamentiPerc ?? 50}%</span>
+             </div>
+             <p className="text-xs text-muted-foreground">
+               0% = deposito fisso (modello conservativo) · 50% = scenario realistico · 100% = svincolo totale
+             </p>
+           </div>
+         </div>
         
         <Separator />
         
