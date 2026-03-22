@@ -38,6 +38,7 @@ import {
   Bar,
 } from 'recharts';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useEngineResult } from '@/hooks/useEngineResult';
 import { InvoiceBreakdownTable } from './InvoiceBreakdownTable';
 import { exportSimulationToExcel } from '@/lib/exportSimulationExcel';
 import { useToast } from '@/hooks/use-toast';
