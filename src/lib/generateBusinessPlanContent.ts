@@ -334,23 +334,39 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   });
   text += `\n`;
 
-  text += `STRUTTURA DEI RICAVI:\n`;
-  text += `I ricavi del reseller derivano da:\n`;
+  text += `STRUTTURA DEI RICAVI E MARGINE:\n`;
+  text += `• Ricavi commerciali: CCV mensile + spread reseller × kWh per ogni cliente attivo\n`;
+  text += `• Margine commerciale lordo: ricavi commerciali − costo energia grossista − fee POD\n`;
+  text += `  = (spread_reseller − spread_grossista) × kWh + CCV − fee POD, per cliente/mese\n`;
   if (ctx.simulation) {
-    text += `• Spread sulla commodity: differenza tra prezzo di vendita al cliente e prezzo di acquisto dal grossista\n`;
-    text += `• Componente commerciale fissa (CCV): ${formatCurrency(ctx.simulation.ccvMonthly)}/cliente/mese\n`;
+    const spreadNetto = ctx.simulation.spreadPerKwh;
+    text += `• Spread reseller applicato: ${(spreadNetto * 1000).toFixed(1)} €/MWh\n`;
+    text += `• CCV mensile: ${formatCurrency(ctx.simulation.ccvMonthly)}/cliente/mese\n`;
     if (ctx.simulation.commodityType === 'dual' || ctx.simulation.commodityType === 'gas') {
       text += `• CCV Gas: ${formatCurrency(ctx.simulation.ccvGasMonthly)}/cliente/mese\n`;
     }
   }
+  text += `• Il fatturato lordo include passanti (energia, trasporto, oneri, accise) e IVA\n`;
   text += `• Servizi aggiuntivi\n\n`;
 
   text += `STRUTTURA DEI COSTI:\n`;
-  text += `• Costi passanti (trasporto, oneri, dispacciamento): transitano in bolletta e non rappresentano un costo del reseller\n`;
-  text += `• Costi del grossista: spread grossista sulla commodity + gestione POD/PDR\n`;
+  text += `I costi si dividono in tre categorie:\n\n`;
+  text += `1. COSTI ENERGETICI (pagati al grossista):\n`;
+  text += `   • Costo acquisto energia: PUN × kWh consumati dai clienti\n`;
+  text += `   • Spread grossista × kWh (mark-up del fornitore all'ingrosso)\n`;
+  text += `   • Fee gestione POD: corrispettivo fisso per ogni punto di fornitura attivo\n\n`;
+  text += `2. COSTI PASSANTI (incassati dal cliente e girati a terzi):\n`;
+  text += `   • Trasporto e distribuzione → DSO (Distributore locale)\n`;
+  text += `   • Oneri di sistema ASOS/ARIM → CSEA/GSE\n`;
+  text += `   • Accise → Agenzia delle Dogane (ADM)\n`;
+  text += `   Nota: questi importi sono partite di giro che impattano la liquidità\n`;
+  text += `   ma non il margine commerciale del reseller.\n\n`;
+  text += `3. COSTI OPERATIVI PROPRI:\n`;
   if (ctx.operationalCosts > 0) {
-    text += `• Costi operativi configurati: ${formatCurrency(ctx.operationalCosts)}\n`;
+    text += `   • Costi operativi configurati: ${formatCurrency(ctx.operationalCosts)}\n`;
   }
+  text += `   • Provvigioni canali di vendita (vedi sezione Marketing)\n`;
+  text += `   • Costi strutturali: personale, software, ufficio, consulenze\n\n`;
 
   // Commissions estimate
   const activeChannels = ctx.salesChannels.filter(c => c.is_active && c.contract_share > 0);
