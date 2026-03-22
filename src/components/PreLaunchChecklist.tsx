@@ -63,6 +63,7 @@ const criticalStepIds = [
   'step-3-2', // ARERA
   'step-3-6', // CSEA
   'step-4-1', // Grossista
+  'step-4-2', // Garanzie grossista (fideiussioni)
   'step-4-3', // Accise ADM
 ];
 
@@ -70,7 +71,6 @@ const importantStepIds = [
   'step-3-3', // Obblighi ARERA
   'step-3-4', // Portale Offerte
   'step-3-5', // Codice Condotta
-  'step-4-2', // SII
 ];
 
 export const PreLaunchChecklist = ({ 
