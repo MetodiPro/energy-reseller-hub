@@ -141,8 +141,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="hypotheses" className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Ipotesi</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2"><PieChart className="h-4 w-4" />Panoramica</TabsTrigger>
           <TabsTrigger value="costs" className="flex items-center gap-2"><TrendingDown className="h-4 w-4" />Costi</TabsTrigger>
           <TabsTrigger value="revenues" className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />Ricavi</TabsTrigger>
