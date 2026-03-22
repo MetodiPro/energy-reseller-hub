@@ -239,7 +239,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
             </div>
             <div className="flex items-start gap-2">
               <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">3</span>
-              <p>Il risultato è il <strong>fatturato minimo</strong> necessario per coprire tutte le spese e smettere di perdere soldi.</p>
+              <p>Il risultato è il <strong>margine reseller minimo</strong> necessario per coprire tutte le spese e smettere di perdere soldi.</p>
             </div>
           </div>
           <div className="p-3 rounded-md bg-muted/30 text-xs font-mono">
