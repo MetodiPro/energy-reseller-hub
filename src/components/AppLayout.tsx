@@ -23,6 +23,7 @@ import { useDeadlineNotifications } from '@/hooks/useDeadlineNotifications';
 import { useLazyUnifiedExport } from '@/hooks/useLazyUnifiedExport';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import type { User } from '@supabase/supabase-js';
 
 // Lazy-loaded section components
