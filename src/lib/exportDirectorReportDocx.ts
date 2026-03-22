@@ -236,7 +236,7 @@ function createCashFlowTable(rows: Array<{ mese: string; incassato: number; cost
   });
 }
 
-export async function exportDirectorReportDocx({ projectName, reportContent, kpis, date }: ExportParams) {
+export async function exportDirectorReportDocx({ projectName, reportContent, kpis, date, cashFlowMonthly }: ExportParams) {
   const reportParagraphs = buildReportParagraphs(reportContent);
 
   const doc = new Document({
