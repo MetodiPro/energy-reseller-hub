@@ -191,7 +191,30 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
           </div>
           <Select 
             value={params.clientType} 
-            onValueChange={(v) => onUpdate('clientType', v)}
+            onValueChange={async (v) => {
+              const clientType = v as 'domestico' | 'business' | 'pmi';
+              onUpdate('clientType', clientType);
+              const ivaAuto = clientType === 'domestico' ? 10 : 22;
+              onUpdate('ivaPercent', ivaAuto);
+              try {
+                const res = await fetchAreraTariffs(clientType);
+                if (res.success && res.data) {
+                  onUpdate('acciseKwh', res.data.acciseApplicate);
+                  toast({
+                    title: 'Parametri aggiornati',
+                    description: `Clienti ${clientType}: IVA ${ivaAuto}%, accisa ${res.data.acciseApplicate.toFixed(4)} €/kWh`,
+                  });
+                  return;
+                }
+              } catch {
+                const accisaFallback = clientType === 'domestico' ? 0.0227 : 0.0125;
+                onUpdate('acciseKwh', accisaFallback);
+              }
+              toast({
+                title: 'Parametri aggiornati',
+                description: `Clienti ${clientType}: IVA ${ivaAuto}%, accisa ${clientType === 'domestico' ? '0.0227' : '0.0125'} €/kWh`,
+              });
+            }}
           >
             <SelectTrigger>
               <SelectValue />
@@ -468,13 +491,13 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">IVA (%)</Label>
+              <Label className="text-xs">IVA (%) <span className="text-muted-foreground font-normal">— auto da tipo cliente</span></Label>
               <Input
                 type="number"
                 step="1"
-                className="h-8"
+                className="h-8 bg-muted cursor-not-allowed font-mono"
                 value={params.ivaPercent}
-                onChange={(e) => onUpdate('ivaPercent', parseFloat(e.target.value) || 0)}
+                readOnly
               />
             </div>
           </div>
