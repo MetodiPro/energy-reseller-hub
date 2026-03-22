@@ -251,7 +251,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
       } else {
         const { data: newSim, error } = await supabase
           .from('project_revenue_simulations')
-          .insert(simulationData)
+          .upsert(simulationData, { onConflict: 'project_id' })
           .select()
           .single();
         if (error) throw error;
