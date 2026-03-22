@@ -18,6 +18,7 @@ import {
   User,
   Briefcase,
   ContactRound,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -72,6 +73,7 @@ const teamItems = [
 const strategyItems = [
   { id: "tariffs", title: "Tariffe di Mercato", icon: Zap },
   { id: "hypotheses", title: "Ipotesi Operative", icon: Settings },
+  { id: "director-report", title: "Report Direzionale", icon: ClipboardCheck },
   { id: "financials", title: "Finanza", icon: DollarSign },
   { id: "business-plan", title: "Business Plan", icon: FileText },
   { id: "marketing", title: "Marketing", icon: TrendingUp },

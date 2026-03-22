@@ -45,6 +45,7 @@ const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ d
 const MarketTariffsPage = lazy(() => import('@/components/MarketTariffsSection').then(m => ({ default: m.MarketTariffsSection })));
 const HypothesesPage = lazy(() => import('@/components/HypothesesPage').then(m => ({ default: m.HypothesesPage })));
 const CrmDashboard = lazy(() => import('@/components/CrmDashboard').then(m => ({ default: m.CrmDashboard })));
+const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m => ({ default: m.DirectorReport })));
 
 function SectionLoader() {
   return (
@@ -56,7 +57,7 @@ function SectionLoader() {
 
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'deadlines', 'step-docs', 'team',
-  'documents', 'consultants', 'tariffs', 'hypotheses', 'financials', 'business-plan', 'marketing',
+  'documents', 'consultants', 'tariffs', 'hypotheses', 'director-report', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile', 'crm',
 ];
 
@@ -283,6 +284,19 @@ export function AppLayout({ user }: AppLayoutProps) {
             <div className="text-center py-12 text-muted-foreground">
               <Settings2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Crea prima un progetto per configurare le ipotesi operative</p>
+            </div>
+          );
+        case 'director-report':
+          return currentProjectId ? (
+            <DirectorReport
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per accedere al Report Direzionale</p>
             </div>
           );
         case 'crm':

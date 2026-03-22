@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
-  TrendingUp, TrendingDown, PieChart, FileDown, Receipt,
+  TrendingUp, TrendingDown, FileDown, Receipt,
   Calculator, Wallet, Zap, FileSpreadsheet,
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
@@ -25,7 +25,7 @@ import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenue
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
-import { OverviewTab } from '@/components/financial/OverviewTab';
+
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 
 interface FinancialDashboardProps {
@@ -52,7 +52,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
 
   // ─── UI state ───
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('costs');
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
 
@@ -138,29 +138,13 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview" className="flex items-center gap-2"><PieChart className="h-4 w-4" />Panoramica</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="costs" className="flex items-center gap-2"><TrendingDown className="h-4 w-4" />Costi</TabsTrigger>
           <TabsTrigger value="revenues" className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />Ricavi</TabsTrigger>
           <TabsTrigger value="margins" className="flex items-center gap-2"><Calculator className="h-4 w-4" />Margini</TabsTrigger>
           <TabsTrigger value="liquidity" className="flex items-center gap-2"><Wallet className="h-4 w-4" />Liquidità</TabsTrigger>
           <TabsTrigger value="taxflows" className="flex items-center gap-2"><Receipt className="h-4 w-4" />Flussi Fiscali</TabsTrigger>
         </TabsList>
-
-        {/* ─── Panoramica ─── */}
-        <TabsContent value="overview" className="space-y-6">
-          <OverviewTab
-            summary={summary}
-            simulationSummary={simulationSummary}
-            cashFlowData={cashFlowData}
-            cashFlowLoading={cashFlowLoading}
-            salesChannels={salesChannels}
-            getChannelBreakdown={getChannelBreakdown}
-            simulationData={revenueSimulation.data}
-            onUsePunLive={handleUsePunLive}
-            onNavigateToTariffs={handleNavigateToTariffs}
-          />
-        </TabsContent>
 
         {/* ─── Costi ─── */}
         <TabsContent value="costs" className="space-y-6">
