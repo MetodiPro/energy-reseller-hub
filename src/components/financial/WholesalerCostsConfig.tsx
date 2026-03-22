@@ -113,11 +113,8 @@ export const WholesalerCostsConfig = ({
     }
   };
   
-  useEffect(() => {
-    if (config.punAutoUpdate) {
-      fetchPun();
-    }
-  }, []);
+  // Auto-fetch PUN rimosso per evitare rate-limit Terna (403 Developer Over Qps).
+  // L'utente può aggiornare manualmente tramite il pulsante dedicato.
   
   return (
     <Card>
