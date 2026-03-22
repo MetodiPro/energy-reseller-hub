@@ -285,9 +285,9 @@ export const OverviewTab = ({
             </div>
           ))}
           <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-            <p><strong>Margine Lordo:</strong> Imponibile − Costi Passanti in fattura (grossista, trasporto, oneri, accise)</p>
+            <p><strong>Margine Lordo:</strong> Ricavi propri del reseller (CCV + Spread Netto + Altri Servizi)</p>
             <p><strong>Margine Contributivo:</strong> Margine Lordo − Provvigioni canali di vendita</p>
-            <p><strong>Margine Netto:</strong> Imponibile − Costi Passanti − Costi Commerciali − Costi Strutturali</p>
+            <p><strong>Margine Netto:</strong> Ricavi propri − Costi Commerciali − Costi Strutturali. Tutte le % sono calcolate sui ricavi propri, esclusi i costi passanti.</p>
           </div>
         </CardContent>
       </Card>
