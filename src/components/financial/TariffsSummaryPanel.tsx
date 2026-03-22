@@ -67,7 +67,10 @@ export const TariffsSummaryPanel = ({ params, onUpdate }: TariffsSummaryPanelPro
         onUpdate('trasportoQuotaEnergiaKwh', areraResponse.data.trasporto.quotaEnergiaKwh);
         onUpdate('oneriAsosKwh', areraResponse.data.oneri.asosKwh);
         onUpdate('oneriArimKwh', areraResponse.data.oneri.arimKwh);
-        onUpdate('acciseKwh', areraResponse.data.acciseApplicate);
+        const accisaCorretta = params.clientType === 'domestico'
+          ? areraResponse.data.accise?.domesticoKwh ?? areraResponse.data.acciseApplicate
+          : areraResponse.data.accise?.altriUsiKwh ?? areraResponse.data.acciseApplicate;
+        onUpdate('acciseKwh', accisaCorretta);
         onUpdate('ivaPercent', areraResponse.data.ivaPercent);
         setAreraInfo({
           source: `Delibera ${areraResponse.data.delibera}`,
