@@ -139,8 +139,8 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           : 0,
         cashFlowMensile: cashFlowData.monthlyData?.map(m => ({
           mese: m.monthLabel,
-          incassato: Math.round(m.incassato),
-          costiTotali: Math.round(m.costiTotali),
+          incassato: Math.round(m.incassi),
+          costiTotali: Math.round(m.outflow),
           saldoCumulativo: Math.round(m.saldoCumulativo),
         })),
       };
