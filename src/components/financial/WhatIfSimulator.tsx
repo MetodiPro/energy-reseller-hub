@@ -118,7 +118,7 @@ export const WhatIfSimulator = ({
     const margineNettoPerCliente = ccv + spreadReseller * kWh - spreadGrossista * kWh - feePod;
 
     // Invoice per client (for deposit calc)
-    const pun = simulationParams?.punPerKwh ?? 0.147;
+    const pun = simulationParams?.punPerKwh ?? 0.12;
     const disp = simulationParams?.dispacciamentoPerKwh ?? 0.01;
     const trasportoFissa = (simulationParams?.trasportoQuotaFissaAnno ?? 23) / 12;
     const trasportoPotenza =
