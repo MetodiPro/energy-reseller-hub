@@ -311,6 +311,11 @@ export const OverviewTab = ({
                 </div>
               </div>
             </TooltipProvider>
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              * La stima delle imposte dirette (IRES/IRAP) nel report fiscale è indicativa.
+              Non include ammortamenti, costi strutturali e perdite riportabili.
+              Consultare un commercialista per il calcolo definitivo.
+            </p>
           </CardContent>
         </Card>
       )}
