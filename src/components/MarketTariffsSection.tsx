@@ -41,7 +41,7 @@ export function MarketTariffsSection({ onImportToSimulator, onImportPun }: Marke
 
 // ─── CARD 1: PUN ──────────────────────────────────────────────
 
-function PunCard() {
+function PunCard({ onImportPun }: { onImportPun?: (punPerKwh: number) => void }) {
   const [loading, setLoading] = useState(false);
   const [pun, setPun] = useState<PunPriceData | null>(null);
   const [warning, setWarning] = useState<string | undefined>();
