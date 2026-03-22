@@ -108,6 +108,49 @@ export const OverviewTab = ({
   return (
     <div className="space-y-6">
       <MarketDataBar onUsePunLive={onUsePunLive} onNavigateToTariffs={onNavigateToTariffs} />
+
+      <Collapsible defaultOpen={false}>
+        <Card className="border-muted">
+          <CollapsibleTrigger className="w-full">
+            <CardHeader className="flex flex-row items-center justify-between py-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                Come leggere i dati finanziari
+              </CardTitle>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Fatturato Lordo</p>
+                  <p className="text-xs text-muted-foreground">
+                    Tutto ciò che il reseller emette in fattura: include energia, trasporto, oneri (passanti)
+                    + margine reseller + IVA. È il volume d'affari, non il guadagno.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Margine Reseller</p>
+                  <p className="text-xs text-muted-foreground">
+                    Solo la quota del reseller: CCV + Spread + servizi. Le % di margine sono
+                    calcolate su questa base, non sul fatturato lordo. Benchmark settore: 8–20%.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Cash Flow vs Accrual</p>
+                  <p className="text-xs text-muted-foreground">
+                    I margini (Panoramica) sono in logica accrual (competenza).
+                    Il Cash Flow mostra l'impatto sulla liquidità: include depositi cauzionali,
+                    dilazioni d'incasso e investimenti iniziali.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       <FinancialAlerts summary={summary} />
 
       {/* KPI Cards */}
