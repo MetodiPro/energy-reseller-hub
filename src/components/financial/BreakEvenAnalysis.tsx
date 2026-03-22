@@ -169,7 +169,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
             <div>
               <p className="text-muted-foreground flex items-center">
                 Break-Even Point
-                <InfoTip text="Il fatturato minimo necessario per coprire i costi operativi con il tuo margine lordo attuale." />
+                <InfoTip text="Importo del margine reseller (CCV + Spread) necessario a coprire i costi operativi. Non include i costi passanti (energia, trasporto, oneri) che il reseller gira ai fornitori." />
               </p>
               <p className="text-lg font-bold">{formatCurrency(analysis.breakEvenRevenue)}</p>
             </div>
