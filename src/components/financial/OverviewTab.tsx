@@ -2,9 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
-  ArrowUpRight, ArrowDownRight, Target, Percent, Calculator, Zap, Users, Info,
+  ArrowUpRight, ArrowDownRight, Target, Percent, Calculator, Zap, Users, Info, ChevronDown,
 } from 'lucide-react';
 import { FinancialAlerts } from './FinancialAlerts';
 import { FinancialTrendChart } from './FinancialTrendChart';
