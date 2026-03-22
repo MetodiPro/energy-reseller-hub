@@ -23,7 +23,7 @@ import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { OverviewTab } from '@/components/financial/OverviewTab';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import jsPDF from 'jspdf';
+import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
