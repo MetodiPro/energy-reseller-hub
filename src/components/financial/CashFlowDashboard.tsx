@@ -500,12 +500,11 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
               <p className="font-semibold mb-1">📐 Formula di calcolo</p>
               <p>
                 <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                  Deposito = Clienti Attivi × Fattura Media Mensile × N mesi (configurabile: 3 o 6)
+                  Deposito = MAX(0, Depositi Attivazioni − Rilasci Churn − Pagamenti Consumi × Svincolo%)
                 </code>
               </p>
               <p className="mt-1 text-xs">
-                Il deposito si ricalcola ogni mese in base ai clienti attivi correnti. Se i clienti diminuiscono (switch-out, 
-                zero nuovi contratti), il deposito richiesto diminuisce e il delta diventa negativo, liberando liquidità.
+                Il deposito cresce ad ogni nuova attivazione e si riduce per: (1) churn — quando un cliente cessa la fornitura il grossista rilascia la sua quota di garanzia; (2) svincolo progressivo — man mano che il reseller paga regolarmente i consumi mensili, il grossista riduce la garanzia richiesta proporzionalmente (parametro configurabile: default 50%).
               </p>
             </div>
             <div className="text-muted-foreground border-t border-border pt-3">
