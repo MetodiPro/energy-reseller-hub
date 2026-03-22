@@ -21,6 +21,7 @@ interface TaxDeadlinesAlertProps {
   projectId: string | null;
   startDate: Date;
   ivaRegime: 'monthly' | 'quarterly';
+  sharedTaxFlows?: { taxFlows: TaxFlowsSummary; loading: boolean };
 }
 
 const formatCurrency = (value: number) => {
