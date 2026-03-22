@@ -286,6 +286,19 @@ export function AppLayout({ user }: AppLayoutProps) {
               <p>Crea prima un progetto per configurare le ipotesi operative</p>
             </div>
           );
+        case 'director-report':
+          return currentProjectId ? (
+            <DirectorReport
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per accedere al Report Direzionale</p>
+            </div>
+          );
         case 'crm':
           return currentProjectId ? (
             <CrmDashboard projectId={currentProjectId} userId={user.id} />
