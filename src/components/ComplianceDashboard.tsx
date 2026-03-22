@@ -58,6 +58,8 @@ export function ComplianceDashboard({ projectId }: ComplianceDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
+  const [punLastUpdate, setPunLastUpdate] = useState<{ pun: number; days: number; date: string } | null>(null);
+  const [simLastUpdate, setSimLastUpdate] = useState<{ days: number; date: string } | null>(null);
 
   const fetchChecks = useCallback(async () => {
     setLoading(true);
@@ -81,6 +83,25 @@ export function ComplianceDashboard({ projectId }: ComplianceDashboardProps) {
   useEffect(() => {
     fetchChecks();
   }, [fetchChecks]);
+
+  // Auto-check PUN and simulation freshness
+  useEffect(() => {
+    if (!projectId) return;
+    const checkFreshness = async () => {
+      const { data: sim } = await supabase
+        .from('project_revenue_simulations')
+        .select('pun_per_kwh, updated_at')
+        .eq('project_id', projectId)
+        .maybeSingle();
+      if (sim) {
+        const lastUpdate = new Date(sim.updated_at);
+        const daysSinceUpdate = Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+        setPunLastUpdate({ pun: Number(sim.pun_per_kwh) || 0, days: daysSinceUpdate, date: sim.updated_at });
+        setSimLastUpdate({ days: daysSinceUpdate, date: sim.updated_at });
+      }
+    };
+    checkFreshness();
+  }, [projectId]);
 
   const markAsVerified = async (checkId: string) => {
     setSavingId(checkId);
@@ -223,6 +244,23 @@ export function ComplianceDashboard({ projectId }: ComplianceDashboardProps) {
                           <Badge className={cfg.className}>{cfg.label}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
+                        {item.id === 'pun_monthly' && punLastUpdate && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PUN attuale nel simulatore: €{punLastUpdate.pun.toFixed(5)}/kWh 
+                            (aggiornato {punLastUpdate.days} giorni fa)
+                            {punLastUpdate.days > 35 && (
+                              <span className="text-amber-600 ml-1">— potrebbe essere obsoleto</span>
+                            )}
+                          </p>
+                        )}
+                        {item.id === 'arera_quarterly' && simLastUpdate && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Ultima modifica parametri simulazione: {format(new Date(simLastUpdate.date), "dd/MM/yyyy", { locale: it })}
+                            {simLastUpdate.days > 95 && (
+                              <span className="text-amber-600 ml-1">— verifica aggiornamento trimestrale</span>
+                            )}
+                          </p>
+                        )}
                         {check?.last_verified_at && (
                           <p className="text-xs text-muted-foreground mt-1">
                             Ultima verifica: {format(new Date(check.last_verified_at), "dd/MM/yyyy 'alle' HH:mm", { locale: it })}
