@@ -202,7 +202,7 @@ function createBarChartTable(
   title: string,
   items: Array<{ label: string; value: number; color?: string }>,
   opts?: { showPercentage?: boolean; barColor?: string }
-): Paragraph[] {
+): (Paragraph | Table)[] {
   const maxVal = Math.max(...items.map(i => Math.abs(i.value)), 1);
   const total = items.reduce((s, i) => s + Math.abs(i.value), 0);
   const BAR_WIDTH = 4000; // DXA for bar column
