@@ -83,23 +83,38 @@ async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> 
   const dmyDate = formatDateDMY(refDate);
   const isoDate = formatDateISO(refDate);
 
-  const url = `https://api.terna.it/fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`;
+  // Try primary endpoint first, then fallback to alternative
+  const endpoints = [
+    `https://api.terna.it/fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
+    `https://api.terna.it/market-and-fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
+  ];
 
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-    signal: AbortSignal.timeout(10000),
-  });
+  let lastError = '';
+  for (const url of endpoints) {
+    console.log(`Trying Terna endpoint: ${url.split('?')[0]}`);
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(10000),
+    });
 
-  if (!res.ok) {
-    throw new Error(`Terna prices API failed: ${res.status}`);
+    if (res.ok) {
+      const json: TernaPricesResponse = await res.json();
+      const prices = json.daily_prices;
+
+      if (!prices || prices.length === 0) {
+        lastError = `No price data from ${url.split('?')[0]}`;
+        continue;
+      }
+
+      return parsePrices(prices, isoDate);
+    }
+    
+    const body = await res.text();
+    lastError = `${url.split('?')[0]} returned ${res.status}: ${body.substring(0, 200)}`;
+    console.warn(lastError);
   }
 
-  const json: TernaPricesResponse = await res.json();
-  const prices = json.daily_prices;
-
-  if (!prices || prices.length === 0) {
-    throw new Error('No price data returned from Terna');
-  }
+  throw new Error(`All Terna endpoints failed. Last: ${lastError}`);
 
   const values = prices
     .map((p) => p.base_price_EURxMWh)
