@@ -281,7 +281,7 @@ export const OverviewTab = ({
                   </CardTitle>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs">
-                  <p>Margine commerciale meno tutti i costi operativi (provvigioni + costi strutturali). È il risultato operativo reale del reseller.</p>
+                  <p>Margine commerciale meno tutti i costi operativi (provvigioni canali vendita + costi strutturali). La fee gestione POD è già detratta nel calcolo del Margine Commerciale.</p>
                 </TooltipContent>
               </UITooltip>
               <Percent className="h-4 w-4 text-muted-foreground" />
@@ -477,7 +477,7 @@ export const OverviewTab = ({
             <div className="space-y-1"><p className="text-sm text-muted-foreground">Fee Gestione POD</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoGestionePodTotale)}</p><p className="text-xs text-muted-foreground">Per ogni POD attivo</p></div>
             <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Commerciali</p><p className="text-xl font-bold">{formatCurrency(summary.costiCommercialiSimulati)}</p><p className="text-xs text-muted-foreground">Provvigioni canali vendita</p></div>
             <div className="space-y-1"><p className="text-sm text-muted-foreground">Depositi Cauzionali</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.depositoMassimo)}</p><p className="text-xs text-muted-foreground">Picco massimo</p></div>
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Operativi Totali</p><p className="text-xl font-bold">{formatCurrency(summary.operationalCosts)}</p><p className="text-xs text-muted-foreground">Commerciali + strutturali</p></div>
+            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Operativi Totali</p><p className="text-xl font-bold">{formatCurrency(summary.operationalCosts)}</p><p className="text-xs text-muted-foreground">Provvigioni canali + strutturali (fee POD già nel margine commerciale)</p></div>
           </div>
         </CardContent>
       </Card>
