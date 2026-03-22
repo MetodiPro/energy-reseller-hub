@@ -17,6 +17,7 @@ export interface MonthlyTaxFlowData {
   trasportoIncassato: number;
   trasportoVersamento: number;
   totaleTaxOutflows: number;
+  taxOutflowsPerCashFlow: number;
   clientiFatturati: number;
   fatturato: number;
 }
