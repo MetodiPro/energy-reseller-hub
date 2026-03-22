@@ -84,6 +84,25 @@ export function ComplianceDashboard({ projectId }: ComplianceDashboardProps) {
     fetchChecks();
   }, [fetchChecks]);
 
+  // Auto-check PUN and simulation freshness
+  useEffect(() => {
+    if (!projectId) return;
+    const checkFreshness = async () => {
+      const { data: sim } = await supabase
+        .from('project_revenue_simulations')
+        .select('pun_per_kwh, updated_at')
+        .eq('project_id', projectId)
+        .maybeSingle();
+      if (sim) {
+        const lastUpdate = new Date(sim.updated_at);
+        const daysSinceUpdate = Math.floor((Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+        setPunLastUpdate({ pun: Number(sim.pun_per_kwh) || 0, days: daysSinceUpdate, date: sim.updated_at });
+        setSimLastUpdate({ days: daysSinceUpdate, date: sim.updated_at });
+      }
+    };
+    checkFreshness();
+  }, [projectId]);
+
   const markAsVerified = async (checkId: string) => {
     setSavingId(checkId);
     const now = new Date().toISOString();
