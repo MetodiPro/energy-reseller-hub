@@ -28,7 +28,7 @@ export const stepTimingConfig: Record<string, number> = {
   
   // FASE 4: Accordo grossista (Mese 2-3)
   'step-4-1': 2, // Selezione grossista
-  'step-4-2': 3, // Garanzie grossista
+  'step-4-2': 2, // Garanzie grossista (fideiussioni — istruttoria 2-4 settimane)
   'step-4-3': 3, // ADM/Accise
   'step-4-3b': 3, // Formazione portale
   
