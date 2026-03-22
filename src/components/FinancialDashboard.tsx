@@ -25,7 +25,7 @@ import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenue
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
-import { OverviewTab } from '@/components/financial/OverviewTab';
+
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 
 interface FinancialDashboardProps {
