@@ -1,20 +1,13 @@
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { 
-  RefreshCw, 
-  Loader2, 
   Building2, 
   Zap, 
   Calculator,
   Info,
 } from 'lucide-react';
-import { fetchCurrentPunPrice, PunPriceData } from '@/lib/api/punPrice';
-import { useToast } from '@/hooks/use-toast';
 import {
   Tooltip,
   TooltipContent,
@@ -77,44 +70,10 @@ export const WholesalerCostsConfig = ({
   clientiAttiviFinale,
   passthroughTotals,
 }: WholesalerCostsConfigProps) => {
-  const { toast } = useToast();
-  const [punData, setPunData] = useState<PunPriceData | null>(null);
-  const [loadingPun, setLoadingPun] = useState(false);
-  
   // Calculate derived values - tutto in €/kWh
-  const punEffective = config.punOverride ?? config.punPerKwh;
+  const punEffective = config.punPerKwh;
   // Costo per il reseller = PUN + spread grossista
   const costoAcquistoPerKwh = punEffective + config.spreadGrossistaPerKwh;
-  
-  // Fetch PUN price
-  const fetchPun = async () => {
-    setLoadingPun(true);
-    try {
-      const result = await fetchCurrentPunPrice();
-      if (result.success) {
-        setPunData(result.data);
-        if (config.punAutoUpdate && !config.punOverride) {
-          // Salva in €/kWh direttamente
-          onConfigChange({ punPerKwh: result.data.averagePriceKwh });
-        }
-        toast({
-          title: 'PUN aggiornato',
-          description: `Prezzo medio: €${result.data.averagePriceKwh.toFixed(4)}/kWh`,
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile recuperare il PUN',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingPun(false);
-    }
-  };
-  
-  // Auto-fetch PUN rimosso per evitare rate-limit Terna (403 Developer Over Qps).
-  // L'utente può aggiornare manualmente tramite il pulsante dedicato.
   
   return (
     <Card>
@@ -135,13 +94,9 @@ export const WholesalerCostsConfig = ({
               <Zap className="h-4 w-4 text-yellow-500" />
               Costo Energia dal Grossista
             </h4>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={config.punAutoUpdate}
-                onCheckedChange={(checked) => onConfigChange({ punAutoUpdate: checked })}
-              />
-              <Label className="text-sm">Auto-aggiorna PUN</Label>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Il PUN si aggiorna dalla sezione <span className="font-medium">Tariffe di Mercato</span>
+            </p>
           </div>
           
           <div className="grid grid-cols-3 gap-4">
@@ -154,43 +109,21 @@ export const WholesalerCostsConfig = ({
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Prezzo Unico Nazionale - media mensile GME</p>
+                      <p>Prezzo Unico Nazionale — aggiornabile da Tariffe di Mercato</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </Label>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  step="0.0001"
-                  value={config.punOverride ?? config.punPerKwh}
-                  onChange={(e) => {
-                    const value = parseFloat(e.target.value);
-                    onConfigChange({ 
-                      punOverride: value,
-                      punAutoUpdate: false 
-                    });
-                  }}
-                  className="font-mono"
-                />
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={fetchPun}
-                  disabled={loadingPun}
-                >
-                  {loadingPun ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {punData && (
-                <p className="text-xs text-muted-foreground">
-                  Ultimo aggiornamento: {punData.date} ({punData.source})
-                </p>
-              )}
+              <Input
+                type="number"
+                step="0.0001"
+                value={config.punPerKwh}
+                readOnly
+                className="font-mono bg-muted cursor-not-allowed"
+              />
+              <p className="text-xs text-muted-foreground">
+                Valore impostato dal simulatore
+              </p>
             </div>
             
             <div className="space-y-2">
