@@ -88,6 +88,12 @@ function PunCard({ onImportPun }: { onImportPun?: (punPerKwh: number) => void })
     toast.success(`PUN impostato manualmente: €${val.toFixed(5)}/kWh`);
   };
 
+  const handleImportPun = () => {
+    if (!pun || !onImportPun) return;
+    onImportPun(pun.averagePriceKwh);
+    toast.success(`PUN €${pun.averagePriceKwh.toFixed(5)}/kWh importato nel simulatore`);
+  };
+
   const isLive = pun?.data_freshness === 'live';
 
   return (
