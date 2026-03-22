@@ -67,14 +67,14 @@ const getPriorityColor = (priority: TaxDeadline['priority'], isOverdue: boolean)
   }
 };
 
-export const TaxDeadlinesAlert = ({ projectId, startDate, ivaRegime }: TaxDeadlinesAlertProps) => {
+export const TaxDeadlinesAlert = ({ projectId, startDate, ivaRegime, sharedTaxFlows }: TaxDeadlinesAlertProps) => {
   const { 
     upcomingDeadlines, 
     overdueDeadlines, 
     urgentDeadlines,
     triggerAlertCheck,
     loading 
-  } = useTaxAlerts(projectId, startDate, ivaRegime);
+  } = useTaxAlerts(projectId, startDate, ivaRegime, undefined, sharedTaxFlows ? { sharedTaxFlows } : undefined);
 
   if (loading) {
     return null;
