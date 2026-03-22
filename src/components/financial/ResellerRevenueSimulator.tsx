@@ -300,36 +300,42 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center text-sm">
             <div className="flex items-start gap-2 p-3 bg-white dark:bg-gray-900 rounded-lg">
               <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
               <div>
                 <p className="font-medium">Mese X</p>
-                <p className="text-muted-foreground text-xs">Firma contratto</p>
+                <p className="text-muted-foreground text-xs">Contratto firmato</p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-center">
               <ArrowRight className="h-4 w-4 text-gray-400" />
             </div>
             <div className="flex items-start gap-2 p-3 bg-white dark:bg-gray-900 rounded-lg">
               <Clock className="h-4 w-4 text-yellow-500 mt-0.5" />
               <div>
                 <p className="font-medium">Mese X+1</p>
-                <p className="text-muted-foreground text-xs">Invio a Grossista → SII</p>
+                <p className="text-muted-foreground text-xs">Invio a Grossista / SII (switching)</p>
               </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <ArrowRight className="h-4 w-4 text-gray-400" />
             </div>
             <div className="flex items-start gap-2 p-3 bg-white dark:bg-gray-900 rounded-lg">
               <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
               <div>
                 <p className="font-medium">Mese X+2</p>
-                <p className="text-muted-foreground text-xs">Inizio fornitura</p>
+                <p className="text-muted-foreground text-xs">Inizio fornitura e prima fattura</p>
               </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <ArrowRight className="h-4 w-4 text-gray-400" />
             </div>
             <div className="flex items-start gap-2 p-3 bg-white dark:bg-gray-900 rounded-lg">
               <CreditCard className="h-4 w-4 text-blue-500 mt-0.5" />
               <div>
                 <p className="font-medium">Mese X+3</p>
-                <p className="text-muted-foreground text-xs">Prima fattura + incasso</p>
+                <p className="text-muted-foreground text-xs">Primo incasso</p>
               </div>
             </div>
           </div>
