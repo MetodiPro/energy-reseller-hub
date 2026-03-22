@@ -330,16 +330,30 @@ export const WholesalerCostsConfig = ({
                 </div>
               </div>
 
-              {/* Totale assoluto */}
+              {/* Costo netto vs partite di giro */}
               <Separator className="my-3" />
-              <div className="flex justify-between font-bold text-lg pt-1">
-                <span>TOTALE ASSOLUTO DA CORRISPONDERE</span>
-                <span className="font-mono text-destructive">
-                  {formatCurrencyFull(
-                    costoEnergiaTotale + costoGestionePodTotale +
-                    passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema + passthroughTotals.accise
-                  )}
-                </span>
+              <div className="space-y-2">
+                <div className="flex justify-between font-bold text-base">
+                  <span>Costo netto reseller (energia + POD)</span>
+                  <span className="font-mono text-destructive">
+                    {formatCurrencyFull(costoEnergiaTotale + costoGestionePodTotale)}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Questo è il vero costo del reseller: la differenza tra quanto incassa dallo spread e quanto paga al grossista.
+                </p>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Partite di giro (girate a DSO/ADM/CSEA)</span>
+                  <span className="font-mono text-amber-600">
+                    {formatCurrencyFull(
+                      passthroughTotals.dispacciamento + passthroughTotals.trasporto +
+                      passthroughTotals.oneriSistema + passthroughTotals.accise
+                    )}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Importi incassati dai clienti e girati integralmente a terzi. Non impattano il margine ma richiedono gestione della liquidità.
+                </p>
               </div>
             </>
           )}
