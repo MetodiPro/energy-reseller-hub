@@ -12,6 +12,9 @@ interface KpiData {
   clientiAttivi: string;
   breakEven: string;
   roi: string;
+  massimaEsposizione: string;
+  meseMassimaEsposizione: string;
+  saldoFinale: string;
 }
 
 interface ExportParams {
@@ -19,6 +22,13 @@ interface ExportParams {
   reportContent: string;
   kpis: KpiData;
   date: string;
+  cashFlowMonthly?: Array<{
+    mese: string;
+    incassato: number;
+    costiTotali: number;
+    flussoNetto: number;
+    saldoCumulativo: number;
+  }>;
 }
 
 const BLUE = '1E40AF';
