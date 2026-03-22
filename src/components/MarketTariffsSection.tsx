@@ -44,15 +44,20 @@ function PunCard() {
   const [loading, setLoading] = useState(false);
   const [pun, setPun] = useState<PunPriceData | null>(null);
   const [warning, setWarning] = useState<string | undefined>();
+  const [manualKwh, setManualKwh] = useState<string>("");
+  const [isManual, setIsManual] = useState(false);
 
-  const loadPun = useCallback(async () => {
+  const loadPunFromTerna = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetchCurrentPunPrice();
       setPun(res.data);
       setWarning(res.warning);
+      setIsManual(false);
       if (res.data.data_freshness === 'live') {
         toast.success("PUN aggiornato dai dati Terna");
+      } else {
+        toast.info("Terna non raggiungibile — valore stimato caricato. Puoi inserire il PUN manualmente.");
       }
     } catch (err: any) {
       toast.error("Errore nel recupero del PUN: " + (err.message || ""));
@@ -61,9 +66,26 @@ function PunCard() {
     }
   }, []);
 
-  useEffect(() => {
-    loadPun();
-  }, [loadPun]);
+  const handleManualSave = () => {
+    const val = parseFloat(manualKwh);
+    if (isNaN(val) || val <= 0) {
+      toast.error("Inserisci un valore valido in €/kWh");
+      return;
+    }
+    setPun({
+      date: new Date().toISOString().split('T')[0],
+      averagePrice: Math.round(val * 1000 * 100) / 100,
+      averagePriceKwh: val,
+      minPrice: Math.round(val * 1000 * 100) / 100,
+      maxPrice: Math.round(val * 1000 * 100) / 100,
+      source: 'Inserimento manuale',
+      data_freshness: 'fallback',
+      reference_date: new Date().toISOString().split('T')[0],
+    });
+    setWarning(undefined);
+    setIsManual(true);
+    toast.success(`PUN impostato manualmente: €${val.toFixed(5)}/kWh`);
+  };
 
   const isLive = pun?.data_freshness === 'live';
 
@@ -73,18 +95,47 @@ function PunCard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">PUN Index GME (via Terna)</CardTitle>
+            <CardTitle className="text-base">PUN Index GME</CardTitle>
           </div>
-          <Button variant="outline" size="sm" onClick={loadPun} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={loadPunFromTerna} disabled={loading}>
             <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-            Aggiorna
+            Aggiorna da Terna
           </Button>
         </div>
-        <CardDescription>Prezzo Unico Nazionale dell'energia elettrica</CardDescription>
+        <CardDescription>Prezzo Unico Nazionale dell'energia elettrica — aggiornamento manuale</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Manual input section */}
+        <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
+          <h4 className="text-sm font-semibold">Inserimento manuale PUN</h4>
+          <div className="flex items-end gap-3">
+            <div className="flex-1 space-y-1.5">
+              <Label htmlFor="punManual" className="text-xs">PUN (€/kWh)</Label>
+              <Input
+                id="punManual"
+                type="number"
+                step="0.00001"
+                placeholder="es. 0.12500"
+                value={manualKwh}
+                onChange={e => setManualKwh(e.target.value)}
+              />
+            </div>
+            <Button size="sm" onClick={handleManualSave} disabled={!manualKwh}>
+              <Save className="h-4 w-4 mr-2" />
+              Applica
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Puoi consultare il prezzo su{' '}
+            <a href="https://www.mercatoelettrico.org/it/Statistiche/ME/DatiSint662.aspx" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">
+              GME — Mercato Elettrico <ExternalLink className="h-3 w-3" />
+            </a>
+          </p>
+        </div>
+
         {pun ? (
           <>
+            <Separator />
             <div className="flex items-baseline gap-4">
               <div>
                 <p className="text-3xl font-bold font-mono tracking-tight">
@@ -96,27 +147,35 @@ function PunCard() {
               </div>
               <Badge variant={isLive ? "default" : "secondary"} className={cn(
                 "ml-auto",
-                isLive ? "bg-green-600 hover:bg-green-700 text-white" : "bg-yellow-500 hover:bg-yellow-600 text-white"
+                isLive ? "bg-green-600 hover:bg-green-700 text-white"
+                  : isManual ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  : "bg-yellow-500 hover:bg-yellow-600 text-white"
               )}>
-                <span className={cn("inline-block h-2 w-2 rounded-full mr-1.5", isLive ? "bg-green-300" : "bg-yellow-200")} />
-                {isLive ? "Live" : "Stimato"}
+                <span className={cn("inline-block h-2 w-2 rounded-full mr-1.5",
+                  isLive ? "bg-green-300" : isManual ? "bg-blue-200" : "bg-yellow-200"
+                )} />
+                {isLive ? "Live Terna" : isManual ? "Manuale" : "Stimato"}
               </Badge>
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>Min: €{pun.minPrice.toFixed(2)}/MWh</span>
-              <span>Max: €{pun.maxPrice.toFixed(2)}/MWh</span>
-            </div>
+            {!isManual && (
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>Min: €{pun.minPrice.toFixed(2)}/MWh</span>
+                <span>Max: €{pun.maxPrice.toFixed(2)}/MWh</span>
+              </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
-              Dati del {pun.reference_date ? format(new Date(pun.reference_date + 'T00:00:00'), "dd/MM/yyyy") : "N/D"} — Fonte: {pun.source}
+              {isManual ? "Valore inserito manualmente" : (
+                <>Dati del {pun.reference_date ? format(new Date(pun.reference_date + 'T00:00:00'), "dd/MM/yyyy") : "N/D"} — Fonte: {pun.source}</>
+              )}
             </p>
 
-            {!isLive && warning && (
+            {!isLive && !isManual && warning && (
               <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-sm">
-                  API Terna non raggiungibile — verifica le credenziali TERNA_CLIENT_ID e TERNA_CLIENT_SECRET nei secrets del backend.
+                  API Terna non raggiungibile — puoi inserire il PUN manualmente nel campo sopra.
                 </AlertDescription>
               </Alert>
             )}
@@ -125,7 +184,11 @@ function PunCard() {
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : null}
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Clicca "Aggiorna da Terna" per recuperare il PUN oppure inseriscilo manualmente.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
