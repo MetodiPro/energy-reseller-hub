@@ -91,126 +91,174 @@ export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, o
 
   return (
     <div className="space-y-6">
-      {/* Summary KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* IVA Summary */}
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-blue-600" />
-              IVA Netta
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-              {formatCurrency(taxFlows.totaleIvaDebito - taxFlows.totaleIvaCredito)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-              <div className="flex justify-between">
-                <span>Debito (incassata):</span>
-                <span className="text-red-600">{formatCurrency(taxFlows.totaleIvaDebito)}</span>
+      {/* GRUPPO A — Flussi Fiscali (Erario) */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+          <Landmark className="h-4 w-4" />
+          Flussi Fiscali (Erario)
+        </h3>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* IVA Summary */}
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Receipt className="h-4 w-4 text-blue-600" />
+                IVA Netta
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                {formatCurrency(taxFlows.totaleIvaDebito - taxFlows.totaleIvaCredito)}
               </div>
-              <div className="flex justify-between">
-                <span>Credito (su costi):</span>
-                <span className="text-green-600">-{formatCurrency(taxFlows.totaleIvaCredito)}</span>
+              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                <div className="flex justify-between">
+                  <span>Debito (incassata):</span>
+                  <span className="text-red-600">{formatCurrency(taxFlows.totaleIvaDebito)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Credito (su costi):</span>
+                  <span className="text-green-600">-{formatCurrency(taxFlows.totaleIvaCredito)}</span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Accise Summary */}
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-amber-600" />
-              Accise (ADM)
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3 w-3 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Versamento trimestrale all'Agenzia delle Dogane</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-              {formatCurrency(taxFlows.totaleAcciseVersate)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <div className="flex justify-between">
-                <span>Incassate dai clienti:</span>
-                <span>{formatCurrency(taxFlows.totaleAcciseIncassate)}</span>
+          {/* Accise Summary */}
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-amber-600" />
+                Accise (ADM)
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Versamento trimestrale all'Agenzia delle Dogane</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">
+                {formatCurrency(taxFlows.totaleAcciseVersate)}
               </div>
-              <Badge variant="outline" className="mt-1 text-xs">
-                <Calendar className="h-3 w-3 mr-1" />
-                Trimestrale
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="text-xs text-muted-foreground mt-1">
+                <div className="flex justify-between">
+                  <span>Incassate dai clienti:</span>
+                  <span>{formatCurrency(taxFlows.totaleAcciseIncassate)}</span>
+                </div>
+                <Badge variant="outline" className="mt-1 text-xs">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Trimestrale
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Oneri Sistema */}
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-purple-600" />
-              Oneri Sistema
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3 w-3 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>ASOS + ARIM riversati ai Distributori (DSO)</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
-              {formatCurrency(taxFlows.totaleOneriRiversati)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <div className="flex justify-between">
-                <span>Incassati:</span>
-                <span>{formatCurrency(taxFlows.totaleOneriIncassati)}</span>
+          {/* Totale Versamenti Regolatori */}
+          <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <TrendingDown className="h-4 w-4 text-red-600" />
+                Totale Versamenti Regolatori
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-700 dark:text-red-400">
+                {formatCurrency(taxFlows.totaleTaxOutflows)}
               </div>
-              <Badge variant="outline" className="mt-1 text-xs">
-                Mensile → DSO
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                <div className="flex justify-between font-medium">
+                  <span>di cui erario (IVA+accise):</span>
+                  <span>{formatCurrency(taxFlows.totaleIvaVersamenti + taxFlows.totaleAcciseVersate)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>di cui riversamenti a terzi:</span>
+                  <span>{formatCurrency(taxFlows.totaleOneriRiversati + taxFlows.totaleTrasportoVersato)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-        {/* Total Tax Outflows */}
-        <Card className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-red-600" />
-              Uscite Fiscali Totali
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700 dark:text-red-400">
-              {formatCurrency(taxFlows.totaleTaxOutflows)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <div className="flex justify-between">
-                <span>F24 (IVA):</span>
-                <span>{formatCurrency(taxFlows.totaleIvaVersamenti)}</span>
+      {/* GRUPPO B — Riversamenti a Terzi */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-2">
+          <Building2 className="h-4 w-4" />
+          Riversamenti a Terzi (Distributori / GSE)
+        </h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Questi importi vengono incassati in fattura dal cliente e riversati ai soggetti terzi (distributori, GSE). Non costituiscono tributi erariali ma obbligazioni contrattuali di filiera.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Oneri Sistema */}
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-purple-600" />
+                Oneri Sistema (ASOS/ARIM)
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Riversati al GSE tramite distributori (DSO)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
+                {formatCurrency(taxFlows.totaleOneriRiversati)}
               </div>
-              <div className="flex justify-between">
-                <span>Trasporto:</span>
-                <span>{formatCurrency(taxFlows.totaleTrasportoVersato)}</span>
+              <div className="text-xs text-muted-foreground mt-1">
+                <div className="flex justify-between">
+                  <span>Incassati:</span>
+                  <span>{formatCurrency(taxFlows.totaleOneriIncassati)}</span>
+                </div>
+                <Badge variant="outline" className="mt-1 text-xs">
+                  Mensile → GSE
+                </Badge>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Trasporto e Distribuzione */}
+          <Card className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20 border-slate-200 dark:border-slate-800">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-slate-600" />
+                Trasporto e Distribuzione
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Riversati ai distributori locali (DSO)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-700 dark:text-slate-400">
+                {formatCurrency(taxFlows.totaleTrasportoVersato)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                <Badge variant="outline" className="text-xs">
+                  Mensile → Distributori locali
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Important Notice */}
