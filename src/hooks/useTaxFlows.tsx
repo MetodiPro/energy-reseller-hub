@@ -171,7 +171,9 @@ export function buildTaxFlows(
     }
 
     const monthTax = ivaPayment + acciseVersamento + oneriRiversamento + trasportoVersamento;
+    const monthTaxCashFlow = ivaPayment + acciseVersamento;
     totaleTaxOutflows += monthTax;
+    totaleTaxOutflowsPerCashFlow += monthTaxCashFlow;
 
     monthlyData.push({
       month: m,
