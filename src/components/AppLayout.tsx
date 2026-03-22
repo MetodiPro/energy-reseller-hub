@@ -279,7 +279,7 @@ export function AppLayout({ user }: AppLayoutProps) {
         case 'faq':
           return <FAQ onNavigate={setActiveTab} />;
         case 'tariffs':
-          return <MarketTariffsPage />;
+          return <MarketTariffsPage onImportPun={currentProjectId ? handleImportPun : undefined} />;
         case 'hypotheses':
           return currentProjectId ? (
             <HypothesesPage
