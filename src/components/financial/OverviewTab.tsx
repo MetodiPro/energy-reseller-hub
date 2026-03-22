@@ -313,7 +313,7 @@ export const OverviewTab = ({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Costi Passanti Totali</p>
                 <p className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</p>
@@ -325,10 +325,34 @@ export const OverviewTab = ({
                 <p className="text-xs text-muted-foreground">Incassi effettivi dai clienti</p>
               </div>
               <div className="space-y-1">
+                <TooltipProvider>
+                  <UITooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-sm text-muted-foreground underline decoration-dotted cursor-help">Crediti in Corso</p>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      Fatture emesse ai clienti il cui incasso ricade oltre la finestra di simulazione (waterfall 0-30-60-60+ giorni). Non sono insoluti: si prevede di incassarli. Rappresentano il credito commerciale del reseller verso i clienti attivi.
+                    </TooltipContent>
+                  </UITooltip>
+                </TooltipProvider>
+                <p className="text-xl font-bold text-blue-600">{formatCurrency(simulationSummary.totalCrediti)}</p>
+                <p className="text-xs text-muted-foreground">Fatture emesse non ancora incassate</p>
+              </div>
+              <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Insoluti</p>
                 <p className="text-xl font-bold text-destructive">{formatCurrency(summary.totalInsoluti)}</p>
                 <p className="text-xs text-muted-foreground">Fatturato non incassato</p>
               </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-dashed border-muted-foreground/20 flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                Verifica: Incassato ({formatCurrency(simulationSummary.totalIncassato)})
+                + Crediti ({formatCurrency(simulationSummary.totalCrediti)})
+                + Insoluti ({formatCurrency(simulationSummary.totalInsoluti)})
+              </span>
+              <span className="font-medium text-foreground">
+                = {formatCurrency(simulationSummary.totalIncassato + simulationSummary.totalCrediti + simulationSummary.totalInsoluti)}
+              </span>
             </div>
           </CardContent>
         </Card>
