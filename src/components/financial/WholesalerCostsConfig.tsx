@@ -44,6 +44,7 @@ interface WholesalerCostsConfigProps {
   clientiAttiviFinale: number;
   // Costi passanti fattura
   passthroughTotals?: PassthroughTotals;
+  onNavigateToTariffs?: () => void;
 }
 
 const formatCurrency = (value: number) => {
