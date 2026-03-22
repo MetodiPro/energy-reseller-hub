@@ -27,6 +27,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
   const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
   const { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading, refetch: refetchChannels } = useSalesChannels(projectId);
+  const navigate = useNavigate();
 
   // --- ARERA tariff mismatch detection ---
   const [tariffeMismatch, setTariffeMismatch] = useState(false);
