@@ -100,6 +100,12 @@ export function AppLayout({ user }: AppLayoutProps) {
   );
   const { exportToPDF } = useExportPDF();
   const { exportReport, exporting } = useLazyUnifiedExport();
+  const revenueSimForTariffs = useRevenueSimulation(currentProjectId);
+
+  const handleImportPun = useCallback((punPerKwh: number) => {
+    revenueSimForTariffs.updateParams('punPerKwh', punPerKwh);
+    setTimeout(() => revenueSimForTariffs.saveSimulation(), 500);
+  }, [revenueSimForTariffs]);
 
   useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, currentProject?.commodity_type);
 
