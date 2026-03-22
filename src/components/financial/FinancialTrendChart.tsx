@@ -66,14 +66,8 @@ export const FinancialTrendChart = ({ cashFlowData, loading }: FinancialTrendCha
     });
   }, [cashFlowData]);
 
-  const breakEvenMonth = useMemo(() => {
-    for (const d of trendData) {
-      if (d.cumRevenues >= d.cumCosts && d.cumCosts > 0) {
-        return d.month;
-      }
-    }
-    return null;
-  }, [trendData]);
+  // Usa il break-even dal motore principale per coerenza con Liquidità e Dashboard
+  const breakEvenMonth = cashFlowData.mesePrimoPositivo;
 
   if (loading || !cashFlowData.hasData) {
     return (
@@ -108,15 +102,12 @@ export const FinancialTrendChart = ({ cashFlowData, loading }: FinancialTrendCha
               <Calendar className="h-3 w-3" />
               Simulazione
             </Badge>
-            {breakEvenMonth && (
+            {breakEvenMonth ? (
               <Badge variant="default" className="bg-green-600">
                 Break-Even: {breakEvenMonth}
               </Badge>
-            )}
-            {!breakEvenMonth && (
-              <Badge variant="secondary">
-                Break-Even non raggiunto
-              </Badge>
+            ) : (
+              <Badge variant="secondary">Break-Even non raggiunto</Badge>
             )}
           </div>
         </div>
