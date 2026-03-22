@@ -21,7 +21,7 @@ interface MarketTariffsSectionProps {
   onImportPun?: (punPerKwh: number) => void;
 }
 
-export function MarketTariffsSection({ onImportToSimulator }: MarketTariffsSectionProps) {
+export function MarketTariffsSection({ onImportToSimulator, onImportPun }: MarketTariffsSectionProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -33,7 +33,7 @@ export function MarketTariffsSection({ onImportToSimulator }: MarketTariffsSecti
           Prezzi energia e componenti regolate ARERA
         </p>
       </div>
-      <PunCard />
+      <PunCard onImportPun={onImportPun} />
       <AreraCard onImportToSimulator={onImportToSimulator} />
     </div>
   );
