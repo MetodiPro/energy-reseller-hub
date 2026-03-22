@@ -1,21 +1,24 @@
-import { useState, useCallback } from 'react';
-import { RefreshCw, Zap, FileText, ArrowRight } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useState, useCallback, useEffect } from 'react';
+import { RefreshCw, Zap, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { fetchCurrentPunPrice } from '@/lib/api/punPrice';
-import { fetchAreraTariffs } from '@/lib/api/areraTariffs';
 
 interface MarketDataBarProps {
   onUsePunLive?: (punPerKwh: number) => void;
   onNavigateToTariffs?: () => void;
+  currentPunPerKwh?: number | null;
 }
 
-export function MarketDataBar({ onUsePunLive, onNavigateToTariffs }: MarketDataBarProps) {
-  const [punValue, setPunValue] = useState<number | null>(null);
+export function MarketDataBar({ onUsePunLive, onNavigateToTariffs, currentPunPerKwh }: MarketDataBarProps) {
+  const [punValue, setPunValue] = useState<number | null>(currentPunPerKwh ?? null);
   const [punLoading, setPunLoading] = useState(false);
-  const [areraLoaded, setAreraLoaded] = useState(false);
-  const [areraLabel, setAreraLabel] = useState('');
+
+  useEffect(() => {
+    if (typeof currentPunPerKwh === 'number' && currentPunPerKwh > 0) {
+      setPunValue(currentPunPerKwh);
+    }
+  }, [currentPunPerKwh]);
 
   const handleRefreshPun = useCallback(async () => {
     setPunLoading(true);
@@ -45,7 +48,6 @@ export function MarketDataBar({ onUsePunLive, onNavigateToTariffs }: MarketDataB
 
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border bg-card px-4 py-2.5 text-sm">
-      {/* ── PUN Section ── */}
       <div className="flex items-center gap-2">
         <Zap className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-muted-foreground">PUN</span>
@@ -64,10 +66,8 @@ export function MarketDataBar({ onUsePunLive, onNavigateToTariffs }: MarketDataB
         </button>
       </div>
 
-      {/* ── Separator ── */}
       <div className="h-4 w-px bg-border" />
 
-      {/* ── Actions Section ── */}
       <div className="flex items-center gap-3 ml-auto">
         {punValue && onUsePunLive && (
           <Button
