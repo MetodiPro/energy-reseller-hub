@@ -60,16 +60,13 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
   const alerts = useMemo(() => {
     const alertList: FinancialAlert[] = [];
     
-    // Calcoli di base - modello reseller: passanti vs operativi
+    // Calcoli di base - modello reseller: BEP su margine reseller
     const passthroughCosts = summary.passthroughCosts;
     const operationalCosts = summary.operationalCosts;
-    const grossMarginRatio = summary.totalRevenue > 0 
-      ? (summary.totalRevenue - passthroughCosts) / summary.totalRevenue 
-      : 0;
-    const breakEvenRevenue = grossMarginRatio > 0 
-      ? operationalCosts / grossMarginRatio 
-      : 0;
-    const isAboveBreakEven = summary.totalRevenue >= breakEvenRevenue && breakEvenRevenue > 0;
+    const resellerRevenue = summary.grossMargin;
+    const grossMarginRatio = resellerRevenue > 0 ? 1.0 : 0;
+    const breakEvenRevenue = operationalCosts; // BEP = costi operativi da coprire col margine reseller
+    const isAboveBreakEven = summary.grossMargin >= breakEvenRevenue && breakEvenRevenue > 0;
 
     // ═══════════════════════════════════════════
     // ALERT 1: Margine Netto (la misura più importante)
@@ -110,39 +107,41 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
     // ═══════════════════════════════════════════
     // ALERT 2: Break-Even Point (coerente col margine)
     // ═══════════════════════════════════════════
-    if (isAboveBreakEven && summary.totalRevenue > 0) {
+    if (isAboveBreakEven && summary.grossMargin > 0) {
       // BEP raggiunto MA progetto in perdita → spiega la contraddizione apparente
       if (summary.netMarginPercent < 0) {
         alertList.push({
           id: 'bep-partial',
           type: 'info',
           title: 'Break-Even Commerciale Raggiunto, ma Non Basta',
-          description: `Il fatturato (€${summary.totalRevenue.toLocaleString('it-IT')}) supera il punto di pareggio commerciale (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}), cioè copre i costi variabili e una parte dei costi fissi di struttura.`,
+          description: `Il margine reseller (€${summary.grossMargin.toLocaleString('it-IT')}) supera il punto di pareggio commerciale (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}), cioè copre i costi variabili e una parte dei costi fissi di struttura.`,
           explanation: 'Tuttavia il progetto resta in perdita perché ci sono costi operativi aggiuntivi (es. consulenze, affitti, personale) che non sono ancora coperti. Per raggiungere il vero pareggio servono più clienti o una riduzione delle spese operative.',
           icon: Target,
           priority: 2,
         });
       } else {
-        const marginOfSafety = ((summary.totalRevenue - breakEvenRevenue) / summary.totalRevenue) * 100;
+        const marginOfSafety = summary.grossMargin > 0
+          ? ((summary.grossMargin - breakEvenRevenue) / summary.grossMargin) * 100
+          : 0;
         alertList.push({
           id: 'bep-reached',
           type: 'success',
           title: 'Punto di Pareggio Superato',
-          description: `Il fatturato supera il punto di pareggio con un margine di sicurezza del ${marginOfSafety.toFixed(0)}%. Ogni euro in più è guadagno netto.`,
-          explanation: `Il punto di pareggio è la soglia minima di fatturato (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}) necessaria per coprire tutti i costi. Superarla significa che il progetto genera profitto.`,
+          description: `Il margine reseller supera il punto di pareggio con un margine di sicurezza del ${marginOfSafety.toFixed(0)}%. Ogni euro in più è guadagno netto.`,
+          explanation: `Il punto di pareggio è la soglia minima di margine reseller (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}) necessaria per coprire tutti i costi operativi. Superarla significa che il progetto genera profitto.`,
           icon: CheckCircle,
           priority: 1,
         });
       }
-    } else if (breakEvenRevenue > 0 && summary.totalRevenue > 0) {
-      const percentToBreakEven = (summary.totalRevenue / breakEvenRevenue) * 100;
-      const remainingToBreakEven = breakEvenRevenue - summary.totalRevenue;
+    } else if (breakEvenRevenue > 0 && summary.grossMargin > 0) {
+      const percentToBreakEven = (summary.grossMargin / breakEvenRevenue) * 100;
+      const remainingToBreakEven = breakEvenRevenue - summary.grossMargin;
       alertList.push({
         id: 'bep-not-reached',
         type: 'warning',
         title: 'Punto di Pareggio Non Raggiunto',
-        description: `Il fatturato copre il ${percentToBreakEven.toFixed(0)}% del necessario. Servono ancora €${remainingToBreakEven.toLocaleString('it-IT', { maximumFractionDigits: 0 })} di ricavi per smettere di perdere soldi.`,
-        explanation: 'Il punto di pareggio è il fatturato minimo che serve per coprire tutte le spese. Finché non lo raggiungi, ogni mese il progetto perde denaro.',
+        description: `Il margine reseller copre il ${percentToBreakEven.toFixed(0)}% del necessario. Servono ancora €${remainingToBreakEven.toLocaleString('it-IT', { maximumFractionDigits: 0 })} di margine reseller per coprire i costi operativi.`,
+        explanation: 'Il punto di pareggio è il margine reseller minimo che serve per coprire tutte le spese operative. Finché non lo raggiungi, ogni mese il progetto perde denaro.',
         icon: Target,
         priority: 2,
       });
