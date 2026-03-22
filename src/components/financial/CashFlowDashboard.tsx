@@ -500,21 +500,17 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
               <p className="font-semibold mb-1">📐 Formula di calcolo</p>
               <p>
                 <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                  Deposito = Clienti Attivi × Fattura Media Mensile × N mesi (configurabile: 3 o 6)
+                  Deposito = MAX(0, Depositi Attivazioni − Rilasci Churn − Pagamenti Consumi × Svincolo%)
                 </code>
               </p>
               <p className="mt-1 text-xs">
-                Il deposito si ricalcola ogni mese in base ai clienti attivi correnti. Se i clienti diminuiscono (switch-out, 
-                zero nuovi contratti), il deposito richiesto diminuisce e il delta diventa negativo, liberando liquidità.
+                Il deposito cresce ad ogni nuova attivazione e si riduce per: (1) churn — quando un cliente cessa la fornitura il grossista rilascia la sua quota di garanzia; (2) svincolo progressivo — man mano che il reseller paga regolarmente i consumi mensili, il grossista riduce la garanzia richiesta proporzionalmente (parametro configurabile: default 50%).
               </p>
             </div>
             <div className="text-muted-foreground border-t border-border pt-3">
               <p className="font-semibold mb-1">⏱️ Pipeline di attivazione (ritardo 2 mesi)</p>
               <p className="text-xs">
-                I contratti firmati nel mese M vengono inviati al SII e attivati nel mese M+2. Pertanto, anche se si 
-                azzerano i nuovi contratti (es. aprile), i clienti attivi continuano a crescere per altri 2 mesi 
-                (attivazioni da contratti firmati a febbraio e marzo), e con essi il deposito cauzionale. 
-                Il calo effettivo del deposito si vedrà solo dal mese M+2 in avanti.
+                I contratti firmati nel mese M vengono attivati nel mese M+2. Analogamente, i clienti che comunicano il recesso nel mese M cessano effettivamente la fornitura nel mese M+2 (processo SII), restando fatturati nel frattempo.
               </p>
             </div>
             <div className="text-muted-foreground border-t border-border pt-3">
