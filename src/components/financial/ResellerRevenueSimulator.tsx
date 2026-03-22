@@ -122,7 +122,7 @@ interface MonthData {
   revenueOther: number;
 }
 
-const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', {
