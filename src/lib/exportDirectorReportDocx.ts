@@ -371,7 +371,7 @@ function createWaterfallTable(items: MarginWaterfallItem[]): (Paragraph | Table)
 }
 
 // ── Channels table ──
-function createChannelsTable(channels: ChannelItem[]): Paragraph[] {
+function createChannelsTable(channels: ChannelItem[]): (Paragraph | Table)[] {
   if (!channels.length) return [];
   const colW = [2500, 2000, 2200, 2326];
   const headerLabels = ['Canale', 'Contratti', 'Costo Totale', 'Costo/Cliente'];
