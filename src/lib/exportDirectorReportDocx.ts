@@ -353,6 +353,32 @@ export async function exportDirectorReportDocx({ projectName, reportContent, kpi
         // ── Report Content ──
         ...reportParagraphs,
 
+        // ── Cash Flow Table ──
+        new Paragraph({ children: [new PageBreak()] }),
+
+        new Paragraph({
+          spacing: { before: 0, after: 200 },
+          children: [new TextRun({
+            text: 'ANDAMENTO MENSILE LIQUIDITÀ',
+            font: 'Calibri', size: 28, bold: true, color: BLUE,
+          })],
+          border: { bottom: { style: BorderStyle.SINGLE, size: 3, color: BLUE, space: 4 } },
+        }),
+
+        new Paragraph({
+          spacing: { after: 200 },
+          children: [new TextRun({
+            text: 'La tabella seguente mostra i flussi di cassa mensili previsti su 14 mesi di simulazione. ' +
+                  'Il "Saldo Cumulativo" rappresenta la posizione di cassa progressiva a partire dall\'avvio: ' +
+                  'il valore minimo indica la massima esposizione finanziaria (fabbisogno di copertura).',
+            font: 'Calibri', size: 19, italics: true, color: GRAY,
+          })],
+        }),
+
+        ...(cashFlowMonthly && cashFlowMonthly.length > 0
+          ? [createCashFlowTable(cashFlowMonthly)]
+          : []),
+
         // ── Final disclaimer ──
         new Paragraph({ spacing: { before: 400 }, children: [] }),
         new Paragraph({
