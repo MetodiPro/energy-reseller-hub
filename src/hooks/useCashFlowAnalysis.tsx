@@ -184,12 +184,13 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       });
 
       const deltaDepositoCassa = deposit.deltaDeposito;
-      // Costo energia da grossista (include PUN + spread grossista, parte da mese 2)
-      // NON usiamo em.costiPassanti per evitare doppio conteggio con flussiFiscali
-      // (trasporto, oneri, accise sono già contabilizzati in flussiFiscaliMese)
-      // Solo il costo netto: spread grossista (il PUN è pass-through, si annulla)
-      const costiPassantiMese = customer.clientiFatturati *
-        simData.params.avgMonthlyConsumption * simData.params.spreadGrossistaPerKwh;
+      // Costo reale acquisto energia dal grossista = costoEnergia dal motore
+      // (già include PUN + spreadGrossista) × clientiAttivi.
+      // Usiamo em.costoEnergia che è la fonte unica di verità del motore.
+      // NOTA: il PUN è sia un ricavo (nella fattura al cliente) che un costo
+      // (nel pagamento al grossista) — entrambi devono essere nel cash flow
+      // per mostrare i flussi lordi reali. Il netto è il margine spread.
+      const costiPassantiMese = em.costoEnergia;
       const costiOperativiMese = customer.clientiFatturati *
         (simData.params.gestionePodPerPod ?? 2.5);
       const incassiMese = collection.totaleIncassi;
