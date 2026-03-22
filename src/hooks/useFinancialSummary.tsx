@@ -53,13 +53,13 @@ export const useFinancialSummary = (
 
     // Margini corretti
     const grossMargin = resellerRevenue;
-    const grossMarginPercent = totalRevenue > 0 ? (grossMargin / totalRevenue) * 100 : 0;
+    const grossMarginPercent = resellerRevenue > 0 ? (grossMargin / resellerRevenue) * 100 : 0;
 
     const contributionMargin = grossMargin - commercialCostsToUse;
-    const contributionMarginPercent = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
+    const contributionMarginPercent = resellerRevenue > 0 ? (contributionMargin / resellerRevenue) * 100 : 0;
 
     const netMargin = resellerRevenue - operationalCosts;
-    const netMarginPercent = totalRevenue > 0 ? (netMargin / totalRevenue) * 100 : 0;
+    const netMarginPercent = resellerRevenue > 0 ? (netMargin / resellerRevenue) * 100 : 0;
 
     const iva = simulationSummary.hasData ? simulationSummary.totalIva : 0;
 

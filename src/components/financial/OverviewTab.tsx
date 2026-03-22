@@ -119,7 +119,7 @@ export const OverviewTab = ({
           <KPICard title="Costi Operativi" tooltip="Somma di tutti i costi sostenuti dal reseller: provvigioni ai canali di vendita + spese strutturali (affitto, personale, software, consulenze). Non include i costi passanti che vengono girati ai fornitori." icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.operationalCosts)} valueClass="text-destructive" subtitle="Commerciali + strutturali" />
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Lordo<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Imponibile meno costi passanti in fattura. Indica quanto resta al reseller prima delle spese operative.</p></TooltipContent></UITooltip>
+              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Lordo<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Ricavi propri del reseller (CCV + Spread + Altri Servizi). La percentuale è calcolata sui ricavi propri, non sul fatturato lordo che include i costi passanti girati ai fornitori.</p></TooltipContent></UITooltip>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -127,13 +127,13 @@ export const OverviewTab = ({
               <div className="flex items-center gap-1 text-xs">
                 {summary.grossMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
                 <span className={summary.grossMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.grossMarginPercent)}</span>
-                <span className="text-muted-foreground">sull'imponibile</span>
+                <span className="text-muted-foreground">sui ricavi propri</span>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Netto<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Margine Lordo meno i Costi Operativi. È il profitto effettivo del reseller.</p></TooltipContent></UITooltip>
+              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Netto<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Ricavi propri meno tutti i costi operativi. Percentuale calcolata sui ricavi propri del reseller (CCV + Spread + Altro), non sul fatturato lordo che include i costi passanti.</p></TooltipContent></UITooltip>
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -141,7 +141,7 @@ export const OverviewTab = ({
               <div className="flex items-center gap-1 text-xs">
                 {summary.netMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
                 <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.netMarginPercent)}</span>
-                <span className="text-muted-foreground">sull'imponibile</span>
+                <span className="text-muted-foreground">sui ricavi propri</span>
               </div>
             </CardContent>
           </Card>
@@ -285,9 +285,9 @@ export const OverviewTab = ({
             </div>
           ))}
           <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-            <p><strong>Margine Lordo:</strong> Imponibile − Costi Passanti in fattura (grossista, trasporto, oneri, accise)</p>
+            <p><strong>Margine Lordo:</strong> Ricavi propri del reseller (CCV + Spread Netto + Altri Servizi)</p>
             <p><strong>Margine Contributivo:</strong> Margine Lordo − Provvigioni canali di vendita</p>
-            <p><strong>Margine Netto:</strong> Imponibile − Costi Passanti − Costi Commerciali − Costi Strutturali</p>
+            <p><strong>Margine Netto:</strong> Ricavi propri − Costi Commerciali − Costi Strutturali. Tutte le % sono calcolate sui ricavi propri, esclusi i costi passanti.</p>
           </div>
         </CardContent>
       </Card>
