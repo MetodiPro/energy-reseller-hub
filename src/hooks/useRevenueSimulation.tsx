@@ -241,6 +241,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         gestione_pod_per_pod: data.params.gestionePodPerPod,
         deposito_cauzionale_mesi: data.params.depositoMesi,
         deposito_percentuale_attivazione: data.params.depositoPercentualeAttivazione,
+        deposito_svincolo_pagamenti_perc: data.params.depositoSvincoloPagamentiPerc ?? 50,
         
         created_by: user.id,
       };
