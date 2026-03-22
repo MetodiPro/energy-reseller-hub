@@ -102,8 +102,8 @@ interface CostTabsViewProps {
 
 const COST_CATEGORIES = {
   passthrough: {
-    label: 'Passanti',
-    description: 'Costi calcolati dal simulatore (energia, trasporto, oneri)',
+    label: 'Energia & Grossista',
+    description: 'Costi grossista (energia, POD) e componenti pass-through in fattura',
     icon: ArrowLeftRight,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
@@ -713,11 +713,18 @@ export const CostTabsView = ({
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Gestione Costi per Categoria</CardTitle>
-          <CardDescription className="flex items-center gap-2">
-            <span>Totale costi: {formatCurrency(totalCosts)}</span>
-            {commodityType && (
-              <Badge variant="secondary">Solo Energia Elettrica</Badge>
-            )}
+          <CardDescription className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span>Totale costi: {formatCurrency(totalCosts)}</span>
+              {commodityType && (
+                <Badge variant="secondary">Solo Energia Elettrica</Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              * Il totale include sia i costi energetici del grossista che le partite di giro 
+              (componenti fattura girate a terzi). Per l'analisi dei margini, fare riferimento 
+              alla scheda Panoramica.
+            </p>
           </CardDescription>
         </div>
         <Button onClick={onAdd}>
