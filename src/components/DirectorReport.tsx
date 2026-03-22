@@ -306,7 +306,25 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
         </Card>
       )}
 
-      {/* Overview Dashboard */}
+      {summary.hasSimulationData && cashFlowData.investimentoIniziale === 0 && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="py-4 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-400">
+                Costi di investimento non configurati
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Il ROI e l'analisi del payback richiedono i costi degli step del processo.
+                Vai in <strong>Processo</strong> per configurare i costi di avvio. Il report
+                verrà generato ma mostrerà ROI = 0% (non significativo).
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
       <OverviewTab
         summary={summary}
         simulationSummary={simulationSummary}
