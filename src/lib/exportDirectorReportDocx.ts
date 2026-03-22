@@ -468,7 +468,7 @@ function createChannelsTable(channels: ChannelItem[]): (Paragraph | Table)[] {
 }
 
 // ── Client evolution table ──
-function createClientEvolutionTable(data: MonthlyClientData[]): Paragraph[] {
+function createClientEvolutionTable(data: MonthlyClientData[]): (Paragraph | Table)[] {
   if (!data.length) return [];
   const colW = [1600, 1600, 1600, 1800, 1200, 1226];
   const headerLabels = ['Mese', 'Contratti', 'Attivazioni', 'Clienti Attivi', 'Churn', 'Variaz.'];
