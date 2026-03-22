@@ -383,6 +383,7 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
         : activations * ch.commission_amount;
     });
     text += `• Provvigioni commerciali stimate (12 mesi): ${formatCurrency(totalCommissions)}\n`;
+    text += `  (stima indicativa — vedi Dashboard Finanziaria per il calcolo mensile preciso)\n`;
   }
   text += `\n`;
 
