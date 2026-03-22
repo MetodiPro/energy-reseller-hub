@@ -60,16 +60,12 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
   const alerts = useMemo(() => {
     const alertList: FinancialAlert[] = [];
     
-    // Calcoli di base - modello reseller: passanti vs operativi
-    const passthroughCosts = summary.passthroughCosts;
+    // Calcoli di base - modello reseller: BEP su margine reseller
     const operationalCosts = summary.operationalCosts;
-    const grossMarginRatio = summary.totalRevenue > 0 
-      ? (summary.totalRevenue - passthroughCosts) / summary.totalRevenue 
-      : 0;
-    const breakEvenRevenue = grossMarginRatio > 0 
-      ? operationalCosts / grossMarginRatio 
-      : 0;
-    const isAboveBreakEven = summary.totalRevenue >= breakEvenRevenue && breakEvenRevenue > 0;
+    const resellerRevenue = summary.imponibile > 0 ? summary.imponibile : summary.grossMargin;
+    const grossMarginRatio = resellerRevenue > 0 ? 1.0 : 0;
+    const breakEvenRevenue = operationalCosts; // BEP = costi operativi da coprire col margine reseller
+    const isAboveBreakEven = summary.grossMargin >= breakEvenRevenue && breakEvenRevenue > 0;
 
     // ═══════════════════════════════════════════
     // ALERT 1: Margine Netto (la misura più importante)
