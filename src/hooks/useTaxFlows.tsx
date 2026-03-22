@@ -81,6 +81,7 @@ export function buildTaxFlows(
   let totaleOneriIncassati = 0, totaleOneriRiversati = 0;
   let totaleTrasportoIncassato = 0, totaleTrasportoVersato = 0;
   let totaleTaxOutflows = 0;
+  let totaleTaxOutflowsPerCashFlow = 0;
 
   const monthlyData: MonthlyTaxFlowData[] = [];
 
