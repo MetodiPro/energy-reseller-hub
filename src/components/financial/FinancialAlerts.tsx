@@ -235,7 +235,7 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bell className="h-5 w-5" />
               Stato del Progetto
-              <InfoTooltip text="Questi avvisi ti aiutano a capire se il progetto sta andando bene economicamente. Sono calcolati automaticamente dai costi e ricavi che hai inserito." />
+              <InfoTooltip text="Questi avvisi ti aiutano a capire se il progetto sta andando bene economicamente. Sono calcolati automaticamente. Le % di margine si riferiscono al margine reseller (CCV + Spread), non al fatturato lordo che include i passanti." />
             </CardTitle>
             <CardDescription>Analisi automatica della salute finanziaria</CardDescription>
           </div>
