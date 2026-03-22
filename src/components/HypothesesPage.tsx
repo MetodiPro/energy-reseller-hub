@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Settings2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
