@@ -213,7 +213,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-xs text-muted-foreground mb-1 flex items-center justify-center">
               Margine Sicurezza
-              <InfoTip text="Di quanto può calare il fatturato prima di andare sotto il punto di pareggio. Più è alto, più il progetto è resiliente." />
+              <InfoTip text="Di quanto può calare il margine reseller prima di andare sotto il punto di pareggio. Più è alto, più il progetto è resiliente." />
             </p>
             <p className={`font-bold ${analysis.marginOfSafety >= 20 ? 'text-green-600' : analysis.marginOfSafety >= 10 ? 'text-amber-500' : 'text-destructive'}`}>
               {formatPercent(analysis.marginOfSafety)}
