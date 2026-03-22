@@ -187,6 +187,13 @@ function PunCard({ onImportPun }: { onImportPun?: (punPerKwh: number) => void })
                 </AlertDescription>
               </Alert>
             )}
+
+            {onImportPun && pun && (
+              <Button size="sm" variant="outline" onClick={handleImportPun} className="gap-2 w-full">
+                <ArrowDownToLine className="h-4 w-4" />
+                Importa PUN nel Simulatore (€{pun.averagePriceKwh.toFixed(5)}/kWh)
+              </Button>
+            )}
           </>
         ) : loading ? (
           <div className="flex items-center justify-center py-8">
