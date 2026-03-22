@@ -26,7 +26,20 @@ export interface BusinessPlanData {
   updated_at?: string;
 }
 
-export const useBusinessPlan = (userId: string | undefined, projectId: string | undefined, stepProgress: Record<string, StepProgress>) => {
+export const useBusinessPlan = (
+  userId: string | undefined,
+  projectId: string | undefined,
+  stepProgress: Record<string, StepProgress>,
+  cashFlowSummary?: {
+    massimaEsposizione: number;
+    meseEsposizioneMassima: string;
+    mesePrimoPositivo: string | null;
+    saldoFinale: number;
+    investimentoIniziale: number;
+    totaleIncassi: number;
+    totaleDepositi: number;
+  } | null
+) => {
   const [businessPlan, setBusinessPlan] = useState<BusinessPlanData>({
     executive_summary: '',
     company_description: '',
