@@ -121,6 +121,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
           oneriSistema: simulationSummary.costiMensili.reduce((s, m) => s + m.oneriSistema, 0),
           accise: simulationSummary.costiMensili.reduce((s, m) => s + m.accise, 0),
         }}
+        onNavigateToTariffs={() => navigate('/app/tariffs')}
       />
     </div>
   );
