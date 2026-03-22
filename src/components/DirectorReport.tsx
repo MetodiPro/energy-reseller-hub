@@ -244,7 +244,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           contrattiNuovi: m.contrattiNuovi,
           attivazioni: m.attivazioni,
           clientiAttivi: m.clientiAttivi,
-          churn: m.breakdown?.churnEffettivo ?? 0,
+          churn: m.breakdown?.churnedCustomers ?? 0,
         })),
       });
       toast({ title: 'Word esportato', description: 'Il report è stato scaricato in formato .docx' });
