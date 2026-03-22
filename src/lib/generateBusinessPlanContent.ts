@@ -298,7 +298,10 @@ export function generateMarketingStrategy(ctx: ProjectContext): string {
       totalCommissions += cost;
       text += `• ${ch.channel_name} (${ch.contract_share}% quota): ~${contracts} contratti, costo provvigioni stimato ${formatCurrency(cost)}\n`;
     });
-    text += `\nCosto totale provvigioni stimato (12 mesi): ${formatCurrency(totalCommissions)}\n\n`;
+    text += `\nCosto totale provvigioni stimato (12 mesi): ${formatCurrency(totalCommissions)}\n`;
+    text += `\nNota: la stima sopra è indicativa. Il costo provvigioni preciso, calcolato \n`;
+    text += `mese per mese sui clienti effettivamente attivati, è disponibile nella Dashboard \n`;
+    text += `Finanziaria (Panoramica → Costi Commerciali).\n\n`;
   }
 
   text += `STRATEGIA DI PRICING:\n`;
@@ -380,6 +383,7 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
         : activations * ch.commission_amount;
     });
     text += `• Provvigioni commerciali stimate (12 mesi): ${formatCurrency(totalCommissions)}\n`;
+    text += `  (stima indicativa — vedi Dashboard Finanziaria per il calcolo mensile preciso)\n`;
   }
   text += `\n`;
 
