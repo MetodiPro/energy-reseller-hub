@@ -235,6 +235,7 @@ export function generateBudgetAllocation(ctx: ProjectContext): string {
   text += `• Investimento iniziale (processo di avvio): ${formatCurrency(ctx.totalInvestmentCosts)}\n`;
   if (totalCommissions > 0) {
     text += `• Costi provvigionali stimati (12 mesi): ${formatCurrency(totalCommissions)}\n`;
+    text += `  (stima indicativa — il dato preciso è nella Dashboard Finanziaria)\n`;
   }
   if (ctx.operationalCosts > 0) {
     text += `• Costi operativi configurati: ${formatCurrency(ctx.operationalCosts)}\n`;
