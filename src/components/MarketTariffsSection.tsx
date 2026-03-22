@@ -172,10 +172,11 @@ function PunCard() {
             </p>
 
             {!isLive && !isManual && warning && (
-              <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200">
+              <Alert className="border-blue-500/50 bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-200">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  API Terna non raggiungibile — puoi inserire il PUN manualmente nel campo sopra.
+                <AlertDescription className="text-sm space-y-1">
+                  <p>Quota Terna temporaneamente esaurita (rate limit) — il valore mostrato è una stima aggiornata.</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-300">Puoi inserire il PUN manualmente nel campo sopra oppure riprovare più tardi.</p>
                 </AlertDescription>
               </Alert>
             )}
