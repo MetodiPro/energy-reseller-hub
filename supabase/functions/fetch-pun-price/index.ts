@@ -79,11 +79,34 @@ async function getTernaToken(): Promise<string> {
   return data.access_token;
 }
 
+function parsePrices(prices: TernaDailyPrice[], isoDate: string): PunData {
+  const values = prices
+    .map((p) => p.base_price_EURxMWh)
+    .filter((v) => typeof v === 'number' && v > 0);
+
+  if (values.length === 0) {
+    throw new Error('No valid price values in Terna response');
+  }
+
+  const sum = values.reduce((a, b) => a + b, 0);
+  const avg = sum / values.length;
+
+  return {
+    date: isoDate,
+    averagePrice: Math.round(avg * 100) / 100,
+    averagePriceKwh: Math.round((avg / 1000) * 100000) / 100000,
+    minPrice: Math.round(Math.min(...values) * 100) / 100,
+    maxPrice: Math.round(Math.max(...values) * 100) / 100,
+    source: 'Terna API',
+    data_freshness: 'live',
+    reference_date: isoDate,
+  };
+}
+
 async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> {
   const dmyDate = formatDateDMY(refDate);
   const isoDate = formatDateISO(refDate);
 
-  // Try primary endpoint first, then fallback to alternative
   const endpoints = [
     `https://api.terna.it/fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
     `https://api.terna.it/market-and-fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
@@ -106,37 +129,16 @@ async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> 
         continue;
       }
 
+      console.log(`Success from ${url.split('?')[0]}, got ${prices.length} records`);
       return parsePrices(prices, isoDate);
     }
-    
+
     const body = await res.text();
     lastError = `${url.split('?')[0]} returned ${res.status}: ${body.substring(0, 200)}`;
     console.warn(lastError);
   }
 
   throw new Error(`All Terna endpoints failed. Last: ${lastError}`);
-
-  const values = prices
-    .map((p) => p.base_price_EURxMWh)
-    .filter((v) => typeof v === 'number' && v > 0);
-
-  if (values.length === 0) {
-    throw new Error('No valid price values in Terna response');
-  }
-
-  const sum = values.reduce((a, b) => a + b, 0);
-  const avg = sum / values.length;
-
-  return {
-    date: isoDate,
-    averagePrice: Math.round(avg * 100) / 100,
-    averagePriceKwh: Math.round((avg / 1000) * 100000) / 100000,
-    minPrice: Math.round(Math.min(...values) * 100) / 100,
-    maxPrice: Math.round(Math.max(...values) * 100) / 100,
-    source: 'Terna API',
-    data_freshness: 'live',
-    reference_date: isoDate,
-  };
 }
 
 Deno.serve(async (req) => {
