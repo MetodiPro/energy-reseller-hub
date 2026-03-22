@@ -66,11 +66,16 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
     { name: 'Indiretti', value: summary.costsByType.indirect, color: 'hsl(var(--chart-4))' },
   ].filter(d => d.value > 0);
 
+  const fatturatoNetto = summary.totalRevenue - summary.totalIva;
+  const costoGrossistaDisplay = summary.costoEnergiaNetto + summary.costoGestionePodTotale ||
+    (simulationSummary.costoEnergiaTotale + simulationSummary.costoGestionePodTotale);
+
   const marginWaterfallData = [
-    { name: 'Fatturato', value: summary.totalRevenue, fill: 'hsl(var(--chart-1))' },
-    { name: 'Margine Reseller', value: summary.resellerMargin, fill: 'hsl(var(--chart-2))' },
-    { name: 'Margine Lordo', value: summary.grossMargin, fill: 'hsl(var(--chart-3))' },
-    { name: 'Margine Netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
+    { name: 'Fatturato netto (imp.)', value: fatturatoNetto, fill: 'hsl(var(--chart-1))' },
+    { name: 'Ricavi commerciali', value: summary.resellerMargin, fill: 'hsl(var(--chart-2))' },
+    { name: '− Costo grossista', value: -costoGrossistaDisplay, fill: 'hsl(var(--destructive))' },
+    { name: 'Margine comm. lordo', value: summary.grossMargin, fill: 'hsl(var(--chart-3))' },
+    { name: 'Margine netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
   ];
 
   const cashFlowChartData = cashFlowData.monthlyData?.map(m => ({
@@ -96,9 +101,12 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
         projectName,
         commodityType,
         fatturatoTotale: summary.totalRevenue,
+        fatturatoNetto: summary.totalRevenue - summary.totalIva,
+        ricaviCommerciali: summary.resellerMargin,
+        costoEnergiaGrossista: simulationSummary.costoEnergiaTotale + simulationSummary.costoGestionePodTotale,
+        margineCommercialeLordo: summary.grossMargin,
+        margineCommLordoPerc: summary.grossMarginPercent,
         margineReseller: summary.resellerMargin,
-        margineLordo: summary.grossMargin,
-        margineLordoPerc: summary.grossMarginPercent,
         margineNetto: summary.netMargin,
         margineNettoPerc: summary.netMarginPercent,
         margineContributivo: summary.contributionMargin,
@@ -337,7 +345,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           {/* KPI Summary Strip */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <MiniKPI icon={<TrendingUp className="h-4 w-4" />} label="Fatturato" value={formatCurrency(summary.totalRevenue)} color="text-primary" />
-            <MiniKPI icon={<Target className="h-4 w-4" />} label="Margine Netto" value={`${formatCurrency(summary.netMargin)} (${summary.netMarginPercent.toFixed(1)}%)`} color={summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'} />
+            <MiniKPI icon={<Target className="h-4 w-4" />} label="Margine Netto" value={formatCurrency(summary.netMargin)} subValue={`${summary.netMarginPercent.toFixed(1)}% sul marg. comm.`} color={summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'} />
             <MiniKPI icon={<Users className="h-4 w-4" />} label="Clienti Attivi" value={String(summary.clientiAttivi)} color="text-foreground" />
             <MiniKPI icon={<Wallet className="h-4 w-4" />} label="Break-Even" value={cashFlowData.mesePrimoPositivo || 'N/D'} color="text-foreground" />
             <MiniKPI icon={<TrendingUp className="h-4 w-4" />} label="ROI (14m)" value={`${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%`} color={(cashFlowData.saldoFinale / (cashFlowData.investimentoIniziale || 1)) >= 0 ? 'text-green-600' : 'text-destructive'} />
@@ -489,7 +497,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
 };
 
 // Mini KPI card for the summary strip
-function MiniKPI({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
+function MiniKPI({ icon, label, value, color, subValue }: { icon: React.ReactNode; label: string; value: string; color: string; subValue?: string }) {
   return (
     <Card className="bg-muted/30">
       <CardContent className="py-3 px-4">
@@ -498,6 +506,7 @@ function MiniKPI({ icon, label, value, color }: { icon: React.ReactNode; label: 
           <span className="text-xs">{label}</span>
         </div>
         <p className={`text-lg font-bold ${color}`}>{value}</p>
+        {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
       </CardContent>
     </Card>
   );
