@@ -1,0 +1,1 @@
+ALTER TABLE public.project_revenue_simulations ADD COLUMN IF NOT EXISTS deposito_svincolo_pagamenti_perc numeric DEFAULT 50;
