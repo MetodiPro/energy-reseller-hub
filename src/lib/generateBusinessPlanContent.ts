@@ -86,14 +86,21 @@ const totalTargetContracts = (contracts: number[]): number => {
 const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
   if (!ctx.simulation) return 0;
   const { monthlyContracts, activationRate, monthlyChurnRate } = ctx.simulation;
+  const SWITCH_OUT_DELAY = 2;
+  const SIM_MONTHS = 14;
+  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
   let active = 0;
-  for (let m = 0; m < 14; m++) {
-    // Activations with 2-month delay (as in simulationEngine)
+  for (let m = 0; m < SIM_MONTHS; m++) {
     const activated = m >= 2
       ? Math.round((m - 2 < monthlyContracts.length ? monthlyContracts[m - 2] : 0) * activationRate / 100)
       : 0;
-    // Churn only from month 3 (as in simulationEngine)
-    const churn = m >= 3 ? Math.round(active * monthlyChurnRate / 100) : 0;
+    const churnProgrammato = m >= 3
+      ? Math.round(active * monthlyChurnRate / 100)
+      : 0;
+    if (churnProgrammato > 0 && (m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
+      pendingChurnExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
+    }
+    const churn = pendingChurnExits[m] ?? 0;
     active = Math.max(0, active + activated - churn);
   }
   return active;
