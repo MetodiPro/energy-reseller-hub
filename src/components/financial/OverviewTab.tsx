@@ -107,7 +107,11 @@ export const OverviewTab = ({
 
   return (
     <div className="space-y-6">
-      <MarketDataBar onUsePunLive={onUsePunLive} onNavigateToTariffs={onNavigateToTariffs} />
+      <MarketDataBar
+        onUsePunLive={onUsePunLive}
+        onNavigateToTariffs={onNavigateToTariffs}
+        currentPunPerKwh={simulationData?.params?.punPerKwh ?? null}
+      />
 
       <Collapsible defaultOpen={false}>
         <Card className="border-muted">
