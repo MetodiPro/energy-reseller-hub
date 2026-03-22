@@ -132,7 +132,7 @@ export const BreakEvenAnalysis = ({ summary, breakEvenFinanziario }: BreakEvenAn
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5" />
           Analisi Break-Even Point
-          <InfoTip text="Il Break-Even Point (BEP) è il livello di fatturato minimo necessario per coprire tutti i costi. Se il fatturato è sotto il BEP, il progetto perde soldi." />
+          <InfoTip text="Il Break-Even Point (BEP) è il livello di margine reseller minimo necessario per coprire tutti i costi operativi. Se il margine è sotto il BEP, il progetto perde soldi." />
         </CardTitle>
         <CardDescription>
           Quanto devi fatturare per smettere di perdere soldi
