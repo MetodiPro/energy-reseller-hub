@@ -236,6 +236,16 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           flussoNetto: Math.round(m.flussoNetto),
           saldoCumulativo: Math.round(m.saldoCumulativo),
         })),
+        costBreakdown: costBreakdownData.map(c => ({ name: c.name, value: c.value })),
+        marginWaterfall: marginWaterfallData.map(m => ({ name: m.name, value: m.value })),
+        channelData: channelData.map(c => ({ name: c.name, costo: c.costo, contratti: c.contratti, costoPerCliente: c.costoPerCliente })),
+        monthlyClients: cashFlowData.monthlyData?.map(m => ({
+          mese: m.monthLabel,
+          contrattiNuovi: m.contrattiNuovi,
+          attivazioni: m.attivazioni,
+          clientiAttivi: m.clientiAttivi,
+          churn: m.breakdown?.churnEffettivo ?? 0,
+        })),
       });
       toast({ title: 'Word esportato', description: 'Il report è stato scaricato in formato .docx' });
     } catch (err) {
