@@ -66,11 +66,16 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
     { name: 'Indiretti', value: summary.costsByType.indirect, color: 'hsl(var(--chart-4))' },
   ].filter(d => d.value > 0);
 
+  const fatturatoNetto = summary.totalRevenue - summary.totalIva;
+  const costoGrossistaDisplay = summary.costoEnergiaNetto + summary.costoGestionePodTotale ||
+    (simulationSummary.costoEnergiaTotale + simulationSummary.costoGestionePodTotale);
+
   const marginWaterfallData = [
-    { name: 'Fatturato', value: summary.totalRevenue, fill: 'hsl(var(--chart-1))' },
-    { name: 'Margine Reseller', value: summary.resellerMargin, fill: 'hsl(var(--chart-2))' },
-    { name: 'Margine Lordo', value: summary.grossMargin, fill: 'hsl(var(--chart-3))' },
-    { name: 'Margine Netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
+    { name: 'Fatturato netto (imp.)', value: fatturatoNetto, fill: 'hsl(var(--chart-1))' },
+    { name: 'Ricavi commerciali', value: summary.resellerMargin, fill: 'hsl(var(--chart-2))' },
+    { name: '− Costo grossista', value: -costoGrossistaDisplay, fill: 'hsl(var(--destructive))' },
+    { name: 'Margine comm. lordo', value: summary.grossMargin, fill: 'hsl(var(--chart-3))' },
+    { name: 'Margine netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
   ];
 
   const cashFlowChartData = cashFlowData.monthlyData?.map(m => ({
