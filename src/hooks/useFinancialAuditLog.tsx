@@ -47,6 +47,27 @@ export const useFinancialAuditLog = (projectId: string | null) => {
     fetchAuditLog();
   }, [projectId]);
 
+  // Realtime subscription per aggiornamento automatico in team
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel(`financial-audit-${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'financial_audit_log',
+          filter: `project_id=eq.${projectId}`,
+        },
+        () => { fetchAuditLog(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [projectId]);
+
   return {
     auditLog,
     loading,
