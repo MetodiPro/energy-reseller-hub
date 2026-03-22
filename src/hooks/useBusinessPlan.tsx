@@ -131,32 +131,44 @@ export const useBusinessPlan = (userId: string | undefined, projectId: string | 
     if (!projectId || !stepProgress) return null;
 
     try {
-      const [projectRes, simRes, channelsRes, costsRes] = await Promise.all([
+      const [projectRes, simRes, channelsRes, costsRes, stepCostsRes] = await Promise.all([
         supabase.from('projects').select('*').eq('id', projectId).maybeSingle(),
         supabase.from('project_revenue_simulations').select('*').eq('project_id', projectId).maybeSingle(),
         supabase.from('project_sales_channels').select('*').eq('project_id', projectId),
         supabase.from('project_costs').select('*').eq('project_id', projectId),
+        supabase.from('project_step_costs').select('*').eq('project_id', projectId),
       ]);
 
       const project = projectRes.data;
       const sim = simRes.data;
       const channels = channelsRes.data || [];
       const costs = costsRes.data || [];
+      const dbStepCosts = (stepCostsRes.data || []) as { step_id: string; cost_item_id: string; amount: number }[];
 
       const phaseData = phases.map(phase => {
         const phaseSteps = processSteps.filter(s => s.phase === phase.id);
         const completed = phaseSteps.filter(s => stepProgress[s.id]?.completed).length;
+        // Use real DB costs for phase costs
         const phaseCosts = phaseSteps.reduce((sum, step) => {
-          if (step.costs) return sum + ((step.costs.min + step.costs.max) / 2);
-          return sum;
+          const stepData = stepCostsData[step.id];
+          if (!stepData) return sum;
+          return sum + stepData.items.reduce((itemSum, item) => {
+            const custom = dbStepCosts.find(sc => sc.step_id === step.id && sc.cost_item_id === item.id);
+            return itemSum + (custom ? custom.amount : item.defaultAmount);
+          }, 0);
         }, 0);
         const phaseDays = phaseSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
         return { name: phase.name, completion: Math.round((completed / phaseSteps.length) * 100), costs: phaseCosts, days: phaseDays, total: phaseSteps.length, completed };
       });
 
+      // Calculate total investment from real DB step costs (custom overrides or defaults)
       let totalInvestmentCosts = 0;
-      processSteps.forEach(step => {
-        if (step.costs) totalInvestmentCosts += (step.costs.min + step.costs.max) / 2;
+      Object.keys(stepCostsData).forEach(stepId => {
+        const stepData = stepCostsData[stepId];
+        stepData.items.forEach(item => {
+          const custom = dbStepCosts.find(sc => sc.step_id === stepId && sc.cost_item_id === item.id);
+          totalInvestmentCosts += custom ? custom.amount : item.defaultAmount;
+        });
       });
 
       let operationalCosts = 0;
