@@ -64,6 +64,11 @@ const GLOSSARY_ENTRIES: GlossaryEntry[] = [
     term: 'PUN (Prezzo Unico Nazionale)',
     definition: 'Il prezzo all\'ingrosso dell\'energia elettrica in Italia, determinato dal mercato. Il reseller compra l\'energia a un prezzo basato sul PUN e la rivende ai clienti applicando il suo spread.',
   },
+  {
+    term: 'Riversamenti a Terzi',
+    definition: 'Importi incassati dal reseller per conto di distributori e GSE (trasporto, oneri di sistema). Sono neutrali per il margine: entrano ed escono dal cash flow nello stesso importo. Non sono tributi erariali ma obbligazioni contrattuali di filiera.',
+    example: 'Se incassi €50 di trasporto e €30 di oneri in fattura, riversi gli stessi €80 ai distributori e al GSE.',
+  },
 ];
 
 export const FinancialGlossary = () => {
