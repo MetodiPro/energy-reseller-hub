@@ -636,7 +636,7 @@ export async function exportDirectorReportDocx({
   const reportParagraphs = buildReportParagraphs(reportContent);
 
   // ── Build analytics section ──
-  const analyticsSections: Paragraph[] = [];
+  const analyticsSections: (Paragraph | Table)[] = [];
 
   // Cost breakdown bar chart
   if (costBreakdown && costBreakdown.length > 0) {
