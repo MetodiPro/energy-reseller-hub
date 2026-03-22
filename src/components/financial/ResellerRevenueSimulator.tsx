@@ -38,6 +38,7 @@ import {
   Bar,
 } from 'recharts';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
+import { useEngineResult } from '@/hooks/useEngineResult';
 import { InvoiceBreakdownTable } from './InvoiceBreakdownTable';
 import { exportSimulationToExcel } from '@/lib/exportSimulationExcel';
 import { useToast } from '@/hooks/use-toast';
@@ -121,7 +122,7 @@ interface MonthData {
   revenueOther: number;
 }
 
-const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', {
@@ -156,161 +157,69 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
   const { startDate, monthlyContracts, params } = data;
   const [showInvoiceParams, setShowInvoiceParams] = useState(false);
 
-  const startMonth = startDate.getMonth();
-  const startYear = startDate.getFullYear();
+  // Usa il motore di calcolo condiviso (fonte unica di verità)
+  const { engineResult } = useEngineResult(projectId, {
+    simulationData: { data, loading },
+  });
 
-  // Calcola proiezione 14 mesi con fattura completa
-  const projection = useMemo(() => {
-    const months: MonthData[] = [];
-    const invoicesToCollect: { month: number; amount: number }[] = [];
-    
-    let cumulativeActiveCustomers = 0;
-    let cumulativeCollection = 0;
-    let cumulativeUncollected = 0;
-    
-    // Calcola costi mensili per singolo cliente
-    const kWh = params.avgMonthlyConsumption;
-    
-    // Componenti passanti per cliente/mese
-    const materiaEnergiaPerCliente = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
-    const trasportoPerCliente = 
-      (params.trasportoQuotaFissaAnno / 12) + 
-      (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw / 12) +
-      (params.trasportoQuotaEnergiaKwh * kWh);
-    const oneriPerCliente = (params.oneriAsosKwh + params.oneriArimKwh) * kWh;
-    const accisePerCliente = params.acciseKwh * kWh;
-    
-    // Componenti margine per cliente/mese
-    const ccvPerCliente = params.ccvMonthly;
-    const spreadPerCliente = params.spreadPerKwh * kWh;
-    const altroPerCliente = params.otherServicesMonthly;
-    const marginePerCliente = ccvPerCliente + spreadPerCliente + altroPerCliente;
-    
-    // Totale imponibile per cliente
-    const imponibilePerCliente = materiaEnergiaPerCliente + trasportoPerCliente + 
-                                  oneriPerCliente + accisePerCliente + marginePerCliente;
-    const ivaPerCliente = imponibilePerCliente * (params.ivaPercent / 100);
-    const fatturaPerCliente = imponibilePerCliente + ivaPerCliente;
-    
-    for (let m = 0; m < 14; m++) {
-      const monthIndex = (startMonth + m) % 12;
-      const year = startYear + Math.floor((startMonth + m) / 12);
-      const label = `${MONTHS_IT[monthIndex]} ${year}`;
-      
-      // Contratti firmati questo mese
-      const newContracts = m < 12 ? monthlyContracts[m] : 0;
-      
-      // Invio grossista: contratti del mese precedente
-      const sentToWholesaler = m >= 1 ? (m - 1 < 12 ? monthlyContracts[m - 1] : 0) : 0;
-      
-      // Attivazioni: contratti di 2 mesi fa dopo scrematura SII
-      const activatedCustomers = m >= 2
-        ? Math.round((m - 2 < 12 ? monthlyContracts[m - 2] : 0) * (params.activationRate / 100)) 
-        : 0;
-      
-      // Calcola churn (switch-out) - applicato ai clienti già attivi dal mese precedente
-      // Il churn si applica solo ai clienti già in fornitura (dal mese 3 in poi hanno clienti attivi)
-      const churnedCustomers = m >= 3 
-        ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100))
-        : 0;
-      
-      // Aggiorna clienti attivi: nuovi meno churned
-      cumulativeActiveCustomers = Math.max(0, cumulativeActiveCustomers + activatedCustomers - churnedCustomers);
-      
-      // Clienti da fatturare = tutti i clienti attivi al mese precedente
-      // Prima fattura arriva al mese X+3 (1 mese dopo attivazione)
-      const invoicedCustomers = m >= 3 
-        ? Math.max(0, cumulativeActiveCustomers)
-        : 0;
-      
-      // Calcolo fattura totale per questo mese
-      const materiaEnergia = invoicedCustomers * materiaEnergiaPerCliente;
-      const trasporto = invoicedCustomers * trasportoPerCliente;
-      const oneriSistema = invoicedCustomers * oneriPerCliente;
-      const accise = invoicedCustomers * accisePerCliente;
-      
-      const margineCCV = invoicedCustomers * ccvPerCliente;
-      const margineSpread = invoicedCustomers * spreadPerCliente;
-      const margineAltro = invoicedCustomers * altroPerCliente;
-      const commercialeReseller = margineCCV + margineSpread + margineAltro;
-      const margineTotale = commercialeReseller;
-      
-      const imponibileTotale = materiaEnergia + trasporto + oneriSistema + accise + commercialeReseller;
-      const iva = imponibileTotale * (params.ivaPercent / 100);
-      const fatturaTotale = imponibileTotale + iva;
-      
-      // Aggiungi alla coda degli incassi
-      if (fatturaTotale > 0) {
-        invoicesToCollect.push({ month: m, amount: fatturaTotale });
+  // Mappa i risultati del motore condiviso al tipo MonthData locale
+  const projection = useMemo((): MonthData[] => {
+    if (!engineResult) return [];
+
+    const mapped = engineResult.monthly.map((m): MonthData => ({
+      month: m.customer.month,
+      label: m.customer.monthLabel,
+      newContracts: m.customer.contrattiNuovi,
+      sentToWholesaler: m.customer.month >= 1
+        ? (m.customer.month - 1 < 12 ? data.monthlyContracts[m.customer.month - 1] : 0)
+        : 0,
+      activatedCustomers: m.customer.attivazioni,
+      churnedCustomers: m.customer.churn,
+      activeCustomers: m.customer.clientiAttivi,
+      invoicedCustomers: m.customer.clientiFatturati,
+      materiaEnergia: m.customer.clientiFatturati * engineResult.perClient.materiaEnergia,
+      trasporto: m.customer.clientiFatturati * engineResult.perClient.trasporto,
+      oneriSistema: m.customer.clientiFatturati * engineResult.perClient.oneriSistema,
+      accise: m.customer.clientiFatturati * engineResult.perClient.accise,
+      commercialeReseller: m.margineCommerciale,
+      imponibileTotale: m.fatturato / (1 + data.params.ivaPercent / 100),
+      iva: m.customer.clientiFatturati * engineResult.perClient.iva,
+      fatturaTotale: m.fatturato,
+      margineCCV: m.customer.clientiFatturati * engineResult.perClient.ccv,
+      margineSpread: m.customer.clientiFatturati * engineResult.perClient.spread,
+      margineAltro: m.customer.clientiFatturati * engineResult.perClient.altroServizi,
+      margineTotale: m.margineCommerciale,
+      expectedCollection: m.collection.totaleIncassi,
+      cumulativeCollection: 0,
+      cumulativeUncollected: 0,
+      pendingReceivables: 0,
+      invoicedAmount: m.fatturato,
+      revenueCCV: m.customer.clientiFatturati * engineResult.perClient.ccv,
+      revenueSpread: m.customer.clientiFatturati * engineResult.perClient.spread,
+      revenueOther: m.customer.clientiFatturati * engineResult.perClient.altroServizi,
+    }));
+
+    // Calcola campi cumulativi
+    let cumCollection = 0;
+    let cumUncollected = 0;
+    let cumInvoiced = 0;
+    for (const md of mapped) {
+      cumInvoiced += md.fatturaTotale;
+      cumCollection += md.expectedCollection;
+      // Insoluti strutturali: si materializzano 4 mesi dopo la fattura
+      if (md.month >= 4) {
+        const invoiceMonth = engineResult.monthly[md.month - 4];
+        if (invoiceMonth) {
+          cumUncollected += invoiceMonth.fatturato * (data.params.uncollectibleRate / 100);
+        }
       }
-      
-      // Calcola incassi per questo mese
-      let expectedCollection = 0;
-      
-      invoicesToCollect.forEach(invoice => {
-        const monthsAfterInvoice = m - invoice.month;
-        
-        if (monthsAfterInvoice === 0) {
-          expectedCollection += invoice.amount * (params.collectionMonth0 / 100);
-        } else if (monthsAfterInvoice === 1) {
-          expectedCollection += invoice.amount * (params.collectionMonth1 / 100);
-        } else if (monthsAfterInvoice === 2) {
-          expectedCollection += invoice.amount * (params.collectionMonth2 / 100);
-        } else if (monthsAfterInvoice === 3) {
-          expectedCollection += invoice.amount * (params.collectionMonth3Plus / 100);
-        }
-        if (monthsAfterInvoice === 4) {
-          cumulativeUncollected += invoice.amount * (params.uncollectibleRate / 100);
-        }
-      });
-      
-      cumulativeCollection += expectedCollection;
-      
-      const totalInvoiced = invoicesToCollect.reduce((sum, inv) => sum + inv.amount, 0);
-      const pendingReceivables = totalInvoiced - cumulativeCollection - cumulativeUncollected;
-      
-      months.push({
-        month: m,
-        label,
-        newContracts,
-        sentToWholesaler,
-        activatedCustomers,
-        churnedCustomers,
-        activeCustomers: cumulativeActiveCustomers,
-        invoicedCustomers,
-        
-        // Componenti fattura
-        materiaEnergia,
-        trasporto,
-        oneriSistema,
-        accise,
-        commercialeReseller,
-        imponibileTotale,
-        iva,
-        fatturaTotale,
-        
-        // Margine
-        margineCCV,
-        margineSpread,
-        margineAltro,
-        margineTotale,
-        
-        // Incassi
-        expectedCollection,
-        cumulativeCollection,
-        cumulativeUncollected,
-        pendingReceivables: Math.max(0, pendingReceivables),
-        
-        // Legacy
-        invoicedAmount: fatturaTotale,
-        revenueCCV: margineCCV,
-        revenueSpread: margineSpread,
-        revenueOther: margineAltro,
-      });
+      md.cumulativeCollection = cumCollection;
+      md.cumulativeUncollected = cumUncollected;
+      md.pendingReceivables = Math.max(0, cumInvoiced - cumCollection - cumUncollected);
     }
-    
-    return months;
-  }, [params, startMonth, startYear, monthlyContracts]);
+
+    return mapped;
+  }, [engineResult, data]);
 
   // Totali
   const totals = useMemo(() => {
