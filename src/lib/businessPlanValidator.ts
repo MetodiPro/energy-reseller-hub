@@ -156,7 +156,31 @@ export function validateBusinessPlan(ctx: ProjectContext): BusinessPlanIssue[] {
     }
 
 
-    if (ctx.simulation.monthlyChurnRate <= 0) {
+    if (ctx.simulation.spreadPerKwh > 0 && ctx.simulation.spreadPerKwh < 0.005) {
+      issues.push({
+        id: 'spread_too_low',
+        severity: 'warning',
+        section: 'financial_plan',
+        title: 'Spread reseller molto basso',
+        description: `Lo spread applicato al cliente (${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh) è sotto la soglia minima consigliata. Dopo aver sottratto il costo grossista e la fee POD, il margine netto per cliente potrebbe essere negativo. Verificare nella dashboard Finanze il margine netto per cliente.`,
+        action: 'Verifica in Finanze > Ipotesi Operative il box "Margine netto stimato per cliente/mese" e aumenta lo spread se è negativo.',
+        navigationHint: 'hypotheses',
+      });
+    }
+
+    if (ctx.simulation.ccvMonthly === 0 && ctx.simulation.spreadPerKwh < 0.01) {
+      issues.push({
+        id: 'zero_ccv_low_spread',
+        severity: 'warning',
+        section: 'financial_plan',
+        title: 'CCV nullo con spread basso',
+        description: 'Il corrispettivo commerciale mensile (CCV) è zero e lo spread è basso. Il Business Plan mostrerebbe un modello commerciale non sostenibile.',
+        action: 'Configura un CCV mensile positivo in Finanze > Ipotesi Operative.',
+        navigationHint: 'hypotheses',
+      });
+    }
+
+
       issues.push({
         id: 'zero_churn',
         severity: 'info',
