@@ -75,8 +75,8 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
 
   const cashFlowChartData = cashFlowData.monthlyData?.map(m => ({
     month: m.monthLabel,
-    entrate: m.incassato,
-    uscite: m.costiTotali,
+    entrate: m.incassi,
+    uscite: m.outflow,
     saldoCumulativo: m.saldoCumulativo,
   })) || [];
 
