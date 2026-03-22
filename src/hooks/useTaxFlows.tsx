@@ -189,6 +189,7 @@ export function buildTaxFlows(
       trasportoIncassato: Math.round(trasportoIncassato * 100) / 100,
       trasportoVersamento: Math.round(trasportoVersamento * 100) / 100,
       totaleTaxOutflows: Math.round(monthTax * 100) / 100,
+      taxOutflowsPerCashFlow: Math.round(monthTaxCashFlow * 100) / 100,
       clientiFatturati,
       fatturato: Math.round(em.fatturato * 100) / 100,
     });
