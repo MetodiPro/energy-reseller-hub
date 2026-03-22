@@ -63,10 +63,16 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
     // Calcoli di base - modello reseller: BEP su margine reseller
     const passthroughCosts = summary.passthroughCosts;
     const operationalCosts = summary.operationalCosts;
+    // margineCommercialeLordo è il margine dopo aver pagato il grossista
+    // grossMarginPercent è la % reale sul fatturato (imponibile)
     const resellerRevenue = summary.grossMargin;
-    const grossMarginRatio = resellerRevenue > 0 ? 1.0 : 0;
-    const breakEvenRevenue = operationalCosts; // BEP = costi operativi da coprire col margine reseller
-    const isAboveBreakEven = summary.grossMargin >= breakEvenRevenue && breakEvenRevenue > 0;
+    const grossMarginRatio = summary.grossMarginPercent / 100;
+    // BEP = quanto imponibile serve per coprire i costi operativi al tasso di margine attuale
+    const breakEvenRevenue = grossMarginRatio > 0
+      ? operationalCosts / grossMarginRatio
+      : 0;
+    const imponibileProxy = summary.totalRevenue > 0 ? summary.totalRevenue : 0;
+    const isAboveBreakEven = imponibileProxy >= breakEvenRevenue && breakEvenRevenue > 0;
 
     // ═══════════════════════════════════════════
     // ALERT 1: Margine Netto (la misura più importante)
