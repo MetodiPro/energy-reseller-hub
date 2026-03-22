@@ -316,7 +316,7 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
     }
   };
 
-  const handleImport = () => {
+  const handleImportWithAccise = (acciseKwh: number, label: string) => {
     if (!onImportToSimulator) return;
     onImportToSimulator({
       oneriAsosKwh: form.asosKwh,
@@ -324,9 +324,9 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
       trasportoQuotaFissaAnno: form.quotaFissaAnno,
       trasportoQuotaPotenzaKwAnno: form.quotaPotenzaKwAnno,
       trasportoQuotaEnergiaKwh: form.quotaEnergiaKwh,
-      acciseKwh: form.domesticoKwh,
+      acciseKwh,
     });
-    toast.success("Tariffe importate nel simulatore del progetto corrente");
+    toast.success(`Tariffe importate con accisa ${label}`);
   };
 
   const updateField = (field: keyof AreraFormState, value: number | string | Date | undefined) => {
