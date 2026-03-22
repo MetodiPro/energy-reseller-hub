@@ -560,7 +560,7 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
                         <span className="cursor-help border-b border-dotted border-orange-400">Energia Gross.</span>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs text-left">
-                        <p className="text-xs">Costo acquisto energia dal grossista: (PUN + spread grossista) × kWh × clienti fatturati. Rappresenta il costo principale dell'uscita di cassa mensile.</p>
+                        <p className="text-xs">Costo acquisto energia dal grossista: (PUN + spread grossista) × kWh × clienti. È il principale flusso di uscita mensile. Trasporto, oneri di sistema e accise sono partite di giro e non compaiono qui come uscite nette.</p>
                       </TooltipContent>
                     </ShadcnTooltip>
                   </TableHead>
