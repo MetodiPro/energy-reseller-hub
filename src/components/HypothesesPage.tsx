@@ -102,6 +102,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
           gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod ?? 2.50,
           depositoMesi: revenueSimulation.data?.params?.depositoMesi ?? 3,
           depositoPercentualeAttivazione: revenueSimulation.data?.params?.depositoPercentualeAttivazione ?? 85,
+          depositoSvincoloPagamentiPerc: revenueSimulation.data?.params?.depositoSvincoloPagamentiPerc ?? 50,
         }}
         consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
         onConfigChange={(updates) => {
