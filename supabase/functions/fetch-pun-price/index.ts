@@ -60,6 +60,8 @@ async function getTernaToken(): Promise<string> {
     throw new Error('TERNA_CLIENT_ID or TERNA_CLIENT_SECRET not configured');
   }
 
+  console.log(`Using TERNA_CLIENT_ID: ${clientId.substring(0, 6)}...`);
+
   const res = await fetch('https://api.terna.it/transparency/oauth/accessToken', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -68,10 +70,12 @@ async function getTernaToken(): Promise<string> {
   });
 
   if (!res.ok) {
-    throw new Error(`Terna OAuth failed: ${res.status}`);
+    const body = await res.text();
+    throw new Error(`Terna OAuth failed: ${res.status} - ${body}`);
   }
 
   const data: TernaTokenResponse = await res.json();
+  console.log('Terna OAuth token obtained successfully');
   return data.access_token;
 }
 
