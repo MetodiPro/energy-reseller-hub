@@ -252,9 +252,9 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
                 {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <ClipboardCopy className="h-4 w-4" />}
                 {copied ? 'Copiato' : 'Copia'}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
+              <Button variant="outline" size="sm" onClick={handleExportDocx} className="gap-2">
                 <Download className="h-4 w-4" />
-                Esporta PDF
+                Esporta Word
               </Button>
             </>
           )}
