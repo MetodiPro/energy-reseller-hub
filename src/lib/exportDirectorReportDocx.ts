@@ -12,6 +12,9 @@ interface KpiData {
   clientiAttivi: string;
   breakEven: string;
   roi: string;
+  massimaEsposizione: string;
+  meseMassimaEsposizione: string;
+  saldoFinale: string;
 }
 
 interface ExportParams {
@@ -19,6 +22,13 @@ interface ExportParams {
   reportContent: string;
   kpis: KpiData;
   date: string;
+  cashFlowMonthly?: Array<{
+    mese: string;
+    incassato: number;
+    costiTotali: number;
+    flussoNetto: number;
+    saldoCumulativo: number;
+  }>;
 }
 
 const BLUE = '1E40AF';
@@ -116,6 +126,9 @@ function createKpiTable(kpis: KpiData): Table {
     { label: 'Clienti Attivi', value: kpis.clientiAttivi },
     { label: 'Break-Even', value: kpis.breakEven },
     { label: 'ROI (14m)', value: kpis.roi },
+    { label: 'Massima Esposizione', value: kpis.massimaEsposizione },
+    { label: 'Picco nel mese', value: kpis.meseMassimaEsposizione },
+    { label: 'Saldo Finale (14m)', value: kpis.saldoFinale },
   ];
 
   const colWidth = Math.floor(9026 / kpiEntries.length);
@@ -125,7 +138,6 @@ function createKpiTable(kpis: KpiData): Table {
     width: { size: 9026, type: WidthType.DXA },
     columnWidths,
     rows: [
-      // Labels row
       new TableRow({
         children: kpiEntries.map(kpi =>
           new TableCell({
@@ -140,7 +152,6 @@ function createKpiTable(kpis: KpiData): Table {
           })
         ),
       }),
-      // Values row
       new TableRow({
         children: kpiEntries.map(kpi =>
           new TableCell({
@@ -159,7 +170,73 @@ function createKpiTable(kpis: KpiData): Table {
   });
 }
 
-export async function exportDirectorReportDocx({ projectName, reportContent, kpis, date }: ExportParams) {
+function createCashFlowTable(rows: Array<{ mese: string; incassato: number; costiTotali: number; flussoNetto: number; saldoCumulativo: number }>): Table {
+  const fmt = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  const colW = [1600, 1800, 1800, 1800, 2026];
+  const headerLabels = ['Mese', 'Incassi', 'Uscite Totali', 'Flusso Netto', 'Saldo Cumulativo'];
+
+  const headerRow = new TableRow({
+    children: headerLabels.map((label, i) => new TableCell({
+      borders: allBorders,
+      width: { size: colW[i], type: WidthType.DXA },
+      shading: { fill: BLUE, type: ShadingType.CLEAR },
+      margins: { top: 60, bottom: 60, left: 80, right: 80 },
+      children: [new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: label, font: 'Calibri', size: 17, bold: true, color: WHITE })],
+      })],
+    })),
+  });
+
+  const dataRows = rows.map((r, idx) => {
+    const isNegativeSaldo = r.saldoCumulativo < 0;
+    const isNegativeFlux = r.flussoNetto < 0;
+    const fillColor = idx % 2 === 0 ? 'F9FAFB' : WHITE;
+
+    return new TableRow({
+      children: [
+        new TableCell({
+          borders: allBorders, width: { size: colW[0], type: WidthType.DXA },
+          shading: { fill: fillColor, type: ShadingType.CLEAR },
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: r.mese, font: 'Calibri', size: 18, bold: true })] })],
+        }),
+        new TableCell({
+          borders: allBorders, width: { size: colW[1], type: WidthType.DXA },
+          shading: { fill: fillColor, type: ShadingType.CLEAR },
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: fmt(r.incassato), font: 'Calibri', size: 18, color: '166534' })] })],
+        }),
+        new TableCell({
+          borders: allBorders, width: { size: colW[2], type: WidthType.DXA },
+          shading: { fill: fillColor, type: ShadingType.CLEAR },
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: fmt(r.costiTotali), font: 'Calibri', size: 18, color: '991B1B' })] })],
+        }),
+        new TableCell({
+          borders: allBorders, width: { size: colW[3], type: WidthType.DXA },
+          shading: { fill: fillColor, type: ShadingType.CLEAR },
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: fmt(r.flussoNetto), font: 'Calibri', size: 18, color: isNegativeFlux ? '991B1B' : '166534', bold: true })] })],
+        }),
+        new TableCell({
+          borders: allBorders, width: { size: colW[4], type: WidthType.DXA },
+          shading: { fill: isNegativeSaldo ? 'FEF2F2' : 'F0FDF4', type: ShadingType.CLEAR },
+          margins: { top: 40, bottom: 40, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: fmt(r.saldoCumulativo), font: 'Calibri', size: 18, bold: true, color: isNegativeSaldo ? '991B1B' : '166534' })] })],
+        }),
+      ],
+    });
+  });
+
+  return new Table({
+    width: { size: 9026, type: WidthType.DXA },
+    columnWidths: colW,
+    rows: [headerRow, ...dataRows],
+  });
+}
+
+export async function exportDirectorReportDocx({ projectName, reportContent, kpis, date, cashFlowMonthly }: ExportParams) {
   const reportParagraphs = buildReportParagraphs(reportContent);
 
   const doc = new Document({
@@ -275,6 +352,32 @@ export async function exportDirectorReportDocx({ projectName, reportContent, kpi
 
         // ── Report Content ──
         ...reportParagraphs,
+
+        // ── Cash Flow Table ──
+        new Paragraph({ children: [new PageBreak()] }),
+
+        new Paragraph({
+          spacing: { before: 0, after: 200 },
+          children: [new TextRun({
+            text: 'ANDAMENTO MENSILE LIQUIDITÀ',
+            font: 'Calibri', size: 28, bold: true, color: BLUE,
+          })],
+          border: { bottom: { style: BorderStyle.SINGLE, size: 3, color: BLUE, space: 4 } },
+        }),
+
+        new Paragraph({
+          spacing: { after: 200 },
+          children: [new TextRun({
+            text: 'La tabella seguente mostra i flussi di cassa mensili previsti su 14 mesi di simulazione. ' +
+                  'Il "Saldo Cumulativo" rappresenta la posizione di cassa progressiva a partire dall\'avvio: ' +
+                  'il valore minimo indica la massima esposizione finanziaria (fabbisogno di copertura).',
+            font: 'Calibri', size: 19, italics: true, color: GRAY,
+          })],
+        }),
+
+        ...(cashFlowMonthly && cashFlowMonthly.length > 0
+          ? [createCashFlowTable(cashFlowMonthly)]
+          : []),
 
         // ── Final disclaimer ──
         new Paragraph({ spacing: { before: 400 }, children: [] }),

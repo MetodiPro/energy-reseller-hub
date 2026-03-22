@@ -224,8 +224,18 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           roi: cashFlowData.investimentoIniziale > 0
             ? `${(cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100).toFixed(1)}%`
             : 'N/D (costi non config.)',
+          massimaEsposizione: formatCurrency(Math.abs(cashFlowData.massimaEsposizione)),
+          meseMassimaEsposizione: cashFlowData.meseEsposizioneMassima || 'N/D',
+          saldoFinale: formatCurrency(cashFlowData.saldoFinale),
         },
         date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }),
+        cashFlowMonthly: cashFlowData.monthlyData?.map(m => ({
+          mese: m.monthLabel,
+          incassato: Math.round(m.incassi),
+          costiTotali: Math.round(m.outflow),
+          flussoNetto: Math.round(m.flussoNetto),
+          saldoCumulativo: Math.round(m.saldoCumulativo),
+        })),
       });
       toast({ title: 'Word esportato', description: 'Il report è stato scaricato in formato .docx' });
     } catch (err) {
