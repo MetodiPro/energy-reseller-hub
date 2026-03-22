@@ -291,7 +291,7 @@ function createBarChartTable(
 }
 
 // ── Margin waterfall table ──
-function createWaterfallTable(items: MarginWaterfallItem[]): Paragraph[] {
+function createWaterfallTable(items: MarginWaterfallItem[]): (Paragraph | Table)[] {
   const colW = [3500, 2800, 2726];
   const headerRow = new TableRow({
     children: ['Voce', 'Importo', 'Variazione'].map((label, i) => new TableCell({
