@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
   TrendingUp, TrendingDown, PieChart, FileDown, Receipt,
-  Calculator, Wallet, Zap, Settings2, Users, FileSpreadsheet,
+  Calculator, Wallet, Zap, FileSpreadsheet,
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
@@ -23,11 +23,8 @@ import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
 import { CostTabsView } from '@/components/financial/CostTabsView';
-import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
-import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
-import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { OverviewTab } from '@/components/financial/OverviewTab';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 
@@ -55,7 +52,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
   const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
 
   // ─── UI state ───
-  const [activeTab, setActiveTab] = useState('hypotheses');
+  const [activeTab, setActiveTab] = useState('overview');
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
 
@@ -141,8 +138,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="hypotheses" className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Ipotesi</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2"><PieChart className="h-4 w-4" />Panoramica</TabsTrigger>
           <TabsTrigger value="costs" className="flex items-center gap-2"><TrendingDown className="h-4 w-4" />Costi</TabsTrigger>
           <TabsTrigger value="revenues" className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />Ricavi</TabsTrigger>
@@ -150,41 +146,6 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
           <TabsTrigger value="liquidity" className="flex items-center gap-2"><Wallet className="h-4 w-4" />Liquidità</TabsTrigger>
           <TabsTrigger value="taxflows" className="flex items-center gap-2"><Receipt className="h-4 w-4" />Flussi Fiscali</TabsTrigger>
         </TabsList>
-
-        {/* ─── Ipotesi Operative ─── */}
-        <TabsContent value="hypotheses" className="space-y-6">
-          <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
-          <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
-          <WholesalerCostsConfig
-            config={{
-              punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
-              punOverride: null,
-              punAutoUpdate: true,
-              spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
-              gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod ?? 2.50,
-              depositoMesi: revenueSimulation.data?.params?.depositoMesi ?? 3,
-              depositoPercentualeAttivazione: revenueSimulation.data?.params?.depositoPercentualeAttivazione ?? 85,
-            }}
-            consumoMedioMensile={revenueSimulation.data?.params?.avgMonthlyConsumption || 200}
-            onConfigChange={(updates) => {
-              if (updates.spreadGrossistaPerKwh !== undefined) revenueSimulation.updateParams('spreadGrossistaPerKwh', updates.spreadGrossistaPerKwh);
-              if (updates.punPerKwh !== undefined) revenueSimulation.updateParams('punPerKwh', updates.punPerKwh);
-              if (updates.gestionePodPerPod !== undefined) revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
-              if (updates.depositoMesi !== undefined) revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
-              if (updates.depositoPercentualeAttivazione !== undefined) revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
-              setTimeout(() => revenueSimulation.saveSimulation(), 500);
-            }}
-            costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
-            costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
-            clientiAttiviFinale={summary.clientiAttivi || 0}
-            passthroughTotals={{
-              dispacciamento: simulationSummary.costiMensili.reduce((s, m) => s + m.dispacciamento, 0),
-              trasporto: simulationSummary.costiMensili.reduce((s, m) => s + m.trasporto, 0),
-              oneriSistema: simulationSummary.costiMensili.reduce((s, m) => s + m.oneriSistema, 0),
-              accise: simulationSummary.costiMensili.reduce((s, m) => s + m.accise, 0),
-            }}
-          />
-        </TabsContent>
 
         {/* ─── Panoramica ─── */}
         <TabsContent value="overview" className="space-y-6">

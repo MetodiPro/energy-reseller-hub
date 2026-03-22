@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Zap, LogOut, Download, FileText, DollarSign, ContactRound } from 'lucide-react';
+import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2 } from 'lucide-react';
 import { processSteps } from '@/data/processSteps';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
@@ -43,6 +43,7 @@ const FAQ = lazy(() => import('@/components/FAQ').then(m => ({ default: m.FAQ })
 const SettingsPage = lazy(() => import('@/components/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const MarketTariffsPage = lazy(() => import('@/components/MarketTariffsSection').then(m => ({ default: m.MarketTariffsSection })));
+const HypothesesPage = lazy(() => import('@/components/HypothesesPage').then(m => ({ default: m.HypothesesPage })));
 const CrmDashboard = lazy(() => import('@/components/CrmDashboard').then(m => ({ default: m.CrmDashboard })));
 
 function SectionLoader() {
@@ -55,7 +56,7 @@ function SectionLoader() {
 
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'deadlines', 'step-docs', 'team',
-  'documents', 'consultants', 'tariffs', 'financials', 'business-plan', 'marketing',
+  'documents', 'consultants', 'tariffs', 'hypotheses', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile', 'crm',
 ];
 
@@ -271,6 +272,19 @@ export function AppLayout({ user }: AppLayoutProps) {
           return <FAQ onNavigate={setActiveTab} />;
         case 'tariffs':
           return <MarketTariffsPage />;
+        case 'hypotheses':
+          return currentProjectId ? (
+            <HypothesesPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Settings2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per configurare le ipotesi operative</p>
+            </div>
+          );
         case 'crm':
           return currentProjectId ? (
             <CrmDashboard projectId={currentProjectId} userId={user.id} />
