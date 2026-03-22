@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
   ArrowUpRight, ArrowDownRight, Target, Percent, Calculator, Zap, Users, Info, ChevronDown,
+  ArrowRight,
 } from 'lucide-react';
 import { FinancialAlerts } from './FinancialAlerts';
 import { FinancialTrendChart } from './FinancialTrendChart';
@@ -80,17 +81,13 @@ export const OverviewTab = ({
     return entries;
   })();
 
-  const barData = [
-    { name: 'Ricavi', value: summary.totalRevenue, fill: 'hsl(var(--chart-1))' },
-    { name: 'Costi Totali', value: summary.totalCosts, fill: 'hsl(var(--chart-4))' },
-    { name: 'Margine Lordo', value: summary.grossMargin, fill: 'hsl(var(--chart-2))' },
-    { name: 'Margine Netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
-  ];
+  const strutturaliCosts = summary.costsByType.structural + summary.costsByType.direct + summary.costsByType.indirect;
 
-  const marginData = [
-    { name: 'Margine Lordo', percent: summary.grossMarginPercent },
-    { name: 'Margine Contributivo', percent: summary.contributionMarginPercent },
-    { name: 'Margine Netto', percent: summary.netMarginPercent },
+  const barData = [
+    { name: 'Fatturato Netto', value: summary.imponibile, fill: 'hsl(var(--chart-1))' },
+    { name: 'Ricavi Reseller', value: summary.resellerMargin, fill: 'hsl(var(--chart-2))' },
+    { name: 'Margine Commerciale', value: summary.margineCommercialeLordo, fill: 'hsl(var(--chart-3))' },
+    { name: 'Margine Netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
   ];
 
   const totalContracts = summary.contrattiTotali || 0;
@@ -128,25 +125,25 @@ export const OverviewTab = ({
             <CardContent className="pt-0">
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Fatturato Lordo</p>
+                  <p className="text-sm font-medium">Fatturato vs Margine</p>
                   <p className="text-xs text-muted-foreground">
-                    Tutto ciò che il reseller emette in fattura: include energia, trasporto, oneri (passanti)
-                    + margine reseller + IVA. È il volume d'affari, non il guadagno.
+                    Il fatturato lordo include tutto ciò che transita in fattura (passanti + IVA).
+                    Il margine commerciale è ciò che resta dopo aver pagato il grossista per l'energia.
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Margine Reseller</p>
+                  <p className="text-sm font-medium">Costi Reali vs Passanti</p>
                   <p className="text-xs text-muted-foreground">
-                    Solo la quota del reseller: CCV + Spread + servizi. Le % di margine sono
-                    calcolate su questa base, non sul fatturato lordo. Benchmark settore: 8–20%.
+                    I costi reali del reseller sono: costo energia (PUN + spread grossista + fee POD),
+                    provvigioni canali e costi strutturali. I passanti (trasporto, oneri, accise) transitano
+                    e si annullano.
                   </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Cash Flow vs Accrual</p>
                   <p className="text-xs text-muted-foreground">
-                    I margini (Panoramica) sono in logica accrual (competenza).
-                    Il Cash Flow mostra l'impatto sulla liquidità: include depositi cauzionali,
-                    dilazioni d'incasso e investimenti iniziali.
+                    I margini sono in logica accrual (competenza). Il Cash Flow mostra l'impatto sulla
+                    liquidità: depositi cauzionali, dilazioni d'incasso e investimenti iniziali.
                   </p>
                 </div>
               </div>
@@ -157,63 +154,184 @@ export const OverviewTab = ({
 
       <FinancialAlerts summary={summary} />
 
-      {/* KPI Cards */}
+      {/* RIGA 1 — Volume */}
       <TooltipProvider delayDuration={200}>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <KPICard title="Fatturato Totale" tooltip="Tutto ciò che il reseller fattura ai clienti finali nei 14 mesi di simulazione: include il margine reseller (CCV + Spread), i costi passanti (energia, trasporto, oneri, accise) e l'IVA. Non rappresenta il guadagno ma il volume complessivo d'affari." icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.totalRevenue)} valueClass="text-primary" subtitle={summary.hasSimulationData ? 'Da simulatore (14 mesi)' : 'Nessun dato simulazione'} />
-          <KPICard title="Margine Reseller" tooltip="Il guadagno lordo del reseller prima delle spese operative. Composto da: CCV (corrispettivo di commercializzazione), Spread applicato al prezzo energia e altri servizi a valore aggiunto. È la differenza tra quanto fatturi al cliente e quanto paghi al grossista per l'energia." icon={<TrendingUp className="h-4 w-4 text-green-600" />} value={formatCurrency(summary.resellerMargin)} valueClass="text-green-600" subtitle="CCV + Spread + Altro" />
-          <KPICard title="Clienti Attivi" tooltip="Numero di clienti con fornitura attiva alla fine del periodo di simulazione (14 mesi), al netto del churn (clienti persi per switch-out). Più alto è il tasso di retention, più stabile sarà il margine ricorrente." icon={<Users className="h-4 w-4 text-muted-foreground" />} value={String(summary.clientiAttivi)} subtitle={`su ${summary.contrattiTotali} contratti`} />
-          <KPICard title="Costi Commerciali" tooltip="Provvigioni e commissioni pagate ai canali di vendita (agenti, teleselling, web, sportelli) per ogni contratto acquisito e attivato. Configurabili nella sezione Canali di Vendita." icon={<Users className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.costiCommercialiSimulati)} valueClass="text-orange-600" subtitle={summary.costiCommercialiSimulati > 0 ? 'Da canali di vendita' : 'Configura i canali'} />
-          <KPICard title="Costi Operativi" tooltip="Somma di tutti i costi sostenuti dal reseller: provvigioni ai canali di vendita + spese strutturali (affitto, personale, software, consulenze). Non include i costi passanti che vengono girati ai fornitori." icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />} value={formatCurrency(summary.operationalCosts)} valueClass="text-destructive" subtitle="Commerciali + strutturali" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <KPICard
+            title="Fatturato Lordo"
+            tooltip="Tutto ciò che il reseller fattura ai clienti finali: include margine reseller, costi passanti e IVA. È il volume complessivo d'affari, non il guadagno."
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            value={formatCurrency(summary.totalRevenue)}
+            valueClass="text-primary"
+            subtitle={`IVA: ${formatCurrency(summary.totalIva)}`}
+          />
+          <KPICard
+            title="Fatturato Netto"
+            tooltip="Imponibile: fatturato al netto dell'IVA. Base di calcolo per le percentuali di margine."
+            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+            value={formatCurrency(summary.imponibile)}
+            valueClass="text-primary"
+            subtitle="Imponibile, senza IVA"
+          />
+          <KPICard
+            title="Clienti Attivi"
+            tooltip="Clienti con fornitura attiva alla fine del periodo di simulazione (14 mesi), al netto del churn."
+            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            value={String(summary.clientiAttivi)}
+            subtitle={`su ${summary.contrattiTotali} contratti`}
+          />
+        </div>
+      </TooltipProvider>
+
+      {/* RIGA 2 — Margini a cascata */}
+      <TooltipProvider delayDuration={200}>
+        <div className="grid gap-4 md:grid-cols-3">
+          <KPICard
+            title="Ricavi Reseller"
+            tooltip="Le componenti commerciali che il reseller applica in fattura: il CCV (corrispettivo fisso mensile) e lo spread applicato al prezzo dell'energia. Questi sono i RICAVI LORDI del reseller prima di detrarre il costo dell'energia pagata al grossista."
+            icon={<TrendingUp className="h-4 w-4 text-green-600" />}
+            value={formatCurrency(summary.resellerMargin)}
+            valueClass="text-green-600"
+            subtitle="CCV + Spread cliente × kWh"
+          />
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Lordo<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Ricavi propri del reseller (CCV + Spread + Altri Servizi). La percentuale è calcolata sui ricavi propri, non sul fatturato lordo che include i costi passanti girati ai fornitori.</p></TooltipContent></UITooltip>
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                    Costo Energia al Grossista
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </CardTitle>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p>Quanto il reseller paga effettivamente al grossista per l'energia: PUN (prezzo mercato) × kWh + spread grossista × kWh + fee gestione POD × clienti. Questo NON include trasporto, oneri e accise che sono pure partite di giro.</p>
+                </TooltipContent>
+              </UITooltip>
+              <ArrowDownRight className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${summary.grossMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>{formatCurrency(summary.grossMargin)}</div>
-              <div className="flex items-center gap-1 text-xs">
-                {summary.grossMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
-                <span className={summary.grossMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.grossMarginPercent)}</span>
-                <span className="text-muted-foreground">sui ricavi propri</span>
+              <div className="text-2xl font-bold text-destructive">
+                {formatCurrency(summary.costoEnergiaNetto + summary.costoGestionePodTotale)}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <p className="text-xs text-muted-foreground">
+                  Energia: {formatCurrency(summary.costoEnergiaNetto)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Fee POD: {formatCurrency(summary.costoGestionePodTotale)}
+                </p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className={summary.margineCommercialeLordo >= 0 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">Margine Netto<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Ricavi propri meno tutti i costi operativi. Percentuale calcolata sui ricavi propri del reseller (CCV + Spread + Altro), non sul fatturato lordo che include i costi passanti.</p></TooltipContent></UITooltip>
-              <Percent className="h-4 w-4 text-muted-foreground" />
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                    Margine Commerciale
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </CardTitle>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p>Il vero margine del reseller dopo aver pagato il grossista. Corrisponde a: spread netto (spread cliente − spread grossista) × kWh + CCV − fee POD, moltiplicato per tutti i clienti del periodo. Rappresenta la redditività lorda del modello commerciale.</p>
+                </TooltipContent>
+              </UITooltip>
+              <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>{formatCurrency(summary.netMargin)}</div>
+              <div className={`text-2xl font-bold ${summary.margineCommercialeLordo >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                {formatCurrency(summary.margineCommercialeLordo)}
+              </div>
               <div className="flex items-center gap-1 text-xs">
-                {summary.netMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
-                <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.netMarginPercent)}</span>
-                <span className="text-muted-foreground">sui ricavi propri</span>
+                {summary.margineCommercialePercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
+                <span className={summary.margineCommercialePercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.margineCommercialePercent)}</span>
+                <span className="text-muted-foreground">sul fatturato netto</span>
               </div>
             </CardContent>
           </Card>
         </div>
       </TooltipProvider>
 
-      {/* Cash flow summary cards */}
+      {/* RIGA 3 — Costi operativi propri */}
+      <TooltipProvider delayDuration={200}>
+        <div className="grid gap-4 md:grid-cols-3">
+          <KPICard
+            title="Costi Commerciali"
+            tooltip="Provvigioni e commissioni pagate ai canali di vendita (agenti, teleselling, web, sportelli) per ogni contratto acquisito e attivato."
+            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            value={formatCurrency(summary.costiCommercialiSimulati)}
+            valueClass="text-orange-600"
+            subtitle={summary.costiCommercialiSimulati > 0 ? 'Provvigioni canali vendita' : 'Configura i canali'}
+          />
+          <KPICard
+            title="Costi Strutturali"
+            tooltip="Costi fissi del reseller: affitto, personale, software, consulenze. Sono i costi che sostieni indipendentemente dal numero di clienti."
+            icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
+            value={formatCurrency(strutturaliCosts)}
+            valueClass="text-orange-600"
+            subtitle="Affitto, personale, software"
+          />
+          <Card className={summary.netMargin >= 0 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
+                    Margine Netto Operativo
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </CardTitle>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p>Margine commerciale meno tutti i costi operativi (provvigioni + costi strutturali). È il risultato operativo reale del reseller.</p>
+                </TooltipContent>
+              </UITooltip>
+              <Percent className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                {formatCurrency(summary.netMargin)}
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                {summary.netMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
+                <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.netMarginPercent)}</span>
+                <span className="text-muted-foreground">sul fatturato netto</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TooltipProvider>
+
+      {/* RIGA 4 — Passanti e incassi */}
       {summary.hasSimulationData && (
-        <TooltipProvider delayDuration={200}>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="bg-green-50 dark:bg-green-950/20">
-              <CardHeader className="pb-2"><UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium text-green-700 dark:text-green-300 flex items-center gap-1 cursor-help">Incassato<Info className="h-3 w-3 opacity-60" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Quanto è stato effettivamente incassato dai clienti.</p></TooltipContent></UITooltip></CardHeader>
-              <CardContent><div className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</div></CardContent>
-            </Card>
-            <Card className="bg-orange-50 dark:bg-orange-950/20">
-              <CardHeader className="pb-2"><UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-1 cursor-help">Costi Passanti in Fattura<Info className="h-3 w-3 opacity-60" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Componenti della bolletta addebitate al cliente e girate a terzi: materia energia (PUN + dispacciamento), trasporto rete, oneri di sistema (ASOS+ARIM) e accise. Rappresentano il volume gestito, non il costo effettivo del reseller.</p></TooltipContent></UITooltip></CardHeader>
-              <CardContent><div className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</div></CardContent>
-            </Card>
-            <Card className="bg-red-50 dark:bg-red-950/20">
-              <CardHeader className="pb-2"><UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium text-red-700 dark:text-red-300 flex items-center gap-1 cursor-help">Insoluti<Info className="h-3 w-3 opacity-60" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Importi fatturati ma non incassati dopo 4+ mesi.</p></TooltipContent></UITooltip></CardHeader>
-              <CardContent><div className="text-xl font-bold text-red-600">{formatCurrency(summary.totalInsoluti)}</div></CardContent>
-            </Card>
-          </div>
-        </TooltipProvider>
+        <Card className="border-dashed border-muted-foreground/30 bg-muted/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4 text-muted-foreground" />
+              Partite di Giro (Transit Items)
+            </CardTitle>
+            <CardDescription>
+              Importi incassati dai clienti e girati integralmente a terzi (DSO, GSE, ADM). Non impattano il margine.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Costi Passanti Totali</p>
+                <p className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</p>
+                <p className="text-xs text-muted-foreground">Trasporto + oneri + accise</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Totale Incassato</p>
+                <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</p>
+                <p className="text-xs text-muted-foreground">Incassi effettivi dai clienti</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Insoluti</p>
+                <p className="text-xl font-bold text-destructive">{formatCurrency(summary.totalInsoluti)}</p>
+                <p className="text-xs text-muted-foreground">Fatturato non incassato</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Charts */}
@@ -244,13 +362,13 @@ export const OverviewTab = ({
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" />Ricavi vs Costi</CardTitle><CardDescription>Confronto economico</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" />Cascata Margini</CardTitle><CardDescription>Dal fatturato al margine netto</CardDescription></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={barData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-                <YAxis type="category" dataKey="name" width={120} />
+                <YAxis type="category" dataKey="name" width={140} />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]} />
               </BarChart>
@@ -326,21 +444,26 @@ export const OverviewTab = ({
 
       {/* Margin Analysis summary */}
       <Card>
-        <CardHeader><CardTitle>Analisi Margini</CardTitle><CardDescription>Indicatori di redditività del progetto</CardDescription></CardHeader>
+        <CardHeader><CardTitle>Analisi Margini a Cascata</CardTitle><CardDescription>Dal margine commerciale al risultato operativo</CardDescription></CardHeader>
         <CardContent className="space-y-6">
-          {marginData.map((margin) => (
+          {[
+            { name: 'Margine Commerciale', percent: summary.margineCommercialePercent, desc: 'Ricavi Reseller − Costo Energia Grossista − Fee POD' },
+            { name: 'Margine di Contribuzione', percent: summary.contributionMarginPercent, desc: 'Margine Commerciale − Provvigioni canali vendita' },
+            { name: 'Margine Netto Operativo', percent: summary.netMarginPercent, desc: 'Margine Commerciale − Costi Commerciali − Costi Strutturali' },
+          ].map((margin) => (
             <div key={margin.name} className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{margin.name}</span>
+                <div>
+                  <span className="text-sm font-medium">{margin.name}</span>
+                  <p className="text-xs text-muted-foreground">{margin.desc}</p>
+                </div>
                 <Badge variant={margin.percent >= 20 ? 'default' : margin.percent >= 0 ? 'secondary' : 'destructive'}>{formatPercent(margin.percent)}</Badge>
               </div>
               <Progress value={Math.max(0, Math.min(100, margin.percent))} className="h-2" />
             </div>
           ))}
-          <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-            <p><strong>Margine Lordo:</strong> Ricavi propri del reseller (CCV + Spread Netto + Altri Servizi)</p>
-            <p><strong>Margine Contributivo:</strong> Margine Lordo − Provvigioni canali di vendita</p>
-            <p><strong>Margine Netto:</strong> Ricavi propri − Costi Commerciali − Costi Strutturali. Tutte le % sono calcolate sui ricavi propri, esclusi i costi passanti.</p>
+          <div className="pt-4 border-t text-xs text-muted-foreground italic">
+            Tutte le percentuali sono calcolate sul fatturato netto (imponibile), esclusi IVA e costi passanti.
           </div>
         </CardContent>
       </Card>
@@ -350,8 +473,8 @@ export const OverviewTab = ({
         <CardHeader><CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />Riepilogo Costi dal Simulatore</CardTitle><CardDescription>Costi calcolati in base alla base clienti e consumi previsti</CardDescription></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costo Energia Grossista</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoEnergiaTotale)}</p><p className="text-xs text-muted-foreground">14 mesi simulati</p></div>
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Fee Gestione POD</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoGestionePodTotale)}</p><p className="text-xs text-muted-foreground">14 mesi simulati</p></div>
+            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costo Energia Grossista</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoEnergiaTotale)}</p><p className="text-xs text-muted-foreground">PUN + spread grossista</p></div>
+            <div className="space-y-1"><p className="text-sm text-muted-foreground">Fee Gestione POD</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoGestionePodTotale)}</p><p className="text-xs text-muted-foreground">Per ogni POD attivo</p></div>
             <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Commerciali</p><p className="text-xl font-bold">{formatCurrency(summary.costiCommercialiSimulati)}</p><p className="text-xs text-muted-foreground">Provvigioni canali vendita</p></div>
             <div className="space-y-1"><p className="text-sm text-muted-foreground">Depositi Cauzionali</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.depositoMassimo)}</p><p className="text-xs text-muted-foreground">Picco massimo</p></div>
             <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Operativi Totali</p><p className="text-xl font-bold">{formatCurrency(summary.operationalCosts)}</p><p className="text-xs text-muted-foreground">Commerciali + strutturali</p></div>
