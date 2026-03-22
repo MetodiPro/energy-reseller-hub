@@ -23,11 +23,8 @@ import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
 import { CostTabsView } from '@/components/financial/CostTabsView';
-import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
-import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
-import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { OverviewTab } from '@/components/financial/OverviewTab';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 
