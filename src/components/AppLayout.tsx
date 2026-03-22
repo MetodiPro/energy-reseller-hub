@@ -22,6 +22,7 @@ import { useExportPDF } from '@/hooks/useExportPDF';
 import { useDeadlineNotifications } from '@/hooks/useDeadlineNotifications';
 import { useLazyUnifiedExport } from '@/hooks/useLazyUnifiedExport';
 import { useProjectContext } from '@/contexts/ProjectContext';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import type { User } from '@supabase/supabase-js';
 
 // Lazy-loaded section components
@@ -99,6 +100,12 @@ export function AppLayout({ user }: AppLayoutProps) {
   );
   const { exportToPDF } = useExportPDF();
   const { exportReport, exporting } = useLazyUnifiedExport();
+  const revenueSimForTariffs = useRevenueSimulation(currentProjectId);
+
+  const handleImportPun = useCallback((punPerKwh: number) => {
+    revenueSimForTariffs.updateParams('punPerKwh', punPerKwh);
+    setTimeout(() => revenueSimForTariffs.saveSimulation(), 500);
+  }, [revenueSimForTariffs]);
 
   useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, currentProject?.commodity_type);
 
@@ -272,7 +279,7 @@ export function AppLayout({ user }: AppLayoutProps) {
         case 'faq':
           return <FAQ onNavigate={setActiveTab} />;
         case 'tariffs':
-          return <MarketTariffsPage />;
+          return <MarketTariffsPage onImportPun={currentProjectId ? handleImportPun : undefined} />;
         case 'hypotheses':
           return currentProjectId ? (
             <HypothesesPage

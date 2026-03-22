@@ -18,9 +18,10 @@ import { fetchAreraTariffs, updateAreraTariffs, type AreraTariffData } from "@/l
 
 interface MarketTariffsSectionProps {
   onImportToSimulator?: (fields: Record<string, number>) => void;
+  onImportPun?: (punPerKwh: number) => void;
 }
 
-export function MarketTariffsSection({ onImportToSimulator }: MarketTariffsSectionProps) {
+export function MarketTariffsSection({ onImportToSimulator, onImportPun }: MarketTariffsSectionProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -32,7 +33,7 @@ export function MarketTariffsSection({ onImportToSimulator }: MarketTariffsSecti
           Prezzi energia e componenti regolate ARERA
         </p>
       </div>
-      <PunCard />
+      <PunCard onImportPun={onImportPun} />
       <AreraCard onImportToSimulator={onImportToSimulator} />
     </div>
   );
@@ -40,7 +41,7 @@ export function MarketTariffsSection({ onImportToSimulator }: MarketTariffsSecti
 
 // ─── CARD 1: PUN ──────────────────────────────────────────────
 
-function PunCard() {
+function PunCard({ onImportPun }: { onImportPun?: (punPerKwh: number) => void }) {
   const [loading, setLoading] = useState(false);
   const [pun, setPun] = useState<PunPriceData | null>(null);
   const [warning, setWarning] = useState<string | undefined>();
@@ -85,6 +86,12 @@ function PunCard() {
     setWarning(undefined);
     setIsManual(true);
     toast.success(`PUN impostato manualmente: €${val.toFixed(5)}/kWh`);
+  };
+
+  const handleImportPun = () => {
+    if (!pun || !onImportPun) return;
+    onImportPun(pun.averagePriceKwh);
+    toast.success(`PUN €${pun.averagePriceKwh.toFixed(5)}/kWh importato nel simulatore`);
   };
 
   const isLive = pun?.data_freshness === 'live';
@@ -179,6 +186,13 @@ function PunCard() {
                   <p className="text-xs text-blue-600 dark:text-blue-300">Puoi inserire il PUN manualmente nel campo sopra oppure riprovare più tardi.</p>
                 </AlertDescription>
               </Alert>
+            )}
+
+            {onImportPun && pun && (
+              <Button size="sm" variant="outline" onClick={handleImportPun} className="gap-2 w-full">
+                <ArrowDownToLine className="h-4 w-4" />
+                Importa PUN nel Simulatore (€{pun.averagePriceKwh.toFixed(5)}/kWh)
+              </Button>
             )}
           </>
         ) : loading ? (
