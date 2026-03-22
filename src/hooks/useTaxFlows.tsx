@@ -17,6 +17,7 @@ export interface MonthlyTaxFlowData {
   trasportoIncassato: number;
   trasportoVersamento: number;
   totaleTaxOutflows: number;
+  taxOutflowsPerCashFlow: number;
   clientiFatturati: number;
   fatturato: number;
 }
@@ -33,6 +34,7 @@ export interface TaxFlowsSummary {
   totaleTrasportoIncassato: number;
   totaleTrasportoVersato: number;
   totaleTaxOutflows: number;
+  totaleTaxOutflowsPerCashFlow: number;
   hasData: boolean;
 }
 
@@ -42,7 +44,7 @@ const EMPTY_TAX: TaxFlowsSummary = {
   totaleAcciseIncassate: 0, totaleAcciseVersate: 0,
   totaleOneriIncassati: 0, totaleOneriRiversati: 0,
   totaleTrasportoIncassato: 0, totaleTrasportoVersato: 0,
-  totaleTaxOutflows: 0, hasData: false,
+  totaleTaxOutflows: 0, totaleTaxOutflowsPerCashFlow: 0, hasData: false,
 };
 
 // IVA sugli acquisti dal grossista: sempre 22% per legge italiana,
@@ -79,6 +81,7 @@ export function buildTaxFlows(
   let totaleOneriIncassati = 0, totaleOneriRiversati = 0;
   let totaleTrasportoIncassato = 0, totaleTrasportoVersato = 0;
   let totaleTaxOutflows = 0;
+  let totaleTaxOutflowsPerCashFlow = 0;
 
   const monthlyData: MonthlyTaxFlowData[] = [];
 
@@ -168,7 +171,9 @@ export function buildTaxFlows(
     }
 
     const monthTax = ivaPayment + acciseVersamento + oneriRiversamento + trasportoVersamento;
+    const monthTaxCashFlow = ivaPayment + acciseVersamento;
     totaleTaxOutflows += monthTax;
+    totaleTaxOutflowsPerCashFlow += monthTaxCashFlow;
 
     monthlyData.push({
       month: m,
@@ -184,6 +189,7 @@ export function buildTaxFlows(
       trasportoIncassato: Math.round(trasportoIncassato * 100) / 100,
       trasportoVersamento: Math.round(trasportoVersamento * 100) / 100,
       totaleTaxOutflows: Math.round(monthTax * 100) / 100,
+      taxOutflowsPerCashFlow: Math.round(monthTaxCashFlow * 100) / 100,
       clientiFatturati,
       fatturato: Math.round(em.fatturato * 100) / 100,
     });
@@ -201,6 +207,7 @@ export function buildTaxFlows(
     totaleTrasportoIncassato: Math.round(totaleTrasportoIncassato),
     totaleTrasportoVersato: Math.round(totaleTrasportoVersato),
     totaleTaxOutflows: Math.round(totaleTaxOutflows),
+    totaleTaxOutflowsPerCashFlow: Math.round(totaleTaxOutflowsPerCashFlow),
     hasData: monthlyData.length > 0,
   };
 }
