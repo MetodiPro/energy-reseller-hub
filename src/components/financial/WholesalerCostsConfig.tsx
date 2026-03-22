@@ -7,7 +7,9 @@ import {
   Zap, 
   Calculator,
   Info,
+  ExternalLink,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -42,6 +44,7 @@ interface WholesalerCostsConfigProps {
   clientiAttiviFinale: number;
   // Costi passanti fattura
   passthroughTotals?: PassthroughTotals;
+  onNavigateToTariffs?: () => void;
 }
 
 const formatCurrency = (value: number) => {
@@ -69,6 +72,7 @@ export const WholesalerCostsConfig = ({
   costoGestionePodTotale,
   clientiAttiviFinale,
   passthroughTotals,
+  onNavigateToTariffs,
 }: WholesalerCostsConfigProps) => {
   // Calculate derived values - tutto in €/kWh
   const punEffective = config.punPerKwh;
@@ -121,9 +125,17 @@ export const WholesalerCostsConfig = ({
                 readOnly
                 className="font-mono bg-muted cursor-not-allowed"
               />
-              <p className="text-xs text-muted-foreground">
-                Valore impostato dal simulatore
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Aggiornabile da <span className="font-medium">Tariffe di Mercato</span> o Componenti Fattura
+                </p>
+                {onNavigateToTariffs && (
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2 gap-1" onClick={onNavigateToTariffs}>
+                    <ExternalLink className="h-3 w-3" />
+                    Vai a Tariffe
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div className="space-y-2">

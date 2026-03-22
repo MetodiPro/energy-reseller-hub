@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Settings2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
@@ -26,6 +27,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
   const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
   const { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading, refetch: refetchChannels } = useSalesChannels(projectId);
+  const navigate = useNavigate();
 
   // --- ARERA tariff mismatch detection ---
   const [tariffeMismatch, setTariffeMismatch] = useState(false);
@@ -119,6 +121,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
           oneriSistema: simulationSummary.costiMensili.reduce((s, m) => s + m.oneriSistema, 0),
           accise: simulationSummary.costiMensili.reduce((s, m) => s + m.accise, 0),
         }}
+        onNavigateToTariffs={() => navigate('/app/tariffs')}
       />
     </div>
   );
