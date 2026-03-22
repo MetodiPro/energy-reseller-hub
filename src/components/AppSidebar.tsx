@@ -18,6 +18,7 @@ import {
   User,
   Briefcase,
   ContactRound,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Sidebar,
