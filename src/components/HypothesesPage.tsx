@@ -111,6 +111,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
           if (updates.gestionePodPerPod !== undefined) revenueSimulation.updateParams('gestionePodPerPod', updates.gestionePodPerPod);
           if (updates.depositoMesi !== undefined) revenueSimulation.updateParams('depositoMesi', updates.depositoMesi);
           if (updates.depositoPercentualeAttivazione !== undefined) revenueSimulation.updateParams('depositoPercentualeAttivazione', updates.depositoPercentualeAttivazione);
+          if (updates.depositoSvincoloPagamentiPerc !== undefined) revenueSimulation.updateParams('depositoSvincoloPagamentiPerc', updates.depositoSvincoloPagamentiPerc);
           setTimeout(() => revenueSimulation.saveSimulation(), 500);
         }}
         costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
