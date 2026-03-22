@@ -58,6 +58,8 @@ export function ComplianceDashboard({ projectId }: ComplianceDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
+  const [punLastUpdate, setPunLastUpdate] = useState<{ pun: number; days: number; date: string } | null>(null);
+  const [simLastUpdate, setSimLastUpdate] = useState<{ days: number; date: string } | null>(null);
 
   const fetchChecks = useCallback(async () => {
     setLoading(true);
