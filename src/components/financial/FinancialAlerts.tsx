@@ -120,8 +120,8 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
           id: 'bep-partial',
           type: 'info',
           title: 'Break-Even Commerciale Raggiunto, ma Non Basta',
-          description: `Il margine reseller (€${summary.grossMargin.toLocaleString('it-IT')}) supera il punto di pareggio commerciale (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}), cioè copre i costi variabili e una parte dei costi fissi di struttura.`,
-          explanation: 'Tuttavia il progetto resta in perdita perché ci sono costi operativi aggiuntivi (es. consulenze, affitti, personale) che non sono ancora coperti. Per raggiungere il vero pareggio servono più clienti o una riduzione delle spese operative.',
+          description: `Il fatturato (€${imponibileProxy.toLocaleString('it-IT', { maximumFractionDigits: 0 })}) supera il punto di pareggio (€${breakEvenRevenue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}), ma il margine commerciale copre solo una parte dei costi operativi.`,
+          explanation: 'Il progetto resta in perdita perché ci sono costi operativi aggiuntivi (es. consulenze, affitti, personale) non ancora coperti dal margine. Servono più clienti o una riduzione delle spese operative.',
           icon: Target,
           priority: 2,
         });
