@@ -72,6 +72,7 @@ export const WholesalerCostsConfig = ({
   costoGestionePodTotale,
   clientiAttiviFinale,
   passthroughTotals,
+  onNavigateToTariffs,
 }: WholesalerCostsConfigProps) => {
   // Calculate derived values - tutto in €/kWh
   const punEffective = config.punPerKwh;
