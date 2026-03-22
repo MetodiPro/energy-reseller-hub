@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
   TrendingUp, TrendingDown, PieChart, FileDown, Receipt,
-  Calculator, Wallet, Zap, Settings2, Users, FileSpreadsheet,
+  Calculator, Wallet, FileSpreadsheet,
 } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
