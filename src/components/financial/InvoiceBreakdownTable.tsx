@@ -80,8 +80,9 @@ export const InvoiceBreakdownTable = ({ projection, params }: InvoiceBreakdownTa
     margineTotale: 0,
   });
 
-  const marginePercentuale = totals.fatturaTotale > 0 
-    ? (totals.margineTotale / totals.fatturaTotale) * 100 
+  const imponibileTotale = totals.fatturaTotale / (1 + (params.ivaPercent / 100));
+  const marginePercentuale = imponibileTotale > 0 
+    ? (totals.margineTotale / imponibileTotale) * 100 
     : 0;
 
   return (
