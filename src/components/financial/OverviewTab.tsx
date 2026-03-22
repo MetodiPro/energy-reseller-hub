@@ -281,7 +281,7 @@ export const OverviewTab = ({
                   </CardTitle>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs">
-                  <p>Margine commerciale meno tutti i costi operativi (provvigioni + costi strutturali). È il risultato operativo reale del reseller.</p>
+                  <p>Margine commerciale meno tutti i costi operativi (provvigioni canali vendita + costi strutturali). La fee gestione POD è già detratta nel calcolo del Margine Commerciale.</p>
                 </TooltipContent>
               </UITooltip>
               <Percent className="h-4 w-4 text-muted-foreground" />
