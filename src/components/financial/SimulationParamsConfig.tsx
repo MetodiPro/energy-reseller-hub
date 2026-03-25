@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +14,23 @@ interface SimulationParamsConfigProps {
 }
 
 export const SimulationParamsConfig = ({ projectId, simulationHook, commodityType }: SimulationParamsConfigProps) => {
-  const { data, loading, updateMonthlyContract, updateStartDate } = simulationHook;
+  const { data, loading, updateMonthlyContract, updateStartDate, saveSimulation } = simulationHook;
+  const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  const debouncedSave = useCallback(() => {
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => saveSimulation(), 800);
+  }, [saveSimulation]);
+
+  const handleMonthlyContractChange = useCallback((index: number, value: number) => {
+    updateMonthlyContract(index, value);
+    debouncedSave();
+  }, [updateMonthlyContract, debouncedSave]);
+
+  const handleStartDateChange = useCallback((date: Date) => {
+    updateStartDate(date);
+    debouncedSave();
+  }, [updateStartDate, debouncedSave]);
 
   if (loading) {
     return (
@@ -53,7 +70,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={startDate.getMonth()}
-                  onChange={(e) => updateStartDate(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
+                  onChange={(e) => handleStartDateChange(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
                 >
                   {MONTHS_IT.map((m, i) => (
                     <option key={i} value={i}>{m}</option>
@@ -67,7 +84,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   min="2024"
                   max="2035"
                   value={startDate.getFullYear()}
-                  onChange={(e) => updateStartDate(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
+                  onChange={(e) => handleStartDateChange(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
                 />
               </div>
             </div>
@@ -91,7 +108,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                       min="0"
                       className="h-8"
                       value={value}
-                      onChange={(e) => updateMonthlyContract(index, parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleMonthlyContractChange(index, parseInt(e.target.value) || 0)}
                     />
                   </div>
                 );
