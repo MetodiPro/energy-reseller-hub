@@ -186,14 +186,6 @@ export const OverviewTab = ({
       {/* RIGA 2 — Margini a cascata */}
       <TooltipProvider delayDuration={200}>
         <div className="grid gap-4 md:grid-cols-3">
-          <KPICard
-            title="Ricavi Reseller"
-            tooltip="Le componenti commerciali che il reseller applica in fattura: il CCV (corrispettivo fisso mensile) e lo spread applicato al prezzo dell'energia. Questi sono i RICAVI LORDI del reseller prima di detrarre il costo dell'energia pagata al grossista."
-            icon={<TrendingUp className="h-4 w-4 text-green-600" />}
-            value={formatCurrency(summary.resellerMargin)}
-            valueClass="text-green-600"
-            subtitle="CCV + Spread cliente × kWh"
-          />
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <UITooltip>
@@ -385,20 +377,6 @@ export const OverviewTab = ({
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" />Cascata Margini</CardTitle><CardDescription>Dal fatturato al margine netto</CardDescription></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={barData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
-                <YAxis type="category" dataKey="name" width={140} />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Sales Channel Cost Breakdown */}
@@ -428,43 +406,6 @@ export const OverviewTab = ({
         </Card>
       )}
 
-      {simulationData && (
-        <MonthlyChannelCostsChart channels={salesChannels} monthlyContracts={simulationData.monthlyContracts} startDate={simulationData.startDate} />
-      )}
-
-      {/* ROI */}
-      {cashFlowData.hasData && cashFlowData.investimentoIniziale > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Target className="h-5 w-5" />ROI — Return on Investment</CardTitle><CardDescription>Analisi di ritorno sull'investimento basata sui flussi di cassa effettivi</CardDescription></CardHeader>
-          <CardContent>
-            <TooltipProvider delayDuration={200}>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <div className="space-y-1"><p className="text-sm text-muted-foreground">Investimento Totale</p><p className="text-2xl font-bold text-destructive">{formatCurrency(cashFlowData.investimentoIniziale)}</p><p className="text-xs text-muted-foreground">Costi step del Processo</p></div>
-                <div className="space-y-1"><p className="text-sm text-muted-foreground">Saldo Cassa (14m)</p><p className={`text-2xl font-bold ${cashFlowData.saldoFinale >= 0 ? 'text-green-600' : 'text-destructive'}`}>{formatCurrency(cashFlowData.saldoFinale)}</p><p className="text-xs text-muted-foreground">Flusso di cassa cumulativo</p></div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">ROI</p>
-                  {(() => { const roi = cashFlowData.investimentoIniziale > 0 ? ((cashFlowData.saldoFinale / cashFlowData.investimentoIniziale) * 100) : 0; return (<><p className={`text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-destructive'}`}>{roi.toFixed(1)}%</p><p className="text-xs text-muted-foreground">{roi >= 100 ? 'Investimento recuperato' : roi >= 0 ? 'In recupero' : 'Negativo'}</p></>); })()}
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Payback</p>
-                  <p className="text-2xl font-bold">{cashFlowData.mesePrimoPositivo ?? 'N/D'}</p>
-                  <p className="text-xs text-muted-foreground">{cashFlowData.mesePrimoPositivo ? 'Primo mese saldo positivo' : 'Oltre 14 mesi'}</p>
-                </div>
-                <div className="space-y-1">
-                  <UITooltip><TooltipTrigger asChild><p className="text-sm text-muted-foreground flex items-center gap-1 cursor-help">Massima Esposizione<Info className="h-3 w-3 opacity-60" /></p></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>Il picco di cassa negativa: quanto capitale serve avere disponibile prima di raggiungere l'equilibrio</p></TooltipContent></UITooltip>
-                  <p className={`text-2xl font-bold ${cashFlowData.massimaEsposizione < 0 ? 'text-destructive' : 'text-green-600'}`}>{formatCurrency(cashFlowData.massimaEsposizione)}</p>
-                  <p className="text-xs text-muted-foreground">{cashFlowData.meseEsposizioneMassima}</p>
-                </div>
-              </div>
-            </TooltipProvider>
-            <p className="text-xs text-muted-foreground mt-2 italic">
-              * La stima delle imposte dirette (IRES/IRAP) nel report fiscale è indicativa.
-              Non include ammortamenti, costi strutturali e perdite riportabili.
-              Consultare un commercialista per il calcolo definitivo.
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Margin Analysis summary */}
       <Card>
