@@ -168,7 +168,7 @@ export const OverviewTab = ({
                 label="Clienti Attivi"
                 tooltip="Numero di clienti con fornitura attiva alla fine del periodo di simulazione (mese 14), al netto di tutte le cessazioni (churn). Rappresenta il portafoglio clienti reale che genera ricavi ricorrenti."
                 value={String(summary.clientiAttivi)}
-                detail={`Su ${summary.contrattiTotali} contratti firmati nel periodo. Il tasso di churn cumulato ha determinato ${summary.contrattiTotali - summary.clientiAttivi} cessazioni.`}
+                detail={`Calcolo: ${summary.contrattiTotali} contratti firmati − ${summary.contrattiTotali - summary.clientiAttivi} cessazioni (churn) = ${summary.clientiAttivi} clienti attivi a fine periodo.`}
                 icon={<Users className="h-4 w-4" />}
               />
               {/* 2. Fatturato Netto */}
@@ -177,7 +177,7 @@ export const OverviewTab = ({
                 tooltip="Totale dei ricavi al netto dell'IVA. Questa è la base su cui vengono calcolate tutte le percentuali di margine. Include i ricavi propri del reseller (CCV + spread) e le partite di giro (trasporto, oneri, accise)."
                 value={formatCurrency(summary.imponibile)}
                 valueClass="text-primary"
-                detail="Fatturato lordo meno IVA. È la base imponibile del reseller e il riferimento per tutte le percentuali di redditività indicate."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.imponibile)}.`}
                 icon={<TrendingUp className="h-4 w-4" />}
               />
               {/* 3. Fatturato Lordo */}
@@ -186,7 +186,7 @@ export const OverviewTab = ({
                 tooltip="Volume complessivo d'affari: tutto ciò che il reseller fattura ai clienti finali. Include margine reseller, costi passanti (trasporto, oneri, accise) e IVA. Non rappresenta il guadagno ma il giro d'affari totale."
                 value={formatCurrency(summary.totalRevenue)}
                 valueClass="text-primary"
-                detail={`Di cui IVA: ${formatCurrency(summary.totalIva)}. Il fatturato lordo include le partite di giro che transitano in fattura ma vengono girate integralmente a terzi.`}
+                detail={`Composizione: Imponibile ${formatCurrency(summary.imponibile)} + IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.totalRevenue)}. Include ricavi propri del reseller e partite di giro.`}
                 icon={<DollarSign className="h-4 w-4" />}
               />
               {/* 4. Costo Energia al Grossista */}
@@ -195,7 +195,7 @@ export const OverviewTab = ({
                 tooltip="Quanto il reseller paga effettivamente al grossista per l'energia: PUN (prezzo mercato) × kWh consumati + spread grossista × kWh. NON include trasporto, oneri e accise che sono partite di giro neutrali per il margine."
                 value={formatCurrency(summary.costoEnergiaNetto)}
                 valueClass="text-destructive"
-                detail={`Calcolato come PUN × kWh totali consumati dalla base clienti + spread grossista × kWh. Rappresenta il costo industriale vero del reseller per l'approvvigionamento energia.`}
+                detail={`Calcolo: (PUN + Spread Grossista) × kWh consumati, cumulato su 14 mesi = ${formatCurrency(summary.costoEnergiaNetto)}. Non include Fee POD (${formatCurrency(summary.costoGestionePodTotale)}) né partite di giro.`}
                 icon={<Zap className="h-4 w-4" />}
               />
               {/* 5. Costi Passanti Totali */}
@@ -204,7 +204,7 @@ export const OverviewTab = ({
                 tooltip="Importi fatturati ai clienti e girati integralmente a terzi (distributore, GSE, Agenzia delle Dogane). Non impattano il margine del reseller: sono una partita di giro neutra."
                 value={formatCurrency(summary.passthroughCosts)}
                 valueClass="text-orange-600"
-                detail="Comprendono trasporto e distribuzione, oneri di sistema (ASOS + ARIM) e accise. Il reseller li incassa dal cliente e li riversa integralmente ai soggetti istituzionali competenti."
+                detail={`Composizione: Dispacciamento + Trasporto + Oneri (ASOS + ARIM) + Accise = ${formatCurrency(summary.passthroughCosts)}. Incassati dai clienti e riversati integralmente, impatto netto sul margine = zero.`}
                 icon={<ArrowRight className="h-4 w-4" />}
               />
               {/* 6. Fee Gestione POD */}
@@ -213,7 +213,7 @@ export const OverviewTab = ({
                 tooltip="Costo unitario mensile che il grossista addebita al reseller per ogni POD (punto di prelievo) gestito. Copre servizi di billing, SII, gestione switching e assistenza tecnica."
                 value={formatCurrency(summary.costoGestionePodTotale)}
                 valueClass="text-destructive"
-                detail={`Calcolata come fee mensile per POD × numero di clienti attivi ogni mese, cumulata sul periodo. È un costo reale del reseller, già detratto nel calcolo del Margine Commerciale.`}
+                detail={`Calcolo: Fee mensile per POD × clienti attivi mese per mese, cumulata su 14 mesi = ${formatCurrency(summary.costoGestionePodTotale)}. Già detratta nel Margine Commerciale.`}
                 icon={<Calculator className="h-4 w-4" />}
               />
               {/* 7. Costi Commerciali */}
@@ -223,7 +223,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.costiCommercialiSimulati)}
                 valueClass="text-orange-600"
                 detail={summary.costiCommercialiSimulati > 0
-                  ? `Stime basate sui tassi medi di commissione per canale. Includono provvigioni per contratto firmato e/o per attivazione completata, in base alla configurazione di ogni canale di vendita.`
+                  ? `Calcolo: Σ (contratti per canale × commissione unitaria) = ${formatCurrency(summary.costiCommercialiSimulati)}. Su ${summary.contrattiTotali} contratti distribuiti tra i canali configurati.`
                   : 'Nessun canale di vendita configurato. Configura i canali nelle Ipotesi Operative per stimare le provvigioni.'}
                 icon={<Users className="h-4 w-4" />}
               />
@@ -233,7 +233,7 @@ export const OverviewTab = ({
                 tooltip="Costi fissi del reseller indipendenti dal volume clienti: affitto sede, personale, software gestionale, consulenze, assicurazioni. Configurati manualmente nella sezione Finanza > Costi."
                 value={formatCurrency(strutturaliCosts)}
                 valueClass="text-orange-600"
-                detail="Comprendono costi strutturali, diretti e indiretti configurati manualmente. Sono i costi che il reseller sostiene indipendentemente dal numero di clienti serviti e dalla quantità di energia venduta."
+                detail={`Composizione: Strutturali ${formatCurrency(summary.costsByType.structural)} + Diretti ${formatCurrency(summary.costsByType.direct)} + Indiretti ${formatCurrency(summary.costsByType.indirect)} = ${formatCurrency(strutturaliCosts)}.`}
                 icon={<Landmark className="h-4 w-4" />}
               />
               {/* 9. Margine Commerciale */}
@@ -243,7 +243,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.margineCommercialeLordo)}
                 percentValue={formatPercent(summary.margineCommercialePercent)}
                 positive={summary.margineCommercialeLordo >= 0}
-                detail="Ricavi propri del reseller meno costo energia dal grossista e fee gestione POD. Misura la redditività intrinseca del modello di business, prima delle spese commerciali e strutturali."
+                detail={`Calcolo: Ricavi Reseller ${formatCurrency(summary.resellerMargin)} − Costo Energia ${formatCurrency(summary.costoEnergiaNetto)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.margineCommercialeLordo)}. Pct: ${formatCurrency(summary.margineCommercialeLordo)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.margineCommercialePercent)}.`}
                 icon={<Target className="h-4 w-4" />}
               />
               {/* 10. Margine di Contribuzione */}
@@ -253,7 +253,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.contributionMargin)}
                 percentValue={formatPercent(summary.contributionMarginPercent)}
                 positive={summary.contributionMargin >= 0}
-                detail="Margine Commerciale − Provvigioni canali vendita. Se positivo, ogni nuovo cliente contribuisce a coprire i costi fissi. Se negativo, il costo di acquisizione è superiore al margine generato."
+                detail={`Calcolo: Margine Commerciale ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} = ${formatCurrency(summary.contributionMargin)}. Pct: ${formatCurrency(summary.contributionMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.contributionMarginPercent)}.`}
                 icon={<Percent className="h-4 w-4" />}
               />
               {/* 11. Margine Netto Operativo */}
@@ -263,7 +263,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.netMargin)}
                 percentValue={formatPercent(summary.netMarginPercent)}
                 positive={summary.netMargin >= 0}
-                detail="Margine Commerciale − Costi Commerciali − Costi Strutturali. È l'utile (o perdita) operativo prima delle imposte e degli effetti finanziari (depositi, dilazioni incasso)."
+                detail={`Calcolo: Margine Commerciale ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} − Costi Strutturali ${formatCurrency(strutturaliCosts)} = ${formatCurrency(summary.netMargin)}. Pct: ${formatCurrency(summary.netMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.netMarginPercent)}.`}
                 icon={<TrendingUp className="h-4 w-4" />}
               />
             </div>
