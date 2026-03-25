@@ -171,18 +171,6 @@ export const FinancialAlerts = ({ summary, thresholds = DEFAULT_THRESHOLDS }: Fi
     // ═══════════════════════════════════════════
     // ALERT 4: Struttura dei costi
     // ═══════════════════════════════════════════
-    const passthroughRatio = summary.totalCosts > 0 ? (passthroughCosts / summary.totalCosts) * 100 : 0;
-    if (passthroughRatio > 60) {
-      alertList.push({
-        id: 'high-passthrough-costs',
-        type: 'info',
-        title: 'Molti Costi Passanti',
-        description: `Il ${passthroughRatio.toFixed(0)}% delle spese totali sono costi passanti (energia, distribuzione, oneri) che devi girare al grossista/distributore.`,
-        explanation: 'In un modello reseller è normale che i costi passanti siano la maggior parte. Il tuo vero margine dipende dallo spread e dalla CCV che applichi ai clienti.',
-        icon: Info,
-        priority: 5,
-      });
-    }
 
     // ═══════════════════════════════════════════
     // ALERT 5: Nessun ricavo
