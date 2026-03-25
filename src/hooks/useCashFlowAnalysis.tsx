@@ -5,6 +5,7 @@ import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
 import { useTaxFlows } from './useTaxFlows';
 import { useEngineResult } from './useEngineResult';
+import { useProjectFinancials } from './useProjectFinancials';
 import { stepTimingConfig } from '@/lib/costTimingConfig';
 import { stepCostsData } from '@/types/stepCosts';
 import { SimulationEngineResult } from '@/lib/simulationEngine';
@@ -27,6 +28,7 @@ export interface MonthlyBreakdown {
   depositoPrecedente: number;
   saldoPrecedente: number;
   investmentBreakdown: { stepId: string; description: string; amount: number }[];
+  costiStrutturaliMese: number;
 }
 
 export interface MonthlyCashFlowData {
@@ -43,6 +45,7 @@ export interface MonthlyCashFlowData {
   flussiFiscali: number;
   deltaDeposito: number;
   investimentiIniziali: number;
+  costiStrutturaliMese: number;
   flussoNetto: number;
   saldoCumulativo: number;
   inflow: number;
@@ -72,6 +75,7 @@ export interface CashFlowSummary {
   totaleCostiCommerciali: number;
   totaleFlussiFiscali: number;
   totaleDepositi: number;
+  totaleCostiStrutturali: number;
 }
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
@@ -99,6 +103,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
     engineResult
   );
   const { getGrandTotal, getStepTotal, loading: costsLoading } = useStepCosts(projectId);
+  const { costs: projectCosts, loading: projectCostsLoading } = useProjectFinancials(projectId);
 
   const ownChannelsHook = useSalesChannels(options?.salesChannelsData ? null : projectId);
   const channels = options?.salesChannelsData?.channels ?? ownChannelsHook.channels;
@@ -129,6 +134,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleCostiCommerciali: 0,
       totaleFlussiFiscali: 0,
       totaleDepositi: 0,
+      totaleCostiStrutturali: 0,
     };
 
     if (!summary.hasData || !engineResult || !simData) return empty;
@@ -141,10 +147,27 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
 
     let totaleIncassi = 0, totaleCostiPassanti = 0, totaleCostiOperativi = 0;
     let totaleCostiCommerciali = 0, totaleFlussiFiscali = 0, totaleDepositi = 0;
-    let investimentiTotali = 0;
+    let investimentiTotali = 0, totaleCostiStrutturali = 0;
     let minCumulative = 0;
     let maxExposureMonth = '-';
     let firstPositiveMonth: string | null = null;
+
+    // Pre-compute structural costs: recurring monthly portion and one-shot by month
+    const recurringMonthly = projectCosts
+      .filter(c => c.is_recurring)
+      .reduce((sum, c) => sum + (c.amount * (c.quantity || 1)) / 12, 0);
+
+    // One-shot costs mapped to simulation month index
+    const oneShotByMonth: Record<number, number> = {};
+    projectCosts
+      .filter(c => !c.is_recurring && c.date)
+      .forEach(c => {
+        const costDate = new Date(c.date!);
+        const diffMonths = (costDate.getFullYear() - startYear) * 12 + (costDate.getMonth() - startMonth);
+        if (diffMonths >= 0 && diffMonths < engineMonthly.length) {
+          oneShotByMonth[diffMonths] = (oneShotByMonth[diffMonths] || 0) + c.amount * (c.quantity || 1);
+        }
+      });
 
     const rawMonthly: Omit<MonthlyCashFlowData, 'saldoCumulativo' | 'cumulative'>[] = [];
 
@@ -194,7 +217,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       const costiOperativiMese = em.costiGestionePod;
       const incassiMese = collection.totaleIncassi;
 
-      const totalOutflow = costiPassantiMese + costiOperativiMese + deltaDepositoCassa + flussiFiscaliMese + costiCommercialiMese + investimentiIniziali;
+      // Structural costs for this month
+      const costiStrutturaliMese = recurringMonthly + (oneShotByMonth[m] || 0);
+
+      const totalOutflow = costiPassantiMese + costiOperativiMese + deltaDepositoCassa + flussiFiscaliMese + costiCommercialiMese + investimentiIniziali + costiStrutturaliMese;
       const flussoNetto = incassiMese - totalOutflow;
 
       totaleIncassi += incassiMese;
@@ -204,6 +230,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali += flussiFiscaliMese;
       totaleDepositi += deltaDepositoCassa;
       investimentiTotali += investimentiIniziali;
+      totaleCostiStrutturali += costiStrutturaliMese;
 
       const materiaEnergiaMese = em.materiaEnergiaTotale;
       const trasportoMese = em.trasportoTotale;
@@ -224,6 +251,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
         flussiFiscali: flussiFiscaliMese,
         deltaDeposito: deltaDepositoCassa,
         investimentiIniziali,
+        costiStrutturaliMese,
         flussoNetto,
         inflow: incassiMese,
         outflow: totalOutflow,
@@ -246,6 +274,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
           depositoPrecedente: m > 0 ? engineMonthly[m - 1].deposit.depositoRichiesto : 0,
           saldoPrecedente: 0,
           investmentBreakdown: investmentBreakdownItems,
+          costiStrutturaliMese,
         },
       });
     }
@@ -277,7 +306,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       monthlyData,
       totals: {
         inflow: totaleIncassi,
-        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + investimentiTotali,
+        outflow: totaleCostiPassanti + totaleCostiOperativi + totaleDepositi + totaleFlussiFiscali + totaleCostiCommerciali + investimentiTotali + totaleCostiStrutturali,
         net: cumulative,
         cumulative,
       },
@@ -293,8 +322,9 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleCostiCommerciali,
       totaleFlussiFiscali,
       totaleDepositi,
+      totaleCostiStrutturali,
     };
-  }, [summary, engineResult, simData, channels, taxFlows, getGrandTotal, getStepTotal]);
+  }, [summary, engineResult, simData, channels, taxFlows, getGrandTotal, getStepTotal, projectCosts]);
 
-  return { cashFlowData, loading: summaryLoading || simLoading || costsLoading || channelsLoading || taxLoading };
+  return { cashFlowData, loading: summaryLoading || simLoading || costsLoading || channelsLoading || taxLoading || projectCostsLoading };
 };
