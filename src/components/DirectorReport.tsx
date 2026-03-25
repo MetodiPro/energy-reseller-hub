@@ -99,6 +99,46 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
   const generateReport = async () => {
     setGenerating(true);
     try {
+      // Build per-product summaries from multi-product engine
+      const activeProducts = products.filter(p => p.is_active);
+      const prodottiDettaglio = activeProducts.map(p => {
+        const productEngine = multiProductResult?.products.find(pr => pr.product.id === p.id);
+        const lastMonth = productEngine?.result.monthly[productEngine.result.monthly.length - 1];
+        const totalFatturato = productEngine?.result.monthly.reduce((s, m) => s + m.fatturato, 0) || 0;
+        const totalMargine = productEngine?.result.monthly.reduce((s, m) => s + m.margineCommerciale, 0) || 0;
+        const totalContratti = productEngine?.result.monthly.reduce((s, m) => s + m.customer.contrattiNuovi, 0) || 0;
+        const totalChurn = productEngine?.result.monthly.reduce((s, m) => s + m.customer.churn, 0) || 0;
+        const linkedChannel = salesChannels.find(c => c.id === p.channel_id);
+        return {
+          nome: p.name,
+          quotaContratti: p.contract_share,
+          ccvMensile: p.ccv_monthly,
+          spreadPerKwh: p.spread_per_kwh,
+          altriServizi: p.other_services_monthly,
+          consumoMedio: p.avg_monthly_consumption,
+          tipoCliente: p.client_type,
+          ivaPercent: p.iva_percent,
+          tassoAttivazione: p.activation_rate,
+          churnMese1: p.churn_month1_pct,
+          churnMese2: p.churn_month2_pct,
+          churnMese3: p.churn_month3_pct,
+          churnDecay: p.churn_decay_factor,
+          incassoMese0: p.collection_month_0,
+          incassoMese1: p.collection_month_1,
+          incassoMese2: p.collection_month_2,
+          incassoMese3Plus: p.collection_month_3_plus,
+          tassoInsoluti: p.uncollectible_rate,
+          canaleVendita: linkedChannel?.channel_name || 'Non assegnato',
+          // Risultati simulazione
+          fatturatoTotale: totalFatturato,
+          margineTotale: totalMargine,
+          contrattiTotali: totalContratti,
+          clientiAttiviFinali: lastMonth?.customer.clientiAttivi || 0,
+          switchOutTotali: totalChurn,
+          marginePerc: totalFatturato > 0 ? (totalMargine / totalFatturato * 100) : 0,
+        };
+      });
+
       const financialData = {
         projectName,
         commodityType,
@@ -126,23 +166,11 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
         mesePrimoPositivo: cashFlowData.mesePrimoPositivo,
         massimaEsposizione: cashFlowData.massimaEsposizione,
         meseEsposizioneMassima: cashFlowData.meseEsposizioneMassima,
+        // Multi-product details
+        prodotti: prodottiDettaglio,
         parametriSimulazione: {
           punPerKwh: revenueSimulation.data?.params?.punPerKwh,
-          spreadPerKwh: revenueSimulation.data?.params?.spreadPerKwh,
-          ccvMensile: revenueSimulation.data?.params?.ccvMonthly,
-          consumoMedioMensile: revenueSimulation.data?.params?.avgMonthlyConsumption,
-          tassoAttivazione: revenueSimulation.data?.params?.activationRate,
-          tassoChurn: revenueSimulation.data?.params?.churnMonth1Pct ?? revenueSimulation.data?.params?.monthlyChurnRate,
-          churnMonth1Pct: revenueSimulation.data?.params?.churnMonth1Pct,
-          churnMonth2Pct: revenueSimulation.data?.params?.churnMonth2Pct,
-          churnMonth3Pct: revenueSimulation.data?.params?.churnMonth3Pct,
-          churnDecayFactor: revenueSimulation.data?.params?.churnDecayFactor,
-          tassoInsoluti: revenueSimulation.data?.params?.uncollectibleRate,
           contrattiMensili: revenueSimulation.data?.monthlyContracts,
-          incassoMese0: revenueSimulation.data?.params?.collectionMonth0,
-          incassoMese1: revenueSimulation.data?.params?.collectionMonth1,
-          incassoMese2: revenueSimulation.data?.params?.collectionMonth2,
-          incassoMese3Plus: revenueSimulation.data?.params?.collectionMonth3Plus,
           spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh,
           gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod,
           depositoMesi: revenueSimulation.data?.params?.depositoMesi,
@@ -155,8 +183,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           oneriAsosKwh: revenueSimulation.data?.params?.oneriAsosKwh,
           oneriArimKwh: revenueSimulation.data?.params?.oneriArimKwh,
           acciseKwh: revenueSimulation.data?.params?.acciseKwh,
-          ivaPercent: revenueSimulation.data?.params?.ivaPercent,
-          altriServiziMensili: revenueSimulation.data?.params?.otherServicesMonthly,
         },
         costiPassantiDettaglio: {
           dispacciamento: simulationSummary.costiMensili?.reduce((s: number, m: any) => s + (m.dispacciamento || 0), 0) || 0,
