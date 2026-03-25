@@ -5,6 +5,7 @@ import { useStepCosts } from './useStepCosts';
 import { useSalesChannels } from './useSalesChannels';
 import { useTaxFlows } from './useTaxFlows';
 import { useEngineResult } from './useEngineResult';
+import { useProjectFinancials } from './useProjectFinancials';
 import { stepTimingConfig } from '@/lib/costTimingConfig';
 import { stepCostsData } from '@/types/stepCosts';
 import { SimulationEngineResult } from '@/lib/simulationEngine';
