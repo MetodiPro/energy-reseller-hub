@@ -70,7 +70,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={startDate.getMonth()}
-                  onChange={(e) => updateStartDate(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
+                  onChange={(e) => handleStartDateChange(new Date(startDate.getFullYear(), parseInt(e.target.value), 1))}
                 >
                   {MONTHS_IT.map((m, i) => (
                     <option key={i} value={i}>{m}</option>
@@ -84,7 +84,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   min="2024"
                   max="2035"
                   value={startDate.getFullYear()}
-                  onChange={(e) => updateStartDate(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
+                  onChange={(e) => handleStartDateChange(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
                 />
               </div>
             </div>
