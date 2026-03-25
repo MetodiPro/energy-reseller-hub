@@ -175,7 +175,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       const { customer, deposit, collection } = em;
       const m = customer.month;
 
-      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].taxOutflowsPerCashFlow : 0;
+      // Usa totaleTaxOutflows (IVA + Accise + Oneri riversamento + Trasporto riversamento)
+      // perché gli incassi (waterfall su fatturato) includono tutte le componenti
+      // raccolte dal cliente, inclusi trasporto e oneri che vanno riversati a DSO/GSE.
+      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].totaleTaxOutflows : 0;
 
       let costiCommercialiMese = 0;
       if (activeChannels.length > 0 && (customer.contrattiNuovi > 0 || customer.attivazioni > 0)) {
