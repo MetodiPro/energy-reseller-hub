@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +14,14 @@ interface SimulationParamsConfigProps {
 }
 
 export const SimulationParamsConfig = ({ projectId, simulationHook, commodityType }: SimulationParamsConfigProps) => {
-  const { data, loading, updateMonthlyContract, updateStartDate } = simulationHook;
+  const { data, loading, updateMonthlyContract, updateStartDate, saveSimulation } = simulationHook;
+  const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleMonthlyContractChange = useCallback((index: number, value: number) => {
+    updateMonthlyContract(index, value);
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => saveSimulation(), 800);
+  }, [updateMonthlyContract, saveSimulation]);
 
   if (loading) {
     return (
