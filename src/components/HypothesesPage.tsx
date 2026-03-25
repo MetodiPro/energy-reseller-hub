@@ -8,6 +8,7 @@ import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
+import { ProductsConfig } from '@/components/financial/ProductsConfig';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { fetchAreraTariffs, type AreraTariffData } from '@/lib/api/areraTariffs';
@@ -92,6 +93,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
       )}
 
       <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
+      <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} />
       <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
       <WholesalerCostsConfig
         config={{

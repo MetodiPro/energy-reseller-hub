@@ -68,7 +68,7 @@ export function buildTaxFlows(
   engine: SimulationEngineResult,
   ivaRegime: 'monthly' | 'quarterly'
 ): TaxFlowsSummary {
-  const { perClient, monthly: engineMonthly } = engine;
+  const { monthly: engineMonthly } = engine;
 
   const pendingIvaCredito: { month: number; amount: number }[] = [];
   const pendingIva: { month: number; amount: number }[] = [];
@@ -90,7 +90,7 @@ export function buildTaxFlows(
     const m = customer.month;
     const clientiFatturati = customer.clientiFatturati;
 
-    const ivaDebito = clientiFatturati * perClient.iva;
+    const ivaDebito = em.ivaTotale;
     pendingIva.push({ month: m, amount: ivaDebito });
     totaleIvaDebito += ivaDebito;
 
@@ -101,9 +101,7 @@ export function buildTaxFlows(
     // NB: Le accise sono imposte erariali NON soggette a IVA
     // NB: NON usare em.costiPassanti perché include materiaEnergia (PUN + disp.)
     //     che è la componente in fattura al cliente, non il costo reale del reseller
-    const costiDeducibiliIva = em.costoEnergia
-      + clientiFatturati * (perClient.trasporto + perClient.oneriSistema)
-      + em.costiGestionePod;
+    const costiDeducibiliIva = em.costiDeducibiliIva;
     const ivaCredito = costiDeducibiliIva * IVA_ALIQUOTA_ACQUISTI;
     pendingIvaCredito.push({ month: m, amount: ivaCredito });
     totaleIvaCredito += ivaCredito;
@@ -134,7 +132,7 @@ export function buildTaxFlows(
       }
     }
 
-    const acciseIncassate = clientiFatturati * perClient.accise;
+    const acciseIncassate = em.acciseTotale;
     pendingAccise.push({ month: m, amount: acciseIncassate });
     totaleAcciseIncassate += acciseIncassate;
 
@@ -148,7 +146,7 @@ export function buildTaxFlows(
       totaleAcciseVersate += acciseVersamento;
     }
 
-    const oneriIncassati = clientiFatturati * perClient.oneriSistema;
+    const oneriIncassati = em.oneriSistemaTotale;
     pendingOneri.push({ month: m, amount: oneriIncassati });
     totaleOneriIncassati += oneriIncassati;
 
@@ -159,7 +157,7 @@ export function buildTaxFlows(
       if (entry) { oneriRiversamento = entry.amount; totaleOneriRiversati += oneriRiversamento; }
     }
 
-    const trasportoIncassato = clientiFatturati * perClient.trasporto;
+    const trasportoIncassato = em.trasportoTotale;
     pendingTrasporto.push({ month: m, amount: trasportoIncassato });
     totaleTrasportoIncassato += trasportoIncassato;
 

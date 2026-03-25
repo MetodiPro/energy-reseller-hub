@@ -133,7 +133,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
 
     if (!summary.hasData || !engineResult || !simData) return empty;
 
-    const { perClient, monthly: engineMonthly } = engineResult;
+    const { monthly: engineMonthly } = engineResult;
 
     const startMonth = simData.startDate.getMonth();
     const startYear = simData.startDate.getFullYear();
@@ -191,8 +191,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       // (nel pagamento al grossista) — entrambi devono essere nel cash flow
       // per mostrare i flussi lordi reali. Il netto è il margine spread.
       const costiPassantiMese = em.costoEnergia;
-      const costiOperativiMese = customer.clientiFatturati *
-        (simData.params.gestionePodPerPod ?? 2.5);
+      const costiOperativiMese = em.costiGestionePod;
       const incassiMese = collection.totaleIncassi;
 
       const totalOutflow = costiPassantiMese + costiOperativiMese + deltaDepositoCassa + flussiFiscaliMese + costiCommercialiMese + investimentiIniziali;
@@ -206,10 +205,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleDepositi += deltaDepositoCassa;
       investimentiTotali += investimentiIniziali;
 
-      const materiaEnergiaMese = customer.clientiFatturati * perClient.materiaEnergia;
-      const trasportoMese = customer.clientiFatturati * perClient.trasporto;
-      const oneriMese = customer.clientiFatturati * perClient.oneriSistema;
-      const acciseMese = customer.clientiFatturati * perClient.accise;
+      const materiaEnergiaMese = em.materiaEnergiaTotale;
+      const trasportoMese = em.trasportoTotale;
+      const oneriMese = em.oneriSistemaTotale;
+      const acciseMese = em.acciseTotale;
 
       rawMonthly.push({
         month: m,
