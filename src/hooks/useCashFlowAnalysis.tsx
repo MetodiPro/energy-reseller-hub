@@ -77,6 +77,11 @@ export interface CashFlowSummary {
   totaleFlussiFiscali: number;
   totaleDepositi: number;
   totaleCostiStrutturali: number;
+  // Breakdown flussi fiscali per dettaglio
+  totaleIvaVersamenti: number;
+  totaleAcciseVersate: number;
+  totaleOneriRiversati: number;
+  totaleTrasportoVersato: number;
 }
 
 const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
@@ -137,6 +142,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali: 0,
       totaleDepositi: 0,
       totaleCostiStrutturali: 0,
+      totaleIvaVersamenti: 0,
+      totaleAcciseVersate: 0,
+      totaleOneriRiversati: 0,
+      totaleTrasportoVersato: 0,
     };
 
     if (!summary.hasData || !engineResult || !simData) return empty;
@@ -329,6 +338,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali,
       totaleDepositi,
       totaleCostiStrutturali,
+      totaleIvaVersamenti: taxFlows.totaleIvaVersamenti,
+      totaleAcciseVersate: taxFlows.totaleAcciseVersate,
+      totaleOneriRiversati: taxFlows.totaleOneriRiversati,
+      totaleTrasportoVersato: taxFlows.totaleTrasportoVersato,
     };
   }, [summary, engineResult, simData, channels, taxFlows, getGrandTotal, getStepTotal, projectCosts]);
 
