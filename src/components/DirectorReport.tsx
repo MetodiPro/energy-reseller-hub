@@ -409,6 +409,104 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         onNavigateToTariffs={() => {}}
       />
 
+      {/* Channel Performance - always visible */}
+      {channelData.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="h-4 w-4" /> Performance Canali di Vendita
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={channelData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" fontSize={10} />
+                  <YAxis tickFormatter={(v) => `€${v}`} fontSize={10} />
+                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <Bar dataKey="costo" name="Costo Totale" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="space-y-3 flex flex-col justify-center">
+                {channelData.map(ch => (
+                  <div key={ch.name} className="flex items-center justify-between border-b pb-2">
+                    <div>
+                      <p className="text-sm font-medium">{ch.name}</p>
+                      <p className="text-xs text-muted-foreground">{ch.contratti} contratti</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold">{formatCurrency(ch.costo)}</p>
+                      <p className="text-xs text-muted-foreground">CAC: {formatCurrency(ch.costoPerCliente)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Product Performance Table - always visible */}
+      {multiProductResult && multiProductResult.products.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" /> Performance per Linea di Prodotto
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium">Prodotto</th>
+                    <th className="py-2 pr-3 font-medium">Canale</th>
+                    <th className="py-2 pr-3 font-medium text-right">Quota %</th>
+                    <th className="py-2 pr-3 font-medium text-right">Contratti</th>
+                    <th className="py-2 pr-3 font-medium text-right">Clienti Attivi</th>
+                    <th className="py-2 pr-3 font-medium text-right">Fatturato</th>
+                    <th className="py-2 pr-3 font-medium text-right">Margine</th>
+                    <th className="py-2 pr-3 font-medium text-right">% Margine</th>
+                    <th className="py-2 font-medium text-right">Churn Tot.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {multiProductResult.products.map(({ product, result }) => {
+                    const lastMonth = result.monthly[result.monthly.length - 1];
+                    const totalFatturato = result.monthly.reduce((s, m) => s + m.fatturato, 0);
+                    const totalMargine = result.monthly.reduce((s, m) => s + m.margineCommerciale, 0);
+                    const totalIva = result.monthly.reduce((s, m) => s + m.ivaTotale, 0);
+                    const imponibile = totalFatturato - totalIva;
+                    const totalContratti = result.monthly.reduce((s, m) => s + m.customer.contrattiNuovi, 0);
+                    const totalChurn = result.monthly.reduce((s, m) => s + m.customer.churn, 0);
+                    const channelName = salesChannels.find(c => c.id === product.id)?.channel_name
+                      ?? products.find(p => p.id === product.id)?.channel_id
+                        ? salesChannels.find(c => c.id === products.find(p => p.id === product.id)?.channel_id)?.channel_name ?? '—'
+                        : '—';
+                    const marginPct = imponibile > 0 ? (totalMargine / imponibile) * 100 : 0;
+
+                    return (
+                      <tr key={product.id} className="border-b last:border-0">
+                        <td className="py-2 pr-3 font-medium">{product.name}</td>
+                        <td className="py-2 pr-3 text-muted-foreground">{channelName}</td>
+                        <td className="py-2 pr-3 text-right">{product.contractShare}%</td>
+                        <td className="py-2 pr-3 text-right">{totalContratti}</td>
+                        <td className="py-2 pr-3 text-right">{lastMonth?.customer.clientiAttivi ?? 0}</td>
+                        <td className="py-2 pr-3 text-right">{formatCurrency(totalFatturato)}</td>
+                        <td className="py-2 pr-3 text-right text-green-600">{formatCurrency(totalMargine)}</td>
+                        <td className="py-2 pr-3 text-right">{marginPct.toFixed(1)}%</td>
+                        <td className="py-2 text-right text-destructive">{totalChurn}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ── Report Section with Charts ── */}
       {report && (
         <div ref={reportRef} className="space-y-6">
@@ -531,103 +629,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             </Card>
           )}
 
-          {/* Chart Row 3: Channel Performance */}
-          {channelData.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Users className="h-4 w-4" /> Performance Canali di Vendita
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={channelData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" fontSize={10} />
-                      <YAxis tickFormatter={(v) => `€${v}`} fontSize={10} />
-                      <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                      <Bar dataKey="costo" name="Costo Totale" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="space-y-3 flex flex-col justify-center">
-                    {channelData.map(ch => (
-                      <div key={ch.name} className="flex items-center justify-between border-b pb-2">
-                        <div>
-                          <p className="text-sm font-medium">{ch.name}</p>
-                          <p className="text-xs text-muted-foreground">{ch.contratti} contratti</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold">{formatCurrency(ch.costo)}</p>
-                          <p className="text-xs text-muted-foreground">CAC: {formatCurrency(ch.costoPerCliente)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Product Performance Table */}
-          {multiProductResult && multiProductResult.products.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" /> Performance per Linea di Prodotto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b text-left text-muted-foreground">
-                        <th className="py-2 pr-3 font-medium">Prodotto</th>
-                        <th className="py-2 pr-3 font-medium">Canale</th>
-                        <th className="py-2 pr-3 font-medium text-right">Quota %</th>
-                        <th className="py-2 pr-3 font-medium text-right">Contratti</th>
-                        <th className="py-2 pr-3 font-medium text-right">Clienti Attivi</th>
-                        <th className="py-2 pr-3 font-medium text-right">Fatturato</th>
-                        <th className="py-2 pr-3 font-medium text-right">Margine</th>
-                        <th className="py-2 pr-3 font-medium text-right">% Margine</th>
-                        <th className="py-2 font-medium text-right">Churn Tot.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {multiProductResult.products.map(({ product, result }) => {
-                        const lastMonth = result.monthly[result.monthly.length - 1];
-                        const totalFatturato = result.monthly.reduce((s, m) => s + m.fatturato, 0);
-                        const totalMargine = result.monthly.reduce((s, m) => s + m.margineCommerciale, 0);
-                        const totalIva = result.monthly.reduce((s, m) => s + m.ivaTotale, 0);
-                        const imponibile = totalFatturato - totalIva;
-                        const totalContratti = result.monthly.reduce((s, m) => s + m.customer.contrattiNuovi, 0);
-                        const totalChurn = result.monthly.reduce((s, m) => s + m.customer.churn, 0);
-                        const channelName = salesChannels.find(c => c.id === product.id)?.channel_name
-                          ?? products.find(p => p.id === product.id)?.channel_id
-                            ? salesChannels.find(c => c.id === products.find(p => p.id === product.id)?.channel_id)?.channel_name ?? '—'
-                            : '—';
-                        const marginPct = imponibile > 0 ? (totalMargine / imponibile) * 100 : 0;
-
-                        return (
-                          <tr key={product.id} className="border-b last:border-0">
-                            <td className="py-2 pr-3 font-medium">{product.name}</td>
-                            <td className="py-2 pr-3 text-muted-foreground">{channelName}</td>
-                            <td className="py-2 pr-3 text-right">{product.contractShare}%</td>
-                            <td className="py-2 pr-3 text-right">{totalContratti}</td>
-                            <td className="py-2 pr-3 text-right">{lastMonth?.customer.clientiAttivi ?? 0}</td>
-                            <td className="py-2 pr-3 text-right">{formatCurrency(totalFatturato)}</td>
-                            <td className="py-2 pr-3 text-right text-green-600">{formatCurrency(totalMargine)}</td>
-                            <td className="py-2 pr-3 text-right">{marginPct.toFixed(1)}%</td>
-                            <td className="py-2 text-right text-destructive">{totalChurn}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* AI Report Text */}
           <Card className="border-primary/20">
