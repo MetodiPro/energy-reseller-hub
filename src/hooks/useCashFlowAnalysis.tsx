@@ -277,7 +277,6 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
           investmentBreakdown: investmentBreakdownItems,
           costiStrutturaliMese,
         },
-        },
       });
     }
 
