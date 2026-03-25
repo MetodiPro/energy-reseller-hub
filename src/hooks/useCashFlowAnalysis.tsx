@@ -65,6 +65,7 @@ export interface CashFlowSummary {
   };
   hasData: boolean;
   investimentoIniziale: number;
+  totaleInvestimenti: number;
   massimaEsposizione: number;
   meseEsposizioneMassima: string;
   mesePrimoPositivo: string | null;
@@ -315,6 +316,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       },
       hasData: true,
       investimentoIniziale: getGrandTotal(),
+      totaleInvestimenti: investimentiTotali,
       massimaEsposizione: minCumulative,
       meseEsposizioneMassima: maxExposureMonth,
       mesePrimoPositivo: firstPositiveMonth,
