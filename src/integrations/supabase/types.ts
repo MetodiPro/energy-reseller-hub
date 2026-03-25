@@ -1381,6 +1381,108 @@ export type Database = {
           },
         ]
       }
+      simulation_products: {
+        Row: {
+          activation_rate: number
+          avg_monthly_consumption: number
+          ccv_monthly: number
+          channel_id: string | null
+          churn_decay_factor: number
+          churn_month1_pct: number
+          churn_month2_pct: number
+          churn_month3_pct: number
+          client_type: string
+          collection_month_0: number
+          collection_month_1: number
+          collection_month_2: number
+          collection_month_3_plus: number
+          contract_share: number
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean
+          iva_percent: number
+          name: string
+          other_services_monthly: number
+          project_id: string
+          sort_order: number
+          spread_per_kwh: number
+          uncollectible_rate: number
+          updated_at: string | null
+        }
+        Insert: {
+          activation_rate?: number
+          avg_monthly_consumption?: number
+          ccv_monthly?: number
+          channel_id?: string | null
+          churn_decay_factor?: number
+          churn_month1_pct?: number
+          churn_month2_pct?: number
+          churn_month3_pct?: number
+          client_type?: string
+          collection_month_0?: number
+          collection_month_1?: number
+          collection_month_2?: number
+          collection_month_3_plus?: number
+          contract_share?: number
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean
+          iva_percent?: number
+          name?: string
+          other_services_monthly?: number
+          project_id: string
+          sort_order?: number
+          spread_per_kwh?: number
+          uncollectible_rate?: number
+          updated_at?: string | null
+        }
+        Update: {
+          activation_rate?: number
+          avg_monthly_consumption?: number
+          ccv_monthly?: number
+          channel_id?: string | null
+          churn_decay_factor?: number
+          churn_month1_pct?: number
+          churn_month2_pct?: number
+          churn_month3_pct?: number
+          client_type?: string
+          collection_month_0?: number
+          collection_month_1?: number
+          collection_month_2?: number
+          collection_month_3_plus?: number
+          contract_share?: number
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          iva_percent?: number
+          name?: string
+          other_services_monthly?: number
+          project_id?: string
+          sort_order?: number
+          spread_per_kwh?: number
+          uncollectible_rate?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_simulation_products_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulation_products_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "project_sales_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       step_assignments: {
         Row: {
           assigned_by: string

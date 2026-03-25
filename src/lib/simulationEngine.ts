@@ -76,6 +76,15 @@ export interface MonthlyEngineResult {
   costiGestionePod: number;
   costoEnergia: number;
   margineCommerciale: number;
+  // Pre-computed breakdown fields for multi-product aggregation
+  ivaTotale: number;
+  materiaEnergiaTotale: number;
+  dispacciamento: number;
+  trasportoTotale: number;
+  oneriSistemaTotale: number;
+  acciseTotale: number;
+  fatturatoStimatoAttivi: number;
+  costiDeducibiliIva: number;
 }
 
 /** Output completo del motore */
@@ -283,6 +292,16 @@ export function runSimulationEngine(
     const costiPassanti = clientiFatturati * perClient.passantiTotale;
     const margineCommerciale = clientiFatturati * perClient.margineTotale;
 
+    // ── Pre-computed breakdown ──
+    const ivaTotale = clientiFatturati * perClient.iva;
+    const materiaEnergiaTotale = clientiFatturati * perClient.materiaEnergia;
+    const dispacciamentoTotale = clientiFatturati * params.dispacciamentoPerKwh * kWh;
+    const trasportoTotale = clientiFatturati * perClient.trasporto;
+    const oneriSistemaTotale = clientiFatturati * perClient.oneriSistema;
+    const acciseTotale = clientiFatturati * perClient.accise;
+    const fatturatoStimatoAttivi = cumulativeActiveCustomers * perClient.fattura;
+    const costiDeducibiliIva = costoEnergia + trasportoTotale + oneriSistemaTotale + costiGestionePod;
+
     monthly.push({
       customer,
       deposit,
@@ -292,8 +311,175 @@ export function runSimulationEngine(
       costiGestionePod,
       costoEnergia,
       margineCommerciale,
+      ivaTotale,
+      materiaEnergiaTotale,
+      dispacciamento: dispacciamentoTotale,
+      trasportoTotale,
+      oneriSistemaTotale,
+      acciseTotale,
+      fatturatoStimatoAttivi,
+      costiDeducibiliIva,
     });
   }
 
+  return { perClient, monthly };
+}
+
+// ─── Multi-product support ──────────────────────────────────
+
+/** Per-product configuration */
+export interface ProductConfig {
+  id: string;
+  name: string;
+  contractShare: number;
+  ccvMonthly: number;
+  spreadPerKwh: number;
+  otherServicesMonthly: number;
+  avgMonthlyConsumption: number;
+  clientType: string;
+  ivaPercent: number;
+  activationRate: number;
+  churnMonth1Pct: number;
+  churnMonth2Pct: number;
+  churnMonth3Pct: number;
+  churnDecayFactor: number;
+  collectionMonth0: number;
+  collectionMonth1: number;
+  collectionMonth2: number;
+  collectionMonth3Plus: number;
+  uncollectibleRate: number;
+}
+
+/** Multi-product engine result */
+export interface MultiProductEngineResult {
+  products: { product: ProductConfig; result: SimulationEngineResult }[];
+  aggregated: SimulationEngineResult;
+}
+
+/**
+ * Runs the simulation for multiple products, each with its own lifecycle,
+ * and aggregates results. Falls back to single-product if no products defined.
+ */
+export function runMultiProductEngine(
+  globalParams: RevenueSimulationParams,
+  monthlyContracts: MonthlyContractsTarget,
+  startDate: Date,
+  products: ProductConfig[]
+): MultiProductEngineResult {
+  // Fallback: no products → use global params as single product
+  if (products.length === 0) {
+    const result = runSimulationEngine(globalParams, monthlyContracts, startDate);
+    return {
+      products: [{
+        product: {
+          id: 'default', name: 'Default', contractShare: 100,
+          ccvMonthly: globalParams.ccvMonthly, spreadPerKwh: globalParams.spreadPerKwh,
+          otherServicesMonthly: globalParams.otherServicesMonthly,
+          avgMonthlyConsumption: globalParams.avgMonthlyConsumption,
+          clientType: globalParams.clientType, ivaPercent: globalParams.ivaPercent,
+          activationRate: globalParams.activationRate,
+          churnMonth1Pct: globalParams.churnMonth1Pct, churnMonth2Pct: globalParams.churnMonth2Pct,
+          churnMonth3Pct: globalParams.churnMonth3Pct, churnDecayFactor: globalParams.churnDecayFactor,
+          collectionMonth0: globalParams.collectionMonth0, collectionMonth1: globalParams.collectionMonth1,
+          collectionMonth2: globalParams.collectionMonth2, collectionMonth3Plus: globalParams.collectionMonth3Plus,
+          uncollectibleRate: globalParams.uncollectibleRate,
+        },
+        result,
+      }],
+      aggregated: result,
+    };
+  }
+
+  const productResults = products.map(product => {
+    // Scale monthly contracts by product share
+    const scaledContracts = monthlyContracts.map(c =>
+      Math.round(c * product.contractShare / 100)
+    ) as MonthlyContractsTarget;
+
+    // Merge product-specific params with global passthrough params
+    const params: RevenueSimulationParams = {
+      ...globalParams,
+      ccvMonthly: product.ccvMonthly,
+      spreadPerKwh: product.spreadPerKwh,
+      otherServicesMonthly: product.otherServicesMonthly,
+      avgMonthlyConsumption: product.avgMonthlyConsumption,
+      clientType: product.clientType as any,
+      ivaPercent: product.ivaPercent,
+      activationRate: product.activationRate,
+      churnMonth1Pct: product.churnMonth1Pct,
+      churnMonth2Pct: product.churnMonth2Pct,
+      churnMonth3Pct: product.churnMonth3Pct,
+      churnDecayFactor: product.churnDecayFactor,
+      collectionMonth0: product.collectionMonth0,
+      collectionMonth1: product.collectionMonth1,
+      collectionMonth2: product.collectionMonth2,
+      collectionMonth3Plus: product.collectionMonth3Plus,
+      uncollectibleRate: product.uncollectibleRate,
+    };
+
+    return { product, result: runSimulationEngine(params, scaledContracts, startDate) };
+  });
+
+  const aggregated = aggregateProductResults(productResults);
+  return { products: productResults, aggregated };
+}
+
+/** Aggregates multiple product results into a single SimulationEngineResult */
+function aggregateProductResults(
+  productResults: { product: ProductConfig; result: SimulationEngineResult }[]
+): SimulationEngineResult {
+  if (productResults.length === 1) return productResults[0].result;
+
+  const monthCount = productResults[0].result.monthly.length;
+  const monthly: MonthlyEngineResult[] = [];
+
+  for (let m = 0; m < monthCount; m++) {
+    const sources = productResults.map(pr => pr.result.monthly[m]);
+    const s = (fn: (x: MonthlyEngineResult) => number) => sources.reduce((acc, x) => acc + fn(x), 0);
+
+    monthly.push({
+      customer: {
+        month: sources[0].customer.month,
+        monthLabel: sources[0].customer.monthLabel,
+        monthIndex: sources[0].customer.monthIndex,
+        year: sources[0].customer.year,
+        contrattiNuovi: s(x => x.customer.contrattiNuovi),
+        attivazioni: s(x => x.customer.attivazioni),
+        churn: s(x => x.customer.churn),
+        clientiAttivi: s(x => x.customer.clientiAttivi),
+        clientiFatturati: s(x => x.customer.clientiFatturati),
+      },
+      deposit: {
+        depositoLordoAttivazioni: s(x => x.deposit.depositoLordoAttivazioni),
+        depositoRilasciatoChurn: s(x => x.deposit.depositoRilasciatoChurn),
+        pagamentiConsumi: s(x => x.deposit.pagamentiConsumi),
+        depositoRichiesto: s(x => x.deposit.depositoRichiesto),
+        deltaDeposito: s(x => x.deposit.deltaDeposito),
+      },
+      collection: {
+        incassoScadenza: s(x => x.collection.incassoScadenza),
+        incasso30gg: s(x => x.collection.incasso30gg),
+        incasso60gg: s(x => x.collection.incasso60gg),
+        incassoOltre60gg: s(x => x.collection.incassoOltre60gg),
+        totaleIncassi: s(x => x.collection.totaleIncassi),
+      },
+      fatturato: s(x => x.fatturato),
+      costiPassanti: s(x => x.costiPassanti),
+      costiGestionePod: s(x => x.costiGestionePod),
+      costoEnergia: s(x => x.costoEnergia),
+      margineCommerciale: s(x => x.margineCommerciale),
+      ivaTotale: s(x => x.ivaTotale),
+      materiaEnergiaTotale: s(x => x.materiaEnergiaTotale),
+      dispacciamento: s(x => x.dispacciamento),
+      trasportoTotale: s(x => x.trasportoTotale),
+      oneriSistemaTotale: s(x => x.oneriSistemaTotale),
+      acciseTotale: s(x => x.acciseTotale),
+      fatturatoStimatoAttivi: s(x => x.fatturatoStimatoAttivi),
+      costiDeducibiliIva: s(x => x.costiDeducibiliIva),
+    });
+  }
+
+  // Use first product's perClient as representative (consumers should use monthly pre-computed fields)
+  const perClient = productResults[0].result.perClient;
   return { perClient, monthly };
 }

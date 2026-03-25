@@ -60,8 +60,7 @@ export function buildSimulationSummary(
   engine: SimulationEngineResult,
   data: RevenueSimulationData
 ): SimulationSummary {
-  const { perClient, monthly } = engine;
-  const kWh = data.params.avgMonthlyConsumption;
+  const { monthly } = engine;
 
   let totalFatturato = 0, totalMargine = 0, totalPassanti = 0, totalIva = 0;
   let totalChurned = 0, totalContracts = 0;
@@ -80,12 +79,12 @@ export function buildSimulationSummary(
     totalFatturato += m.fatturato;
     totalMargine += m.margineCommerciale;
     totalPassanti += m.costiPassanti;
-    totalIva += customer.clientiFatturati * perClient.iva;
+    totalIva += m.ivaTotale;
     costoGestionePodTotale += m.costiGestionePod;
     costoEnergiaTotale += m.costoEnergia;
     cumulativeCollection += collection.totaleIncassi;
 
-    const fatturatoMensileStimato = customer.clientiAttivi * perClient.fattura;
+    const fatturatoMensileStimato = m.fatturatoStimatoAttivi;
 
     depositiMensili.push({
       month: customer.month,
@@ -99,21 +98,16 @@ export function buildSimulationSummary(
     if (customer.month === 2) depositoIniziale = deposit.depositoRichiesto;
     if (deposit.depositoRichiesto > depositoMassimo) depositoMassimo = deposit.depositoRichiesto;
 
-    const dispacciamentoMese = customer.clientiFatturati * data.params.dispacciamentoPerKwh * kWh;
-    const trasportoMese = customer.clientiFatturati * perClient.trasporto;
-    const oneriSistemaMese = customer.clientiFatturati * perClient.oneriSistema;
-    const acciseMese = customer.clientiFatturati * perClient.accise;
-
     costiMensili.push({
       month: customer.month,
       monthLabel: customer.monthLabel,
       clientiAttivi: customer.clientiAttivi,
       costoEnergia: m.costoEnergia,
       costoPod: m.costiGestionePod,
-      dispacciamento: dispacciamentoMese,
-      trasporto: trasportoMese,
-      oneriSistema: oneriSistemaMese,
-      accise: acciseMese,
+      dispacciamento: m.dispacciamento,
+      trasporto: m.trasportoTotale,
+      oneriSistema: m.oneriSistemaTotale,
+      accise: m.acciseTotale,
     });
   }
 
