@@ -294,7 +294,7 @@ export const OverviewTab = ({
                 tooltip="Somma effettiva degli incassi ricevuti dai clienti nel periodo di simulazione. Tiene conto della waterfall di incasso (pagamento a scadenza, a 30gg, a 60gg, oltre 60gg) e del tasso di insolvenza."
                 value={formatCurrency(summary.totalIncassato)}
                 valueClass="text-green-600"
-                detail="Quanto è realmente entrato in cassa dalla fatturazione ai clienti, considerando i tempi medi di pagamento e le dilazioni. Non coincide col fatturato perché parte dei crediti è ancora in lavorazione."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} × waterfall di incasso (0-30-60-90+ gg) − Insoluti = ${formatCurrency(summary.totalIncassato)}. Verifica: Incassato + Crediti ${formatCurrency(simulationSummary.totalCrediti)} + Insoluti ${formatCurrency(summary.totalInsoluti)} = Fatturato Lordo.`}
                 icon={<DollarSign className="h-4 w-4" />}
               />
               {/* 2. Crediti in Corso */}
@@ -303,7 +303,7 @@ export const OverviewTab = ({
                 tooltip="Fatture emesse ai clienti il cui incasso ricade oltre la finestra di simulazione (waterfall 0-30-60-90+ giorni). Non sono insoluti: ci si aspetta di incassarli. Rappresentano il credito commerciale del reseller."
                 value={formatCurrency(simulationSummary.totalCrediti)}
                 valueClass="text-blue-600"
-                detail="Quota di fatturato già maturato e fatturato ma non ancora incassato, in attesa di pagamento secondo i termini contrattuali. Si prevede di recuperarli entro i normali cicli di incasso."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − Incassato ${formatCurrency(summary.totalIncassato)} − Insoluti ${formatCurrency(summary.totalInsoluti)} = ${formatCurrency(simulationSummary.totalCrediti)}. Fatture emesse non ancora scadute o in attesa di pagamento.`}
                 icon={<CreditCard className="h-4 w-4" />}
               />
               {/* 3. Depositi Cauzionali */}
@@ -312,7 +312,7 @@ export const OverviewTab = ({
                 tooltip="Garanzie richieste dal grossista al reseller per operare. Sono un impegno finanziario (immobilizzazione di liquidità), non un costo operativo. Vengono progressivamente svincolati al maturare della storicità di pagamento."
                 value={formatCurrency(simulationSummary.depositoMassimo)}
                 valueClass="text-amber-600"
-                detail={`Picco massimo di deposito richiesto. Deposito iniziale: ${formatCurrency(simulationSummary.depositoIniziale)}, deposito a fine periodo: ${formatCurrency(simulationSummary.depositoFinale)}. I depositi non sono un costo: sono capitale immobilizzato potenzialmente recuperabile che impatta la liquidità disponibile.`}
+                detail={`Picco massimo: ${formatCurrency(simulationSummary.depositoMassimo)}. Deposito iniziale: ${formatCurrency(simulationSummary.depositoIniziale)}, a fine periodo: ${formatCurrency(simulationSummary.depositoFinale)}. Non è un costo: è capitale immobilizzato presso il grossista, potenzialmente recuperabile, che riduce la liquidità disponibile.`}
                 icon={<ShieldAlert className="h-4 w-4" />}
               />
               {/* 4. Insoluti */}
@@ -321,7 +321,7 @@ export const OverviewTab = ({
                 tooltip="Quota di fatturato strutturalmente non incassabile, calcolata applicando il tasso di insolvenza configurato al fatturato totale. Rappresenta una perdita definitiva su crediti."
                 value={formatCurrency(summary.totalInsoluti)}
                 valueClass="text-destructive"
-                detail="Stimati in base al tasso di insolvenza (uncollectible rate) applicato proporzionalmente a ogni scaglione dell'aging degli incassi. Sono fatture che non verranno mai pagate."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} × tasso insoluti configurato = ${formatCurrency(summary.totalInsoluti)}. Perdita definitiva su crediti, applicata proporzionalmente a ogni scaglione dell'aging.`}
                 icon={<AlertTriangle className="h-4 w-4" />}
               />
               {/* 5. Massima Esposizione */}
@@ -330,7 +330,7 @@ export const OverviewTab = ({
                 tooltip="Il punto di massima esposizione finanziaria (saldo cassa negativo più profondo). Indica il fabbisogno finanziario massimo che il reseller deve coprire con capitale proprio o finanziamenti."
                 value={formatCurrency(Math.abs(cashFlowData.massimaEsposizione))}
                 valueClass="text-destructive"
-                detail={`Picco raggiunto nel mese di ${cashFlowData.meseEsposizioneMassima}. ${cashFlowData.mesePrimoPositivo ? `Il saldo torna positivo a partire da ${cashFlowData.mesePrimoPositivo}.` : 'Il saldo non torna positivo nel periodo simulato.'} Questo valore determina il capitale circolante minimo necessario per operare.`}
+                detail={`Saldo cassa più basso: ${formatCurrency(cashFlowData.massimaEsposizione)} raggiunto a ${cashFlowData.meseEsposizioneMassima}. ${cashFlowData.mesePrimoPositivo ? `Break-even finanziario: ${cashFlowData.mesePrimoPositivo}.` : 'Il saldo non torna positivo nel periodo simulato.'} Determina il capitale circolante minimo necessario.`}
                 icon={<TrendingDown className="h-4 w-4" />}
               />
               {/* 6. Saldo Cassa */}
@@ -339,7 +339,7 @@ export const OverviewTab = ({
                 tooltip="Saldo cumulativo di tutti i flussi di cassa al termine dei 14 mesi di simulazione. Tiene conto di incassi, costi operativi, depositi cauzionali, investimenti iniziali e flussi fiscali."
                 value={formatCurrency(cashFlowData.saldoFinale)}
                 valueClass={cashFlowData.saldoFinale >= 0 ? 'text-green-600' : 'text-destructive'}
-                detail="Somma algebrica di tutti i flussi in entrata e uscita: incassi clienti, pagamenti grossista, depositi cauzionali, provvigioni, costi strutturali, investimenti e tasse. Se positivo, l'attività genera cassa; se negativo, richiede finanziamento esterno."
+                detail={`Calcolo: Incassi ${formatCurrency(cashFlowData.totaleIncassi)} − Costi passanti ${formatCurrency(cashFlowData.totaleCostiPassanti)} − Costi operativi ${formatCurrency(cashFlowData.totaleCostiOperativi)} − Costi commerciali ${formatCurrency(cashFlowData.totaleCostiCommerciali)} − Strutturali ${formatCurrency(cashFlowData.totaleCostiStrutturali)} − Depositi ${formatCurrency(cashFlowData.totaleDepositi)} − Flussi fiscali ${formatCurrency(cashFlowData.totaleFlussiFiscali)} − Investimenti ${formatCurrency(cashFlowData.investimentoIniziale)} = ${formatCurrency(cashFlowData.saldoFinale)}.`}
                 icon={<Wallet className="h-4 w-4" />}
               />
             </div>
