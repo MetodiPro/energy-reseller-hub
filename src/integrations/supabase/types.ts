@@ -809,6 +809,10 @@ export type Database = {
           avg_monthly_consumption_gas: number | null
           ccv_gas_monthly: number | null
           ccv_monthly: number
+          churn_decay_factor: number | null
+          churn_month1_pct: number | null
+          churn_month2_pct: number | null
+          churn_month3_pct: number | null
           client_type: string | null
           collection_month_0: number
           collection_month_1: number
@@ -863,6 +867,10 @@ export type Database = {
           avg_monthly_consumption_gas?: number | null
           ccv_gas_monthly?: number | null
           ccv_monthly?: number
+          churn_decay_factor?: number | null
+          churn_month1_pct?: number | null
+          churn_month2_pct?: number | null
+          churn_month3_pct?: number | null
           client_type?: string | null
           collection_month_0?: number
           collection_month_1?: number
@@ -917,6 +925,10 @@ export type Database = {
           avg_monthly_consumption_gas?: number | null
           ccv_gas_monthly?: number | null
           ccv_monthly?: number
+          churn_decay_factor?: number | null
+          churn_month1_pct?: number | null
+          churn_month2_pct?: number | null
+          churn_month3_pct?: number | null
           client_type?: string | null
           collection_month_0?: number
           collection_month_1?: number
