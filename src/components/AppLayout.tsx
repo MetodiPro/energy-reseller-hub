@@ -311,6 +311,7 @@ export function AppLayout({ user }: AppLayoutProps) {
               projectId={currentProjectId}
               projectName={currentProject?.name || 'Progetto Corrente'}
               commodityType={currentProject?.commodity_type}
+              sharedRevenueSimulation={revenueSimForTariffs}
             />
           ) : (
             <div className="text-center py-12 text-muted-foreground">

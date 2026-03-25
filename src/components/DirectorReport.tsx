@@ -33,22 +33,27 @@ interface DirectorReportProps {
   projectId: string;
   projectName: string;
   commodityType?: string | null;
+  sharedRevenueSimulation?: ReturnType<typeof useRevenueSimulation>;
 }
 
-export const DirectorReport = ({ projectId, projectName, commodityType }: DirectorReportProps) => {
+export const DirectorReport = ({ projectId, projectName, commodityType, sharedRevenueSimulation }: DirectorReportProps) => {
   const { toast } = useToast();
   const [report, setReport] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const reportRef = useRef<HTMLDivElement>(null);
+
+  // Use shared simulation from AppLayout when available, otherwise own instance
+  const ownRevenueSimulation = useRevenueSimulation(sharedRevenueSimulation ? null : projectId);
+  const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
 
   // Data hooks
   const { costs, revenues, summary: costSummary, loading } = useProjectFinancials(projectId);
-  const revenueSimulation = useRevenueSimulation(projectId);
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
   const { engineResult, multiProductResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
-  const { products } = useSimulationProducts(projectId);
+  const { products, refetch: refetchProducts } = useSimulationProducts(projectId);
   const { channels: salesChannels, getChannelBreakdown, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
   const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData, sharedEngine: engineResult });
@@ -58,6 +63,15 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
     revenueSimulation.updateParams('punPerKwh', punPerKwh);
     setTimeout(() => revenueSimulation.saveSimulation(), 500);
   }, [revenueSimulation]);
+
+  const handleRefreshSimulation = useCallback(async () => {
+    await Promise.all([
+      revenueSimulation.refetch(),
+      refetchProducts(),
+    ]);
+    setRefreshKey(k => k + 1);
+    toast({ title: 'Dati aggiornati', description: 'Simulazione e prodotti ricaricati con successo.' });
+  }, [revenueSimulation, refetchProducts, toast]);
 
   // ── Chart Data ──
   const costBreakdownData = [
@@ -308,6 +322,10 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefreshSimulation} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Aggiorna dati simulazione
+          </Button>
           {report && (
             <>
               <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
