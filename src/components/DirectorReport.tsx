@@ -322,6 +322,10 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefreshSimulation} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Aggiorna dati simulazione
+          </Button>
           {report && (
             <>
               <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
