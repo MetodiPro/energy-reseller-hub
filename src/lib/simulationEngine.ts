@@ -176,9 +176,25 @@ export function runSimulationEngine(
         : 0;
 
     // Calcola quanti clienti "comunicano" il recesso questo mese
-    // (tasso mensile applicato alla base attiva corrente)
+    // Modello granulare: mesi 3,4,5 manuali, poi decadimento esponenziale
+    const churnMonthIndex = m - 3; // 0-based index dei mesi di churn (0=primo mese)
+    let churnRate = 0;
+    if (m >= 3) {
+      if (churnMonthIndex === 0) {
+        churnRate = params.churnMonth1Pct ?? params.monthlyChurnRate;
+      } else if (churnMonthIndex === 1) {
+        churnRate = params.churnMonth2Pct ?? params.monthlyChurnRate;
+      } else if (churnMonthIndex === 2) {
+        churnRate = params.churnMonth3Pct ?? params.monthlyChurnRate;
+      } else {
+        // Decadimento esponenziale dal valore del 3° mese
+        const baseRate = params.churnMonth3Pct ?? params.monthlyChurnRate;
+        const decay = params.churnDecayFactor ?? 0.85;
+        churnRate = baseRate * Math.pow(decay, churnMonthIndex - 2);
+      }
+    }
     const churnProgrammato = m >= 3
-      ? Math.round(cumulativeActiveCustomers * (params.monthlyChurnRate / 100))
+      ? Math.round(cumulativeActiveCustomers * (churnRate / 100))
       : 0;
 
     // Registra l'uscita effettiva 2 mesi dopo (realtà SII: switching richiede 2 mesi)

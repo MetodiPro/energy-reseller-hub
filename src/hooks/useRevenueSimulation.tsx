@@ -29,7 +29,11 @@ export interface InvoiceComponentParams {
 export interface ClientParams {
   avgMonthlyConsumption: number;  // Consumo medio kWh/mese
   activationRate: number;         // Tasso attivazione %
-  monthlyChurnRate: number;       // Tasso switch-out mensile %
+  monthlyChurnRate: number;       // Tasso switch-out mensile % (legacy/fallback)
+  churnMonth1Pct: number;         // Churn 1° mese dopo attivazione %
+  churnMonth2Pct: number;         // Churn 2° mese %
+  churnMonth3Pct: number;         // Churn 3° mese %
+  churnDecayFactor: number;       // Fattore decadimento esponenziale (0-1)
   collectionMonth0: number;       // Incasso alla scadenza %
   collectionMonth1: number;       // Incasso entro 30gg %
   collectionMonth2: number;       // Incasso entro 60gg %
@@ -85,6 +89,10 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   avgMonthlyConsumption: 200,
   activationRate: 85,
   monthlyChurnRate: 1.5,
+  churnMonth1Pct: 3.0,
+  churnMonth2Pct: 2.0,
+  churnMonth3Pct: 1.5,
+  churnDecayFactor: 0.85,
   collectionMonth0: 70,
   collectionMonth1: 18,
   collectionMonth2: 7,
@@ -164,6 +172,10 @@ export const useRevenueSimulation = (projectId: string | null) => {
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
             activationRate: Number(simulation.activation_rate),
             monthlyChurnRate: Number(simulation.monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
+            churnMonth1Pct: Number((simulation as any).churn_month1_pct ?? DEFAULT_PARAMS.churnMonth1Pct),
+            churnMonth2Pct: Number((simulation as any).churn_month2_pct ?? DEFAULT_PARAMS.churnMonth2Pct),
+            churnMonth3Pct: Number((simulation as any).churn_month3_pct ?? DEFAULT_PARAMS.churnMonth3Pct),
+            churnDecayFactor: Number((simulation as any).churn_decay_factor ?? DEFAULT_PARAMS.churnDecayFactor),
             collectionMonth0: Number(simulation.collection_month_0),
             collectionMonth1: Number(simulation.collection_month_1),
             collectionMonth2: Number(simulation.collection_month_2),
@@ -231,6 +243,10 @@ export const useRevenueSimulation = (projectId: string | null) => {
         avg_monthly_consumption: data.params.avgMonthlyConsumption,
         activation_rate: data.params.activationRate,
         monthly_churn_rate: data.params.monthlyChurnRate,
+        churn_month1_pct: data.params.churnMonth1Pct,
+        churn_month2_pct: data.params.churnMonth2Pct,
+        churn_month3_pct: data.params.churnMonth3Pct,
+        churn_decay_factor: data.params.churnDecayFactor,
         collection_month_0: data.params.collectionMonth0,
         collection_month_1: data.params.collectionMonth1,
         collection_month_2: data.params.collectionMonth2,

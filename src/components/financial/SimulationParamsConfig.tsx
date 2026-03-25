@@ -255,31 +255,95 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   </div>
                 )}
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label>Switch-out mensile (%)</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
-                      <TooltipContent>
-                        <p>Percentuale di clienti che abbandonano ogni mese</p>
-                        <p className="text-xs text-muted-foreground">Tipico mercato libero: 1-3%</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={params.monthlyChurnRate}
-                  onChange={(e) => updateParams('monthlyChurnRate', parseFloat(e.target.value) || 0)}
-                />
-                <p className="text-xs text-destructive">
-                  = ~{Math.round((1 - Math.pow(1 - params.monthlyChurnRate/100, 12)) * 100)}% abbandono annuo
+              <Separator />
+
+              {/* Churn Granulare */}
+              <div className="space-y-4">
+                <h4 className="font-medium flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 rotate-180" />
+                  Switch-out (Churn)
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Inserisci il tasso % di abbandono per i primi 3 mesi, poi il simulatore applica un decadimento esponenziale.
                 </p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">1° mese (%)</Label>
+                    <Input
+                      type="number" min="0" max="100" step="0.1" className="h-8"
+                      value={params.churnMonth1Pct}
+                      onChange={(e) => updateParams('churnMonth1Pct', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">2° mese (%)</Label>
+                    <Input
+                      type="number" min="0" max="100" step="0.1" className="h-8"
+                      value={params.churnMonth2Pct}
+                      onChange={(e) => updateParams('churnMonth2Pct', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">3° mese (%)</Label>
+                    <Input
+                      type="number" min="0" max="100" step="0.1" className="h-8"
+                      value={params.churnMonth3Pct}
+                      onChange={(e) => updateParams('churnMonth3Pct', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>Fattore decadimento</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger><Info className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                        <TooltipContent>
+                          <p>Dal 4° mese il tasso si riduce moltiplicando quello del 3° mese per questo fattore elevato al numero di mesi successivi. Tipico: 0.80-0.90</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Input
+                    type="number" min="0.1" max="1" step="0.05"
+                    value={params.churnDecayFactor}
+                    onChange={(e) => updateParams('churnDecayFactor', parseFloat(e.target.value) || 0.85)}
+                  />
+                </div>
+
+                {/* Preview curva churn */}
+                {(() => {
+                  const rates = [params.churnMonth1Pct, params.churnMonth2Pct, params.churnMonth3Pct];
+                  for (let i = 3; i < 9; i++) {
+                    rates.push(params.churnMonth3Pct * Math.pow(params.churnDecayFactor, i - 2));
+                  }
+                  const annualRetention = rates.reduce((acc, r) => acc * (1 - r / 100), 1);
+                  const annualChurn = Math.round((1 - annualRetention) * 100);
+                  return (
+                    <div className="p-3 bg-muted rounded-lg space-y-2">
+                      <div className="flex gap-1 items-end h-10">
+                        {rates.map((r, i) => (
+                          <TooltipProvider key={i}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="flex-1 rounded-t bg-destructive/70 transition-all"
+                                  style={{ height: `${Math.min(100, (r / Math.max(...rates)) * 100)}%`, minHeight: '2px' }}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent><p>Mese {i + 1}: {r.toFixed(2)}%</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Curva churn 9 mesi — <span className="font-medium text-destructive">~{annualChurn}% abbandono annuo stimato</span>
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
