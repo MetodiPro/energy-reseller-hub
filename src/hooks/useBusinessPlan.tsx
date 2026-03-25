@@ -144,12 +144,13 @@ export const useBusinessPlan = (
     if (!projectId || !stepProgress) return null;
 
     try {
-      const [projectRes, simRes, channelsRes, costsRes, stepCostsRes] = await Promise.all([
+      const [projectRes, simRes, channelsRes, costsRes, stepCostsRes, productsRes] = await Promise.all([
         supabase.from('projects').select('*').eq('id', projectId).maybeSingle(),
         supabase.from('project_revenue_simulations').select('*').eq('project_id', projectId).maybeSingle(),
         supabase.from('project_sales_channels').select('*').eq('project_id', projectId),
         supabase.from('project_costs').select('*').eq('project_id', projectId),
         supabase.from('project_step_costs').select('*').eq('project_id', projectId),
+        supabase.from('simulation_products').select('*, project_sales_channels(channel_name)').eq('project_id', projectId).order('sort_order'),
       ]);
 
       const project = projectRes.data;
