@@ -47,7 +47,6 @@ export interface MonthlyCashFlowData {
   investimentiIniziali: number;
   costiStrutturaliMese: number;
   flussoNetto: number;
-  flussoNetto: number;
   saldoCumulativo: number;
   inflow: number;
   outflow: number;
