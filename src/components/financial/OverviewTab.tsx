@@ -6,13 +6,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
   ArrowUpRight, ArrowDownRight, Target, Percent, Calculator, Zap, Users, Info, ChevronDown,
-  ArrowRight,
+  ArrowRight, Wallet, ShieldAlert, CreditCard, AlertTriangle, Landmark,
 } from 'lucide-react';
 import { FinancialAlerts } from './FinancialAlerts';
 import { FinancialTrendChart } from './FinancialTrendChart';
 import { BreakEvenAnalysis } from './BreakEvenAnalysis';
 import { FinancialGlossary } from './FinancialGlossary';
-import { MonthlyChannelCostsChart } from './MonthlyChannelCostsChart';
 import { MarketDataBar } from './MarketDataBar';
 import type { SalesChannel } from '@/hooks/useSalesChannels';
 import type { FinancialOverviewSummary } from '@/hooks/useFinancialSummary';
@@ -60,7 +59,9 @@ export const OverviewTab = ({
   salesChannels, getChannelBreakdown, simulationData,
   onUsePunLive, onNavigateToTariffs,
 }: OverviewTabProps) => {
-  // Pie data
+  const strutturaliCosts = summary.costsByType.structural + summary.costsByType.direct + summary.costsByType.indirect;
+
+  // Pie data for cost breakdown chart
   const pieData = (() => {
     const entries: { name: string; value: number; color: string }[] = [];
     if (summary.hasSimulationData && summary.passthroughCosts > 0) {
@@ -80,15 +81,6 @@ export const OverviewTab = ({
       });
     return entries;
   })();
-
-  const strutturaliCosts = summary.costsByType.structural + summary.costsByType.direct + summary.costsByType.indirect;
-
-  const barData = [
-    { name: 'Fatturato Netto', value: summary.imponibile, fill: 'hsl(var(--chart-1))' },
-    { name: 'Ricavi Reseller', value: summary.resellerMargin, fill: 'hsl(var(--chart-2))' },
-    { name: 'Margine Commerciale', value: summary.margineCommercialeLordo, fill: 'hsl(var(--chart-3))' },
-    { name: 'Margine Netto', value: summary.netMargin, fill: summary.netMargin >= 0 ? 'hsl(var(--chart-3))' : 'hsl(var(--destructive))' },
-  ];
 
   const totalContracts = summary.contrattiTotali || 0;
   const breakdown = getChannelBreakdown(totalContracts);
@@ -140,10 +132,10 @@ export const OverviewTab = ({
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Cash Flow vs Accrual</p>
+                  <p className="text-sm font-medium">Esiti Economici vs Finanziari</p>
                   <p className="text-xs text-muted-foreground">
-                    I margini sono in logica accrual (competenza). Il Cash Flow mostra l'impatto sulla
-                    liquidità: depositi cauzionali, dilazioni d'incasso e investimenti iniziali.
+                    Gli esiti economici misurano la redditività operativa (competenza).
+                    Gli esiti finanziari misurano la liquidità reale: incassi, crediti, depositi e saldo cassa.
                   </p>
                 </div>
               </div>
@@ -154,201 +146,220 @@ export const OverviewTab = ({
 
       <FinancialAlerts summary={summary} />
 
-      {/* RIGA 1 — Volume */}
-      <TooltipProvider delayDuration={200}>
-        <div className="grid gap-4 md:grid-cols-3">
-          <KPICard
-            title="Fatturato Lordo"
-            tooltip="Tutto ciò che il reseller fattura ai clienti finali: include margine reseller, costi passanti e IVA. È il volume complessivo d'affari, non il guadagno."
-            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-            value={formatCurrency(summary.totalRevenue)}
-            valueClass="text-primary"
-            subtitle={`IVA: ${formatCurrency(summary.totalIva)}`}
-          />
-          <KPICard
-            title="Fatturato Netto"
-            tooltip="Imponibile: fatturato al netto dell'IVA. Base di calcolo per le percentuali di margine."
-            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-            value={formatCurrency(summary.imponibile)}
-            valueClass="text-primary"
-            subtitle="Imponibile, senza IVA"
-          />
-          <KPICard
-            title="Clienti Attivi"
-            tooltip="Clienti con fornitura attiva alla fine del periodo di simulazione (14 mesi), al netto del churn."
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            value={String(summary.clientiAttivi)}
-            subtitle={`su ${summary.contrattiTotali} contratti`}
-          />
-        </div>
-      </TooltipProvider>
-
-      {/* RIGA 2 — Margini a cascata */}
-      <TooltipProvider delayDuration={200}>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip>
-                <TooltipTrigger asChild>
-                  <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                    Costo Energia al Grossista
-                    <Info className="h-3 w-3 text-muted-foreground" />
-                  </CardTitle>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs">
-                  <p>Quanto il reseller paga effettivamente al grossista per l'energia: PUN (prezzo mercato) × kWh + spread grossista × kWh + fee gestione POD × clienti. Questo NON include trasporto, oneri e accise che sono pure partite di giro.</p>
-                </TooltipContent>
-              </UITooltip>
-              <ArrowDownRight className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">
-                {formatCurrency(summary.costoEnergiaNetto + summary.costoGestionePodTotale)}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <p className="text-xs text-muted-foreground">
-                  Energia: {formatCurrency(summary.costoEnergiaNetto)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Fee POD: {formatCurrency(summary.costoGestionePodTotale)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className={summary.margineCommercialeLordo >= 0 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip>
-                <TooltipTrigger asChild>
-                  <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                    Margine Commerciale
-                    <Info className="h-3 w-3 text-muted-foreground" />
-                  </CardTitle>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs">
-                  <p>Il vero margine del reseller dopo aver pagato il grossista. Corrisponde a: spread netto (spread cliente − spread grossista) × kWh + CCV − fee POD, moltiplicato per tutti i clienti del periodo. Rappresenta la redditività lorda del modello commerciale.</p>
-                </TooltipContent>
-              </UITooltip>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${summary.margineCommercialeLordo >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                {formatCurrency(summary.margineCommercialeLordo)}
-              </div>
-              <div className="flex items-center gap-1 text-xs">
-                {summary.margineCommercialePercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
-                <span className={summary.margineCommercialePercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.margineCommercialePercent)}</span>
-                <span className="text-muted-foreground">sul fatturato netto</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </TooltipProvider>
-
-      {/* RIGA 3 — Costi operativi propri */}
-      <TooltipProvider delayDuration={200}>
-        <div className="grid gap-4 md:grid-cols-3">
-          <KPICard
-            title="Costi Commerciali"
-            tooltip="Provvigioni e commissioni pagate ai canali di vendita (agenti, teleselling, web, sportelli) per ogni contratto acquisito e attivato."
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            value={formatCurrency(summary.costiCommercialiSimulati)}
-            valueClass="text-orange-600"
-            subtitle={summary.costiCommercialiSimulati > 0 ? 'Provvigioni canali vendita' : 'Configura i canali'}
-          />
-          <KPICard
-            title="Costi Strutturali"
-            tooltip="Costi fissi del reseller: affitto, personale, software, consulenze. Sono i costi che sostieni indipendentemente dal numero di clienti."
-            icon={<TrendingDown className="h-4 w-4 text-muted-foreground" />}
-            value={formatCurrency(strutturaliCosts)}
-            valueClass="text-orange-600"
-            subtitle="Affitto, personale, software"
-          />
-          <Card className={summary.netMargin >= 0 ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20' : 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20'}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <UITooltip>
-                <TooltipTrigger asChild>
-                  <CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">
-                    Margine Netto Operativo
-                    <Info className="h-3 w-3 text-muted-foreground" />
-                  </CardTitle>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs">
-                  <p>Margine commerciale meno tutti i costi operativi (provvigioni canali vendita + costi strutturali). La fee gestione POD è già detratta nel calcolo del Margine Commerciale.</p>
-                </TooltipContent>
-              </UITooltip>
-              <Percent className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                {formatCurrency(summary.netMargin)}
-              </div>
-              <div className="flex items-center gap-1 text-xs">
-                {summary.netMarginPercent >= 0 ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
-                <span className={summary.netMarginPercent >= 0 ? 'text-green-600' : 'text-destructive'}>{formatPercent(summary.netMarginPercent)}</span>
-                <span className="text-muted-foreground">sul fatturato netto</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </TooltipProvider>
-
-      {/* RIGA 4 — Passanti e incassi */}
-      {summary.hasSimulationData && (
-        <Card className="border-dashed border-muted-foreground/30 bg-muted/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4 text-muted-foreground" />
-              Partite di Giro (Transit Items)
-            </CardTitle>
-            <CardDescription>
-              Importi incassati dai clienti e girati integralmente a terzi (DSO, GSE, ADM). Non impattano il margine.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Costi Passanti Totali</p>
-                <p className="text-xl font-bold text-orange-600">{formatCurrency(summary.passthroughCosts)}</p>
-                <p className="text-xs text-muted-foreground">Trasporto + oneri + accise</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Totale Incassato</p>
-                <p className="text-xl font-bold text-green-600">{formatCurrency(summary.totalIncassato)}</p>
-                <p className="text-xs text-muted-foreground">Incassi effettivi dai clienti</p>
-              </div>
-              <div className="space-y-1">
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <p className="text-sm text-muted-foreground underline decoration-dotted cursor-help">Crediti in Corso</p>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      Fatture emesse ai clienti il cui incasso ricade oltre la finestra di simulazione (waterfall 0-30-60-60+ giorni). Non sono insoluti: si prevede di incassarli. Rappresentano il credito commerciale del reseller verso i clienti attivi.
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
-                <p className="text-xl font-bold text-blue-600">{formatCurrency(simulationSummary.totalCrediti)}</p>
-                <p className="text-xs text-muted-foreground">Fatture emesse non ancora incassate</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Insoluti</p>
-                <p className="text-xl font-bold text-destructive">{formatCurrency(summary.totalInsoluti)}</p>
-                <p className="text-xs text-muted-foreground">Fatturato non incassato</p>
-              </div>
+      {/* ═══════════════════════════════════════════════════════════════════
+          SEZIONE 1 — ESITI ECONOMICI
+          ═══════════════════════════════════════════════════════════════════ */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Esiti Economici
+          </CardTitle>
+          <CardDescription>
+            Risultati di competenza: ricavi, costi e margini operativi del periodo di simulazione (14 mesi).
+            Tutti i margini sono calcolati sul fatturato netto (imponibile, al netto dell'IVA).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <TooltipProvider delayDuration={200}>
+            <div className="divide-y">
+              {/* 1. Clienti Attivi */}
+              <EconomicRow
+                label="Clienti Attivi"
+                tooltip="Numero di clienti con fornitura attiva alla fine del periodo di simulazione (mese 14), al netto di tutte le cessazioni (churn). Rappresenta il portafoglio clienti reale che genera ricavi ricorrenti."
+                value={String(summary.clientiAttivi)}
+                detail={`Su ${summary.contrattiTotali} contratti firmati nel periodo. Il tasso di churn cumulato ha determinato ${summary.contrattiTotali - summary.clientiAttivi} cessazioni.`}
+                icon={<Users className="h-4 w-4" />}
+              />
+              {/* 2. Fatturato Netto */}
+              <EconomicRow
+                label="Fatturato Netto (Imponibile)"
+                tooltip="Totale dei ricavi al netto dell'IVA. Questa è la base su cui vengono calcolate tutte le percentuali di margine. Include i ricavi propri del reseller (CCV + spread) e le partite di giro (trasporto, oneri, accise)."
+                value={formatCurrency(summary.imponibile)}
+                valueClass="text-primary"
+                detail="Fatturato lordo meno IVA. È la base imponibile del reseller e il riferimento per tutte le percentuali di redditività indicate."
+                icon={<TrendingUp className="h-4 w-4" />}
+              />
+              {/* 3. Fatturato Lordo */}
+              <EconomicRow
+                label="Fatturato Lordo"
+                tooltip="Volume complessivo d'affari: tutto ciò che il reseller fattura ai clienti finali. Include margine reseller, costi passanti (trasporto, oneri, accise) e IVA. Non rappresenta il guadagno ma il giro d'affari totale."
+                value={formatCurrency(summary.totalRevenue)}
+                valueClass="text-primary"
+                detail={`Di cui IVA: ${formatCurrency(summary.totalIva)}. Il fatturato lordo include le partite di giro che transitano in fattura ma vengono girate integralmente a terzi.`}
+                icon={<DollarSign className="h-4 w-4" />}
+              />
+              {/* 4. Costo Energia al Grossista */}
+              <EconomicRow
+                label="Costo Energia al Grossista"
+                tooltip="Quanto il reseller paga effettivamente al grossista per l'energia: PUN (prezzo mercato) × kWh consumati + spread grossista × kWh. NON include trasporto, oneri e accise che sono partite di giro neutrali per il margine."
+                value={formatCurrency(summary.costoEnergiaNetto)}
+                valueClass="text-destructive"
+                detail={`Calcolato come PUN × kWh totali consumati dalla base clienti + spread grossista × kWh. Rappresenta il costo industriale vero del reseller per l'approvvigionamento energia.`}
+                icon={<Zap className="h-4 w-4" />}
+              />
+              {/* 5. Costi Passanti Totali */}
+              <EconomicRow
+                label="Costi Passanti Totali"
+                tooltip="Importi fatturati ai clienti e girati integralmente a terzi (distributore, GSE, Agenzia delle Dogane). Non impattano il margine del reseller: sono una partita di giro neutra."
+                value={formatCurrency(summary.passthroughCosts)}
+                valueClass="text-orange-600"
+                detail="Comprendono trasporto e distribuzione, oneri di sistema (ASOS + ARIM) e accise. Il reseller li incassa dal cliente e li riversa integralmente ai soggetti istituzionali competenti."
+                icon={<ArrowRight className="h-4 w-4" />}
+              />
+              {/* 6. Fee Gestione POD */}
+              <EconomicRow
+                label="Fee Gestione POD"
+                tooltip="Costo unitario mensile che il grossista addebita al reseller per ogni POD (punto di prelievo) gestito. Copre servizi di billing, SII, gestione switching e assistenza tecnica."
+                value={formatCurrency(summary.costoGestionePodTotale)}
+                valueClass="text-destructive"
+                detail={`Calcolata come fee mensile per POD × numero di clienti attivi ogni mese, cumulata sul periodo. È un costo reale del reseller, già detratto nel calcolo del Margine Commerciale.`}
+                icon={<Calculator className="h-4 w-4" />}
+              />
+              {/* 7. Costi Commerciali */}
+              <EconomicRow
+                label="Costi Commerciali"
+                tooltip="Provvigioni e commissioni pagate ai canali di vendita (agenti, teleselling, web, sportelli) per l'acquisizione e attivazione dei contratti. Calcolate in base ai tassi medi di canale configurati."
+                value={formatCurrency(summary.costiCommercialiSimulati)}
+                valueClass="text-orange-600"
+                detail={summary.costiCommercialiSimulati > 0
+                  ? `Stime basate sui tassi medi di commissione per canale. Includono provvigioni per contratto firmato e/o per attivazione completata, in base alla configurazione di ogni canale di vendita.`
+                  : 'Nessun canale di vendita configurato. Configura i canali nelle Ipotesi Operative per stimare le provvigioni.'}
+                icon={<Users className="h-4 w-4" />}
+              />
+              {/* 8. Costi Strutturali */}
+              <EconomicRow
+                label="Costi Strutturali"
+                tooltip="Costi fissi del reseller indipendenti dal volume clienti: affitto sede, personale, software gestionale, consulenze, assicurazioni. Configurati manualmente nella sezione Finanza > Costi."
+                value={formatCurrency(strutturaliCosts)}
+                valueClass="text-orange-600"
+                detail="Comprendono costi strutturali, diretti e indiretti configurati manualmente. Sono i costi che il reseller sostiene indipendentemente dal numero di clienti serviti e dalla quantità di energia venduta."
+                icon={<Landmark className="h-4 w-4" />}
+              />
+              {/* 9. Margine Commerciale */}
+              <EconomicRowHighlight
+                label="Margine Commerciale"
+                tooltip="Il vero margine del reseller dopo aver pagato il grossista. Corrisponde a: (CCV + Spread Cliente) − (PUN + Spread Grossista) × kWh − Fee POD × clienti. Rappresenta la redditività lorda del modello commerciale prima dei costi operativi."
+                value={formatCurrency(summary.margineCommercialeLordo)}
+                percentValue={formatPercent(summary.margineCommercialePercent)}
+                positive={summary.margineCommercialeLordo >= 0}
+                detail="Ricavi propri del reseller meno costo energia dal grossista e fee gestione POD. Misura la redditività intrinseca del modello di business, prima delle spese commerciali e strutturali."
+                icon={<Target className="h-4 w-4" />}
+              />
+              {/* 10. Margine di Contribuzione */}
+              <EconomicRowHighlight
+                label="Margine di Contribuzione"
+                tooltip="Margine commerciale meno i costi commerciali (provvigioni canali di vendita). Indica quanto resta per coprire i costi fissi strutturali. È il primo indicatore di sostenibilità del modello di acquisizione clienti."
+                value={formatCurrency(summary.contributionMargin)}
+                percentValue={formatPercent(summary.contributionMarginPercent)}
+                positive={summary.contributionMargin >= 0}
+                detail="Margine Commerciale − Provvigioni canali vendita. Se positivo, ogni nuovo cliente contribuisce a coprire i costi fissi. Se negativo, il costo di acquisizione è superiore al margine generato."
+                icon={<Percent className="h-4 w-4" />}
+              />
+              {/* 11. Margine Netto Operativo */}
+              <EconomicRowHighlight
+                label="Margine Netto Operativo"
+                tooltip="Margine commerciale meno tutti i costi operativi (provvigioni + costi strutturali). Rappresenta il risultato operativo finale: quanto il reseller guadagna o perde dopo aver coperto tutti i costi."
+                value={formatCurrency(summary.netMargin)}
+                percentValue={formatPercent(summary.netMarginPercent)}
+                positive={summary.netMargin >= 0}
+                detail="Margine Commerciale − Costi Commerciali − Costi Strutturali. È l'utile (o perdita) operativo prima delle imposte e degli effetti finanziari (depositi, dilazioni incasso)."
+                icon={<TrendingUp className="h-4 w-4" />}
+              />
             </div>
-            <div className="mt-3 pt-3 border-t border-dashed border-muted-foreground/20 flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                Verifica: Incassato ({formatCurrency(simulationSummary.totalIncassato)})
-                + Crediti ({formatCurrency(simulationSummary.totalCrediti)})
-                + Insoluti ({formatCurrency(simulationSummary.totalInsoluti)})
-              </span>
-              <span className="font-medium text-foreground">
-                = {formatCurrency(simulationSummary.totalIncassato + simulationSummary.totalCrediti + simulationSummary.totalInsoluti)}
-              </span>
+          </TooltipProvider>
+        </CardContent>
+      </Card>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          SEZIONE 2 — ESITI FINANZIARI
+          ═══════════════════════════════════════════════════════════════════ */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-primary" />
+            Esiti Finanziari
+          </CardTitle>
+          <CardDescription>
+            Risultati di cassa: liquidità reale, crediti, impegni e saldo complessivo.
+            A differenza degli esiti economici, qui conta quando i flussi avvengono, non quando maturano.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          <TooltipProvider delayDuration={200}>
+            <div className="divide-y">
+              {/* 1. Totale Incassato */}
+              <FinancialRow
+                label="Totale Incassato"
+                tooltip="Somma effettiva degli incassi ricevuti dai clienti nel periodo di simulazione. Tiene conto della waterfall di incasso (pagamento a scadenza, a 30gg, a 60gg, oltre 60gg) e del tasso di insolvenza."
+                value={formatCurrency(summary.totalIncassato)}
+                valueClass="text-green-600"
+                detail="Quanto è realmente entrato in cassa dalla fatturazione ai clienti, considerando i tempi medi di pagamento e le dilazioni. Non coincide col fatturato perché parte dei crediti è ancora in lavorazione."
+                icon={<DollarSign className="h-4 w-4" />}
+              />
+              {/* 2. Crediti in Corso */}
+              <FinancialRow
+                label="Crediti in Corso"
+                tooltip="Fatture emesse ai clienti il cui incasso ricade oltre la finestra di simulazione (waterfall 0-30-60-90+ giorni). Non sono insoluti: ci si aspetta di incassarli. Rappresentano il credito commerciale del reseller."
+                value={formatCurrency(simulationSummary.totalCrediti)}
+                valueClass="text-blue-600"
+                detail="Quota di fatturato già maturato e fatturato ma non ancora incassato, in attesa di pagamento secondo i termini contrattuali. Si prevede di recuperarli entro i normali cicli di incasso."
+                icon={<CreditCard className="h-4 w-4" />}
+              />
+              {/* 3. Depositi Cauzionali */}
+              <FinancialRow
+                label="Depositi Cauzionali"
+                tooltip="Garanzie richieste dal grossista al reseller per operare. Sono un impegno finanziario (immobilizzazione di liquidità), non un costo operativo. Vengono progressivamente svincolati al maturare della storicità di pagamento."
+                value={formatCurrency(simulationSummary.depositoMassimo)}
+                valueClass="text-amber-600"
+                detail={`Picco massimo di deposito richiesto. Deposito iniziale: ${formatCurrency(simulationSummary.depositoIniziale)}, deposito a fine periodo: ${formatCurrency(simulationSummary.depositoFinale)}. I depositi non sono un costo: sono capitale immobilizzato potenzialmente recuperabile che impatta la liquidità disponibile.`}
+                icon={<ShieldAlert className="h-4 w-4" />}
+              />
+              {/* 4. Insoluti */}
+              <FinancialRow
+                label="Insoluti"
+                tooltip="Quota di fatturato strutturalmente non incassabile, calcolata applicando il tasso di insolvenza configurato al fatturato totale. Rappresenta una perdita definitiva su crediti."
+                value={formatCurrency(summary.totalInsoluti)}
+                valueClass="text-destructive"
+                detail="Stimati in base al tasso di insolvenza (uncollectible rate) applicato proporzionalmente a ogni scaglione dell'aging degli incassi. Sono fatture che non verranno mai pagate."
+                icon={<AlertTriangle className="h-4 w-4" />}
+              />
+              {/* 5. Massima Esposizione */}
+              <FinancialRow
+                label="Massima Esposizione"
+                tooltip="Il punto di massima esposizione finanziaria (saldo cassa negativo più profondo). Indica il fabbisogno finanziario massimo che il reseller deve coprire con capitale proprio o finanziamenti."
+                value={formatCurrency(Math.abs(cashFlowData.massimaEsposizione))}
+                valueClass="text-destructive"
+                detail={`Picco raggiunto nel mese di ${cashFlowData.meseEsposizioneMassima}. ${cashFlowData.mesePrimoPositivo ? `Il saldo torna positivo a partire da ${cashFlowData.mesePrimoPositivo}.` : 'Il saldo non torna positivo nel periodo simulato.'} Questo valore determina il capitale circolante minimo necessario per operare.`}
+                icon={<TrendingDown className="h-4 w-4" />}
+              />
+              {/* 6. Saldo Cassa */}
+              <FinancialRow
+                label="Saldo Cassa (Fine Periodo)"
+                tooltip="Saldo cumulativo di tutti i flussi di cassa al termine dei 14 mesi di simulazione. Tiene conto di incassi, costi operativi, depositi cauzionali, investimenti iniziali e flussi fiscali."
+                value={formatCurrency(cashFlowData.saldoFinale)}
+                valueClass={cashFlowData.saldoFinale >= 0 ? 'text-green-600' : 'text-destructive'}
+                detail="Somma algebrica di tutti i flussi in entrata e uscita: incassi clienti, pagamenti grossista, depositi cauzionali, provvigioni, costi strutturali, investimenti e tasse. Se positivo, l'attività genera cassa; se negativo, richiede finanziamento esterno."
+                icon={<Wallet className="h-4 w-4" />}
+              />
             </div>
-          </CardContent>
-        </Card>
-      )}
+
+            {/* Riconciliazione */}
+            {summary.hasSimulationData && (
+              <div className="mt-4 pt-3 border-t border-dashed border-muted-foreground/20 flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  Verifica: Incassato ({formatCurrency(simulationSummary.totalIncassato)})
+                  + Crediti ({formatCurrency(simulationSummary.totalCrediti)})
+                  + Insoluti ({formatCurrency(simulationSummary.totalInsoluti)})
+                </span>
+                <span className="font-medium text-foreground">
+                  = {formatCurrency(simulationSummary.totalIncassato + simulationSummary.totalCrediti + simulationSummary.totalInsoluti)}
+                </span>
+              </div>
+            )}
+          </TooltipProvider>
+        </CardContent>
+      </Card>
 
       {/* Charts */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -377,14 +388,12 @@ export const OverviewTab = ({
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Sales Channel Cost Breakdown */}
-      {channelPieData.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Ripartizione Costi Commerciali per Canale</CardTitle><CardDescription>Distribuzione provvigioni tra canali di vendita ({totalContracts} contratti totali)</CardDescription></CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
+        {/* Sales Channel Cost Breakdown */}
+        {channelPieData.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Costi Commerciali per Canale</CardTitle><CardDescription>Distribuzione provvigioni ({totalContracts} contratti)</CardDescription></CardHeader>
+            <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <RechartsPie>
                   <Pie data={channelPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${percent.toFixed(0)}%`}>
@@ -393,7 +402,7 @@ export const OverviewTab = ({
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 </RechartsPie>
               </ResponsiveContainer>
-              <div className="space-y-3 flex flex-col justify-center">
+              <div className="space-y-2 mt-4">
                 {channelPieData.map((entry) => (
                   <div key={entry.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} /><span className="text-sm font-medium">{entry.name}</span></div>
@@ -401,51 +410,10 @@ export const OverviewTab = ({
                   </div>
                 ))}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-
-      {/* Margin Analysis summary */}
-      <Card>
-        <CardHeader><CardTitle>Analisi Margini a Cascata</CardTitle><CardDescription>Dal margine commerciale al risultato operativo</CardDescription></CardHeader>
-        <CardContent className="space-y-6">
-          {[
-            { name: 'Margine Commerciale', percent: summary.margineCommercialePercent, desc: 'Ricavi Reseller − Costo Energia Grossista − Fee POD' },
-            { name: 'Margine di Contribuzione', percent: summary.contributionMarginPercent, desc: 'Margine Commerciale − Provvigioni canali vendita' },
-            { name: 'Margine Netto Operativo', percent: summary.netMarginPercent, desc: 'Margine Commerciale − Costi Commerciali − Costi Strutturali' },
-          ].map((margin) => (
-            <div key={margin.name} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium">{margin.name}</span>
-                  <p className="text-xs text-muted-foreground">{margin.desc}</p>
-                </div>
-                <Badge variant={margin.percent >= 20 ? 'default' : margin.percent >= 0 ? 'secondary' : 'destructive'}>{formatPercent(margin.percent)}</Badge>
-              </div>
-              <Progress value={Math.max(0, Math.min(100, margin.percent))} className="h-2" />
-            </div>
-          ))}
-          <div className="pt-4 border-t text-xs text-muted-foreground italic">
-            Tutte le percentuali sono calcolate sul fatturato netto (imponibile), esclusi IVA e costi passanti.
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Simulation Cost Summary */}
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />Riepilogo Costi dal Simulatore</CardTitle><CardDescription>Costi calcolati in base alla base clienti e consumi previsti</CardDescription></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costo Energia Grossista</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoEnergiaTotale)}</p><p className="text-xs text-muted-foreground">PUN + spread grossista</p></div>
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Fee Gestione POD</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.costoGestionePodTotale)}</p><p className="text-xs text-muted-foreground">Per ogni POD attivo</p></div>
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Commerciali</p><p className="text-xl font-bold">{formatCurrency(summary.costiCommercialiSimulati)}</p><p className="text-xs text-muted-foreground">Provvigioni canali vendita</p></div>
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Depositi Cauzionali</p><p className="text-xl font-bold">{formatCurrency(simulationSummary.depositoMassimo)}</p><p className="text-xs text-muted-foreground">Picco massimo</p></div>
-            <div className="space-y-1"><p className="text-sm text-muted-foreground">Costi Operativi Totali</p><p className="text-xl font-bold">{formatCurrency(summary.operationalCosts)}</p><p className="text-xs text-muted-foreground">Provvigioni canali + strutturali (fee POD già nel margine commerciale)</p></div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       <FinancialTrendChart cashFlowData={cashFlowData} loading={cashFlowLoading} />
       <BreakEvenAnalysis summary={summary} breakEvenFinanziario={cashFlowData.mesePrimoPositivo} />
@@ -454,18 +422,99 @@ export const OverviewTab = ({
   );
 };
 
-// Simple KPI Card helper
-const KPICard = ({ title, tooltip, icon, value, valueClass, subtitle }: { title: string; tooltip: string; icon: React.ReactNode; value: string; valueClass?: string; subtitle: string }) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <TooltipProvider delayDuration={200}>
-        <UITooltip><TooltipTrigger asChild><CardTitle className="text-sm font-medium flex items-center gap-1 cursor-help">{title}<Info className="h-3 w-3 text-muted-foreground" /></CardTitle></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs"><p>{tooltip}</p></TooltipContent></UITooltip>
-      </TooltipProvider>
-      {icon}
-    </CardHeader>
-    <CardContent>
-      <div className={`text-2xl font-bold ${valueClass || ''}`}>{value}</div>
-      <p className="text-xs text-muted-foreground">{subtitle}</p>
-    </CardContent>
-  </Card>
+/* ── Row component for Economic section ── */
+const EconomicRow = ({ label, tooltip, value, valueClass, detail, icon }: {
+  label: string; tooltip: string; value: string; valueClass?: string; detail: string; icon: React.ReactNode;
+}) => (
+  <div className="py-4 first:pt-0 last:pb-0">
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1 min-w-0">
+        <TooltipProvider delayDuration={200}>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 cursor-help">
+                <span className="text-muted-foreground">{icon}</span>
+                <span className="text-sm font-medium">{label}</span>
+                <Info className="h-3 w-3 text-muted-foreground shrink-0" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-sm">
+              <p>{tooltip}</p>
+            </TooltipContent>
+          </UITooltip>
+        </TooltipProvider>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{detail}</p>
+      </div>
+      <div className={`text-xl font-bold shrink-0 ${valueClass || 'text-foreground'}`}>
+        {value}
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Highlighted row for margin items ── */
+const EconomicRowHighlight = ({ label, tooltip, value, percentValue, positive, detail, icon }: {
+  label: string; tooltip: string; value: string; percentValue: string; positive: boolean; detail: string; icon: React.ReactNode;
+}) => (
+  <div className={`py-4 first:pt-0 last:pb-0 px-4 -mx-4 rounded-lg ${positive ? 'bg-green-50/50 dark:bg-green-950/10' : 'bg-red-50/50 dark:bg-red-950/10'}`}>
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1 min-w-0">
+        <TooltipProvider delayDuration={200}>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 cursor-help">
+                <span className="text-muted-foreground">{icon}</span>
+                <span className="text-sm font-semibold">{label}</span>
+                <Info className="h-3 w-3 text-muted-foreground shrink-0" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-sm">
+              <p>{tooltip}</p>
+            </TooltipContent>
+          </UITooltip>
+        </TooltipProvider>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{detail}</p>
+      </div>
+      <div className="text-right shrink-0">
+        <div className={`text-xl font-bold ${positive ? 'text-green-600' : 'text-destructive'}`}>
+          {value}
+        </div>
+        <div className="flex items-center gap-1 justify-end">
+          {positive ? <ArrowUpRight className="h-3 w-3 text-green-600" /> : <ArrowDownRight className="h-3 w-3 text-destructive" />}
+          <span className={`text-xs font-medium ${positive ? 'text-green-600' : 'text-destructive'}`}>{percentValue}</span>
+          <span className="text-xs text-muted-foreground">sul fatt. netto</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ── Row component for Financial section ── */
+const FinancialRow = ({ label, tooltip, value, valueClass, detail, icon }: {
+  label: string; tooltip: string; value: string; valueClass?: string; detail: string; icon: React.ReactNode;
+}) => (
+  <div className="py-4 first:pt-0 last:pb-0">
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1 min-w-0">
+        <TooltipProvider delayDuration={200}>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 cursor-help">
+                <span className="text-muted-foreground">{icon}</span>
+                <span className="text-sm font-medium">{label}</span>
+                <Info className="h-3 w-3 text-muted-foreground shrink-0" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-sm">
+              <p>{tooltip}</p>
+            </TooltipContent>
+          </UITooltip>
+        </TooltipProvider>
+        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{detail}</p>
+      </div>
+      <div className={`text-xl font-bold shrink-0 ${valueClass || 'text-foreground'}`}>
+        {value}
+      </div>
+    </div>
+  </div>
 );
