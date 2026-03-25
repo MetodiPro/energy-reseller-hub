@@ -15,8 +15,9 @@ import {
 } from 'recharts';
 import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
-import { useSimulationSummary } from '@/hooks/useSimulationSummary';
+import { useSimulationSummary, buildSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useEngineResult } from '@/hooks/useEngineResult';
+import { useSimulationProducts } from '@/hooks/useSimulationProducts';
 import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
