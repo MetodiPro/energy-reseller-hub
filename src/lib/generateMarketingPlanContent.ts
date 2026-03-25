@@ -1,4 +1,4 @@
-import type { ProjectContext } from './generateBusinessPlanContent';
+import type { ProjectContext, ProductInfo } from './generateBusinessPlanContent';
 
 const formatCurrency = (n: number): string =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
@@ -27,40 +27,61 @@ const regionsList = (regions: string[] | null): string => {
 
 export function generateTargetMarket(ctx: ProjectContext): string {
   const commodity = commodityLabel(ctx.commodityType);
-  const clientType = clientTypeLabel(ctx.simulation?.clientType || null);
+  const products = ctx.simulation?.products;
 
   let text = `MERCATO TARGET\n\n`;
   text += `SEGMENTAZIONE DELLA CLIENTELA:\n`;
-  text += `Il progetto "${ctx.projectName}" si rivolge a ${clientType} per la fornitura di ${commodity} nel mercato libero italiano.\n\n`;
 
-  text += `PROFILO DEL CLIENTE IDEALE:\n`;
-  if (ctx.simulation?.clientType === 'domestico') {
-    text += `• Famiglie residenziali con contratto attivo nel mercato libero o in transizione dal mercato tutelato\n`;
-    text += `• Consumo medio mensile stimato: ${ctx.simulation?.avgMonthlyConsumption || 200} kWh/mese\n`;
-    text += `• Sensibilità al prezzo e alla qualità del servizio clienti\n`;
-    text += `• Propensione al digitale per gestione contratto e bollette online\n`;
-  } else if (ctx.simulation?.clientType === 'business') {
-    text += `• PMI e aziende con consumi energetici significativi\n`;
-    text += `• Consumo medio mensile stimato: ${ctx.simulation?.avgMonthlyConsumption || 200} kWh/mese\n`;
-    text += `• Interesse per offerte personalizzate e consulenza energetica\n`;
-    text += `• Attenzione al total cost of ownership e alla stabilità tariffaria\n`;
+  if (products && products.length > 1) {
+    text += `Il progetto "${ctx.projectName}" si rivolge a segmenti diversificati attraverso ${products.length} prodotti:\n\n`;
+    products.forEach((p, i) => {
+      text += `${i + 1}. ${p.name} (${p.contractShare}% dei contratti):\n`;
+      text += `   • Target: ${clientTypeLabel(p.clientType)}\n`;
+      text += `   • Consumo medio: ${p.avgMonthlyConsumption} kWh/mese\n`;
+      text += `   • Tasso attivazione: ${p.activationRate}%\n`;
+      if (p.channelName) text += `   • Canale di vendita: ${p.channelName}\n`;
+      text += `\n`;
+    });
   } else {
-    text += `• Mix di clientela residenziale e business\n`;
-    text += `• Consumo medio mensile stimato: ${ctx.simulation?.avgMonthlyConsumption || 200} kWh/mese\n`;
-    text += `• Esigenze differenziate: prezzo competitivo (domestici) e personalizzazione (business)\n`;
+    const clientType = clientTypeLabel(ctx.simulation?.clientType || null);
+    text += `Il progetto "${ctx.projectName}" si rivolge a ${clientType} per la fornitura di ${commodity} nel mercato libero italiano.\n\n`;
+
+    text += `PROFILO DEL CLIENTE IDEALE:\n`;
+    if (ctx.simulation?.clientType === 'domestico') {
+      text += `• Famiglie residenziali con contratto attivo nel mercato libero o in transizione dal mercato tutelato\n`;
+      text += `• Consumo medio mensile stimato: ${ctx.simulation?.avgMonthlyConsumption || 200} kWh/mese\n`;
+      text += `• Sensibilità al prezzo e alla qualità del servizio clienti\n`;
+      text += `• Propensione al digitale per gestione contratto e bollette online\n`;
+    } else if (ctx.simulation?.clientType === 'business') {
+      text += `• PMI e aziende con consumi energetici significativi\n`;
+      text += `• Consumo medio mensile stimato: ${ctx.simulation?.avgMonthlyConsumption || 200} kWh/mese\n`;
+      text += `• Interesse per offerte personalizzate e consulenza energetica\n`;
+      text += `• Attenzione al total cost of ownership e alla stabilità tariffaria\n`;
+    } else {
+      text += `• Mix di clientela residenziale e business\n`;
+      text += `• Consumo medio mensile stimato: ${ctx.simulation?.avgMonthlyConsumption || 200} kWh/mese\n`;
+      text += `• Esigenze differenziate: prezzo competitivo (domestici) e personalizzazione (business)\n`;
+    }
   }
 
-  text += `\n`;
-
-  text += `AREA GEOGRAFICA:\n`;
+  text += `\nAREA GEOGRAFICA:\n`;
   text += `L'attività commerciale è prevista ${regionsList(ctx.regions)}.\n\n`;
 
   text += `DIMENSIONE DEL MERCATO:\n`;
   if (ctx.simulation) {
     const total12m = ctx.simulation.monthlyContracts.reduce((s, c) => s + c, 0);
     text += `• Obiettivo acquisizione: ${total12m.toLocaleString('it-IT')} contratti nei primi 12 mesi\n`;
-    text += `• Tasso di attivazione previsto: ${ctx.simulation.activationRate}%\n`;
-    text += `• Churn post-attivazione: ${ctx.simulation.churnMonth1Pct}% (1° mese), ${ctx.simulation.churnMonth2Pct}% (2° mese), ${ctx.simulation.churnMonth3Pct}% (3° mese), poi decadimento esponenziale (fattore ${ctx.simulation.churnDecayFactor})\n`;
+    if (products && products.length > 1) {
+      const weightedActivation = products.reduce((s, p) => s + p.activationRate * p.contractShare / 100, 0);
+      text += `• Tasso di attivazione ponderato: ${weightedActivation.toFixed(1)}%\n`;
+      text += `• Churn differenziato per prodotto:\n`;
+      products.forEach(p => {
+        text += `  - ${p.name}: ${p.churnMonth1Pct}% (1°m), ${p.churnMonth2Pct}% (2°m), ${p.churnMonth3Pct}% (3°m), decay ${p.churnDecayFactor}\n`;
+      });
+    } else {
+      text += `• Tasso di attivazione previsto: ${ctx.simulation.activationRate}%\n`;
+      text += `• Churn post-attivazione: ${ctx.simulation.churnMonth1Pct}% (1° mese), ${ctx.simulation.churnMonth2Pct}% (2° mese), ${ctx.simulation.churnMonth3Pct}% (3° mese), poi decadimento esponenziale (fattore ${ctx.simulation.churnDecayFactor})\n`;
+    }
   }
   if (ctx.expectedVolumes) {
     text += `• Volumi target a regime: ${ctx.expectedVolumes.toLocaleString('it-IT')} utenze\n`;
@@ -119,12 +140,23 @@ export function generateAcquisitionStrategy(ctx: ProjectContext): string {
 
 export function generatePricingStrategy(ctx: ProjectContext): string {
   const commodity = commodityLabel(ctx.commodityType);
+  const products = ctx.simulation?.products;
 
   let text = `STRATEGIA DI PRICING\n\n`;
   text += `MODELLO TARIFFARIO:\n`;
   text += `L'offerta commerciale per la fornitura di ${commodity} si basa su un modello di pricing trasparente e competitivo.\n\n`;
 
-  if (ctx.simulation) {
+  if (products && products.length > 1) {
+    text += `OFFERTE PER PRODOTTO:\n`;
+    products.forEach(p => {
+      text += `\n• ${p.name} (${clientTypeLabel(p.clientType)}):\n`;
+      text += `  - Spread reseller: ${(p.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
+      text += `  - CCV: ${formatCurrency(p.ccvMonthly)}/mese\n`;
+      text += `  - Consumo medio: ${p.avgMonthlyConsumption} kWh/mese\n`;
+      text += `  - IVA: ${p.ivaPercent}%\n`;
+    });
+    text += `\n`;
+  } else if (ctx.simulation) {
     text += `OFFERTA ENERGIA ELETTRICA:\n`;
     text += `• Componente energia: PUN (Prezzo Unico Nazionale) + spread reseller di ${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
     text += `• Componente commerciale (CCV): ${formatCurrency(ctx.simulation.ccvMonthly)}/mese per cliente\n`;
@@ -145,6 +177,8 @@ export function generatePricingStrategy(ctx: ProjectContext): string {
 }
 
 export function generateCompetitivePositioning(ctx: ProjectContext): string {
+  const products = ctx.simulation?.products;
+
   let text = `POSIZIONAMENTO COMPETITIVO\n\n`;
   text += `ANALISI COMPETITIVA:\n`;
   text += `Il mercato della vendita di energia in Italia è altamente competitivo con oltre 700 operatori attivi. Il progetto "${ctx.projectName}" si posiziona come operatore agile e focalizzato.\n\n`;
@@ -156,7 +190,12 @@ export function generateCompetitivePositioning(ctx: ProjectContext): string {
   text += `• Velocità decisionale: capacità di adattare offerte e strategie rapidamente\n\n`;
 
   text += `DIFFERENZIATORI CHIAVE:\n`;
-  text += `• Focus su ${clientTypeLabel(ctx.simulation?.clientType || null)} con offerte dedicate\n`;
+  if (products && products.length > 1) {
+    const clientTypes = [...new Set(products.map(p => p.clientType))];
+    text += `• Offerta multi-prodotto (${products.length} prodotti) per ${clientTypes.map(t => clientTypeLabel(t)).join(' e ')}\n`;
+  } else {
+    text += `• Focus su ${clientTypeLabel(ctx.simulation?.clientType || null)} con offerte dedicate\n`;
+  }
   text += `• Presenza radicata ${regionsList(ctx.regions)}\n`;
   if (ctx.wholesalerName) {
     text += `• Partnership con grossista affidabile (${ctx.wholesalerName})\n`;
@@ -216,10 +255,10 @@ export function generateCommunicationChannels(ctx: ProjectContext): string {
 export function generateBudgetAllocation(ctx: ProjectContext): string {
   const activeChannels = ctx.salesChannels.filter(c => c.is_active && c.contract_share > 0);
   const totalContracts = ctx.simulation ? ctx.simulation.monthlyContracts.reduce((s, c) => s + c, 0) : 0;
+  const products = ctx.simulation?.products;
 
   let text = `BUDGET MARKETING E ALLOCAZIONE RISORSE\n\n`;
 
-  // Calculate commission costs
   let totalCommissions = 0;
   if (activeChannels.length > 0 && totalContracts > 0) {
     activeChannels.forEach(ch => {
@@ -269,7 +308,13 @@ export function generateBudgetAllocation(ctx: ProjectContext): string {
   text += `• Tasso di conversione per canale\n`;
   text += `• Customer Lifetime Value (CLV)\n`;
   text += `• Tasso di retention mensile\n`;
-  if (ctx.simulation) {
+  if (products && products.length > 1) {
+    text += `• Churn rate per prodotto:\n`;
+    products.forEach(p => {
+      const churn9m = p.churnMonth3Pct * Math.pow(p.churnDecayFactor, 6);
+      text += `  - ${p.name}: ${p.churnMonth1Pct}% (1°m) → ~${churn9m.toFixed(1)}% (9°m)\n`;
+    });
+  } else if (ctx.simulation) {
     text += `• Churn rate target: < ${ctx.simulation.churnMonth1Pct}% al 1° mese, decrescente fino a ~${(ctx.simulation.churnMonth3Pct * Math.pow(ctx.simulation.churnDecayFactor, 6)).toFixed(1)}% al 9° mese\n`;
   }
 

@@ -144,12 +144,13 @@ export const useBusinessPlan = (
     if (!projectId || !stepProgress) return null;
 
     try {
-      const [projectRes, simRes, channelsRes, costsRes, stepCostsRes] = await Promise.all([
+      const [projectRes, simRes, channelsRes, costsRes, stepCostsRes, productsRes] = await Promise.all([
         supabase.from('projects').select('*').eq('id', projectId).maybeSingle(),
         supabase.from('project_revenue_simulations').select('*').eq('project_id', projectId).maybeSingle(),
         supabase.from('project_sales_channels').select('*').eq('project_id', projectId),
         supabase.from('project_costs').select('*').eq('project_id', projectId),
         supabase.from('project_step_costs').select('*').eq('project_id', projectId),
+        supabase.from('simulation_products').select('*, project_sales_channels(channel_name)').eq('project_id', projectId).order('sort_order'),
       ]);
 
       const project = projectRes.data;
@@ -219,6 +220,27 @@ export const useBusinessPlan = (
           churnDecayFactor: sim.churn_decay_factor ?? 0.85,
           clientType: sim.client_type ?? 'domestico',
           commodityType: sim.commodity_type ?? 'luce',
+          products: (productsRes.data || []).filter((p: any) => p.is_active).map((p: any) => ({
+            name: p.name,
+            contractShare: p.contract_share,
+            ccvMonthly: p.ccv_monthly,
+            spreadPerKwh: p.spread_per_kwh,
+            otherServicesMonthly: p.other_services_monthly,
+            avgMonthlyConsumption: p.avg_monthly_consumption,
+            clientType: p.client_type,
+            ivaPercent: p.iva_percent,
+            activationRate: p.activation_rate,
+            churnMonth1Pct: p.churn_month1_pct,
+            churnMonth2Pct: p.churn_month2_pct,
+            churnMonth3Pct: p.churn_month3_pct,
+            churnDecayFactor: p.churn_decay_factor,
+            uncollectibleRate: p.uncollectible_rate,
+            collectionMonth0: p.collection_month_0,
+            collectionMonth1: p.collection_month_1,
+            collectionMonth2: p.collection_month_2,
+            collectionMonth3Plus: p.collection_month_3_plus,
+            channelName: p.project_sales_channels?.channel_name || null,
+          })),
         } : null,
         salesChannels: channels.map((ch: any) => ({
           channel_name: ch.channel_name,

@@ -1,20 +1,39 @@
 import { processSteps, phases } from '@/data/processSteps';
 import type { StepProgress } from '@/hooks/useStepProgress';
 
+export interface ProductInfo {
+  name: string;
+  contractShare: number;
+  ccvMonthly: number;
+  spreadPerKwh: number;
+  otherServicesMonthly: number;
+  avgMonthlyConsumption: number;
+  clientType: string;
+  ivaPercent: number;
+  activationRate: number;
+  churnMonth1Pct: number;
+  churnMonth2Pct: number;
+  churnMonth3Pct: number;
+  churnDecayFactor: number;
+  channelName?: string;
+  uncollectibleRate: number;
+  collectionMonth0: number;
+  collectionMonth1: number;
+  collectionMonth2: number;
+  collectionMonth3Plus: number;
+}
+
 export interface ProjectContext {
-  // Project metadata
   projectName: string;
   projectDescription: string | null;
-  commodityType: string | null; // 'solo-luce' | 'solo-gas' | 'dual-fuel'
+  commodityType: string | null;
   marketType: string | null;
   regions: string[] | null;
   expectedVolumes: number | null;
   wholesalerName: string | null;
   plannedStartDate: string | null;
   goLiveDate: string | null;
-  // Process progress
   stepProgress: Record<string, StepProgress>;
-  // Revenue simulation
   simulation: {
     monthlyContracts: number[];
     spreadPerKwh: number;
@@ -31,8 +50,9 @@ export interface ProjectContext {
     churnDecayFactor: number;
     clientType: string;
     commodityType: string;
+    /** Multi-product configs – when present, per-product data takes priority */
+    products?: ProductInfo[];
   } | null;
-  // Sales channels
   salesChannels: Array<{
     channel_name: string;
     commission_amount: number;
@@ -41,11 +61,9 @@ export interface ProjectContext {
     contract_share: number;
     is_active: boolean;
   }>;
-  // Costs summary
   totalInvestmentCosts: number;
   operationalCosts: number;
   passthroughCosts: number;
-  // Cash flow data (optional)
   cashFlow?: {
     massimaEsposizione: number;
     meseMassimaEsposizione: string;
@@ -55,7 +73,6 @@ export interface ProjectContext {
     totaleIncassi: number;
     totaleDepositi: number;
   };
-  // Phase data from process
   phaseData: Array<{
     name: string;
     completion: number;
@@ -96,19 +113,25 @@ const totalTargetContracts = (contracts: number[]): number => {
   return contracts.reduce((s, c) => s + c, 0);
 };
 
-// Calculate total active clients at month 14 considering churn (aligned with simulationEngine)
-const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
-  if (!ctx.simulation) return 0;
-  const { monthlyContracts, activationRate, churnMonth1Pct, churnMonth2Pct, churnMonth3Pct, churnDecayFactor } = ctx.simulation;
+/** Simulate active clients at month 14 for a single product slice */
+const simulateProductActiveMonth14 = (
+  monthlyContracts: number[],
+  contractShare: number,
+  activationRate: number,
+  churnMonth1Pct: number,
+  churnMonth2Pct: number,
+  churnMonth3Pct: number,
+  churnDecayFactor: number,
+): number => {
   const SWITCH_OUT_DELAY = 2;
   const SIM_MONTHS = 14;
   const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
   let active = 0;
   for (let m = 0; m < SIM_MONTHS; m++) {
-    const activated = m >= 2
-      ? Math.round((m - 2 < monthlyContracts.length ? monthlyContracts[m - 2] : 0) * activationRate / 100)
+    const rawContracts = m >= 2
+      ? (m - 2 < monthlyContracts.length ? monthlyContracts[m - 2] : 0)
       : 0;
-    // Granular churn model: manual rates for first 3 months, then exponential decay
+    const activated = Math.round(rawContracts * contractShare / 100 * activationRate / 100);
     const churnMonthIndex = m - 3;
     let churnRate = 0;
     if (m >= 3) {
@@ -117,9 +140,7 @@ const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
       else if (churnMonthIndex === 2) churnRate = churnMonth3Pct;
       else churnRate = churnMonth3Pct * Math.pow(churnDecayFactor, churnMonthIndex - 2);
     }
-    const churnProgrammato = m >= 3
-      ? Math.round(active * churnRate / 100)
-      : 0;
+    const churnProgrammato = m >= 3 ? Math.round(active * churnRate / 100) : 0;
     if (churnProgrammato > 0 && (m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
       pendingChurnExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
     }
@@ -129,6 +150,41 @@ const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
   return active;
 };
 
+/** Calculate total active clients at month 14 across all products */
+const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
+  if (!ctx.simulation) return 0;
+  const { monthlyContracts } = ctx.simulation;
+  const products = ctx.simulation.products;
+
+  if (products && products.length > 0) {
+    return products.reduce((sum, p) => sum + simulateProductActiveMonth14(
+      monthlyContracts, p.contractShare, p.activationRate,
+      p.churnMonth1Pct, p.churnMonth2Pct, p.churnMonth3Pct, p.churnDecayFactor,
+    ), 0);
+  }
+
+  // Fallback single-product
+  const { activationRate, churnMonth1Pct, churnMonth2Pct, churnMonth3Pct, churnDecayFactor } = ctx.simulation;
+  return simulateProductActiveMonth14(monthlyContracts, 100, activationRate, churnMonth1Pct, churnMonth2Pct, churnMonth3Pct, churnDecayFactor);
+};
+
+/** Helper: describe product mix for text */
+const describeProducts = (products: ProductInfo[]): string => {
+  if (products.length === 0) return '';
+  let text = '';
+  products.forEach((p, i) => {
+    text += `\n${i + 1}. ${p.name} (${p.contractShare}% dei contratti):\n`;
+    text += `   • Target: ${clientTypeLabel(p.clientType)}\n`;
+    text += `   • CCV: ${formatCurrency(p.ccvMonthly)}/mese, Spread: ${(p.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
+    text += `   • Consumo medio: ${p.avgMonthlyConsumption} kWh/mese\n`;
+    text += `   • Tasso attivazione: ${p.activationRate}%\n`;
+    text += `   • Churn: ${p.churnMonth1Pct}% (1°m), ${p.churnMonth2Pct}% (2°m), ${p.churnMonth3Pct}% (3°m), decay ${p.churnDecayFactor}\n`;
+    text += `   • IVA: ${p.ivaPercent}%\n`;
+    if (p.channelName) text += `   • Canale: ${p.channelName}\n`;
+  });
+  return text;
+};
+
 export function generateExecutiveSummary(ctx: ProjectContext): string {
   const commodity = commodityLabel(ctx.commodityType);
   const totalContracts = ctx.simulation ? totalTargetContracts(ctx.simulation.monthlyContracts) : 0;
@@ -136,13 +192,19 @@ export function generateExecutiveSummary(ctx: ProjectContext): string {
   const totalDays = processSteps.reduce((s, step) => s + step.estimatedDays, 0);
   const completedSteps = Object.values(ctx.stepProgress).filter(p => p.completed).length;
   const completionRate = processSteps.length > 0 ? Math.round((completedSteps / processSteps.length) * 100) : 0;
+  const products = ctx.simulation?.products;
 
   let text = `EXECUTIVE SUMMARY\n\n`;
   text += `Il presente business plan descrive il progetto "${ctx.projectName}" per l'avvio di un'attività di vendita al dettaglio di ${commodity} nel mercato libero italiano, operando come reseller puro attraverso un accordo di fornitura all'ingrosso`;
   if (ctx.wholesalerName) text += ` con ${ctx.wholesalerName}`;
   text += `.\n\n`;
 
-  text += `L'attività si rivolge a ${clientTypeLabel(ctx.simulation?.clientType || null)} ${regionsList(ctx.regions)}.\n\n`;
+  if (products && products.length > 1) {
+    const clientTypes = [...new Set(products.map(p => p.clientType))];
+    text += `L'offerta commerciale è articolata in ${products.length} prodotti distinti, rivolti a ${clientTypes.map(t => clientTypeLabel(t)).join(' e ')} ${regionsList(ctx.regions)}.\n\n`;
+  } else {
+    text += `L'attività si rivolge a ${clientTypeLabel(ctx.simulation?.clientType || null)} ${regionsList(ctx.regions)}.\n\n`;
+  }
 
   text += `OBIETTIVI PRINCIPALI:\n`;
   if (totalContracts > 0) {
@@ -187,14 +249,21 @@ export function generateCompanyDescription(ctx: ProjectContext): string {
   }
 
   text += `AREA OPERATIVA:\n`;
-  text += `L'attività è prevista ${regionsList(ctx.regions)} con focus su ${clientTypeLabel(ctx.simulation?.clientType || null)}.\n`;
+  text += `L'attività è prevista ${regionsList(ctx.regions)}`;
+  const products = ctx.simulation?.products;
+  if (products && products.length > 1) {
+    const clientTypes = [...new Set(products.map(p => p.clientType))];
+    text += ` con focus su ${clientTypes.map(t => clientTypeLabel(t)).join(' e ')}.\n`;
+  } else {
+    text += ` con focus su ${clientTypeLabel(ctx.simulation?.clientType || null)}.\n`;
+  }
 
   return text;
 }
 
 export function generateMarketAnalysis(ctx: ProjectContext): string {
   const commodity = commodityLabel(ctx.commodityType);
-  const clientType = clientTypeLabel(ctx.simulation?.clientType || null);
+  const products = ctx.simulation?.products;
 
   let text = `ANALISI DI MERCATO\n\n`;
   text += `CONTESTO DI RIFERIMENTO:\n`;
@@ -205,23 +274,32 @@ export function generateMarketAnalysis(ctx: ProjectContext): string {
   text += `• Obbligo di pubblicazione offerte sul Portale Offerte ARERA\n\n`;
 
   text += `TARGET DI MERCATO:\n`;
-  text += `Il progetto si rivolge a ${clientType}`;
-  if (ctx.regions && ctx.regions.length > 0) {
-    text += ` ${regionsList(ctx.regions)}`;
+  if (products && products.length > 1) {
+    text += `Il progetto si rivolge a segmenti di clientela diversificati attraverso ${products.length} prodotti distinti:\n`;
+    text += describeProducts(products);
+    text += `\n`;
+  } else {
+    text += `Il progetto si rivolge a ${clientTypeLabel(ctx.simulation?.clientType || null)}`;
+    if (ctx.regions && ctx.regions.length > 0) text += ` ${regionsList(ctx.regions)}`;
+    text += `.\n\n`;
   }
-  text += `.\n\n`;
 
   if (ctx.simulation) {
     text += `DIMENSIONAMENTO:\n`;
     const total12m = totalTargetContracts(ctx.simulation.monthlyContracts);
     text += `• Obiettivo acquisizione: ${total12m.toLocaleString('it-IT')} contratti nei primi 12 mesi\n`;
-    text += `• Consumo medio stimato per utente: ${ctx.simulation.avgMonthlyConsumption} kWh/mese`;
-    if (ctx.simulation.commodityType === 'dual' || ctx.simulation.commodityType === 'gas') {
-      text += ` (luce), ${ctx.simulation.avgMonthlyConsumptionGas} Smc/mese (gas)`;
+    if (products && products.length > 1) {
+      const weightedConsumption = products.reduce((s, p) => s + p.avgMonthlyConsumption * p.contractShare / 100, 0);
+      text += `• Consumo medio ponderato: ${Math.round(weightedConsumption)} kWh/mese\n`;
+    } else {
+      text += `• Consumo medio stimato per utente: ${ctx.simulation.avgMonthlyConsumption} kWh/mese\n`;
     }
-    text += `\n`;
-    text += `• Tasso di attivazione previsto: ${ctx.simulation.activationRate}%\n`;
-    text += `• Tasso di churn mensile stimato: ${ctx.simulation.monthlyChurnRate}%\n`;
+    if (products && products.length > 1) {
+      const weightedActivation = products.reduce((s, p) => s + p.activationRate * p.contractShare / 100, 0);
+      text += `• Tasso di attivazione ponderato: ${weightedActivation.toFixed(1)}%\n`;
+    } else {
+      text += `• Tasso di attivazione previsto: ${ctx.simulation.activationRate}%\n`;
+    }
     text += `• Base clienti attiva prevista al 14° mese: ~${calculateActiveClientsMonth14(ctx).toLocaleString('it-IT')} utenze\n\n`;
   }
 
@@ -274,24 +352,30 @@ export function generateOrganization(ctx: ProjectContext): string {
 
 export function generateProductsServices(ctx: ProjectContext): string {
   const commodity = commodityLabel(ctx.commodityType);
+  const products = ctx.simulation?.products;
 
   let text = `PRODOTTI E SERVIZI\n\n`;
   text += `OFFERTA COMMERCIALE:\n`;
-  text += `L'offerta si basa sulla vendita di ${commodity} a clienti finali con le seguenti caratteristiche:\n\n`;
+  text += `L'offerta si basa sulla vendita di ${commodity} a clienti finali`;
 
-  if (ctx.commodityType !== 'solo-gas') {
-    text += `OFFERTA ENERGIA ELETTRICA:\n`;
-    if (ctx.simulation) {
-      text += `• Prezzo: PUN + spread reseller di ${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
-      text += `• Componente commerciale (CCV): ${formatCurrency(ctx.simulation.ccvMonthly)}/mese per cliente\n`;
+  if (products && products.length > 1) {
+    text += `, articolata in ${products.length} prodotti distinti:\n`;
+    text += describeProducts(products);
+  } else {
+    text += ` con le seguenti caratteristiche:\n\n`;
+    if (ctx.commodityType !== 'solo-gas') {
+      text += `OFFERTA ENERGIA ELETTRICA:\n`;
+      if (ctx.simulation) {
+        text += `• Prezzo: PUN + spread reseller di ${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
+        text += `• Componente commerciale (CCV): ${formatCurrency(ctx.simulation.ccvMonthly)}/mese per cliente\n`;
+      }
+      text += `• Offerte a prezzo variabile (indicizzate al PUN) e/o a prezzo fisso\n`;
+      text += `• Trasparenza tariffaria conforme alle disposizioni ARERA\n`;
+      text += `• Pubblicazione obbligatoria sul Portale Offerte\n`;
     }
-    text += `• Offerte a prezzo variabile (indicizzate al PUN) e/o a prezzo fisso\n`;
-    text += `• Trasparenza tariffaria conforme alle disposizioni ARERA\n`;
-    text += `• Pubblicazione obbligatoria sul Portale Offerte\n\n`;
   }
 
-
-  text += `SERVIZI COMPLEMENTARI:\n`;
+  text += `\nSERVIZI COMPLEMENTARI:\n`;
   text += `• Area clienti online per consultazione bollette e consumi\n`;
   text += `• Supporto clienti multicanale (telefono, email, web)\n`;
   text += `• Fatturazione elettronica conforme alla normativa vigente\n`;
@@ -304,11 +388,19 @@ export function generateProductsServices(ctx: ProjectContext): string {
 export function generateMarketingStrategy(ctx: ProjectContext): string {
   const activeChannels = ctx.salesChannels.filter(c => c.is_active && c.contract_share > 0);
   const totalContracts = ctx.simulation ? totalTargetContracts(ctx.simulation.monthlyContracts) : 0;
+  const products = ctx.simulation?.products;
 
   let text = `STRATEGIA DI MARKETING E VENDITA\n\n`;
   text += `OBIETTIVI COMMERCIALI:\n`;
   if (ctx.simulation && totalContracts > 0) {
     text += `• Target primi 12 mesi: ${totalContracts.toLocaleString('it-IT')} contratti\n`;
+    if (products && products.length > 1) {
+      text += `• Ripartizione per prodotto:\n`;
+      products.forEach(p => {
+        const pContracts = Math.round(totalContracts * p.contractShare / 100);
+        text += `  - ${p.name}: ${pContracts.toLocaleString('it-IT')} contratti (${p.contractShare}%)\n`;
+      });
+    }
     text += `• Rampa commerciale:\n`;
     ctx.simulation.monthlyContracts.forEach((c, i) => {
       text += `  - Mese ${i + 1}: ${c} contratti\n`;
@@ -335,11 +427,19 @@ export function generateMarketingStrategy(ctx: ProjectContext): string {
   }
 
   text += `STRATEGIA DI PRICING:\n`;
-  text += `Il posizionamento tariffario si basa sul modello di doppio spread:\n`;
-  if (ctx.simulation) {
-    text += `• Costo di acquisto: PUN + spread grossista\n`;
-    text += `• Prezzo di vendita: PUN + spread reseller (${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh)\n`;
-    text += `• Margine unitario: differenza tra spread reseller e spread grossista\n\n`;
+  if (products && products.length > 1) {
+    text += `Il posizionamento tariffario è differenziato per prodotto:\n`;
+    products.forEach(p => {
+      text += `• ${p.name}: spread ${(p.spreadPerKwh * 1000).toFixed(1)} €/MWh + CCV ${formatCurrency(p.ccvMonthly)}/mese (${clientTypeLabel(p.clientType)})\n`;
+    });
+    text += `\n`;
+  } else {
+    text += `Il posizionamento tariffario si basa sul modello di doppio spread:\n`;
+    if (ctx.simulation) {
+      text += `• Costo di acquisto: PUN + spread grossista\n`;
+      text += `• Prezzo di vendita: PUN + spread reseller (${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh)\n`;
+      text += `• Margine unitario: differenza tra spread reseller e spread grossista\n\n`;
+    }
   }
 
   text += `COMUNICAZIONE E BRANDING:\n`;
@@ -354,6 +454,7 @@ export function generateMarketingStrategy(ctx: ProjectContext): string {
 export function generateFinancialPlan(ctx: ProjectContext): string {
   const totalContracts = ctx.simulation ? totalTargetContracts(ctx.simulation.monthlyContracts) : 0;
   const activeClients14 = calculateActiveClientsMonth14(ctx);
+  const products = ctx.simulation?.products;
 
   let text = `PIANO ECONOMICO-FINANZIARIO\n\n`;
 
@@ -368,15 +469,23 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   text += `\n`;
 
   text += `STRUTTURA DEI RICAVI E MARGINE:\n`;
-  text += `• Ricavi commerciali: CCV mensile + spread reseller × kWh per ogni cliente attivo\n`;
-  text += `• Margine commerciale lordo: ricavi commerciali − costo energia grossista − fee POD\n`;
-  text += `  = (spread_reseller − spread_grossista) × kWh + CCV − fee POD, per cliente/mese\n`;
-  if (ctx.simulation) {
-    const spreadNetto = ctx.simulation.spreadPerKwh;
-    text += `• Spread reseller applicato: ${(spreadNetto * 1000).toFixed(1)} €/MWh\n`;
-    text += `• CCV mensile: ${formatCurrency(ctx.simulation.ccvMonthly)}/cliente/mese\n`;
-    if (ctx.simulation.commodityType === 'dual' || ctx.simulation.commodityType === 'gas') {
-      text += `• CCV Gas: ${formatCurrency(ctx.simulation.ccvGasMonthly)}/cliente/mese\n`;
+  if (products && products.length > 1) {
+    text += `L'offerta è articolata in ${products.length} prodotti, ciascuno con margini e parametri propri:\n`;
+    products.forEach(p => {
+      text += `\n• ${p.name} (${p.contractShare}% contratti, ${clientTypeLabel(p.clientType)}):\n`;
+      text += `  - CCV: ${formatCurrency(p.ccvMonthly)}/mese, Spread: ${(p.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
+      text += `  - Consumo medio: ${p.avgMonthlyConsumption} kWh/mese, IVA: ${p.ivaPercent}%\n`;
+      text += `  - Incasso: ${p.collectionMonth0}% alla scadenza, ${p.collectionMonth1}% a 30gg, ${p.collectionMonth2}% a 60gg, ${p.collectionMonth3Plus}% oltre\n`;
+      text += `  - Insoluti: ${p.uncollectibleRate}%\n`;
+    });
+    text += `\n`;
+  } else {
+    text += `• Ricavi commerciali: CCV mensile + spread reseller × kWh per ogni cliente attivo\n`;
+    text += `• Margine commerciale lordo: ricavi commerciali − costo energia grossista − fee POD\n`;
+    text += `  = (spread_reseller − spread_grossista) × kWh + CCV − fee POD, per cliente/mese\n`;
+    if (ctx.simulation) {
+      text += `• Spread reseller applicato: ${(ctx.simulation.spreadPerKwh * 1000).toFixed(1)} €/MWh\n`;
+      text += `• CCV mensile: ${formatCurrency(ctx.simulation.ccvMonthly)}/cliente/mese\n`;
     }
   }
   text += `• Il fatturato lordo include passanti (energia, trasporto, oneri, accise) e IVA\n`;
@@ -401,7 +510,6 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   text += `   • Provvigioni canali di vendita (vedi sezione Marketing)\n`;
   text += `   • Costi strutturali: personale, software, ufficio, consulenze\n\n`;
 
-  // Commissions estimate
   const activeChannels = ctx.salesChannels.filter(c => c.is_active && c.contract_share > 0);
   if (activeChannels.length > 0 && totalContracts > 0) {
     let totalCommissions = 0;
@@ -420,7 +528,11 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   text += `PROIEZIONI:\n`;
   if (totalContracts > 0) {
     text += `• Contratti acquisiti (12 mesi): ${totalContracts.toLocaleString('it-IT')}\n`;
-    text += `• Base clienti attiva al 14° mese: ~${activeClients14.toLocaleString('it-IT')} (churn ${ctx.simulation?.monthlyChurnRate}%/mese con preavviso contrattuale di 2 mesi per switching)\n`;
+    if (products && products.length > 1) {
+      text += `• Base clienti attiva al 14° mese: ~${activeClients14.toLocaleString('it-IT')} (multi-prodotto con churn differenziato per prodotto)\n`;
+    } else {
+      text += `• Base clienti attiva al 14° mese: ~${activeClients14.toLocaleString('it-IT')} (churn con preavviso contrattuale di 2 mesi per switching)\n`;
+    }
   }
   text += `• Timeline di implementazione complessiva: ${processSteps.reduce((s, step) => s + step.estimatedDays, 0)} giorni\n\n`;
 
