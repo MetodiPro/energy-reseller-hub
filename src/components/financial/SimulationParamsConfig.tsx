@@ -99,7 +99,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                       min="0"
                       className="h-8"
                       value={value}
-                      onChange={(e) => updateMonthlyContract(index, parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleMonthlyContractChange(index, parseInt(e.target.value) || 0)}
                     />
                   </div>
                 );
