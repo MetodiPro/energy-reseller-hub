@@ -540,7 +540,7 @@ export function generateFinancialPlan(ctx: ProjectContext): string {
   if (ctx.cashFlow) {
     const cf = ctx.cashFlow;
     text += `L'analisi della liquidità su 14 mesi mostra:\n\n`;
-    text += `• Investimento iniziale totale: ${formatCurrency(cf.investimentoIniziale)}\n`;
+    text += `• Investimento totale processo: ${formatCurrency(cf.investimentoIniziale)}\n`;
     text += `• Massima esposizione finanziaria: ${formatCurrency(Math.abs(cf.massimaEsposizione))}`;
     text += ` (picco nel mese ${cf.meseMassimaEsposizione})\n`;
     text += `• Break-even di liquidità: ${cf.mesePrimoPositivo ? `mese ${cf.mesePrimoPositivo}` : 'non raggiunto nei 14 mesi'}\n`;
