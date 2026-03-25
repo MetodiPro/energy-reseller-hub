@@ -125,6 +125,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totals: { inflow: 0, outflow: 0, net: 0, cumulative: 0 },
       hasData: false,
       investimentoIniziale: 0,
+      totaleInvestimenti: 0,
       massimaEsposizione: 0,
       meseEsposizioneMassima: '-',
       mesePrimoPositivo: null,
