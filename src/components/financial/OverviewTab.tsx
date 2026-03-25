@@ -168,7 +168,7 @@ export const OverviewTab = ({
                 label="Clienti Attivi"
                 tooltip="Numero di clienti con fornitura attiva alla fine del periodo di simulazione (mese 14), al netto di tutte le cessazioni (churn). Rappresenta il portafoglio clienti reale che genera ricavi ricorrenti."
                 value={String(summary.clientiAttivi)}
-                detail={`Su ${summary.contrattiTotali} contratti firmati nel periodo. Il tasso di churn cumulato ha determinato ${summary.contrattiTotali - summary.clientiAttivi} cessazioni.`}
+                detail={`Calcolo: ${summary.contrattiTotali} contratti firmati − ${summary.contrattiTotali - summary.clientiAttivi} cessazioni (churn) = ${summary.clientiAttivi} clienti attivi a fine periodo.`}
                 icon={<Users className="h-4 w-4" />}
               />
               {/* 2. Fatturato Netto */}
@@ -177,7 +177,7 @@ export const OverviewTab = ({
                 tooltip="Totale dei ricavi al netto dell'IVA. Questa è la base su cui vengono calcolate tutte le percentuali di margine. Include i ricavi propri del reseller (CCV + spread) e le partite di giro (trasporto, oneri, accise)."
                 value={formatCurrency(summary.imponibile)}
                 valueClass="text-primary"
-                detail="Fatturato lordo meno IVA. È la base imponibile del reseller e il riferimento per tutte le percentuali di redditività indicate."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.imponibile)}.`}
                 icon={<TrendingUp className="h-4 w-4" />}
               />
               {/* 3. Fatturato Lordo */}
@@ -186,7 +186,7 @@ export const OverviewTab = ({
                 tooltip="Volume complessivo d'affari: tutto ciò che il reseller fattura ai clienti finali. Include margine reseller, costi passanti (trasporto, oneri, accise) e IVA. Non rappresenta il guadagno ma il giro d'affari totale."
                 value={formatCurrency(summary.totalRevenue)}
                 valueClass="text-primary"
-                detail={`Di cui IVA: ${formatCurrency(summary.totalIva)}. Il fatturato lordo include le partite di giro che transitano in fattura ma vengono girate integralmente a terzi.`}
+                detail={`Composizione: Imponibile ${formatCurrency(summary.imponibile)} + IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.totalRevenue)}. Include ricavi propri del reseller e partite di giro.`}
                 icon={<DollarSign className="h-4 w-4" />}
               />
               {/* 4. Costo Energia al Grossista */}
@@ -195,7 +195,7 @@ export const OverviewTab = ({
                 tooltip="Quanto il reseller paga effettivamente al grossista per l'energia: PUN (prezzo mercato) × kWh consumati + spread grossista × kWh. NON include trasporto, oneri e accise che sono partite di giro neutrali per il margine."
                 value={formatCurrency(summary.costoEnergiaNetto)}
                 valueClass="text-destructive"
-                detail={`Calcolato come PUN × kWh totali consumati dalla base clienti + spread grossista × kWh. Rappresenta il costo industriale vero del reseller per l'approvvigionamento energia.`}
+                detail={`Calcolo: (PUN + Spread Grossista) × kWh consumati, cumulato su 14 mesi = ${formatCurrency(summary.costoEnergiaNetto)}. Non include Fee POD (${formatCurrency(summary.costoGestionePodTotale)}) né partite di giro.`}
                 icon={<Zap className="h-4 w-4" />}
               />
               {/* 5. Costi Passanti Totali */}
@@ -204,7 +204,7 @@ export const OverviewTab = ({
                 tooltip="Importi fatturati ai clienti e girati integralmente a terzi (distributore, GSE, Agenzia delle Dogane). Non impattano il margine del reseller: sono una partita di giro neutra."
                 value={formatCurrency(summary.passthroughCosts)}
                 valueClass="text-orange-600"
-                detail="Comprendono trasporto e distribuzione, oneri di sistema (ASOS + ARIM) e accise. Il reseller li incassa dal cliente e li riversa integralmente ai soggetti istituzionali competenti."
+                detail={`Composizione: Dispacciamento + Trasporto + Oneri (ASOS + ARIM) + Accise = ${formatCurrency(summary.passthroughCosts)}. Incassati dai clienti e riversati integralmente, impatto netto sul margine = zero.`}
                 icon={<ArrowRight className="h-4 w-4" />}
               />
               {/* 6. Fee Gestione POD */}
@@ -213,7 +213,7 @@ export const OverviewTab = ({
                 tooltip="Costo unitario mensile che il grossista addebita al reseller per ogni POD (punto di prelievo) gestito. Copre servizi di billing, SII, gestione switching e assistenza tecnica."
                 value={formatCurrency(summary.costoGestionePodTotale)}
                 valueClass="text-destructive"
-                detail={`Calcolata come fee mensile per POD × numero di clienti attivi ogni mese, cumulata sul periodo. È un costo reale del reseller, già detratto nel calcolo del Margine Commerciale.`}
+                detail={`Calcolo: Fee mensile per POD × clienti attivi mese per mese, cumulata su 14 mesi = ${formatCurrency(summary.costoGestionePodTotale)}. Già detratta nel Margine Commerciale.`}
                 icon={<Calculator className="h-4 w-4" />}
               />
               {/* 7. Costi Commerciali */}
@@ -223,7 +223,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.costiCommercialiSimulati)}
                 valueClass="text-orange-600"
                 detail={summary.costiCommercialiSimulati > 0
-                  ? `Stime basate sui tassi medi di commissione per canale. Includono provvigioni per contratto firmato e/o per attivazione completata, in base alla configurazione di ogni canale di vendita.`
+                  ? `Calcolo: Σ (contratti per canale × commissione unitaria) = ${formatCurrency(summary.costiCommercialiSimulati)}. Su ${summary.contrattiTotali} contratti distribuiti tra i canali configurati.`
                   : 'Nessun canale di vendita configurato. Configura i canali nelle Ipotesi Operative per stimare le provvigioni.'}
                 icon={<Users className="h-4 w-4" />}
               />
@@ -233,7 +233,7 @@ export const OverviewTab = ({
                 tooltip="Costi fissi del reseller indipendenti dal volume clienti: affitto sede, personale, software gestionale, consulenze, assicurazioni. Configurati manualmente nella sezione Finanza > Costi."
                 value={formatCurrency(strutturaliCosts)}
                 valueClass="text-orange-600"
-                detail="Comprendono costi strutturali, diretti e indiretti configurati manualmente. Sono i costi che il reseller sostiene indipendentemente dal numero di clienti serviti e dalla quantità di energia venduta."
+                detail={`Composizione: Strutturali ${formatCurrency(summary.costsByType.structural)} + Diretti ${formatCurrency(summary.costsByType.direct)} + Indiretti ${formatCurrency(summary.costsByType.indirect)} = ${formatCurrency(strutturaliCosts)}.`}
                 icon={<Landmark className="h-4 w-4" />}
               />
               {/* 9. Margine Commerciale */}
@@ -243,7 +243,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.margineCommercialeLordo)}
                 percentValue={formatPercent(summary.margineCommercialePercent)}
                 positive={summary.margineCommercialeLordo >= 0}
-                detail="Ricavi propri del reseller meno costo energia dal grossista e fee gestione POD. Misura la redditività intrinseca del modello di business, prima delle spese commerciali e strutturali."
+                detail={`Calcolo: Ricavi Reseller ${formatCurrency(summary.resellerMargin)} − Costo Energia ${formatCurrency(summary.costoEnergiaNetto)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.margineCommercialeLordo)}. Pct: ${formatCurrency(summary.margineCommercialeLordo)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.margineCommercialePercent)}.`}
                 icon={<Target className="h-4 w-4" />}
               />
               {/* 10. Margine di Contribuzione */}
@@ -253,7 +253,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.contributionMargin)}
                 percentValue={formatPercent(summary.contributionMarginPercent)}
                 positive={summary.contributionMargin >= 0}
-                detail="Margine Commerciale − Provvigioni canali vendita. Se positivo, ogni nuovo cliente contribuisce a coprire i costi fissi. Se negativo, il costo di acquisizione è superiore al margine generato."
+                detail={`Calcolo: Margine Commerciale ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} = ${formatCurrency(summary.contributionMargin)}. Pct: ${formatCurrency(summary.contributionMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.contributionMarginPercent)}.`}
                 icon={<Percent className="h-4 w-4" />}
               />
               {/* 11. Margine Netto Operativo */}
@@ -263,7 +263,7 @@ export const OverviewTab = ({
                 value={formatCurrency(summary.netMargin)}
                 percentValue={formatPercent(summary.netMarginPercent)}
                 positive={summary.netMargin >= 0}
-                detail="Margine Commerciale − Costi Commerciali − Costi Strutturali. È l'utile (o perdita) operativo prima delle imposte e degli effetti finanziari (depositi, dilazioni incasso)."
+                detail={`Calcolo: Margine Commerciale ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} − Costi Strutturali ${formatCurrency(strutturaliCosts)} = ${formatCurrency(summary.netMargin)}. Pct: ${formatCurrency(summary.netMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.netMarginPercent)}.`}
                 icon={<TrendingUp className="h-4 w-4" />}
               />
             </div>
@@ -294,7 +294,7 @@ export const OverviewTab = ({
                 tooltip="Somma effettiva degli incassi ricevuti dai clienti nel periodo di simulazione. Tiene conto della waterfall di incasso (pagamento a scadenza, a 30gg, a 60gg, oltre 60gg) e del tasso di insolvenza."
                 value={formatCurrency(summary.totalIncassato)}
                 valueClass="text-green-600"
-                detail="Quanto è realmente entrato in cassa dalla fatturazione ai clienti, considerando i tempi medi di pagamento e le dilazioni. Non coincide col fatturato perché parte dei crediti è ancora in lavorazione."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} × waterfall di incasso (0-30-60-90+ gg) − Insoluti = ${formatCurrency(summary.totalIncassato)}. Verifica: Incassato + Crediti ${formatCurrency(simulationSummary.totalCrediti)} + Insoluti ${formatCurrency(summary.totalInsoluti)} = Fatturato Lordo.`}
                 icon={<DollarSign className="h-4 w-4" />}
               />
               {/* 2. Crediti in Corso */}
@@ -303,7 +303,7 @@ export const OverviewTab = ({
                 tooltip="Fatture emesse ai clienti il cui incasso ricade oltre la finestra di simulazione (waterfall 0-30-60-90+ giorni). Non sono insoluti: ci si aspetta di incassarli. Rappresentano il credito commerciale del reseller."
                 value={formatCurrency(simulationSummary.totalCrediti)}
                 valueClass="text-blue-600"
-                detail="Quota di fatturato già maturato e fatturato ma non ancora incassato, in attesa di pagamento secondo i termini contrattuali. Si prevede di recuperarli entro i normali cicli di incasso."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − Incassato ${formatCurrency(summary.totalIncassato)} − Insoluti ${formatCurrency(summary.totalInsoluti)} = ${formatCurrency(simulationSummary.totalCrediti)}. Fatture emesse non ancora scadute o in attesa di pagamento.`}
                 icon={<CreditCard className="h-4 w-4" />}
               />
               {/* 3. Depositi Cauzionali */}
@@ -312,7 +312,7 @@ export const OverviewTab = ({
                 tooltip="Garanzie richieste dal grossista al reseller per operare. Sono un impegno finanziario (immobilizzazione di liquidità), non un costo operativo. Vengono progressivamente svincolati al maturare della storicità di pagamento."
                 value={formatCurrency(simulationSummary.depositoMassimo)}
                 valueClass="text-amber-600"
-                detail={`Picco massimo di deposito richiesto. Deposito iniziale: ${formatCurrency(simulationSummary.depositoIniziale)}, deposito a fine periodo: ${formatCurrency(simulationSummary.depositoFinale)}. I depositi non sono un costo: sono capitale immobilizzato potenzialmente recuperabile che impatta la liquidità disponibile.`}
+                detail={`Picco massimo: ${formatCurrency(simulationSummary.depositoMassimo)}. Deposito iniziale: ${formatCurrency(simulationSummary.depositoIniziale)}, a fine periodo: ${formatCurrency(simulationSummary.depositoFinale)}. Non è un costo: è capitale immobilizzato presso il grossista, potenzialmente recuperabile, che riduce la liquidità disponibile.`}
                 icon={<ShieldAlert className="h-4 w-4" />}
               />
               {/* 4. Insoluti */}
@@ -321,7 +321,7 @@ export const OverviewTab = ({
                 tooltip="Quota di fatturato strutturalmente non incassabile, calcolata applicando il tasso di insolvenza configurato al fatturato totale. Rappresenta una perdita definitiva su crediti."
                 value={formatCurrency(summary.totalInsoluti)}
                 valueClass="text-destructive"
-                detail="Stimati in base al tasso di insolvenza (uncollectible rate) applicato proporzionalmente a ogni scaglione dell'aging degli incassi. Sono fatture che non verranno mai pagate."
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} × tasso insoluti configurato = ${formatCurrency(summary.totalInsoluti)}. Perdita definitiva su crediti, applicata proporzionalmente a ogni scaglione dell'aging.`}
                 icon={<AlertTriangle className="h-4 w-4" />}
               />
               {/* 5. Massima Esposizione */}
@@ -330,7 +330,7 @@ export const OverviewTab = ({
                 tooltip="Il punto di massima esposizione finanziaria (saldo cassa negativo più profondo). Indica il fabbisogno finanziario massimo che il reseller deve coprire con capitale proprio o finanziamenti."
                 value={formatCurrency(Math.abs(cashFlowData.massimaEsposizione))}
                 valueClass="text-destructive"
-                detail={`Picco raggiunto nel mese di ${cashFlowData.meseEsposizioneMassima}. ${cashFlowData.mesePrimoPositivo ? `Il saldo torna positivo a partire da ${cashFlowData.mesePrimoPositivo}.` : 'Il saldo non torna positivo nel periodo simulato.'} Questo valore determina il capitale circolante minimo necessario per operare.`}
+                detail={`Saldo cassa più basso: ${formatCurrency(cashFlowData.massimaEsposizione)} raggiunto a ${cashFlowData.meseEsposizioneMassima}. ${cashFlowData.mesePrimoPositivo ? `Break-even finanziario: ${cashFlowData.mesePrimoPositivo}.` : 'Il saldo non torna positivo nel periodo simulato.'} Determina il capitale circolante minimo necessario.`}
                 icon={<TrendingDown className="h-4 w-4" />}
               />
               {/* 6. Saldo Cassa */}
@@ -339,7 +339,7 @@ export const OverviewTab = ({
                 tooltip="Saldo cumulativo di tutti i flussi di cassa al termine dei 14 mesi di simulazione. Tiene conto di incassi, costi operativi, depositi cauzionali, investimenti iniziali e flussi fiscali."
                 value={formatCurrency(cashFlowData.saldoFinale)}
                 valueClass={cashFlowData.saldoFinale >= 0 ? 'text-green-600' : 'text-destructive'}
-                detail="Somma algebrica di tutti i flussi in entrata e uscita: incassi clienti, pagamenti grossista, depositi cauzionali, provvigioni, costi strutturali, investimenti e tasse. Se positivo, l'attività genera cassa; se negativo, richiede finanziamento esterno."
+                detail={`Calcolo: Incassi ${formatCurrency(cashFlowData.totaleIncassi)} − Costi passanti ${formatCurrency(cashFlowData.totaleCostiPassanti)} − Costi operativi ${formatCurrency(cashFlowData.totaleCostiOperativi)} − Costi commerciali ${formatCurrency(cashFlowData.totaleCostiCommerciali)} − Strutturali ${formatCurrency(cashFlowData.totaleCostiStrutturali)} − Depositi ${formatCurrency(cashFlowData.totaleDepositi)} − Flussi fiscali ${formatCurrency(cashFlowData.totaleFlussiFiscali)} − Investimenti ${formatCurrency(cashFlowData.investimentoIniziale)} = ${formatCurrency(cashFlowData.saldoFinale)}.`}
                 icon={<Wallet className="h-4 w-4" />}
               />
             </div>
