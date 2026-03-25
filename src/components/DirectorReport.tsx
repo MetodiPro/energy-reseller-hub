@@ -250,7 +250,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
         kpis: {
           fatturato: formatCurrency(summary.totalRevenue),
           margineNetto: formatCurrency(summary.netMargin),
-          margineNettoPerc: `${summary.netMarginPercent.toFixed(1)}% (su marg. comm.)`,
+          margineNettoPerc: `${summary.netMarginPercent.toFixed(1)}% (sul fatturato netto)`,
           clientiAttivi: String(summary.clientiAttivi),
           breakEven: cashFlowData.mesePrimoPositivo || 'N/D',
           roi: cashFlowData.investimentoIniziale > 0
@@ -417,7 +417,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType }: Direct
           {/* KPI Summary Strip */}
           <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
             <MiniKPI icon={<TrendingUp className="h-4 w-4" />} label="Fatturato" value={formatCurrency(summary.totalRevenue)} color="text-primary" />
-            <MiniKPI icon={<Target className="h-4 w-4" />} label="Margine Netto" value={formatCurrency(summary.netMargin)} subValue={`${summary.netMarginPercent.toFixed(1)}% sul marg. comm.`} color={summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'} />
+            <MiniKPI icon={<Target className="h-4 w-4" />} label="Margine Netto" value={formatCurrency(summary.netMargin)} subValue={`${summary.netMarginPercent.toFixed(1)}% sul fatturato netto`} color={summary.netMargin >= 0 ? 'text-green-600' : 'text-destructive'} />
             <MiniKPI icon={<Users className="h-4 w-4" />} label="Clienti Attivi" value={String(summary.clientiAttivi)} color="text-foreground" />
             <MiniKPI icon={<Wallet className="h-4 w-4" />} label="Break-Even" value={cashFlowData.mesePrimoPositivo || 'N/D'} color="text-foreground" />
             <MiniKPI icon={<TrendingDown className="h-4 w-4" />} label="Massima Esposizione" value={formatCurrency(Math.abs(cashFlowData.massimaEsposizione))} subValue={`Picco: ${cashFlowData.meseEsposizioneMassima}`} color="text-destructive" />
