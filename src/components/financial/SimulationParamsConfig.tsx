@@ -17,11 +17,20 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
   const { data, loading, updateMonthlyContract, updateStartDate, saveSimulation } = simulationHook;
   const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
 
-  const handleMonthlyContractChange = useCallback((index: number, value: number) => {
-    updateMonthlyContract(index, value);
+  const debouncedSave = useCallback(() => {
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(() => saveSimulation(), 800);
-  }, [updateMonthlyContract, saveSimulation]);
+  }, [saveSimulation]);
+
+  const handleMonthlyContractChange = useCallback((index: number, value: number) => {
+    updateMonthlyContract(index, value);
+    debouncedSave();
+  }, [updateMonthlyContract, debouncedSave]);
+
+  const handleStartDateChange = useCallback((date: Date) => {
+    updateStartDate(date);
+    debouncedSave();
+  }, [updateStartDate, debouncedSave]);
 
   if (loading) {
     return (
