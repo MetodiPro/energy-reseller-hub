@@ -117,7 +117,7 @@ export const useExportUnifiedPDF = () => {
 
     if (cashFlowData.hasData) {
       finRows.push(
-        ['Investimento Iniziale', fmt(cashFlowData.investimentoIniziale)],
+        ['Investimento Totale Processo', fmt(cashFlowData.investimentoIniziale)],
         ['Max Esposizione Cassa', fmt(cashFlowData.massimaEsposizione)],
         ['BEP Finanziario', cashFlowData.mesePrimoPositivo || 'Non raggiunto'],
         ['Saldo Finale (14m)', fmt(cashFlowData.saldoFinale)],

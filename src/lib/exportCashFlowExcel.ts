@@ -27,7 +27,7 @@ export const exportCashFlowToExcel = (
 
   // KPI Summary
   lines.push('RIEPILOGO KPI');
-  lines.push(`Investimento Totale;${fmt(data.investimentoIniziale)}`);
+  lines.push(`Investimento Totale Processo;${fmt(data.investimentoIniziale)}`);
   lines.push(`Massima Esposizione;${fmt(data.massimaEsposizione)}`);
   lines.push(`Mese Esposizione Massima;${esc(data.meseEsposizioneMassima)}`);
   lines.push(`Break-Even (primo mese positivo);${data.mesePrimoPositivo ?? 'Non raggiunto'}`);

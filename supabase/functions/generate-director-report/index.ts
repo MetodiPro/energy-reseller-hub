@@ -91,7 +91,7 @@ PORTAFOGLIO CLIENTI:
 CASH FLOW E INVESTIMENTI:
 - Totale incassato: €${financialData.incassato?.toLocaleString('it-IT') || '0'}
 - Totale insoluti: €${financialData.insoluti?.toLocaleString('it-IT') || '0'}
-- Investimento iniziale (setup): €${financialData.investimentoIniziale?.toLocaleString('it-IT') || '0'}
+- Investimento totale processo (setup): €${financialData.investimentoIniziale?.toLocaleString('it-IT') || '0'}
 - Saldo cassa finale (14 mesi): €${financialData.saldoFinale?.toLocaleString('it-IT') || '0'}
 - Mese break-even: ${financialData.mesePrimoPositivo || 'Non raggiunto'}
 - Massima esposizione finanziaria: €${financialData.massimaEsposizione?.toLocaleString('it-IT') || '0'} (${financialData.meseEsposizioneMassima || 'N/D'})
