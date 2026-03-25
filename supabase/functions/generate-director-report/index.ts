@@ -5,6 +5,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function buildProductsSection(prodotti: any[]): string {
+  if (!prodotti || prodotti.length === 0) return 'Nessun prodotto configurato (modalità legacy single-product)';
+  return prodotti.map((p: any, i: number) => `
+PRODOTTO ${i + 1}: "${p.nome}" (Quota contratti: ${p.quotaContratti}%)
+  - Canale di vendita: ${p.canaleVendita}
+  - Tipo clientela: ${p.tipoCliente} (IVA ${p.ivaPercent}%)
+  - CCV mensile: €${p.ccvMensile} | Spread: €${p.spreadPerKwh}/kWh | Altri servizi: €${p.altriServizi}/mese
+  - Consumo medio: ${p.consumoMedio} kWh/mese
+  - Tasso attivazione: ${p.tassoAttivazione}%
+  - Churn: Mese1 ${p.churnMese1}%, Mese2 ${p.churnMese2}%, Mese3 ${p.churnMese3}%, Decay ${p.churnDecay}
+  - Incassi: 0gg ${p.incassoMese0}%, 30gg ${p.incassoMese1}%, 60gg ${p.incassoMese2}%, 90+gg ${p.incassoMese3Plus}%
+  - Tasso insoluti: ${p.tassoInsoluti}%
+  → RISULTATI: Fatturato €${p.fatturatoTotale?.toLocaleString('it-IT') || '0'} | Margine €${p.margineTotale?.toLocaleString('it-IT') || '0'} (${p.marginePerc?.toFixed(1) || '0'}%) | Contratti ${p.contrattiTotali} | Clienti attivi finali ${p.clientiAttiviFinali} | Switch-out ${p.switchOutTotali}
+`).join('\n');
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,6 +33,8 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    const hasMultiProduct = financialData.prodotti && financialData.prodotti.length > 0;
 
     const systemPrompt = `Sei un consulente strategico senior con 20 anni di esperienza nel settore energia italiano (reseller luce e gas, mercato libero).
 Devi generare un REPORT DIREZIONALE professionale, completo e dettagliato, destinato al titolare/CEO dell'azienda.
@@ -31,28 +49,38 @@ STILE E TONO:
 - Segnala con ⚠️ le criticità e con ✅ i punti di forza
 - Concludi ogni sezione con una frase di sintesi che aiuti il decisore
 
+IMPORTANTE — STRUTTURA MULTI-PRODOTTO:
+Il business opera con ${hasMultiProduct ? financialData.prodotti.length + ' linee di prodotto distinte' : 'un singolo prodotto'}.
+${hasMultiProduct ? 'Per OGNI sezione analitica devi fornire sia il dato AGGREGATO totale sia il DETTAGLIO per ciascuna linea di prodotto, evidenziando le differenze di performance, marginalità e rischio tra le diverse offerte.' : ''}
+
 FORMATO:
 - Usa ## per i titoli di sezione e ### per le sotto-sezioni
 - Usa **grassetto** per evidenziare KPI e concetti chiave
 - Usa elenchi puntati solo per le raccomandazioni operative
-- Il report deve essere lungo e approfondito (almeno 2500 parole)`;
+- Il report deve essere lungo e approfondito (almeno 3000 parole)`;
 
-    const userPrompt = `Genera un Report Direzionale completo e approfondito basato sui seguenti dati del progetto reseller energia.
+    const userPrompt = `Genera un Report Direzionale completo basato sui seguenti dati del progetto reseller energia.
 
 --- DATI PROGETTO: ${financialData.projectName} ---
 Tipologia: ${financialData.commodityType || 'Luce e Gas'}
 
-RICAVI E MARGINI (14 mesi di simulazione):
-- Fatturato totale (bollette emesse): €${financialData.fatturatoTotale?.toLocaleString('it-IT') || '0'}
-- Margine Reseller (CCV + Spread): €${financialData.margineReseller?.toLocaleString('it-IT') || '0'}
-- Margine Lordo: €${financialData.margineLordo?.toLocaleString('it-IT') || '0'} (${financialData.margineLordoPerc?.toFixed(1) || '0'}%)
+=== LINEE DI PRODOTTO ===
+${buildProductsSection(financialData.prodotti)}
+
+=== RISULTATI AGGREGATI (14 mesi) ===
+RICAVI E MARGINI:
+- Fatturato totale: €${financialData.fatturatoTotale?.toLocaleString('it-IT') || '0'}
+- Fatturato netto (imponibile): €${financialData.fatturatoNetto?.toLocaleString('it-IT') || '0'}
+- Ricavi commerciali (CCV+Spread+Servizi): €${financialData.ricaviCommerciali?.toLocaleString('it-IT') || '0'}
+- Costo grossista (energia+POD): €${financialData.costoEnergiaGrossista?.toLocaleString('it-IT') || '0'}
+- Margine Commerciale Lordo: €${financialData.margineCommercialeLordo?.toLocaleString('it-IT') || '0'} (${financialData.margineCommLordoPerc?.toFixed(1) || '0'}%)
 - Margine Contributivo: €${financialData.margineContributivo?.toLocaleString('it-IT') || '0'} (${financialData.margineContributivoPerc?.toFixed(1) || '0'}%)
 - Margine Netto: €${financialData.margineNetto?.toLocaleString('it-IT') || '0'} (${financialData.margineNettoPerc?.toFixed(1) || '0'}%)
 
 STRUTTURA COSTI:
 - Costi operativi totali: €${financialData.costiOperativi?.toLocaleString('it-IT') || '0'}
 - Costi commerciali (provvigioni): €${financialData.costiCommerciali?.toLocaleString('it-IT') || '0'}
-- Costi passanti (energia+trasporto+oneri): €${financialData.costiPassanti?.toLocaleString('it-IT') || '0'}
+- Costi passanti totali: €${financialData.costiPassanti?.toLocaleString('it-IT') || '0'}
 - Costi per tipo: Commerciali €${financialData.costiPerTipo?.commercial || 0}, Strutturali €${financialData.costiPerTipo?.structural || 0}, Diretti €${financialData.costiPerTipo?.direct || 0}, Indiretti €${financialData.costiPerTipo?.indirect || 0}
 
 PORTAFOGLIO CLIENTI:
@@ -65,52 +93,27 @@ CASH FLOW E INVESTIMENTI:
 - Totale insoluti: €${financialData.insoluti?.toLocaleString('it-IT') || '0'}
 - Investimento iniziale (setup): €${financialData.investimentoIniziale?.toLocaleString('it-IT') || '0'}
 - Saldo cassa finale (14 mesi): €${financialData.saldoFinale?.toLocaleString('it-IT') || '0'}
-- Mese break-even (primo saldo positivo): ${financialData.mesePrimoPositivo || 'Non raggiunto'}
+- Mese break-even: ${financialData.mesePrimoPositivo || 'Non raggiunto'}
 - Massima esposizione finanziaria: €${financialData.massimaEsposizione?.toLocaleString('it-IT') || '0'} (${financialData.meseEsposizioneMassima || 'N/D'})
 - ROI a 14 mesi: ${financialData.roi?.toFixed(1) || '0'}%
 
-PARAMETRI SIMULAZIONE (IPOTESI OPERATIVE — dati di input):
-- PUN (prezzo energia all'ingrosso): €${financialData.parametriSimulazione?.punPerKwh || 0}/kWh
-- Spread reseller al cliente: €${financialData.parametriSimulazione?.spreadPerKwh || 0}/kWh
-- CCV mensile per cliente: €${financialData.parametriSimulazione?.ccvMensile || 0}
-- Consumo medio mensile per cliente: ${financialData.parametriSimulazione?.consumoMedioMensile || 0} kWh
-- Altri servizi mensili per cliente: €${financialData.parametriSimulazione?.altriServiziMensili || 0}
-- Tasso attivazione contratti: ${financialData.parametriSimulazione?.tassoAttivazione || 0}%
-- Churn mensile (tasso abbandono): ${financialData.parametriSimulazione?.tassoChurn || 0}%
-- Tasso insoluti (mancati incassi): ${financialData.parametriSimulazione?.tassoInsoluti || 0}%
-
-IPOTESI INCASSI (dilazioni pagamento):
-- Incasso a 0 mesi (immediato): ${financialData.parametriSimulazione?.incassoMese0 || 70}%
-- Incasso a 1 mese: ${financialData.parametriSimulazione?.incassoMese1 || 18}%
-- Incasso a 2 mesi: ${financialData.parametriSimulazione?.incassoMese2 || 7}%
-- Incasso a 3+ mesi: ${financialData.parametriSimulazione?.incassoMese3Plus || 3}%
-
-IPOTESI COSTI GROSSISTA:
+PARAMETRI GLOBALI (condivisi tra i prodotti):
+- PUN: €${financialData.parametriSimulazione?.punPerKwh || 0}/kWh
 - Spread grossista: €${financialData.parametriSimulazione?.spreadGrossistaPerKwh ?? 0.008}/kWh
 - Gestione POD/PDR: €${financialData.parametriSimulazione?.gestionePodPerPod ?? 2.50}/pod/mese
-- Deposito cauzionale: ${financialData.parametriSimulazione?.depositoMesi ?? 3} mesi di garanzia
-- Percentuale clienti con deposito: ${financialData.parametriSimulazione?.depositoPercentualeAttivazione ?? 85}%
-
-IPOTESI COMPONENTI REGOLATE (passthrough):
+- Deposito cauzionale: ${financialData.parametriSimulazione?.depositoMesi ?? 3} mesi (${financialData.parametriSimulazione?.depositoPercentualeAttivazione ?? 85}% clienti)
 - Dispacciamento: €${financialData.parametriSimulazione?.dispacciamentoPerKwh || 0.01}/kWh
-- Trasporto quota fissa: €${financialData.parametriSimulazione?.trasportoQuotaFissaAnno || 23}/anno
-- Trasporto quota potenza: €${financialData.parametriSimulazione?.trasportoQuotaPotenzaKwAnno || 22}/kW/anno (potenza impegnata: ${financialData.parametriSimulazione?.potenzaImpegnataKw || 3} kW)
-- Trasporto quota energia: €${financialData.parametriSimulazione?.trasportoQuotaEnergiaKwh || 0.008}/kWh
-- Oneri di sistema ASOS: €${financialData.parametriSimulazione?.oneriAsosKwh || 0.025}/kWh
-- Oneri di sistema ARIM: €${financialData.parametriSimulazione?.oneriArimKwh || 0.007}/kWh
+- Trasporto: fissa €${financialData.parametriSimulazione?.trasportoQuotaFissaAnno || 23}/anno, potenza €${financialData.parametriSimulazione?.trasportoQuotaPotenzaKwAnno || 22}/kW/anno (${financialData.parametriSimulazione?.potenzaImpegnataKw || 3} kW), energia €${financialData.parametriSimulazione?.trasportoQuotaEnergiaKwh || 0.008}/kWh
+- Oneri ASOS: €${financialData.parametriSimulazione?.oneriAsosKwh || 0.025}/kWh | ARIM: €${financialData.parametriSimulazione?.oneriArimKwh || 0.007}/kWh
 - Accise: €${financialData.parametriSimulazione?.acciseKwh || 0.0227}/kWh
-- IVA: ${financialData.parametriSimulazione?.ivaPercent || 10}%
 
-RISULTATI COMPONENTI PASSANTI (totali 14 mesi):
+COSTI PASSANTI TOTALI (14 mesi):
+- Dispacciamento: €${financialData.costiPassantiDettaglio?.dispacciamento?.toLocaleString('it-IT') || '0'}
+- Trasporto: €${financialData.costiPassantiDettaglio?.trasporto?.toLocaleString('it-IT') || '0'}
+- Oneri di sistema: €${financialData.costiPassantiDettaglio?.oneriSistema?.toLocaleString('it-IT') || '0'}
+- Accise: €${financialData.costiPassantiDettaglio?.accise?.toLocaleString('it-IT') || '0'}
 - Costo energia grossista: €${financialData.costoEnergiaTotale?.toLocaleString('it-IT') || '0'}
 - Gestione POD totale: €${financialData.costoGestionePodTotale?.toLocaleString('it-IT') || '0'}
-- Dispacciamento totale: €${financialData.costiPassantiDettaglio?.dispacciamento?.toLocaleString('it-IT') || '0'}
-- Trasporto totale: €${financialData.costiPassantiDettaglio?.trasporto?.toLocaleString('it-IT') || '0'}
-- Oneri di sistema totale: €${financialData.costiPassantiDettaglio?.oneriSistema?.toLocaleString('it-IT') || '0'}
-- Accise totale: €${financialData.costiPassantiDettaglio?.accise?.toLocaleString('it-IT') || '0'}
-
-PIANO CONTRATTI MENSILE:
-${JSON.stringify(financialData.parametriSimulazione?.contrattiMensili || [])}
 
 CANALI DI VENDITA:
 ${(financialData.canaliVendita || []).map((c: any) => `- ${c.nome} (${c.tipo}): commissione €${c.commissione} ${c.tipoCommissione}, quota ${c.quotaContratti}%, attivazione ${c.tassoAttivazione}%`).join('\n') || 'Nessun canale configurato'}
@@ -122,54 +125,60 @@ ${JSON.stringify(financialData.cashFlowMensile || [], null, 1)}
 Struttura il report con queste sezioni, ciascuna approfondita e ben argomentata:
 
 ## 1. Sintesi Esecutiva per il Management
-Un executive summary di 8-10 frasi che catturi: stato del progetto, risultati chiave, fattibilità, fabbisogno di capitale, decisioni urgenti.
+Executive summary di 8-10 frasi: stato del progetto, risultati chiave, fattibilità, fabbisogno di capitale, decisioni urgenti.
+${hasMultiProduct ? 'Evidenzia il MIX di prodotti e la strategia multi-offerta.' : ''}
 
 ## 2. Il Modello di Business del Reseller
-Spiega come funziona il modello reseller energia: CCV, Spread, margine, differenza tra fatturato lordo e margine proprio. Benchmark di settore.
+Come funziona il modello reseller energia: CCV, Spread, margine, differenza tra fatturato lordo e margine proprio. Benchmark di settore.
 
-## 3. Dettaglio delle Ipotesi Operative
-Questa è la sezione PIÙ IMPORTANTE del report. Devi elencare e commentare OGNI singola ipotesi operativa con il suo valore esatto, organizzata così:
+## 3. Portafoglio Prodotti e Strategia Commerciale
+${hasMultiProduct ? `SEZIONE CRITICA: Per ciascuno dei ${financialData.prodotti.length} prodotti (${financialData.prodotti.map((p: any) => p.nome).join(', ')}), dettaglia:
+- Posizionamento e target (tipo clientela, consumo medio)
+- Marginalità unitaria (CCV + Spread + Servizi vs benchmark)
+- Canale di vendita associato e relativa efficienza
+- Performance: fatturato, margine, clienti attivi, churn
+- Confronto incrociato tra i prodotti: quale rende di più? quale ha churn più alto? quale ha il rapporto margine/rischio migliore?` : 'Descrivi il prodotto unico offerto con i suoi parametri di margine e posizionamento.'}
 
-### 3.1 Ipotesi sulla Clientela
-Elenca con i valori esatti: piano contratti mese per mese (riporta la tabella), consumo medio (kWh), tasso attivazione (%), churn mensile (%), tasso insoluti (%). Per ciascuno: spiega cosa significa, se è realistico vs benchmark di settore, e cosa succede se il valore reale è diverso.
+## 4. Dettaglio delle Ipotesi Operative
+### 4.1 Ipotesi sulla Clientela (per prodotto)
+${hasMultiProduct ? 'Per OGNI prodotto: contratti (% del totale), consumo medio, tasso attivazione, curva di churn (mese1/2/3 + decay), tasso insoluti. Commenta le differenze tra prodotti.' : 'Piano contratti, consumo medio, tasso attivazione, churn, insoluti.'}
 
-### 3.2 Ipotesi sui Ricavi Unitari
-Dettaglia con cifre: PUN (€/kWh), spread reseller (€/kWh), CCV mensile (€), altri servizi (€). Calcola il ricavo medio mensile per cliente risultante e commenta la competitività dell'offerta.
+### 4.2 Ipotesi sui Ricavi Unitari (per prodotto)
+${hasMultiProduct ? 'Per OGNI prodotto: CCV, spread, servizi aggiuntivi. Calcola il ricavo medio mensile per cliente per ciascun prodotto e confronta.' : 'CCV, spread, servizi. Ricavo medio per cliente.'}
 
-### 3.3 Ipotesi sui Costi Passanti e Regolati
-Elenca TUTTE le componenti con valori esatti: dispacciamento (€/kWh), trasporto quota fissa (€/anno), trasporto quota potenza (€/kW/anno), trasporto quota energia (€/kWh), oneri ASOS (€/kWh), oneri ARIM (€/kWh), accise (€/kWh), IVA (%). Mostra i totali generati (dispacciamento, trasporto, oneri, accise in €). Spiega il peso sulla bolletta.
+### 4.3 Ipotesi sui Costi Passanti e Regolati (globali)
+Elenca TUTTE le componenti con valori esatti. Sono condivise tra i prodotti.
 
-### 3.4 Ipotesi sui Costi del Grossista
-Dettaglia: spread grossista (€/kWh), gestione POD (€/pod/mese), deposito cauzionale (mesi e % clienti). Mostra i totali (costo energia, gestione POD). Spiega l'impatto su cash flow e margine.
+### 4.4 Ipotesi sui Costi del Grossista
+Spread grossista, gestione POD, deposito cauzionale.
 
-### 3.5 Ipotesi sugli Incassi e Dilazioni
-Riporta la distribuzione: incasso immediato (%), a 1 mese (%), a 2 mesi (%), a 3+ mesi (%). Spiega come questa distribuzione impatta il fabbisogno di capitale circolante e la liquidità.
+### 4.5 Ipotesi sugli Incassi e Dilazioni (per prodotto)
+${hasMultiProduct ? 'Per OGNI prodotto: distribuzione incassi (0/30/60/90+ gg). Commenta le differenze e l\'impatto sulla liquidità.' : 'Distribuzione incassi.'}
 
-### 3.6 Ipotesi sui Canali di Vendita
-Per ogni canale attivo riporta: nome, tipo commissione (per contratto/per attivazione), importo €, quota contratti %, tasso attivazione %. Calcola il CAC implicito per canale.
+## 5. Analisi del Portafoglio Clienti
+${hasMultiProduct ? 'Analisi AGGREGATA e poi PER PRODOTTO: curva acquisizione, attivazione, churn, LTV implicito. Identifica il prodotto con miglior retention e quello più problematico.' : 'Curva acquisizione, attivazione, churn, LTV.'}
 
-## 4. Analisi del Portafoglio Clienti
-Curva di acquisizione, attivazione, churn, LTV implicito, CAC.
+## 6. Performance Economica e Margini
+${hasMultiProduct ? 'Prima il dato AGGREGATO, poi il BREAKDOWN per prodotto. Confronta i margini % tra prodotti. Identifica il prodotto "star" e quello "underperformer".' : 'Analisi margini.'}
 
-## 5. Performance Economica e Margini
-Analisi di ogni livello di margine. Benchmark settore (margine netto 8-15%). Leve di miglioramento.
-
-## 6. Struttura e Ottimizzazione dei Costi
+## 7. Struttura e Ottimizzazione dei Costi
 Ripartizione costi passanti/commerciali/strutturali. Inefficienze e ottimizzazioni.
 
-## 7. Analisi della Liquidità e Fabbisogno Finanziario
-Curva di cassa, esposizione, payback, mesi critici. ⚠️ Segnala rischi.
+## 8. Analisi della Liquidità e Fabbisogno Finanziario
+Curva di cassa, esposizione, payback, mesi critici.
 
-## 8. Efficacia dei Canali di Vendita
-CAC per canale, conversione, contributo. Raccomandazioni mix.
+## 9. Efficacia dei Canali di Vendita
+${hasMultiProduct ? 'Analizza la relazione prodotto-canale: ogni prodotto è legato a un canale specifico. Valuta CAC, conversione e contributo di ciascuna coppia prodotto/canale.' : 'CAC per canale, conversione, contributo.'}
 
-## 9. Analisi dei Rischi e Scenari
+## 10. Analisi dei Rischi e Scenari
 Almeno 5 rischi concreti con probabilità, impatto, mitigazione.
+${hasMultiProduct ? 'Includi rischi specifici per la strategia multi-prodotto (cannibalizzazione, complessità gestionale, rischio concentrazione su un prodotto).' : ''}
 
-## 10. Raccomandazioni Strategiche Prioritizzate
+## 11. Raccomandazioni Strategiche Prioritizzate
 5-7 azioni con priorità, impatto, timeline.
+${hasMultiProduct ? 'Includi raccomandazioni specifiche sul mix di prodotti: espandere, ridurre, riposizionare.' : ''}
 
-## 11. Conclusione e Giudizio di Fattibilità
+## 12. Conclusione e Giudizio di Fattibilità
 Rating: ✅ Fattibile / ⚠️ Con riserve / ❌ Non raccomandato.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
