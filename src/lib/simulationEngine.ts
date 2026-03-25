@@ -247,12 +247,13 @@ export function runSimulationEngine(
       incasso60gg = 0,
       incassoOltre60gg = 0;
 
+    const collectFactor = 1 - (params.uncollectibleRate / 100);
     for (const invoice of invoicesToCollect) {
       const d = m - invoice.month;
-      if (d === 0) incassoScadenza += invoice.amount * (params.collectionMonth0 / 100);
-      else if (d === 1) incasso30gg += invoice.amount * (params.collectionMonth1 / 100);
-      else if (d === 2) incasso60gg += invoice.amount * (params.collectionMonth2 / 100);
-      else if (d === 3) incassoOltre60gg += invoice.amount * (params.collectionMonth3Plus / 100);
+      if (d === 0) incassoScadenza += invoice.amount * (params.collectionMonth0 / 100) * collectFactor;
+      else if (d === 1) incasso30gg += invoice.amount * (params.collectionMonth1 / 100) * collectFactor;
+      else if (d === 2) incasso60gg += invoice.amount * (params.collectionMonth2 / 100) * collectFactor;
+      else if (d === 3) incassoOltre60gg += invoice.amount * (params.collectionMonth3Plus / 100) * collectFactor;
     }
 
     const collection: MonthlyCollectionData = {
