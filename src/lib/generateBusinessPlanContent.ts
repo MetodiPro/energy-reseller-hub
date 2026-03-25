@@ -25,6 +25,10 @@ export interface ProjectContext {
     avgMonthlyConsumptionGas: number;
     activationRate: number;
     monthlyChurnRate: number;
+    churnMonth1Pct: number;
+    churnMonth2Pct: number;
+    churnMonth3Pct: number;
+    churnDecayFactor: number;
     clientType: string;
     commodityType: string;
   } | null;
@@ -95,7 +99,7 @@ const totalTargetContracts = (contracts: number[]): number => {
 // Calculate total active clients at month 14 considering churn (aligned with simulationEngine)
 const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
   if (!ctx.simulation) return 0;
-  const { monthlyContracts, activationRate, monthlyChurnRate } = ctx.simulation;
+  const { monthlyContracts, activationRate, churnMonth1Pct, churnMonth2Pct, churnMonth3Pct, churnDecayFactor } = ctx.simulation;
   const SWITCH_OUT_DELAY = 2;
   const SIM_MONTHS = 14;
   const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
@@ -104,8 +108,17 @@ const calculateActiveClientsMonth14 = (ctx: ProjectContext): number => {
     const activated = m >= 2
       ? Math.round((m - 2 < monthlyContracts.length ? monthlyContracts[m - 2] : 0) * activationRate / 100)
       : 0;
+    // Granular churn model: manual rates for first 3 months, then exponential decay
+    const churnMonthIndex = m - 3;
+    let churnRate = 0;
+    if (m >= 3) {
+      if (churnMonthIndex === 0) churnRate = churnMonth1Pct;
+      else if (churnMonthIndex === 1) churnRate = churnMonth2Pct;
+      else if (churnMonthIndex === 2) churnRate = churnMonth3Pct;
+      else churnRate = churnMonth3Pct * Math.pow(churnDecayFactor, churnMonthIndex - 2);
+    }
     const churnProgrammato = m >= 3
-      ? Math.round(active * monthlyChurnRate / 100)
+      ? Math.round(active * churnRate / 100)
       : 0;
     if (churnProgrammato > 0 && (m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
       pendingChurnExits[m + SWITCH_OUT_DELAY] += churnProgrammato;

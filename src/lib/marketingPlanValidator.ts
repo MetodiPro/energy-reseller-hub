@@ -174,14 +174,14 @@ export function validateMarketingPlan(ctx: ProjectContext): MarketingPlanIssue[]
     });
   }
 
-  if (ctx.simulation && ctx.simulation.monthlyChurnRate <= 0) {
+  if (ctx.simulation && (ctx.simulation.churnMonth1Pct ?? ctx.simulation.monthlyChurnRate) <= 0) {
     issues.push({
       id: 'mp_zero_churn',
       severity: 'info',
       section: 'budget_allocation',
       title: 'Tasso di churn non configurato',
-      description: 'Senza churn rate, il budget non considera costi di retention. Un valore realistico è 1-3%/mese.',
-      action: 'Imposta il churn rate in Finanze > Ipotesi Operative.',
+      description: 'Senza churn rate, il budget non considera costi di retention. Un valore realistico è 1-5% al 1° mese.',
+      action: 'Imposta i tassi di churn granulari in Finanze > Ipotesi Operative.',
       navigationHint: 'finance',
     });
   }

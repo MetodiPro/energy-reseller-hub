@@ -181,14 +181,14 @@ export function validateBusinessPlan(ctx: ProjectContext): BusinessPlanIssue[] {
     }
 
 
-    if (ctx.simulation.monthlyChurnRate <= 0) {
+    if ((ctx.simulation.churnMonth1Pct ?? ctx.simulation.monthlyChurnRate) <= 0) {
       issues.push({
         id: 'zero_churn',
         severity: 'info',
         section: 'market_analysis',
         title: 'Tasso di churn non configurato',
-        description: 'Il tasso di abbandono mensile è zero. Le proiezioni sono ottimistiche — un valore realistico è tra 1% e 3%.',
-        action: 'Imposta un tasso di churn realistico in Finanze > Ipotesi Operative.',
+        description: 'Il tasso di abbandono al 1° mese è zero. Le proiezioni sono ottimistiche — un valore realistico è tra 1% e 5%.',
+        action: 'Imposta i tassi di churn granulari in Finanze > Ipotesi Operative.',
         navigationHint: 'finance',
       });
     }

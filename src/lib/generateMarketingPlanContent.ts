@@ -60,7 +60,7 @@ export function generateTargetMarket(ctx: ProjectContext): string {
     const total12m = ctx.simulation.monthlyContracts.reduce((s, c) => s + c, 0);
     text += `• Obiettivo acquisizione: ${total12m.toLocaleString('it-IT')} contratti nei primi 12 mesi\n`;
     text += `• Tasso di attivazione previsto: ${ctx.simulation.activationRate}%\n`;
-    text += `• Tasso di churn mensile: ${ctx.simulation.monthlyChurnRate}% (erosione fisiologica della base clienti)\n`;
+    text += `• Churn post-attivazione: ${ctx.simulation.churnMonth1Pct}% (1° mese), ${ctx.simulation.churnMonth2Pct}% (2° mese), ${ctx.simulation.churnMonth3Pct}% (3° mese), poi decadimento esponenziale (fattore ${ctx.simulation.churnDecayFactor})\n`;
   }
   if (ctx.expectedVolumes) {
     text += `• Volumi target a regime: ${ctx.expectedVolumes.toLocaleString('it-IT')} utenze\n`;
@@ -270,7 +270,7 @@ export function generateBudgetAllocation(ctx: ProjectContext): string {
   text += `• Customer Lifetime Value (CLV)\n`;
   text += `• Tasso di retention mensile\n`;
   if (ctx.simulation) {
-    text += `• Churn rate target: < ${ctx.simulation.monthlyChurnRate}%/mese\n`;
+    text += `• Churn rate target: < ${ctx.simulation.churnMonth1Pct}% al 1° mese, decrescente fino a ~${(ctx.simulation.churnMonth3Pct * Math.pow(ctx.simulation.churnDecayFactor, 6)).toFixed(1)}% al 9° mese\n`;
   }
 
   return text;

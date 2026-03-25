@@ -35,6 +35,10 @@ interface ExportParams {
   ivaPercent: number;
   activationRate: number;
   monthlyChurnRate: number;
+  churnMonth1Pct?: number;
+  churnMonth2Pct?: number;
+  churnMonth3Pct?: number;
+  churnDecayFactor?: number;
   uncollectibleRate: number;
 }
 
@@ -87,7 +91,10 @@ export const exportSimulationToExcel = (
   lines.push(`PUN (€/kWh);${formatNumber(params.punPerKwh, 4)}`);
   lines.push(`IVA (%);${formatNumber(params.ivaPercent, 0)}`);
   lines.push(`Tasso attivazione (%);${formatNumber(params.activationRate)}`);
-  lines.push(`Switch-out mensile (%);${formatNumber(params.monthlyChurnRate, 1)}`);
+  lines.push(`Churn 1° mese (%);${formatNumber(params.churnMonth1Pct ?? params.monthlyChurnRate, 1)}`);
+  lines.push(`Churn 2° mese (%);${formatNumber(params.churnMonth2Pct ?? params.monthlyChurnRate, 1)}`);
+  lines.push(`Churn 3° mese (%);${formatNumber(params.churnMonth3Pct ?? params.monthlyChurnRate, 1)}`);
+  lines.push(`Fattore decadimento;${formatNumber(params.churnDecayFactor ?? 0.85, 2)}`);
   lines.push(`Insoluti (%);${formatNumber(params.uncollectibleRate)}`);
   lines.push('');
   
