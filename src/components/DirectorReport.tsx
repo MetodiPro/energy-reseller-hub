@@ -33,22 +33,27 @@ interface DirectorReportProps {
   projectId: string;
   projectName: string;
   commodityType?: string | null;
+  sharedRevenueSimulation?: ReturnType<typeof useRevenueSimulation>;
 }
 
-export const DirectorReport = ({ projectId, projectName, commodityType }: DirectorReportProps) => {
+export const DirectorReport = ({ projectId, projectName, commodityType, sharedRevenueSimulation }: DirectorReportProps) => {
   const { toast } = useToast();
   const [report, setReport] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const reportRef = useRef<HTMLDivElement>(null);
+
+  // Use shared simulation from AppLayout when available, otherwise own instance
+  const ownRevenueSimulation = useRevenueSimulation(sharedRevenueSimulation ? null : projectId);
+  const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
 
   // Data hooks
   const { costs, revenues, summary: costSummary, loading } = useProjectFinancials(projectId);
-  const revenueSimulation = useRevenueSimulation(projectId);
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
   const { engineResult, multiProductResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
-  const { products } = useSimulationProducts(projectId);
+  const { products, refetch: refetchProducts } = useSimulationProducts(projectId);
   const { channels: salesChannels, getChannelBreakdown, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
   const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
   const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData, sharedEngine: engineResult });
