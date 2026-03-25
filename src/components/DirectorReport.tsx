@@ -570,7 +570,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
           )}
 
           {/* Product Performance Table */}
-          {multiProductResult && multiProductResult.products.length > 1 && (
+          {multiProductResult && multiProductResult.products.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
