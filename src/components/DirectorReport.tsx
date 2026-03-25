@@ -64,6 +64,15 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
     setTimeout(() => revenueSimulation.saveSimulation(), 500);
   }, [revenueSimulation]);
 
+  const handleRefreshSimulation = useCallback(async () => {
+    await Promise.all([
+      revenueSimulation.refetch(),
+      refetchProducts(),
+    ]);
+    setRefreshKey(k => k + 1);
+    toast({ title: 'Dati aggiornati', description: 'Simulazione e prodotti ricaricati con successo.' });
+  }, [revenueSimulation, refetchProducts, toast]);
+
   // ── Chart Data ──
   const costBreakdownData = [
     { name: 'Passanti', value: summary.passthroughCosts, color: 'hsl(var(--chart-5))' },
