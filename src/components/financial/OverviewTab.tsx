@@ -336,10 +336,10 @@ export const OverviewTab = ({
               {/* 6. Saldo Cassa */}
               <FinancialRow
                 label="Saldo Cassa (Fine Periodo)"
-                tooltip="Saldo cumulativo di tutti i flussi di cassa al termine dei 14 mesi di simulazione. Tiene conto di incassi, costi operativi, depositi cauzionali, investimenti iniziali e flussi fiscali."
+                tooltip="Saldo cumulativo di tutti i flussi di cassa al termine della simulazione. Tiene conto di incassi, costo energia grossista, gestione POD, depositi cauzionali, investimenti, flussi fiscali (IVA, Accise, Oneri, Trasporto) e costi strutturali."
                 value={formatCurrency(cashFlowData.saldoFinale)}
                 valueClass={cashFlowData.saldoFinale >= 0 ? 'text-green-600' : 'text-destructive'}
-                detail={`Calcolo: Incassi ${formatCurrency(cashFlowData.totaleIncassi)} − Costi passanti ${formatCurrency(cashFlowData.totaleCostiPassanti)} − Costi operativi ${formatCurrency(cashFlowData.totaleCostiOperativi)} − Costi commerciali ${formatCurrency(cashFlowData.totaleCostiCommerciali)} − Strutturali ${formatCurrency(cashFlowData.totaleCostiStrutturali)} − Depositi ${formatCurrency(cashFlowData.totaleDepositi)} − Flussi fiscali ${formatCurrency(cashFlowData.totaleFlussiFiscali)} − Investimenti ${formatCurrency(cashFlowData.investimentoIniziale)} = ${formatCurrency(cashFlowData.saldoFinale)}.`}
+                detail={`Calcolo: Incassi ${formatCurrency(cashFlowData.totaleIncassi)} − Costo energia grossista ${formatCurrency(cashFlowData.totaleCostiPassanti)} − Fee gestione POD ${formatCurrency(cashFlowData.totaleCostiOperativi)} − Costi commerciali ${formatCurrency(cashFlowData.totaleCostiCommerciali)} − Strutturali ${formatCurrency(cashFlowData.totaleCostiStrutturali)} − Δ Depositi cauzionali ${formatCurrency(cashFlowData.totaleDepositi)} − Flussi fiscali e riversamenti ${formatCurrency(cashFlowData.totaleFlussiFiscali)} − Investimenti processo ${formatCurrency(cashFlowData.totaleInvestimenti)} = ${formatCurrency(cashFlowData.saldoFinale)}. I flussi fiscali includono: versamenti IVA netti, Accise ADM, riversamento Oneri a GSE e Trasporto a DSO.`}
                 icon={<Wallet className="h-4 w-4" />}
               />
             </div>

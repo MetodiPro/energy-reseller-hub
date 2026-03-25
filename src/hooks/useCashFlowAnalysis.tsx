@@ -65,6 +65,7 @@ export interface CashFlowSummary {
   };
   hasData: boolean;
   investimentoIniziale: number;
+  totaleInvestimenti: number;
   massimaEsposizione: number;
   meseEsposizioneMassima: string;
   mesePrimoPositivo: string | null;
@@ -124,6 +125,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totals: { inflow: 0, outflow: 0, net: 0, cumulative: 0 },
       hasData: false,
       investimentoIniziale: 0,
+      totaleInvestimenti: 0,
       massimaEsposizione: 0,
       meseEsposizioneMassima: '-',
       mesePrimoPositivo: null,
@@ -175,7 +177,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       const { customer, deposit, collection } = em;
       const m = customer.month;
 
-      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].taxOutflowsPerCashFlow : 0;
+      // Usa totaleTaxOutflows (IVA + Accise + Oneri riversamento + Trasporto riversamento)
+      // perché gli incassi (waterfall su fatturato) includono tutte le componenti
+      // raccolte dal cliente, inclusi trasporto e oneri che vanno riversati a DSO/GSE.
+      const flussiFiscaliMese = taxFlows.hasData && taxFlows.monthlyData[m] ? taxFlows.monthlyData[m].totaleTaxOutflows : 0;
 
       let costiCommercialiMese = 0;
       if (activeChannels.length > 0 && (customer.contrattiNuovi > 0 || customer.attivazioni > 0)) {
@@ -312,6 +317,7 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       },
       hasData: true,
       investimentoIniziale: getGrandTotal(),
+      totaleInvestimenti: investimentiTotali,
       massimaEsposizione: minCumulative,
       meseEsposizioneMassima: maxExposureMonth,
       mesePrimoPositivo: firstPositiveMonth,
