@@ -142,6 +142,10 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       totaleFlussiFiscali: 0,
       totaleDepositi: 0,
       totaleCostiStrutturali: 0,
+      totaleIvaVersamenti: 0,
+      totaleAcciseVersate: 0,
+      totaleOneriRiversati: 0,
+      totaleTrasportoVersato: 0,
     };
 
     if (!summary.hasData || !engineResult || !simData) return empty;
