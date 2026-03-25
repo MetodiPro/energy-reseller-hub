@@ -178,26 +178,31 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
       churnedCustomers: m.customer.churn,
       activeCustomers: m.customer.clientiAttivi,
       invoicedCustomers: m.customer.clientiFatturati,
-      materiaEnergia: m.customer.clientiFatturati * engineResult.perClient.materiaEnergia,
-      trasporto: m.customer.clientiFatturati * engineResult.perClient.trasporto,
-      oneriSistema: m.customer.clientiFatturati * engineResult.perClient.oneriSistema,
-      accise: m.customer.clientiFatturati * engineResult.perClient.accise,
+      // Pre-computed aggregated fields from engine (multi-product safe)
+      materiaEnergia: m.materiaEnergiaTotale,
+      trasporto: m.trasportoTotale,
+      oneriSistema: m.oneriSistemaTotale,
+      accise: m.acciseTotale,
       commercialeReseller: m.margineCommerciale,
-      imponibileTotale: m.fatturato / (1 + data.params.ivaPercent / 100),
-      iva: m.customer.clientiFatturati * engineResult.perClient.iva,
+      imponibileTotale: m.fatturato - m.ivaTotale,
+      iva: m.ivaTotale,
       fatturaTotale: m.fatturato,
-      margineCCV: m.customer.clientiFatturati * engineResult.perClient.ccv,
-      margineSpread: m.customer.clientiFatturati * engineResult.perClient.spread,
-      margineAltro: m.customer.clientiFatturati * engineResult.perClient.altroServizi,
+      // NB: in multi-prodotto il margine aggregato non è scomponibile
+      // per CCV/Spread/Altro — i valori seguenti sono indicativi solo in
+      // modalità single-product; in multi-product sono tutti 0 e il totale
+      // è l'unica fonte affidabile.
+      margineCCV: m.margineCommerciale, // placeholder: intero margine
+      margineSpread: 0,
+      margineAltro: 0,
       margineTotale: m.margineCommerciale,
       expectedCollection: m.collection.totaleIncassi,
       cumulativeCollection: 0,
       cumulativeUncollected: 0,
       pendingReceivables: 0,
       invoicedAmount: m.fatturato,
-      revenueCCV: m.customer.clientiFatturati * engineResult.perClient.ccv,
-      revenueSpread: m.customer.clientiFatturati * engineResult.perClient.spread,
-      revenueOther: m.customer.clientiFatturati * engineResult.perClient.altroServizi,
+      revenueCCV: m.margineCommerciale,
+      revenueSpread: 0,
+      revenueOther: 0,
     }));
 
     // Calcola campi cumulativi
