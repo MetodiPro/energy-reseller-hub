@@ -20,21 +20,23 @@ import {
 } from '@/components/ui/tooltip';
 import { Package, Plus, Trash2, AlertTriangle, CheckCircle2, Info, Loader2 } from 'lucide-react';
 import { useSimulationProducts, SimulationProduct } from '@/hooks/useSimulationProducts';
-import { useSalesChannels } from '@/hooks/useSalesChannels';
+import { useSalesChannels, SalesChannel } from '@/hooks/useSalesChannels';
 import { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface ProductsConfigProps {
   projectId: string;
   defaultParams: RevenueSimulationParams;
+  salesChannels?: SalesChannel[];
 }
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(v);
 
-export const ProductsConfig = ({ projectId, defaultParams }: ProductsConfigProps) => {
+export const ProductsConfig = ({ projectId, defaultParams, salesChannels: externalChannels }: ProductsConfigProps) => {
   const { products, loading, createProduct, updateProduct, deleteProduct } = useSimulationProducts(projectId);
-  const { channels } = useSalesChannels(projectId);
+  const { channels: ownChannels } = useSalesChannels(externalChannels ? null : projectId);
+  const channels = externalChannels ?? ownChannels;
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleCreateFromDefaults = () => {
