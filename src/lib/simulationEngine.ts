@@ -439,7 +439,7 @@ function aggregateProductResults(
 
   for (let m = 0; m < monthCount; m++) {
     const sources = productResults.map(pr => pr.result.monthly[m]);
-    const s = (fn: (x: MonthlyEngineResult) => number) => sources.reduce((acc, x) => acc + fn(x), 0);
+    const s = (fn: (x: MonthlyEngineResult) => number) => sources.reduce((acc, x) => acc + (fn(x) ?? 0), 0);
 
     monthly.push({
       customer: {
