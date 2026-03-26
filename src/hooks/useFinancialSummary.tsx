@@ -41,10 +41,6 @@ export const useFinancialSummary = (
     const totalRevenue = simulationSummary.hasData ? simulationSummary.totalFatturato : costSummary.totalRevenue;
     const resellerMargin = simulationSummary.hasData ? simulationSummary.totalMargine : 0;
     const passthroughCosts = simulationSummary.hasData ? simulationSummary.totalPassanti : costSummary.passthroughCosts;
-    // Passanti non-energetici: solo trasporto + oneri + accise (senza materiaEnergia che è già in costoEnergia)
-    const passthroughNonEnergia = simulationSummary.hasData
-      ? (simulationSummary.totalTrasporto + simulationSummary.totalOneri + simulationSummary.totalAccise)
-      : costSummary.passthroughCosts;
 
     const costiCommercialiSimulati = cashFlowData.hasData ? cashFlowData.totaleCostiCommerciali : 0;
 
@@ -61,13 +57,11 @@ export const useFinancialSummary = (
       ? simulationSummary.costoGestionePodTotale
       : 0;
 
+    // Margine commerciale lordo = Ricavi Reseller − Costo energia grossista − Fee POD
+    const margineCommercialeLordo = resellerMargin - costoEnergiaNetto - costoGestionePodTotale;
+
     // Imponibile = fatturato − IVA
     const imponibile = totalRevenue - iva;
-
-    // Margine commerciale lordo = Imponibile − Costo energia grossista − Passanti non-energetici − Fee POD
-    // NOTA: passthroughCosts include materiaEnergia (PUN+disp) che si sovrappone a costoEnergia (PUN+spreadGrossista).
-    // Per evitare il doppio conteggio del PUN, sottraiamo solo i passanti non-energetici (trasporto+oneri+accise).
-    const margineCommercialeLordo = imponibile - costoEnergiaNetto - passthroughNonEnergia - costoGestionePodTotale;
 
     // % margine commerciale sul fatturato netto (imponibile)
     const margineCommercialePercent = imponibile > 0

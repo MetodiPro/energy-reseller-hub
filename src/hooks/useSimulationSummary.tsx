@@ -39,10 +39,6 @@ export interface SimulationSummary {
   hasData: boolean;
   costoGestionePodTotale: number;
   costoEnergiaTotale: number;
-  totalMateriaEnergia: number;
-  totalTrasporto: number;
-  totalOneri: number;
-  totalAccise: number;
   depositoIniziale: number;
   depositoFinale: number;
   depositoMassimo: number;
@@ -55,7 +51,6 @@ const EMPTY_SUMMARY: SimulationSummary = {
   totalIncassato: 0, totalInsoluti: 0, totalCrediti: 0, clientiAttivi: 0,
   contrattiTotali: 0, switchOutTotali: 0, marginePercent: 0, hasData: false,
   costoGestionePodTotale: 0, costoEnergiaTotale: 0,
-  totalMateriaEnergia: 0, totalTrasporto: 0, totalOneri: 0, totalAccise: 0,
   depositoIniziale: 0, depositoFinale: 0, depositoMassimo: 0,
   depositiMensili: [], costiMensili: [],
 };
@@ -70,7 +65,6 @@ export function buildSimulationSummary(
   let totalFatturato = 0, totalMargine = 0, totalPassanti = 0, totalIva = 0;
   let totalChurned = 0, totalContracts = 0;
   let costoGestionePodTotale = 0, costoEnergiaTotale = 0;
-  let totalMateriaEnergia = 0, totalTrasporto = 0, totalOneri = 0, totalAccise = 0;
   let cumulativeCollection = 0;
   let depositoIniziale = 0, depositoMassimo = 0;
 
@@ -88,10 +82,6 @@ export function buildSimulationSummary(
     totalIva += m.ivaTotale;
     costoGestionePodTotale += m.costiGestionePod;
     costoEnergiaTotale += m.costoEnergia;
-    totalMateriaEnergia += m.materiaEnergiaTotale;
-    totalTrasporto += m.trasportoTotale;
-    totalOneri += m.oneriSistemaTotale;
-    totalAccise += m.acciseTotale;
     cumulativeCollection += collection.totaleIncassi;
 
     const fatturatoMensileStimato = m.fatturatoStimatoAttivi;
@@ -137,7 +127,6 @@ export function buildSimulationSummary(
     marginePercent: (totalFatturato - totalIva) > 0 ? (totalMargine / (totalFatturato - totalIva)) * 100 : 0,
     hasData: totalContracts > 0,
     costoGestionePodTotale, costoEnergiaTotale,
-    totalMateriaEnergia, totalTrasporto, totalOneri, totalAccise,
     depositoIniziale, depositoFinale, depositoMassimo,
     depositiMensili, costiMensili,
   };
