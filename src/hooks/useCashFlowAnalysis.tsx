@@ -221,13 +221,11 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       });
 
       const deltaDepositoCassa = deposit.deltaDeposito;
-      // Costo reale acquisto energia dal grossista = costoEnergia dal motore
-      // (già include PUN + spreadGrossista) × clientiAttivi.
-      // Usiamo em.costoEnergia che è la fonte unica di verità del motore.
-      // NOTA: il PUN è sia un ricavo (nella fattura al cliente) che un costo
-      // (nel pagamento al grossista) — entrambi devono essere nel cash flow
-      // per mostrare i flussi lordi reali. Il netto è il margine spread.
-      const costiPassantiMese = em.costoEnergia;
+      // Costo reale acquisto energia dal grossista = costoEnergiaConDisp dal motore
+      // (include PUN + dispacciamento + spreadGrossista) × clientiAttivi.
+      // Usiamo em.costoEnergiaConDisp che rappresenta l'uscita reale di cassa,
+      // incluso il dispacciamento che viene incassato dal cliente ma va riversato al grossista.
+      const costiPassantiMese = em.costoEnergiaConDisp;
       const costiOperativiMese = em.costiGestionePod;
       const incassiMese = collection.totaleIncassi;
 
