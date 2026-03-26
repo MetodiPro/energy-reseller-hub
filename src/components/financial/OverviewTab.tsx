@@ -249,21 +249,21 @@ export const OverviewTab = ({
               {/* 10. Margine di Contribuzione */}
               <EconomicRowHighlight
                 label="Margine di Contribuzione"
-                tooltip="Margine commerciale meno i costi commerciali (provvigioni canali di vendita). Indica quanto resta per coprire i costi fissi strutturali. È il primo indicatore di sostenibilità del modello di acquisizione clienti."
+                tooltip="Margine Commerciale Lordo meno i costi commerciali (provvigioni canali di vendita). Indica quanto resta per coprire i costi fissi strutturali."
                 value={formatCurrency(summary.contributionMargin)}
                 percentValue={formatPercent(summary.contributionMarginPercent)}
                 positive={summary.contributionMargin >= 0}
-                detail={`Calcolo: Margine Commerciale ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} = ${formatCurrency(summary.contributionMargin)}. Pct: ${formatCurrency(summary.contributionMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.contributionMarginPercent)}.`}
+                detail={`Calcolo: Margine Commerciale Lordo ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} = ${formatCurrency(summary.contributionMargin)}. Pct: ${formatCurrency(summary.contributionMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.contributionMarginPercent)}.`}
                 icon={<Percent className="h-4 w-4" />}
               />
               {/* 11. Margine Netto Operativo */}
               <EconomicRowHighlight
                 label="Margine Netto Operativo"
-                tooltip="Margine commerciale meno tutti i costi operativi (provvigioni + costi strutturali). Rappresenta il risultato operativo finale: quanto il reseller guadagna o perde dopo aver coperto tutti i costi."
+                tooltip="Margine Commerciale Lordo meno tutti i costi operativi (provvigioni + costi strutturali). Rappresenta il risultato operativo finale."
                 value={formatCurrency(summary.netMargin)}
                 percentValue={formatPercent(summary.netMarginPercent)}
                 positive={summary.netMargin >= 0}
-                detail={`Calcolo: Margine Commerciale ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} − Costi Strutturali ${formatCurrency(strutturaliCosts)} = ${formatCurrency(summary.netMargin)}. Pct: ${formatCurrency(summary.netMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.netMarginPercent)}.`}
+                detail={`Calcolo: Margine Commerciale Lordo ${formatCurrency(summary.margineCommercialeLordo)} − Costi Commerciali ${formatCurrency(summary.costiCommercialiSimulati)} − Costi Strutturali ${formatCurrency(strutturaliCosts)} = ${formatCurrency(summary.netMargin)}. Pct: ${formatCurrency(summary.netMargin)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.netMarginPercent)}.`}
                 icon={<TrendingUp className="h-4 w-4" />}
               />
             </div>
