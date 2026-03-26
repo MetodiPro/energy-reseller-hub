@@ -423,6 +423,80 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             </Button>
           </div>
         </div>
+
+        {/* ── Dettaglio Fattura Cliente ── */}
+        <Separator className="my-4" />
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <Info className="h-3.5 w-3.5" />
+            Fattura Tipo Cliente (mensile)
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
+              <p className="text-[10px] text-muted-foreground uppercase">Materia Energia</p>
+              <p className="text-sm font-semibold">{formatCurrency(materiaEnergia)}</p>
+              <p className="text-[10px] text-muted-foreground">(PUN+Disp.) × {kWh} kWh</p>
+            </div>
+            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
+              <p className="text-[10px] text-muted-foreground uppercase">Trasporto</p>
+              <p className="text-sm font-semibold">{formatCurrency(trasporto)}</p>
+              <p className="text-[10px] text-muted-foreground">Fissa+Pot.+Energia</p>
+            </div>
+            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
+              <p className="text-[10px] text-muted-foreground uppercase">Oneri di Sistema</p>
+              <p className="text-sm font-semibold">{formatCurrency(oneriSistema)}</p>
+              <p className="text-[10px] text-muted-foreground">(ASOS+ARIM) × kWh</p>
+            </div>
+            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
+              <p className="text-[10px] text-muted-foreground uppercase">Accise</p>
+              <p className="text-sm font-semibold">{formatCurrency(accise)}</p>
+              <p className="text-[10px] text-muted-foreground">{globalParams.acciseKwh.toFixed(5)} €/kWh</p>
+            </div>
+          </div>
+
+          {/* Subtotale passanti */}
+          <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30 rounded text-xs">
+            <span className="text-muted-foreground">Subtotale Passanti (grossista/DSO)</span>
+            <span className="font-semibold">{formatCurrency(passantiTotale)}</span>
+          </div>
+
+          {/* Margine reseller */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-2.5 rounded-lg border border-primary/20 bg-primary/5 space-y-0.5">
+              <p className="text-[10px] text-primary uppercase">CCV</p>
+              <p className="text-sm font-semibold text-primary">{formatCurrency(ccv)}</p>
+            </div>
+            <div className="p-2.5 rounded-lg border border-primary/20 bg-primary/5 space-y-0.5">
+              <p className="text-[10px] text-primary uppercase">Spread × kWh</p>
+              <p className="text-sm font-semibold text-primary">{formatCurrency(spread)}</p>
+            </div>
+            <div className="p-2.5 rounded-lg border border-primary/20 bg-primary/5 space-y-0.5">
+              <p className="text-[10px] text-primary uppercase">Altri Servizi</p>
+              <p className="text-sm font-semibold text-primary">{formatCurrency(altroServizi)}</p>
+            </div>
+          </div>
+
+          {/* Totali */}
+          <div className="space-y-1.5 p-3 rounded-lg bg-muted/50 border">
+            <div className="flex justify-between text-xs">
+              <span>Imponibile</span>
+              <span className="font-medium">{formatCurrency(imponibile)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span>IVA ({ivaPercent}%)</span>
+              <span className="font-medium">{formatCurrency(iva)}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between text-sm font-bold">
+              <span>Fattura Totale</span>
+              <span>{formatCurrency(fattura)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-primary font-medium">di cui Margine Reseller</span>
+              <span className="text-primary font-bold">{formatCurrency(margineReseller)} ({marginePerc.toFixed(1)}%)</span>
+            </div>
+          </div>
+        </div>
       </AccordionContent>
     </AccordionItem>
   );
