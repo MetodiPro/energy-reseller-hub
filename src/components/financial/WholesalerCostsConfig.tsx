@@ -279,7 +279,11 @@ export const WholesalerCostsConfig = ({
             </div>
           </div>
            <p className="text-xs text-muted-foreground">
-             Deposito = Clienti Attivi × Fattura Media × {config.depositoMesi} mesi × {config.depositoPercentualeAttivazione}%
+             Deposito = POD in switching × (Materia Energia + Trasporto + Oneri + Fee POD) × {config.depositoMesi} mesi × {config.depositoPercentualeAttivazione}%
+           </p>
+           <p className="text-xs text-muted-foreground mt-1 italic">
+             Esclusi: Accise (versate dal reseller alla dogana) e IVA (versata dal reseller all'erario).
+             La garanzia è richiesta all'atto della richiesta di switching (mese successivo al contratto).
            </p>
            
            <Separator className="my-3" />
