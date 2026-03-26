@@ -515,8 +515,7 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               <span className="font-semibold">{formatCurrency(costoAcquistoGrossista)}</span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>kWh fatturati: {kWh} → kWh acquistati: {kWhAcquistati.toFixed(0)}</span>
-              <span>Δ perdite: {formatCurrency(costoEnergiaGrossista - (kWh * (globalParams.punPerKwh + (globalParams as any).spreadGrossistaPerKwh)))}</span>
+              <span>kWh consumo: {kWh} | kWh acquistati (con perdite {perditeRetePct}%): {kWhAcquistati.toFixed(0)}</span>
             </div>
           </div>
         </div>
