@@ -61,13 +61,13 @@ export const useFinancialSummary = (
       ? simulationSummary.costoGestionePodTotale
       : 0;
 
+    // Imponibile = fatturato − IVA
+    const imponibile = totalRevenue - iva;
+
     // Margine commerciale lordo = Imponibile − Costo energia grossista − Passanti non-energetici − Fee POD
     // NOTA: passthroughCosts include materiaEnergia (PUN+disp) che si sovrappone a costoEnergia (PUN+spreadGrossista).
     // Per evitare il doppio conteggio del PUN, sottraiamo solo i passanti non-energetici (trasporto+oneri+accise).
     const margineCommercialeLordo = imponibile - costoEnergiaNetto - passthroughNonEnergia - costoGestionePodTotale;
-
-    // Imponibile = fatturato − IVA
-    const imponibile = totalRevenue - iva;
 
     // % margine commerciale sul fatturato netto (imponibile)
     const margineCommercialePercent = imponibile > 0
