@@ -99,9 +99,11 @@ export interface SimulationEngineResult {
 /** Calcola i componenti economici per singolo cliente/mese */
 export function computePerClientAmounts(params: RevenueSimulationParams): PerClientAmounts {
   const kWh = params.avgMonthlyConsumption;
+  const perditeRetePct = (params as any).perditeRetePct ?? 0;
 
-  // Le componenti passanti in fattura sono calcolate sui kWh fatturati al cliente
-  const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
+  // Le perdite di rete incrementano la componente energia in fattura
+  const quotaPerdite = params.punPerKwh * kWh * (perditeRetePct / 100);
+  const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh + quotaPerdite;
   const trasporto =
     params.trasportoQuotaFissaAnno / 12 +
     (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw) / 12 +
