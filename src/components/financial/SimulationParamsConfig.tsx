@@ -88,6 +88,25 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 />
               </div>
             </div>
+
+            {/* Perdite di rete */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Perdite di rete (%)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="30"
+                step="0.1"
+                value={params.perditeRetePct ?? 10.2}
+                onChange={(e) => {
+                  simulationHook.updateParams('perditeRetePct', parseFloat(e.target.value) || 0);
+                  debouncedSave();
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Fattore ARERA standard: BT ~10.2%, MT ~3.8%, AT ~0.6%. Aumenta il volume di kWh acquistati dal grossista rispetto a quelli fatturati.
+              </p>
+            </div>
           </div>
 
           {/* Monthly contracts */}
