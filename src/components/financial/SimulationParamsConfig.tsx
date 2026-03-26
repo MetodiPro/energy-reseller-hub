@@ -43,7 +43,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
     );
   }
 
-  const { startDate, monthlyContracts } = data;
+  const { startDate, monthlyContracts, params } = data;
   const startMonth = startDate.getMonth();
   const startYear = startDate.getFullYear();
   const totalContracts = monthlyContracts.reduce((a, b) => a + b, 0);

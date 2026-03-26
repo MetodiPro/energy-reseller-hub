@@ -502,6 +502,15 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               <span className="text-primary font-semibold">di cui Margine Reseller</span>
               <span className="text-primary font-bold">{formatCurrency(margineReseller)} ({marginePerc.toFixed(1)}%)</span>
             </div>
+            <Separator className="my-1" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Costo Acquisto Grossista (con perdite rete {perditeRetePct}%)</span>
+              <span className="font-semibold">{formatCurrency(costoEnergiaGrossista)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>kWh fatturati: {kWh} → kWh acquistati: {kWhAcquistati.toFixed(0)}</span>
+              <span>Δ perdite: {formatCurrency(costoEnergiaGrossista - (kWh * (globalParams.punPerKwh + (globalParams as any).spreadGrossistaPerKwh)))}</span>
+            </div>
           </div>
         </div>
       </AccordionContent>
