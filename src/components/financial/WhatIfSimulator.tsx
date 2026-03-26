@@ -328,7 +328,10 @@ export const WhatIfSimulator = ({
           Ottimizzatore Profittabilità e Liquidità
         </CardTitle>
         <CardDescription>
-          Trova la combinazione ottimale di spread, CCV e volumi per garantire liquidità positiva a 3, 6 e 12 mesi
+          Trova la combinazione ottimale di spread, CCV e volumi per garantire liquidità positiva a 3, 6 e 12 mesi.{' '}
+          <span className="text-amber-600 dark:text-amber-400 font-medium">
+            ⚠ Stime semplificate: non includono waterfall incassi, IVA, accise né insoluti. Per l'analisi completa usa gli Esiti Finanziari.
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

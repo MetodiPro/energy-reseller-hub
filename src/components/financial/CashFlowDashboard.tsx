@@ -605,9 +605,9 @@ export const CashFlowDashboard = ({ cashFlowData, loading, projectId, projectNam
                       {formatCurrency(row.incassi)}
                     </TipCell>
                     <TipCell className="text-right text-orange-600" lines={row.costiPassanti > 0 ? [
-                      `Costo grossista (PUN + spread): ${formatCurrency(row.costiPassanti)}`,
-                      `= em.costoEnergia dal motore di simulazione`,
-                      `Clienti fatturati: ${row.clientiAttivi}`,
+                      `Costo grossista (PUN + Disp. + Spread): ${formatCurrency(row.costiPassanti)}`,
+                      `= em.costoEnergiaConDisp dal motore di simulazione`,
+                      `Clienti attivi: ${row.clientiAttivi}`,
                     ] : []}>
                       {formatCurrency(row.costiPassanti)}
                     </TipCell>
