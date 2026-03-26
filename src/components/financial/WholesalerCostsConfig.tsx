@@ -221,10 +221,15 @@ export const WholesalerCostsConfig = ({
         
         {/* Depositi Cauzionali */}
         <div className="space-y-4">
-          <h4 className="font-medium flex items-center gap-2">
-            <Info className="h-4 w-4 text-purple-500" />
-            Depositi Cauzionali (Garanzie Grossista)
-          </h4>
+           <h4 className="font-medium flex items-center gap-2">
+             <Info className="h-4 w-4 text-purple-500" />
+             Depositi Cauzionali / Garanzie Grossista
+           </h4>
+           <p className="text-xs text-muted-foreground">
+             Copertura richiesta dal grossista per le componenti che anticipa per il reseller: 
+             Materia Energia, Trasporto/Distribuzione e Oneri di Sistema. 
+             Non include Accise e IVA (a carico diretto del reseller).
+           </p>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
