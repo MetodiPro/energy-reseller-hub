@@ -264,9 +264,31 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   const iva = imponibile * (ivaPercent / 100);
   const fattura = imponibile + iva;
   const marginePerc = imponibile > 0 ? (margineReseller / imponibile) * 100 : 0;
-  // Costo acquisto grossista = tutto ciò che il reseller compra dal grossista
-  // (Materia Energia + Trasporto + Oneri + Accise) — il margine reseller è solo spread+CCV+servizi
-  const costoAcquistoGrossista = passantiTotale;
+
+  // Costo acquisto grossista: basato su kWh acquistati (con perdite)
+  const costoEnergiaGrossista = kWhAcquistati * (globalParams.punPerKwh + globalParams.dispacciamentoPerKwh + globalParams.spreadGrossistaPerKwh);
+  const costoTrasportoGrossista = trasporto; // riversato a DSO
+  const costoOneriGrossista = oneriSistema; // riversato a GSE
+  const costoAcciseGrossista = accise; // riversato a Erario
+  const gestionePod = globalParams.gestionePodPerPod ?? 2.5;
+  const costoAcquistoGrossistaImponibile = costoEnergiaGrossista + costoTrasportoGrossista + costoOneriGrossista + gestionePod;
+  const ivaAcquisto = costoAcquistoGrossistaImponibile * 0.22; // IVA acquisti sempre al 22%
+  const costoAcquistoGrossistaTotale = costoAcquistoGrossistaImponibile + costoAcciseGrossista + ivaAcquisto;
+
+  // Margini
+  const margineLordoPerCliente = margineReseller; // CCV + Spread + Servizi (prima di IVA)
+  const ivaVendita = iva;
+  const creditoIva = ivaAcquisto; // credito IVA su acquisti
+  const ivaNettoReseller = ivaVendita - creditoIva; // IVA a debito (positivo = da versare)
+  const margineNettoPerCliente = fattura - costoAcquistoGrossistaTotale - costoAcciseGrossista + creditoIva - ivaNettoReseller;
+  // Più semplicemente: margine netto = margine lordo - delta IVA
+  const deltaIva = ivaVendita - creditoIva;
+  const margineNetto = margineLordoPerCliente - (deltaIva > 0 ? 0 : Math.abs(deltaIva));
+  // In realtà il margine netto per il reseller è: entrate - uscite
+  // Entrate: fattura (imponibile + IVA vendita)
+  // Uscite: costo grossista (imponibile + accise + IVA acquisto 22%)
+  // Margine netto = fattura - costoAcquistoGrossistaTotale
+  const margineNettoReale = fattura - costoAcquistoGrossistaTotale;
 
   return (
     <AccordionItem value={id} className="border rounded-lg mb-3 px-1">
