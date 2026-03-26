@@ -223,9 +223,11 @@ export const useCashFlowAnalysis = (projectId: string | null, options?: UseCashF
       const deltaDepositoCassa = deposit.deltaDeposito;
       // Costo reale acquisto energia dal grossista = costoEnergiaConDisp dal motore
       // (include PUN + dispacciamento + spreadGrossista) × clientiAttivi.
-      // Usiamo em.costoEnergiaConDisp che rappresenta l'uscita reale di cassa,
-      // incluso il dispacciamento che viene incassato dal cliente ma va riversato al grossista.
-      const costiPassantiMese = em.costoEnergiaConDisp;
+      // Costo reale verso il grossista = costo energia (PUN+spread) + dispacciamento
+      // costoEnergia è già corretto nell'aggregatore multi-prodotto
+      // dispacciamento è già calcolato correttamente nell'aggregatore (em.dispacciamento)
+      // La loro somma = PUN+disp+spread × kWh × clientiAttivi = uscita reale di cassa
+      const costiPassantiMese = em.costoEnergia + em.dispacciamento;
       const costiOperativiMese = em.costiGestionePod;
       const incassiMese = collection.totaleIncassi;
 
