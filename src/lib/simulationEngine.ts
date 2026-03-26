@@ -122,6 +122,11 @@ export function computePerClientAmounts(params: RevenueSimulationParams): PerCli
   const iva = imponibile * (params.ivaPercent / 100);
   const fattura = imponibile + iva;
 
+  // Base garanzia grossista: componenti che il grossista anticipa per il reseller
+  // Include: Materia Energia (PUN+dispacciamento+perdite), Trasporto, Oneri di Sistema
+  // NON include: Accise (versate dal reseller alla dogana), IVA (versata dal reseller all'erario)
+  const costoGarantitoPerCliente = materiaEnergia + trasporto + oneriSistema;
+
   return {
     materiaEnergia,
     trasporto,
@@ -135,6 +140,7 @@ export function computePerClientAmounts(params: RevenueSimulationParams): PerCli
     imponibile,
     iva,
     fattura,
+    costoGarantitoPerCliente,
   };
 }
 
