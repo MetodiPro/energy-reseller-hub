@@ -434,7 +434,7 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
 
         {/* ── Dettaglio Fattura Cliente ── */}
         <Separator className="my-4" />
-        <div className="space-y-3">
+        <div className="space-y-3 p-4 rounded-xl bg-success/5 border border-success/20">
           <h4 className="font-semibold text-sm uppercase tracking-wider flex items-center gap-2">
             <Info className="h-4 w-4 text-primary" />
             Fattura Tipo Cliente (mensile)
