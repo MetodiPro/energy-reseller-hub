@@ -95,10 +95,6 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
 
       <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
       <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
-      <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
-
-      {/* Grafico churn per prodotto */}
-      <ChurnPerProductChart multiProductResult={multiProductResult} />
       <WholesalerCostsConfig
         config={{
           punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
@@ -131,6 +127,10 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
         }}
         onNavigateToTariffs={() => navigate('/app/tariffs')}
       />
+      <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
+
+      {/* Grafico churn per prodotto */}
+      <ChurnPerProductChart multiProductResult={multiProductResult} />
     </div>
   );
 };
