@@ -227,14 +227,35 @@ export const ProductsConfig = ({ projectId, defaultParams, salesChannels: extern
 interface ProductCardProps {
   product: SimulationProduct;
   channels: any[];
+  globalParams: RevenueSimulationParams;
   onChange: (id: string, field: keyof SimulationProduct, value: number | string | boolean) => void;
   onDelete: () => void;
 }
 
-const ProductCard = ({ product, channels, onChange, onDelete }: ProductCardProps) => {
+const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: ProductCardProps) => {
   const id = product.id;
   const marginPerClient = product.ccv_monthly + product.spread_per_kwh * product.avg_monthly_consumption + product.other_services_monthly;
   const linkedChannel = channels.find(c => c.id === product.channel_id);
+
+  // Compute full per-client invoice breakdown
+  const kWh = product.avg_monthly_consumption;
+  const materiaEnergia = (globalParams.punPerKwh + globalParams.dispacciamentoPerKwh) * kWh;
+  const trasporto =
+    globalParams.trasportoQuotaFissaAnno / 12 +
+    (globalParams.trasportoQuotaPotenzaKwAnno * globalParams.potenzaImpegnataKw) / 12 +
+    globalParams.trasportoQuotaEnergiaKwh * kWh;
+  const oneriSistema = (globalParams.oneriAsosKwh + globalParams.oneriArimKwh) * kWh;
+  const accise = globalParams.acciseKwh * kWh;
+  const passantiTotale = materiaEnergia + trasporto + oneriSistema + accise;
+  const ccv = product.ccv_monthly;
+  const spread = product.spread_per_kwh * kWh;
+  const altroServizi = product.other_services_monthly;
+  const margineReseller = ccv + spread + altroServizi;
+  const imponibile = passantiTotale + margineReseller;
+  const ivaPercent = product.iva_percent;
+  const iva = imponibile * (ivaPercent / 100);
+  const fattura = imponibile + iva;
+  const marginePerc = imponibile > 0 ? (margineReseller / imponibile) * 100 : 0;
 
   return (
     <AccordionItem value={id} className="border rounded-lg mb-3 px-1">
