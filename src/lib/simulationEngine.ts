@@ -277,8 +277,14 @@ export function runSimulationEngine(
     };
 
     // ── Deposito cauzionale ──
-    const depositoLordoAttivazioni = attivazioni * perClient.fattura * depositoMesi * depositoPercentuale;
-    const depositoRilasciatoChurn = churn * perClient.fattura * depositoMesi * depositoPercentuale;
+    // La garanzia è richiesta all'atto della richiesta di switching (1 mese dopo il contratto)
+    // Base: costo garantito dal grossista (materia + trasporto + oneri + gestione POD) × N mesi
+    // NO accise (versate dal reseller alla dogana), NO IVA
+    const switchingRequests = m >= 1 ? Math.round((m - 1 < 12 ? monthlyContracts[m - 1] : 0) * (params.activationRate / 100)) : 0;
+    const costoMensileGarantito = perClient.costoGarantitoPerCliente + gestionePodPerPod;
+    const depositoLordoAttivazioni = switchingRequests * costoMensileGarantito * depositoMesi * depositoPercentuale;
+    // Rilascio: quando il churn effettivo avviene, la garanzia per quei POD viene rilasciata
+    const depositoRilasciatoChurn = churn * costoMensileGarantito * depositoMesi * depositoPercentuale;
     totalDepositoLordo += depositoLordoAttivazioni;
     totalDepositoRestituito += depositoRilasciatoChurn;
 
