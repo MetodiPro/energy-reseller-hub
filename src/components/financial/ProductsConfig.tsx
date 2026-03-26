@@ -147,6 +147,64 @@ export const ProductsConfig = ({ projectId, defaultParams, salesChannels: extern
           </div>
         )}
 
+        {/* Channel-Product congruity validation */}
+        {products.length > 0 && channels.length > 0 && (() => {
+          const activeChannels = channels.filter((c: any) => c.is_active && c.contract_share > 0);
+          const activeProds = products.filter(p => p.is_active);
+          const warnings: { type: string; message: string }[] = [];
+
+          activeChannels.forEach((ch: any) => {
+            const linkedProds = activeProds.filter(p => p.channel_id === ch.id);
+            if (linkedProds.length === 0) return;
+            const prodShareSum = linkedProds.reduce((s, p) => s + p.contract_share, 0);
+            if (Math.abs(prodShareSum - ch.contract_share) > 0.5) {
+              warnings.push({
+                type: 'share',
+                message: `Canale "${ch.channel_name}": quota canale ${ch.contract_share}% ≠ somma prodotti collegati ${prodShareSum.toFixed(1)}%`,
+              });
+            }
+          });
+
+          activeChannels.forEach((ch: any) => {
+            const linkedProds = activeProds.filter(p => p.channel_id === ch.id);
+            linkedProds.forEach(p => {
+              if (Math.abs(p.activation_rate - ch.activation_rate) > 5) {
+                warnings.push({
+                  type: 'activation',
+                  message: `"${p.name}" → tasso attivazione ${p.activation_rate}% ≠ canale "${ch.channel_name}" ${ch.activation_rate}% (scarto ${Math.abs(p.activation_rate - ch.activation_rate).toFixed(1)}pp)`,
+                });
+              }
+            });
+          });
+
+          const unlinkedProds = activeProds.filter(p => !p.channel_id);
+          if (unlinkedProds.length > 0 && activeChannels.length > 0) {
+            warnings.push({
+              type: 'share',
+              message: `${unlinkedProds.length} prodott${unlinkedProds.length === 1 ? 'o' : 'i'} senza canale assegnato: ${unlinkedProds.map(p => `"${p.name}"`).join(', ')}`,
+            });
+          }
+
+          if (warnings.length === 0) return null;
+
+          return (
+            <div className="p-3 rounded-lg text-sm border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950/20 space-y-1.5">
+              <div className="flex items-center gap-2 font-medium text-orange-800 dark:text-orange-300">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                Incongruenze Canali ↔ Prodotti
+              </div>
+              {warnings.map((w, i) => (
+                <p key={i} className="text-xs text-orange-700 dark:text-orange-400 pl-6">
+                  • {w.message}
+                </p>
+              ))}
+              <p className="text-xs text-orange-600 dark:text-orange-500 pl-6 italic">
+                Allinea le quote e i tassi di attivazione per garantire coerenza nella simulazione.
+              </p>
+            </div>
+          );
+        })()}
+
         <ConfirmDialog
           open={deleteTarget !== null}
           onOpenChange={(open) => !open && setDeleteTarget(null)}
