@@ -122,6 +122,7 @@ export const ProductsConfig = ({ projectId, defaultParams, salesChannels: extern
                 key={product.id}
                 product={product}
                 channels={channels}
+                globalParams={defaultParams}
                 onChange={handleFieldChange}
                 onDelete={() => setDeleteTarget(product.id)}
               />
