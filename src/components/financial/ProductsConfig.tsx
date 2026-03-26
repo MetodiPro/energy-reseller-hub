@@ -621,7 +621,6 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             </div>
           </div>
         </div>
-        </div>
       </AccordionContent>
     </AccordionItem>
   );
