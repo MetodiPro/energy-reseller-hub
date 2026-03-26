@@ -43,7 +43,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
     );
   }
 
-  const { startDate, monthlyContracts } = data;
+  const { startDate, monthlyContracts, params } = data;
   const startMonth = startDate.getMonth();
   const startYear = startDate.getFullYear();
   const totalContracts = monthlyContracts.reduce((a, b) => a + b, 0);
@@ -87,6 +87,25 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   onChange={(e) => handleStartDateChange(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
                 />
               </div>
+            </div>
+
+            {/* Perdite di rete */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Perdite di rete (%)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="30"
+                step="0.1"
+                value={params.perditeRetePct ?? 10.2}
+                onChange={(e) => {
+                  simulationHook.updateParams('perditeRetePct', parseFloat(e.target.value) || 0);
+                  debouncedSave();
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Fattore ARERA standard: BT ~10.2%, MT ~3.8%, AT ~0.6%. Aumenta il volume di kWh acquistati dal grossista rispetto a quelli fatturati.
+              </p>
             </div>
           </div>
 

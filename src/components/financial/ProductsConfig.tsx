@@ -240,6 +240,9 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
 
   // Compute full per-client invoice breakdown
   const kWh = product.avg_monthly_consumption;
+  const perditeRetePct = globalParams.perditeRetePct ?? 10.2;
+  const perditeRete = 1 + (perditeRetePct / 100);
+  const kWhAcquistati = kWh * perditeRete;
   const materiaEnergia = (globalParams.punPerKwh + globalParams.dispacciamentoPerKwh) * kWh;
   const trasporto =
     globalParams.trasportoQuotaFissaAnno / 12 +
@@ -257,6 +260,8 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   const iva = imponibile * (ivaPercent / 100);
   const fattura = imponibile + iva;
   const marginePerc = imponibile > 0 ? (margineReseller / imponibile) * 100 : 0;
+  // Costo energia acquistata dal grossista (con perdite di rete)
+  const costoEnergiaGrossista = kWhAcquistati * (globalParams.punPerKwh + (globalParams as any).spreadGrossistaPerKwh);
 
   return (
     <AccordionItem value={id} className="border rounded-lg mb-3 px-1">
@@ -496,6 +501,15 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             <div className="flex justify-between text-sm pt-1">
               <span className="text-primary font-semibold">di cui Margine Reseller</span>
               <span className="text-primary font-bold">{formatCurrency(margineReseller)} ({marginePerc.toFixed(1)}%)</span>
+            </div>
+            <Separator className="my-1" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Costo Acquisto Grossista (con perdite rete {perditeRetePct}%)</span>
+              <span className="font-semibold">{formatCurrency(costoEnergiaGrossista)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>kWh fatturati: {kWh} → kWh acquistati: {kWhAcquistati.toFixed(0)}</span>
+              <span>Δ perdite: {formatCurrency(costoEnergiaGrossista - (kWh * (globalParams.punPerKwh + (globalParams as any).spreadGrossistaPerKwh)))}</span>
             </div>
           </div>
         </div>

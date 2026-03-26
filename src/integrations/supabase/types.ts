@@ -838,6 +838,7 @@ export type Database = {
           oneri_gas_re_smc: number | null
           oneri_gas_ug_smc: number | null
           other_services_monthly: number
+          perdite_rete_pct: number | null
           potenza_impegnata_gas_smc_giorno: number | null
           potenza_impegnata_kw: number | null
           project_id: string
@@ -896,6 +897,7 @@ export type Database = {
           oneri_gas_re_smc?: number | null
           oneri_gas_ug_smc?: number | null
           other_services_monthly?: number
+          perdite_rete_pct?: number | null
           potenza_impegnata_gas_smc_giorno?: number | null
           potenza_impegnata_kw?: number | null
           project_id: string
@@ -954,6 +956,7 @@ export type Database = {
           oneri_gas_re_smc?: number | null
           oneri_gas_ug_smc?: number | null
           other_services_monthly?: number
+          perdite_rete_pct?: number | null
           potenza_impegnata_gas_smc_giorno?: number | null
           potenza_impegnata_kw?: number | null
           project_id?: string
