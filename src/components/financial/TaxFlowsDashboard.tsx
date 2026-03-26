@@ -119,7 +119,24 @@ export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, o
                   <span>Credito (su costi):</span>
                   <span className="text-green-600">-{formatCurrency(taxFlows.totaleIvaCredito)}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Versamenti F24:</span>
+                  <span className="text-blue-600 font-medium">{formatCurrency(taxFlows.totaleIvaVersamenti)}</span>
+                </div>
+                {taxFlows.ivaCreditoRiportato > 0 && (
+                  <div className="flex justify-between pt-1 border-t border-blue-200/50 mt-1">
+                    <span className="text-amber-700 dark:text-amber-400 font-medium">Credito residuo riportato:</span>
+                    <span className="text-amber-700 dark:text-amber-400 font-bold">
+                      +{formatCurrency(taxFlows.ivaCreditoRiportato)}
+                    </span>
+                  </div>
+                )}
               </div>
+              {taxFlows.ivaCreditoRiportato > 0 && (
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-2 leading-relaxed">
+                  ⚠ Credito IVA strutturale: l'aliquota IVA sugli acquisti (22%) supera quella applicata ai clienti. Il credito accumulato è recuperabile in compensazione F24.
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -381,7 +398,7 @@ export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, o
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="grid grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                       <ArrowDownRight className="h-4 w-4 text-red-500" />
@@ -408,6 +425,13 @@ export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, o
                       {formatCurrency(taxFlows.totaleIvaVersamenti)}
                     </div>
                     <div className="text-xs text-muted-foreground">Pagati all'Erario</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground">Credito Residuo</div>
+                    <div className={`text-xl font-bold ${taxFlows.ivaCreditoRiportato > 0 ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                      {formatCurrency(taxFlows.ivaCreditoRiportato)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Riportato a nuovo</div>
                   </div>
                 </div>
 
