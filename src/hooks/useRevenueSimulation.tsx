@@ -23,6 +23,7 @@ export interface InvoiceComponentParams {
   acciseKwh: number;                    // Accise €/kWh
   ivaPercent: number;                   // IVA %
   clientType: 'domestico' | 'business' | 'pmi';
+  perditeRetePct: number;              // Perdite di rete % (tipicamente 10.2% BT)
 }
 
 // Parametri clienti e incasso
@@ -84,6 +85,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   acciseKwh: 0.0227,
   ivaPercent: 10,
   clientType: 'domestico',
+  perditeRetePct: 10.2,
   
   // Clienti e incasso
   avgMonthlyConsumption: 200,
@@ -166,6 +168,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             acciseKwh: Number(simulation.accise_kwh ?? DEFAULT_PARAMS.acciseKwh),
             ivaPercent: Number(simulation.iva_percent ?? DEFAULT_PARAMS.ivaPercent),
             clientType: (simulation.client_type as 'domestico' | 'business' | 'pmi') ?? DEFAULT_PARAMS.clientType,
+            perditeRetePct: Number((simulation as any).perdite_rete_pct ?? DEFAULT_PARAMS.perditeRetePct),
             ivaPaymentRegime: (simulation.iva_payment_regime as 'monthly' | 'quarterly') ?? DEFAULT_PARAMS.ivaPaymentRegime,
             
             // Clienti e incasso
@@ -237,6 +240,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         accise_kwh: data.params.acciseKwh,
         iva_percent: data.params.ivaPercent,
         client_type: data.params.clientType,
+        perdite_rete_pct: data.params.perditeRetePct,
         iva_payment_regime: data.params.ivaPaymentRegime,
         
         // Clienti e incasso

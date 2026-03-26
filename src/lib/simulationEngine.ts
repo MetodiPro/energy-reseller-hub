@@ -100,6 +100,7 @@ export interface SimulationEngineResult {
 export function computePerClientAmounts(params: RevenueSimulationParams): PerClientAmounts {
   const kWh = params.avgMonthlyConsumption;
 
+  // Le componenti passanti in fattura sono calcolate sui kWh fatturati al cliente
   const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
   const trasporto =
     params.trasportoQuotaFissaAnno / 12 +
@@ -287,9 +288,12 @@ export function runSimulationEngine(
     };
 
     // ── Costi operativi/energia ──
+    // Perdite di rete: il grossista fattura kWh maggiorati del fattore perdite
+    const perditeRete = 1 + ((params.perditeRetePct ?? 0) / 100);
+    const kWhAcquistati = kWh * perditeRete;
     const costiGestionePod = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
-    const costoEnergia = m >= 2 ? cumulativeActiveCustomers * kWh * (params.punPerKwh + params.spreadGrossistaPerKwh) : 0;
-    const costoEnergiaConDisp = m >= 2 ? cumulativeActiveCustomers * kWh * (params.punPerKwh + params.dispacciamentoPerKwh + params.spreadGrossistaPerKwh) : 0;
+    const costoEnergia = m >= 2 ? cumulativeActiveCustomers * kWhAcquistati * (params.punPerKwh + params.spreadGrossistaPerKwh) : 0;
+    const costoEnergiaConDisp = m >= 2 ? cumulativeActiveCustomers * kWhAcquistati * (params.punPerKwh + params.dispacciamentoPerKwh + params.spreadGrossistaPerKwh) : 0;
 
     // ── Costi passanti e margine (per i clienti fatturati) ──
     const costiPassanti = clientiFatturati * perClient.passantiTotale;
