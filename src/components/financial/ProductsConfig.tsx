@@ -243,7 +243,10 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   const perditeRetePct = globalParams.perditeRetePct ?? 10.2;
   const perditeRete = 1 + (perditeRetePct / 100);
   const kWhAcquistati = kWh * perditeRete;
-  const materiaEnergia = (globalParams.punPerKwh + globalParams.dispacciamentoPerKwh) * kWh;
+  const quotaConsumi = globalParams.punPerKwh * kWh;
+  const quotaDisp = globalParams.dispacciamentoPerKwh * kWh;
+  const quotaPerdite = globalParams.punPerKwh * kWh * (perditeRetePct / 100);
+  const materiaEnergia = quotaConsumi + quotaDisp + quotaPerdite;
   const trasporto =
     globalParams.trasportoQuotaFissaAnno / 12 +
     (globalParams.trasportoQuotaPotenzaKwAnno * globalParams.potenzaImpegnataKw) / 12 +
@@ -442,7 +445,9 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Materia Energia</p>
               <p className="text-base font-bold">{formatCurrency(materiaEnergia)}</p>
-              <p className="text-[10px] text-muted-foreground">(PUN+Disp.) × {kWh} kWh</p>
+              <p className="text-[10px] text-muted-foreground">Consumi: {formatCurrency(quotaConsumi)}</p>
+              <p className="text-[10px] text-muted-foreground">Disp.: {formatCurrency(quotaDisp)}</p>
+              <p className="text-[10px] text-muted-foreground">Perdite ({perditeRetePct}%): {formatCurrency(quotaPerdite)}</p>
             </div>
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Trasporto</p>
