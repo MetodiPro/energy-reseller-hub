@@ -219,11 +219,11 @@ export const OverviewTab = ({
               {/* 7. Margine Commerciale Lordo */}
               <EconomicRowHighlight
                 label="Margine Commerciale Lordo"
-                tooltip="Fatturato Netto meno tutti i costi diretti della commodity: Costo Energia al Grossista, Costi Passanti Totali e Fee Gestione POD. Rappresenta il margine industriale prima dei costi commerciali e strutturali."
-                value={formatCurrency(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale)}
-                percentValue={formatPercent(summary.imponibile > 0 ? ((summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale) / summary.imponibile) * 100 : 0)}
-                positive={(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale) >= 0}
-                detail={`Calcolo: Fatturato Netto ${formatCurrency(summary.imponibile)} − Costo Energia ${formatCurrency(summary.costoEnergiaNetto)} − Costi Passanti ${formatCurrency(summary.passthroughCosts)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale)}.`}
+                tooltip="Fatturato Netto meno tutti i costi diretti della commodity: Costo Energia al Grossista, Passanti non-energetici (Trasporto + Oneri + Accise) e Fee Gestione POD. Rappresenta il margine industriale prima dei costi commerciali e strutturali. La materia energia (PUN) è già inclusa nel costo grossista e non viene sottratta due volte."
+                value={formatCurrency(summary.margineCommercialeLordo)}
+                percentValue={formatPercent(summary.margineCommercialePercent)}
+                positive={summary.margineCommercialeLordo >= 0}
+                detail={`Calcolo: Fatturato Netto ${formatCurrency(summary.imponibile)} − Costo Energia Grossista ${formatCurrency(summary.costoEnergiaNetto)} − Passanti non-energetici (Trasporto + Oneri + Accise) ${formatCurrency(summary.passthroughCosts - (summary.totalRevenue - summary.totalIva - summary.resellerMargin - (simulationSummary.totalTrasporto + simulationSummary.totalOneri + simulationSummary.totalAccise)))} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.margineCommercialeLordo)}. NB: la materia energia (PUN+dispacciamento) è già compresa nel costo grossista.`}
                 icon={<Target className="h-4 w-4" />}
               />
               {/* 8. Costi Commerciali */}
