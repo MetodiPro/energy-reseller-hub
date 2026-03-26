@@ -94,12 +94,11 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
       )}
 
       <SimulationParamsConfig projectId={projectId} simulationHook={revenueSimulation} commodityType={commodityType} />
-      <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} />
+      <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
+      <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
 
       {/* Grafico churn per prodotto */}
       <ChurnPerProductChart multiProductResult={multiProductResult} />
-
-      <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
       <WholesalerCostsConfig
         config={{
           punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
