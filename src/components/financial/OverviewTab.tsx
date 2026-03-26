@@ -171,16 +171,7 @@ export const OverviewTab = ({
                 detail={`Calcolo: ${summary.contrattiTotali} contratti firmati − ${summary.contrattiTotali - summary.clientiAttivi} cessazioni (churn) = ${summary.clientiAttivi} clienti attivi a fine periodo.`}
                 icon={<Users className="h-4 w-4" />}
               />
-              {/* 2. Fatturato Netto */}
-              <EconomicRow
-                label="Fatturato Netto (Imponibile)"
-                tooltip="Totale dei ricavi al netto dell'IVA. Questa è la base su cui vengono calcolate tutte le percentuali di margine. Include i ricavi propri del reseller (CCV + spread) e le partite di giro (trasporto, oneri, accise)."
-                value={formatCurrency(summary.imponibile)}
-                valueClass="text-primary"
-                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.imponibile)}.`}
-                icon={<TrendingUp className="h-4 w-4" />}
-              />
-              {/* 3. Fatturato Lordo */}
+              {/* 2. Fatturato Lordo */}
               <EconomicRow
                 label="Fatturato Lordo"
                 tooltip="Volume complessivo d'affari: tutto ciò che il reseller fattura ai clienti finali. Include margine reseller, costi passanti (trasporto, oneri, accise) e IVA. Non rappresenta il guadagno ma il giro d'affari totale."
@@ -188,6 +179,15 @@ export const OverviewTab = ({
                 valueClass="text-primary"
                 detail={`Composizione: Imponibile ${formatCurrency(summary.imponibile)} + IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.totalRevenue)}. Include ricavi propri del reseller e partite di giro.`}
                 icon={<DollarSign className="h-4 w-4" />}
+              />
+              {/* 3. Fatturato Netto */}
+              <EconomicRow
+                label="Fatturato Netto (Imponibile)"
+                tooltip="Totale dei ricavi al netto dell'IVA. Questa è la base su cui vengono calcolate tutte le percentuali di margine. Include i ricavi propri del reseller (CCV + spread) e le partite di giro (trasporto, oneri, accise)."
+                value={formatCurrency(summary.imponibile)}
+                valueClass="text-primary"
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − IVA ${formatCurrency(summary.totalIva)} = ${formatCurrency(summary.imponibile)}.`}
+                icon={<TrendingUp className="h-4 w-4" />}
               />
               {/* 4. Costo Energia al Grossista */}
               <EconomicRow
@@ -213,10 +213,20 @@ export const OverviewTab = ({
                 tooltip="Costo unitario mensile che il grossista addebita al reseller per ogni POD (punto di prelievo) gestito. Copre servizi di billing, SII, gestione switching e assistenza tecnica."
                 value={formatCurrency(summary.costoGestionePodTotale)}
                 valueClass="text-destructive"
-                detail={`Calcolo: Fee mensile per POD × clienti attivi mese per mese, cumulata su 14 mesi = ${formatCurrency(summary.costoGestionePodTotale)}. Già detratta nel Margine Commerciale.`}
+                detail={`Calcolo: Fee mensile per POD × clienti attivi mese per mese, cumulata su 14 mesi = ${formatCurrency(summary.costoGestionePodTotale)}.`}
                 icon={<Calculator className="h-4 w-4" />}
               />
-              {/* 7. Costi Commerciali */}
+              {/* 7. Margine Commerciale Lordo */}
+              <EconomicRowHighlight
+                label="Margine Commerciale Lordo"
+                tooltip="Fatturato Netto meno tutti i costi diretti della commodity: Costo Energia al Grossista, Costi Passanti Totali e Fee Gestione POD. Rappresenta il margine industriale prima dei costi commerciali e strutturali."
+                value={formatCurrency(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale)}
+                percentValue={formatPercent(summary.imponibile > 0 ? ((summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale) / summary.imponibile) * 100 : 0)}
+                positive={(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale) >= 0}
+                detail={`Calcolo: Fatturato Netto ${formatCurrency(summary.imponibile)} − Costo Energia ${formatCurrency(summary.costoEnergiaNetto)} − Costi Passanti ${formatCurrency(summary.passthroughCosts)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale)}.`}
+                icon={<Target className="h-4 w-4" />}
+              />
+              {/* 8. Costi Commerciali */}
               <EconomicRow
                 label="Costi Commerciali"
                 tooltip="Provvigioni e commissioni pagate ai canali di vendita (agenti, teleselling, web, sportelli) per l'acquisizione e attivazione dei contratti. Calcolate in base ai tassi medi di canale configurati."
@@ -235,16 +245,6 @@ export const OverviewTab = ({
                 valueClass="text-orange-600"
                 detail={`Composizione: Strutturali ${formatCurrency(summary.costsByType.structural)} + Diretti ${formatCurrency(summary.costsByType.direct)} + Indiretti ${formatCurrency(summary.costsByType.indirect)} = ${formatCurrency(strutturaliCosts)}.`}
                 icon={<Landmark className="h-4 w-4" />}
-              />
-              {/* 9. Margine Commerciale */}
-              <EconomicRowHighlight
-                label="Margine Commerciale"
-                tooltip="Il vero margine del reseller dopo aver pagato il grossista. Corrisponde a: (CCV + Spread Cliente) − (PUN + Spread Grossista) × kWh − Fee POD × clienti. Rappresenta la redditività lorda del modello commerciale prima dei costi operativi."
-                value={formatCurrency(summary.margineCommercialeLordo)}
-                percentValue={formatPercent(summary.margineCommercialePercent)}
-                positive={summary.margineCommercialeLordo >= 0}
-                detail={`Calcolo: Ricavi Reseller ${formatCurrency(summary.resellerMargin)} − Costo Energia ${formatCurrency(summary.costoEnergiaNetto)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.margineCommercialeLordo)}. Pct: ${formatCurrency(summary.margineCommercialeLordo)} / ${formatCurrency(summary.imponibile)} × 100 = ${formatPercent(summary.margineCommercialePercent)}.`}
-                icon={<Target className="h-4 w-4" />}
               />
               {/* 10. Margine di Contribuzione */}
               <EconomicRowHighlight
