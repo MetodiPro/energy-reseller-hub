@@ -427,72 +427,74 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
         {/* ── Dettaglio Fattura Cliente ── */}
         <Separator className="my-4" />
         <div className="space-y-3">
-          <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Info className="h-3.5 w-3.5" />
+          <h4 className="font-semibold text-sm uppercase tracking-wider flex items-center gap-2">
+            <Info className="h-4 w-4 text-primary" />
             Fattura Tipo Cliente (mensile)
           </h4>
+
+          {/* Passanti cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
-              <p className="text-[10px] text-muted-foreground uppercase">Materia Energia</p>
-              <p className="text-sm font-semibold">{formatCurrency(materiaEnergia)}</p>
+            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Materia Energia</p>
+              <p className="text-base font-bold">{formatCurrency(materiaEnergia)}</p>
               <p className="text-[10px] text-muted-foreground">(PUN+Disp.) × {kWh} kWh</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
-              <p className="text-[10px] text-muted-foreground uppercase">Trasporto</p>
-              <p className="text-sm font-semibold">{formatCurrency(trasporto)}</p>
+            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Trasporto</p>
+              <p className="text-base font-bold">{formatCurrency(trasporto)}</p>
               <p className="text-[10px] text-muted-foreground">Fissa+Pot.+Energia</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
-              <p className="text-[10px] text-muted-foreground uppercase">Oneri di Sistema</p>
-              <p className="text-sm font-semibold">{formatCurrency(oneriSistema)}</p>
+            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Oneri di Sistema</p>
+              <p className="text-base font-bold">{formatCurrency(oneriSistema)}</p>
               <p className="text-[10px] text-muted-foreground">(ASOS+ARIM) × kWh</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-muted/50 space-y-0.5">
-              <p className="text-[10px] text-muted-foreground uppercase">Accise</p>
-              <p className="text-sm font-semibold">{formatCurrency(accise)}</p>
+            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
+              <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Accise</p>
+              <p className="text-base font-bold">{formatCurrency(accise)}</p>
               <p className="text-[10px] text-muted-foreground">{globalParams.acciseKwh.toFixed(5)} €/kWh</p>
             </div>
           </div>
 
           {/* Subtotale passanti */}
-          <div className="flex items-center justify-between px-2 py-1.5 bg-muted/30 rounded text-xs">
-            <span className="text-muted-foreground">Subtotale Passanti (grossista/DSO)</span>
-            <span className="font-semibold">{formatCurrency(passantiTotale)}</span>
+          <div className="flex items-center justify-between px-3 py-2 bg-secondary/5 border border-secondary/15 rounded-lg text-sm">
+            <span className="text-muted-foreground font-medium">Subtotale Passanti (grossista/DSO)</span>
+            <span className="font-bold">{formatCurrency(passantiTotale)}</span>
           </div>
 
-          {/* Margine reseller */}
+          {/* Margine reseller cards */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-2.5 rounded-lg border border-primary/20 bg-primary/5 space-y-0.5">
-              <p className="text-[10px] text-primary uppercase">CCV</p>
-              <p className="text-sm font-semibold text-primary">{formatCurrency(ccv)}</p>
+            <div className="p-3 rounded-lg border-2 border-primary/30 bg-accent space-y-1">
+              <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">CCV</p>
+              <p className="text-base font-bold text-primary">{formatCurrency(ccv)}</p>
             </div>
-            <div className="p-2.5 rounded-lg border border-primary/20 bg-primary/5 space-y-0.5">
-              <p className="text-[10px] text-primary uppercase">Spread × kWh</p>
-              <p className="text-sm font-semibold text-primary">{formatCurrency(spread)}</p>
+            <div className="p-3 rounded-lg border-2 border-primary/30 bg-accent space-y-1">
+              <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">Spread × kWh</p>
+              <p className="text-base font-bold text-primary">{formatCurrency(spread)}</p>
             </div>
-            <div className="p-2.5 rounded-lg border border-primary/20 bg-primary/5 space-y-0.5">
-              <p className="text-[10px] text-primary uppercase">Altri Servizi</p>
-              <p className="text-sm font-semibold text-primary">{formatCurrency(altroServizi)}</p>
+            <div className="p-3 rounded-lg border-2 border-primary/30 bg-accent space-y-1">
+              <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">Altri Servizi</p>
+              <p className="text-base font-bold text-primary">{formatCurrency(altroServizi)}</p>
             </div>
           </div>
 
           {/* Totali */}
-          <div className="space-y-1.5 p-3 rounded-lg bg-muted/50 border">
-            <div className="flex justify-between text-xs">
-              <span>Imponibile</span>
-              <span className="font-medium">{formatCurrency(imponibile)}</span>
+          <div className="space-y-2 p-4 rounded-lg bg-card border-2 border-border shadow-sm">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Imponibile</span>
+              <span className="font-semibold">{formatCurrency(imponibile)}</span>
             </div>
-            <div className="flex justify-between text-xs">
-              <span>IVA ({ivaPercent}%)</span>
-              <span className="font-medium">{formatCurrency(iva)}</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">IVA ({ivaPercent}%)</span>
+              <span className="font-semibold">{formatCurrency(iva)}</span>
             </div>
             <Separator />
-            <div className="flex justify-between text-sm font-bold">
+            <div className="flex justify-between text-base font-bold pt-1">
               <span>Fattura Totale</span>
               <span>{formatCurrency(fattura)}</span>
             </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-primary font-medium">di cui Margine Reseller</span>
+            <div className="flex justify-between text-sm pt-1">
+              <span className="text-primary font-semibold">di cui Margine Reseller</span>
               <span className="text-primary font-bold">{formatCurrency(margineReseller)} ({marginePerc.toFixed(1)}%)</span>
             </div>
           </div>
