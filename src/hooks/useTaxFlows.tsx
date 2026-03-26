@@ -27,6 +27,7 @@ export interface TaxFlowsSummary {
   totaleIvaDebito: number;
   totaleIvaCredito: number;
   totaleIvaVersamenti: number;
+  ivaCreditoRiportato: number;   // Credito IVA residuo accumulato non ancora compensato a fine simulazione
   totaleAcciseIncassate: number;
   totaleAcciseVersate: number;
   totaleOneriIncassati: number;
@@ -40,7 +41,7 @@ export interface TaxFlowsSummary {
 
 const EMPTY_TAX: TaxFlowsSummary = {
   monthlyData: [],
-  totaleIvaDebito: 0, totaleIvaCredito: 0, totaleIvaVersamenti: 0,
+  totaleIvaDebito: 0, totaleIvaCredito: 0, totaleIvaVersamenti: 0, ivaCreditoRiportato: 0,
   totaleAcciseIncassate: 0, totaleAcciseVersate: 0,
   totaleOneriIncassati: 0, totaleOneriRiversati: 0,
   totaleTrasportoIncassato: 0, totaleTrasportoVersato: 0,
@@ -77,6 +78,7 @@ export function buildTaxFlows(
   const pendingTrasporto: { month: number; amount: number }[] = [];
 
   let totaleIvaDebito = 0, totaleIvaCredito = 0, totaleIvaVersamenti = 0;
+  let ivaCredito_riportato = 0;
   let totaleAcciseIncassate = 0, totaleAcciseVersate = 0;
   let totaleOneriIncassati = 0, totaleOneriRiversati = 0;
   let totaleTrasportoIncassato = 0, totaleTrasportoVersato = 0;
@@ -113,7 +115,14 @@ export function buildTaxFlows(
         const debitoEntry = pendingIva.find(p => p.month === idx);
         const creditoEntry = pendingIvaCredito.find(p => p.month === idx);
         if (debitoEntry) {
-          ivaPayment = Math.max(0, debitoEntry.amount - (creditoEntry?.amount ?? 0));
+          const nettoConRiporto = debitoEntry.amount - (creditoEntry?.amount ?? 0) - ivaCredito_riportato;
+          if (nettoConRiporto > 0) {
+            ivaPayment = nettoConRiporto;
+            ivaCredito_riportato = 0;
+          } else {
+            ivaPayment = 0;
+            ivaCredito_riportato = -nettoConRiporto;
+          }
           totaleIvaVersamenti += ivaPayment;
         }
       }
@@ -127,7 +136,14 @@ export function buildTaxFlows(
         const quarterlyCredito = pendingIvaCredito
           .filter(p => p.month > quarterStart && p.month <= m - 1)
           .reduce((s, p) => s + p.amount, 0);
-        ivaPayment = Math.max(0, quarterlyDebito - quarterlyCredito) * 1.01;
+        const nettoConRiporto = (quarterlyDebito - quarterlyCredito - ivaCredito_riportato) * 1.01;
+        if (nettoConRiporto > 0) {
+          ivaPayment = nettoConRiporto;
+          ivaCredito_riportato = 0;
+        } else {
+          ivaPayment = 0;
+          ivaCredito_riportato = -nettoConRiporto / 1.01;
+        }
         totaleIvaVersamenti += ivaPayment;
       }
     }
@@ -198,6 +214,7 @@ export function buildTaxFlows(
     totaleIvaDebito: Math.round(totaleIvaDebito),
     totaleIvaCredito: Math.round(totaleIvaCredito),
     totaleIvaVersamenti: Math.round(totaleIvaVersamenti),
+    ivaCreditoRiportato: Math.round(ivaCredito_riportato),
     totaleAcciseIncassate: Math.round(totaleAcciseIncassate),
     totaleAcciseVersate: Math.round(totaleAcciseVersate),
     totaleOneriIncassati: Math.round(totaleOneriIncassati),
