@@ -464,82 +464,163 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             Fattura Tipo Cliente (mensile)
           </h4>
 
-          {/* Passanti cards */}
+          {/* Passanti cards with formulas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Materia Energia</p>
               <p className="text-base font-bold">{formatCurrency(materiaEnergia)}</p>
-              <p className="text-[10px] text-muted-foreground">Consumi (PUN): {formatCurrency(quotaConsumi)}</p>
-              <p className="text-[10px] text-muted-foreground">Disp.: {formatCurrency(quotaDisp)}</p>
-              <p className="text-[10px] text-muted-foreground">Perdite rete ({perditeRetePct}%): {formatCurrency(quotaPerdite)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">PUN × kWh = {globalParams.punPerKwh.toFixed(4)} × {kWh} = {formatCurrency(quotaConsumi)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Disp × kWh = {globalParams.dispacciamentoPerKwh.toFixed(4)} × {kWh} = {formatCurrency(quotaDisp)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Perdite = PUN × kWh × {perditeRetePct}% = {formatCurrency(quotaPerdite)}</p>
             </div>
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Trasporto</p>
               <p className="text-base font-bold">{formatCurrency(trasporto)}</p>
-              <p className="text-[10px] text-muted-foreground">Fissa+Pot.+Energia</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Fissa/12 = {formatCurrency(globalParams.trasportoQuotaFissaAnno / 12)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Pot. = {globalParams.trasportoQuotaPotenzaKwAnno.toFixed(2)} × {globalParams.potenzaImpegnataKw}kW /12 = {formatCurrency((globalParams.trasportoQuotaPotenzaKwAnno * globalParams.potenzaImpegnataKw) / 12)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">En. = {globalParams.trasportoQuotaEnergiaKwh.toFixed(5)} × {kWh} = {formatCurrency(globalParams.trasportoQuotaEnergiaKwh * kWh)}</p>
             </div>
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Oneri di Sistema</p>
               <p className="text-base font-bold">{formatCurrency(oneriSistema)}</p>
-              <p className="text-[10px] text-muted-foreground">(ASOS+ARIM) × kWh</p>
+              <p className="text-[10px] text-muted-foreground font-mono">ASOS = {globalParams.oneriAsosKwh.toFixed(5)} × {kWh}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">ARIM = {globalParams.oneriArimKwh.toFixed(5)} × {kWh}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Tot = {formatCurrency(oneriSistema)}</p>
             </div>
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Accise</p>
               <p className="text-base font-bold">{formatCurrency(accise)}</p>
-              <p className="text-[10px] text-muted-foreground">{globalParams.acciseKwh.toFixed(5)} €/kWh</p>
+              <p className="text-[10px] text-muted-foreground font-mono">{globalParams.acciseKwh.toFixed(5)} €/kWh × {kWh}</p>
+              <p className="text-[10px] text-muted-foreground italic">Imposta erariale (no IVA)</p>
             </div>
           </div>
 
           {/* Subtotale passanti */}
           <div className="flex items-center justify-between px-3 py-2 bg-secondary/5 border border-secondary/15 rounded-lg text-sm">
-            <span className="text-muted-foreground font-medium">Subtotale Passanti (grossista/DSO)</span>
+            <span className="text-muted-foreground font-medium">Subtotale Passanti in Fattura Cliente</span>
             <span className="font-bold">{formatCurrency(passantiTotale)}</span>
           </div>
 
-          {/* Margine reseller cards */}
+          {/* Margine reseller cards with formulas */}
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 rounded-lg border-2 border-primary/30 bg-accent space-y-1">
               <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">CCV</p>
               <p className="text-base font-bold text-primary">{formatCurrency(ccv)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Fisso mensile</p>
             </div>
             <div className="p-3 rounded-lg border-2 border-primary/30 bg-accent space-y-1">
-              <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">Spread × kWh</p>
+              <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">Spread Cliente</p>
               <p className="text-base font-bold text-primary">{formatCurrency(spread)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">{product.spread_per_kwh.toFixed(4)} × {kWh} kWh</p>
             </div>
             <div className="p-3 rounded-lg border-2 border-primary/30 bg-accent space-y-1">
               <p className="text-[10px] font-bold text-accent-foreground uppercase tracking-wide">Altri Servizi</p>
               <p className="text-base font-bold text-primary">{formatCurrency(altroServizi)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Fisso mensile</p>
             </div>
           </div>
 
-          {/* Totali */}
+          {/* Totali Fattura Cliente */}
           <div className="space-y-2 p-4 rounded-lg bg-card border-2 border-border shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">📄 Fattura al Cliente</p>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Imponibile</span>
+              <span className="text-muted-foreground">Imponibile (passanti + margine)</span>
               <span className="font-semibold">{formatCurrency(imponibile)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">IVA ({ivaPercent}%)</span>
+              <span className="text-muted-foreground">IVA vendita ({ivaPercent}%)</span>
               <span className="font-semibold">{formatCurrency(iva)}</span>
             </div>
             <Separator />
             <div className="flex justify-between text-base font-bold pt-1">
-              <span>Fattura Totale</span>
+              <span>Fattura Totale al Cliente</span>
               <span>{formatCurrency(fattura)}</span>
             </div>
-            <div className="flex justify-between text-sm pt-1">
-              <span className="text-primary font-semibold">di cui Margine Reseller</span>
-              <span className="text-primary font-bold">{formatCurrency(margineReseller)} ({marginePerc.toFixed(1)}%)</span>
+          </div>
+
+          {/* Costo Acquisto Grossista */}
+          <div className="space-y-2 p-4 rounded-lg bg-destructive/5 border border-destructive/20 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-2">🏭 Costo Acquisto dal Grossista</p>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Energia (PUN+Disp+Spread grossista) × kWh acquistati</span>
+              <span className="font-semibold">{formatCurrency(costoEnergiaGrossista)}</span>
             </div>
-            <Separator className="my-1" />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Costo Acquisto Grossista (Materia+Trasporto+Oneri+Accise)</span>
-              <span className="font-semibold">{formatCurrency(costoAcquistoGrossista)}</span>
+            <p className="text-[10px] text-muted-foreground font-mono pl-2">
+              ({globalParams.punPerKwh.toFixed(4)} + {globalParams.dispacciamentoPerKwh.toFixed(4)} + {globalParams.spreadGrossistaPerKwh.toFixed(4)}) × {kWhAcquistati.toFixed(0)} kWh (con perdite {perditeRetePct}%)
+            </p>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Trasporto (riversamento DSO)</span>
+              <span className="font-semibold">{formatCurrency(costoTrasportoGrossista)}</span>
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>kWh consumo: {kWh} | kWh acquistati (con perdite {perditeRetePct}%): {kWhAcquistati.toFixed(0)}</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Oneri di sistema (riversamento GSE)</span>
+              <span className="font-semibold">{formatCurrency(costoOneriGrossista)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Fee gestione POD</span>
+              <span className="font-semibold">{formatCurrency(gestionePod)}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground font-medium">Subtotale imponibile acquisti</span>
+              <span className="font-bold">{formatCurrency(costoAcquistoGrossistaImponibile)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Accise (imposta erariale, no IVA)</span>
+              <span className="font-semibold">{formatCurrency(costoAcciseGrossista)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">IVA acquisti (22% su imponibile)</span>
+              <span className="font-semibold">{formatCurrency(ivaAcquisto)}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between text-base font-bold pt-1">
+              <span>Totale uscita cassa grossista</span>
+              <span>{formatCurrency(costoAcquistoGrossistaTotale)}</span>
             </div>
           </div>
+
+          {/* Margini Lordo e Netto */}
+          <div className="space-y-2 p-4 rounded-lg bg-primary/5 border-2 border-primary/30 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">📊 Analisi Margini per Cliente/Mese</p>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Margine Lordo (CCV + Spread + Servizi)</span>
+              <span className="font-bold text-primary">{formatCurrency(margineLordoPerCliente)}</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground pl-2 font-mono">
+              {formatCurrency(ccv)} + {formatCurrency(spread)} + {formatCurrency(altroServizi)}
+            </p>
+            <Separator />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>IVA vendita incassata ({ivaPercent}% su {formatCurrency(imponibile)})</span>
+              <span className="text-green-600 dark:text-green-400">+{formatCurrency(ivaVendita)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>IVA acquisti pagata (22% su {formatCurrency(costoAcquistoGrossistaImponibile)})</span>
+              <span className="text-red-600 dark:text-red-400">−{formatCurrency(ivaAcquisto)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Delta IVA (da versare/credito)</span>
+              <span className={deltaIva >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
+                {deltaIva >= 0 ? `−${formatCurrency(deltaIva)}` : `+${formatCurrency(Math.abs(deltaIva))}`}
+              </span>
+            </div>
+            <Separator />
+            <div className="flex justify-between text-base font-bold pt-1">
+              <span>Margine Netto (fattura − costo grossista)</span>
+              <span className={margineNettoReale >= 0 ? 'text-green-700 dark:text-green-300' : 'text-destructive'}>
+                {formatCurrency(margineNettoReale)}
+              </span>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-mono pl-2">
+              {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} = {formatCurrency(margineNettoReale)}
+            </p>
+            <div className="flex justify-between text-xs text-muted-foreground pt-1">
+              <span>% su fattura</span>
+              <span className="font-semibold">{fattura > 0 ? ((margineNettoReale / fattura) * 100).toFixed(1) : '0.0'}%</span>
+            </div>
+          </div>
+        </div>
         </div>
       </AccordionContent>
     </AccordionItem>
