@@ -87,6 +87,7 @@ export function exportFiscaleReport(
     'IVA a Credito (€)': fmt(m.ivaCredito),
     'Posizione Netta (€)': fmt(m.ivaNetPosition),
     'IVA da Versare (€)': fmt(m.ivaPayment),
+    'Credito Residuo Riportato (€)': '' as any,
     'Regime': params.ivaPaymentRegime === 'quarterly' ? 'Trimestrale' : 'Mensile',
   }));
 
@@ -100,6 +101,7 @@ export function exportFiscaleReport(
     'Posizione Netta (€)': fmt(taxFlows.totaleIvaDebito - taxFlows.totaleIvaCredito),
     'IVA da Versare (€)': fmt(taxFlows.totaleIvaVersamenti),
     'Credito Residuo Riportato (€)': fmt(taxFlows.ivaCreditoRiportato),
+    'Regime': '',
   });
 
   const wsIva = XLSX.utils.json_to_sheet(ivaRows);
