@@ -100,9 +100,11 @@ export interface SimulationEngineResult {
 export function computePerClientAmounts(params: RevenueSimulationParams): PerClientAmounts {
   const kWh = params.avgMonthlyConsumption;
 
-  // La fattura al cliente è basata sui kWh MISURATI (no perdite di rete)
-  // Le perdite di rete sono un costo per il reseller, non ribaltato al cliente
-  const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh;
+  // Le perdite di rete sono addebitate al cliente finale in bolletta
+  // come componente della Materia Energia (kWh misurati + quota perdite)
+  const perditeRetePct = params.perditeRetePct ?? 10.2;
+  const quotaPerdite = params.punPerKwh * kWh * (perditeRetePct / 100);
+  const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh + quotaPerdite;
   const trasporto =
     params.trasportoQuotaFissaAnno / 12 +
     (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw) / 12 +
