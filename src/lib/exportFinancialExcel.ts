@@ -24,10 +24,10 @@ export function exportGrossistaReport(
     'kWh Acquistati': fmt(m.customer.clientiAttivi * params.avgMonthlyConsumption),
     'PUN (€/kWh)': params.punPerKwh,
     'Spread Grossista (€/kWh)': params.spreadGrossistaPerKwh,
-    'Costo Energia (€)': fmt(m.costoEnergia),
+    'Dispacciamento (€/kWh)': params.dispacciamentoPerKwh,
+    'Costo Energia Grossista (PUN+Disp+Spread) (€)': fmt(m.costoEnergiaConDisp),
     'Fee Gestione POD (€)': fmt(m.costiGestionePod),
-    'Costi Passanti (€)': fmt(m.costiPassanti),
-    'Totale Costi Grossista (€)': fmt(m.costoEnergia + m.costiGestionePod + m.costiPassanti),
+    'Totale Fattura Grossista (€)': fmt(m.costoEnergiaConDisp + m.costiGestionePod),
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
@@ -38,14 +38,13 @@ export function exportGrossistaReport(
   const totals = engineResult.monthly.reduce(
     (acc, m) => {
       acc.kWhTotali += m.customer.clientiAttivi * params.avgMonthlyConsumption;
-      acc.costoEnergia += m.costoEnergia;
+      acc.costoEnergiaConDisp += m.costoEnergiaConDisp;
       acc.feePod += m.costiGestionePod;
-      acc.costiPassanti += m.costiPassanti;
       acc.attivazioni += m.customer.attivazioni;
       acc.churn += m.customer.churn;
       return acc;
     },
-    { kWhTotali: 0, costoEnergia: 0, feePod: 0, costiPassanti: 0, attivazioni: 0, churn: 0 }
+    { kWhTotali: 0, costoEnergiaConDisp: 0, feePod: 0, attivazioni: 0, churn: 0 }
   );
 
   const lastMonth = engineResult.monthly[engineResult.monthly.length - 1];
@@ -56,10 +55,9 @@ export function exportGrossistaReport(
     { 'Voce': 'Totale Churn', 'Valore': totals.churn },
     { 'Voce': 'POD Attivi Fine Periodo', 'Valore': lastMonth?.customer.clientiAttivi || 0 },
     { 'Voce': '', 'Valore': '' },
-    { 'Voce': 'Costo Energia Totale (€)', 'Valore': fmt(totals.costoEnergia) },
+    { 'Voce': 'Costo Energia Grossista (PUN+Disp+Spread) Totale (€)', 'Valore': fmt(totals.costoEnergiaConDisp) },
     { 'Voce': 'Fee Gestione POD Totale (€)', 'Valore': fmt(totals.feePod) },
-    { 'Voce': 'Costi Passanti Totale (€)', 'Valore': fmt(totals.costiPassanti) },
-    { 'Voce': 'TOTALE GROSSISTA (€)', 'Valore': fmt(totals.costoEnergia + totals.feePod + totals.costiPassanti) },
+    { 'Voce': 'TOTALE FATTURA GROSSISTA (€)', 'Valore': fmt(totals.costoEnergiaConDisp + totals.feePod) },
   ];
 
   const ws2 = XLSX.utils.json_to_sheet(summaryRows);
@@ -101,7 +99,7 @@ export function exportFiscaleReport(
     'IVA a Credito (€)': fmt(taxFlows.totaleIvaCredito),
     'Posizione Netta (€)': fmt(taxFlows.totaleIvaDebito - taxFlows.totaleIvaCredito),
     'IVA da Versare (€)': fmt(taxFlows.totaleIvaVersamenti),
-    'Regime': '',
+    'Credito Residuo Riportato (€)': fmt(taxFlows.ivaCreditoRiportato),
   });
 
   const wsIva = XLSX.utils.json_to_sheet(ivaRows);
