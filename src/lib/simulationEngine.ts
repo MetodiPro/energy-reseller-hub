@@ -33,6 +33,7 @@ export interface PerClientAmounts {
   imponibile: number;
   iva: number;
   fattura: number;
+  costoGarantitoPerCliente: number; // Base garanzia grossista (materia + trasporto + oneri, NO accise/IVA)
 }
 
 /** Dati mensili del ciclo di vita clienti */
