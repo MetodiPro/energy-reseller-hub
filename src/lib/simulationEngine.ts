@@ -74,7 +74,8 @@ export interface MonthlyEngineResult {
   fatturato: number;
   costiPassanti: number;
   costiGestionePod: number;
-  costoEnergia: number;
+  costoEnergia: number;          // Per Esiti Economici: PUN + spreadGrossista (senza dispacciamento)
+  costoEnergiaConDisp: number;   // Per Cash Flow: PUN + dispacciamento + spreadGrossista (uscita reale di cassa)
   margineCommerciale: number;
   // Pre-computed breakdown fields for multi-product aggregation
   ivaTotale: number;
@@ -270,7 +271,7 @@ export function runSimulationEngine(
     totalDepositoLordo += depositoLordoAttivazioni;
     totalDepositoRestituito += depositoRilasciatoChurn;
 
-    const pagamentiConsumi = m >= 2 ? cumulativeActiveCustomers * perClient.passantiTotale : 0;
+    const pagamentiConsumi = clientiFatturati * perClient.passantiTotale;
     totalPagamentiAccumulati += pagamentiConsumi;
 
     const depositoRichiesto = Math.max(0, totalDepositoLordo - totalDepositoRestituito - (totalPagamentiAccumulati * svincoloPct));
@@ -288,6 +289,7 @@ export function runSimulationEngine(
     // ── Costi operativi/energia ──
     const costiGestionePod = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
     const costoEnergia = m >= 2 ? cumulativeActiveCustomers * kWh * (params.punPerKwh + params.spreadGrossistaPerKwh) : 0;
+    const costoEnergiaConDisp = m >= 2 ? cumulativeActiveCustomers * kWh * (params.punPerKwh + params.dispacciamentoPerKwh + params.spreadGrossistaPerKwh) : 0;
 
     // ── Costi passanti e margine (per i clienti fatturati) ──
     const costiPassanti = clientiFatturati * perClient.passantiTotale;
@@ -301,7 +303,7 @@ export function runSimulationEngine(
     const oneriSistemaTotale = clientiFatturati * perClient.oneriSistema;
     const acciseTotale = clientiFatturati * perClient.accise;
     const fatturatoStimatoAttivi = cumulativeActiveCustomers * perClient.fattura;
-    const costiDeducibiliIva = costoEnergia + trasportoTotale + oneriSistemaTotale + costiGestionePod;
+    const costiDeducibiliIva = costoEnergiaConDisp + trasportoTotale + oneriSistemaTotale + costiGestionePod;
 
     monthly.push({
       customer,
@@ -311,6 +313,7 @@ export function runSimulationEngine(
       costiPassanti,
       costiGestionePod,
       costoEnergia,
+      costoEnergiaConDisp,
       margineCommerciale,
       ivaTotale,
       materiaEnergiaTotale,
@@ -468,6 +471,7 @@ function aggregateProductResults(
       costiPassanti: s(x => x.costiPassanti),
       costiGestionePod: s(x => x.costiGestionePod),
       costoEnergia: s(x => x.costoEnergia),
+      costoEnergiaConDisp: s(x => x.costoEnergiaConDisp),
       margineCommerciale: s(x => x.margineCommerciale),
       ivaTotale: s(x => x.ivaTotale),
       materiaEnergiaTotale: s(x => x.materiaEnergiaTotale),
