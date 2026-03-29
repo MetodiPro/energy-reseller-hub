@@ -129,8 +129,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
       />
       <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
 
-      {/* Grafico churn per prodotto */}
-      <ChurnPerProductChart multiProductResult={multiProductResult} />
+
     </div>
   );
 };
