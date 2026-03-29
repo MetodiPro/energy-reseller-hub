@@ -157,7 +157,7 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
                         key={col.key}
                         className={`${col.key !== 'month' ? 'text-right' : ''} ${
                           col.key.startsWith('totale') ? 'font-semibold' : ''
-                        } ${col.key.startsWith('churn') || col.key === 'totale_churn' ? 'text-destructive' : ''}`}
+                        } ${(col.key.startsWith('churn') || col.key === 'totale_churn') ? 'text-destructive' : ''}${(col.key.startsWith('non_attivati') || col.key === 'totale_non_attivati') ? ' text-amber-600 dark:text-amber-400' : ''}`}
                       >
                         {typeof row[col.key] === 'number'
                           ? (row[col.key] as number).toLocaleString('it-IT')
