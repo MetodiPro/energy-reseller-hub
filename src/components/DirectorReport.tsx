@@ -22,6 +22,7 @@ import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { OverviewTab } from '@/components/financial/OverviewTab';
+import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
@@ -408,6 +409,36 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         onUsePunLive={handleUsePunLive}
         onNavigateToTariffs={() => {}}
       />
+
+      {/* Wholesaler Costs Summary with clickable details */}
+      {summary.hasSimulationData && (
+        <WholesalerCostsSummary
+          costoEnergiaTotale={simulationSummary.costoEnergiaTotale}
+          costoGestionePodTotale={simulationSummary.costoGestionePodTotale}
+          clientiAttiviFinale={simulationSummary.clientiAttivi}
+          passthroughTotals={{
+            dispacciamento: simulationSummary.costiMensili?.reduce((s: number, m: any) => s + (m.dispacciamento || 0), 0) || 0,
+            trasporto: simulationSummary.costiMensili?.reduce((s: number, m: any) => s + (m.trasporto || 0), 0) || 0,
+            oneriSistema: simulationSummary.costiMensili?.reduce((s: number, m: any) => s + (m.oneriSistema || 0), 0) || 0,
+            accise: simulationSummary.costiMensili?.reduce((s: number, m: any) => s + (m.accise || 0), 0) || 0,
+          }}
+          costiMensili={simulationSummary.costiMensili}
+          params={{
+            punPerKwh: revenueSimulation.data?.params?.punPerKwh,
+            spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh,
+            gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod,
+            dispacciamentoPerKwh: revenueSimulation.data?.params?.dispacciamentoPerKwh,
+            trasportoQuotaFissaAnno: revenueSimulation.data?.params?.trasportoQuotaFissaAnno,
+            trasportoQuotaEnergiaKwh: revenueSimulation.data?.params?.trasportoQuotaEnergiaKwh,
+            trasportoQuotaPotenzaKwAnno: revenueSimulation.data?.params?.trasportoQuotaPotenzaKwAnno,
+            potenzaImpegnataKw: revenueSimulation.data?.params?.potenzaImpegnataKw,
+            oneriAsosKwh: revenueSimulation.data?.params?.oneriAsosKwh,
+            oneriArimKwh: revenueSimulation.data?.params?.oneriArimKwh,
+            acciseKwh: revenueSimulation.data?.params?.acciseKwh,
+            avgMonthlyConsumption: revenueSimulation.data?.params?.avgMonthlyConsumption,
+          }}
+        />
+      )}
 
       {/* Channel Performance - always visible */}
       {channelData.length > 0 && (
