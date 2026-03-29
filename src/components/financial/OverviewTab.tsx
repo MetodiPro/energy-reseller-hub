@@ -4,7 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
-  ArrowUpRight, ArrowDownRight, Target, Percent, Calculator, Zap, Users,
+  ArrowUpRight, ArrowDownRight, Target, Percent, Calculator, Zap, Users, Info,
   ArrowRight, Wallet, ShieldAlert, CreditCard, AlertTriangle, Landmark,
 } from 'lucide-react';
 import { FinancialAlerts } from './FinancialAlerts';
