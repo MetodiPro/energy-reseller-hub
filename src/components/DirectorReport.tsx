@@ -427,18 +427,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
-      <OverviewTab
-        summary={summary}
-        simulationSummary={simulationSummary}
-        cashFlowData={cashFlowData}
-        cashFlowLoading={cashFlowLoading}
-        salesChannels={salesChannels}
-        getChannelBreakdown={getChannelBreakdown}
-        simulationData={revenueSimulation.data}
-        onUsePunLive={handleUsePunLive}
-        onNavigateToTariffs={() => {}}
-      />
-
       {/* Wholesaler Costs Summary with clickable details */}
       {summary.hasSimulationData && (
         <WholesalerCostsSummary
@@ -469,46 +457,18 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
+      <OverviewTab
+        summary={summary}
+        simulationSummary={simulationSummary}
+        cashFlowData={cashFlowData}
+        cashFlowLoading={cashFlowLoading}
+        salesChannels={salesChannels}
+        getChannelBreakdown={getChannelBreakdown}
+        simulationData={revenueSimulation.data}
+        onUsePunLive={handleUsePunLive}
+        onNavigateToTariffs={() => {}}
+      />
 
-      {/* Channel Performance - always visible */}
-      {channelData.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users className="h-4 w-4" /> Performance Canali di Vendita
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={channelData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" fontSize={10} />
-                  <YAxis tickFormatter={(v) => `€${v}`} fontSize={10} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                  <Bar dataKey="costo" name="Costo Totale" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="space-y-3 flex flex-col justify-center">
-                {channelData.map(ch => (
-                  <div key={ch.name} className="flex items-center justify-between border-b pb-2">
-                    <div>
-                      <p className="text-sm font-medium">{ch.name}</p>
-                      <p className="text-xs text-muted-foreground">{ch.contratti} contratti</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold">{formatCurrency(ch.costo)}</p>
-                      <p className="text-xs text-muted-foreground">CAC: {formatCurrency(ch.costoPerCliente)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      
 
       {/* ── Report Section with Charts ── */}
       {report && (
