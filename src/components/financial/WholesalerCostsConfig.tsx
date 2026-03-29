@@ -414,21 +414,6 @@ export const WholesalerCostsConfig = ({
           )}
         </div>
         
-        {/* Info box */}
-        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-            <Info className="h-4 w-4" />
-            Perché i "Costi Passanti" in Panoramica sono diversi?
-          </h5>
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            La Panoramica mostra i <strong>Costi Passanti in fattura</strong>: ciò che il cliente paga e il reseller gira ai destinatari 
-            (include PUN + dispacciamento come componente energia). 
-            Qui invece vedi i <strong>Costi effettivi del reseller</strong>: ciò che paghi al grossista 
-            (PUN + spread grossista, diverso dal dispacciamento) più i passanti da girare. 
-            La differenza è dovuta al fatto che lo spread grossista ≠ dispacciamento e che i costi grossista 
-            partono dal mese di attivazione (mese 3), mentre la fatturazione parte dal mese 4.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
