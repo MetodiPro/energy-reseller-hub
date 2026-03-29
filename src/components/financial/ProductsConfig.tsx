@@ -300,6 +300,12 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   const margineNettoReale = margineReseller - costoAcquistoGrossistaTotale;
   const margineNettoPerc = imponibile > 0 ? (margineNettoReale / imponibile) * 100 : 0;
 
+  // Costo reale a carico del reseller (esclude passanti neutrali)
+  const costoProprioGrossista = costoEnergiaGrossista + gestionePod;
+  // Margine industriale = ricavi propri - costi propri verso grossista
+  const margineIndustriale = margineReseller - costoProprioGrossista;
+  const margineIndustrialePerc = imponibile > 0 ? (margineIndustriale / imponibile) * 100 : 0;
+
   return (
     <AccordionItem value={id} className="border rounded-lg mb-3 px-1">
       <AccordionTrigger className="hover:no-underline py-3 px-3">
@@ -605,48 +611,83 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             </p>
           </div>
 
-          {/* Margini Lordo e Netto */}
+          {/* Analisi Margini per Cliente/Mese */}
           <div className="space-y-2 p-4 rounded-lg bg-primary/5 border-2 border-primary/30 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">📊 Analisi Margini per Cliente/Mese</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-3">
+              📊 Analisi Margini per Cliente/Mese
+            </p>
+
+            {/* Riga 1: Ricavi propri reseller */}
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Margine Lordo (CCV + Spread + Servizi)</span>
+              <span className="text-muted-foreground">Ricavi propri reseller (CCV + Spread + Servizi)</span>
               <span className="font-bold text-primary">{formatCurrency(margineReseller)}</span>
             </div>
             <p className="text-[10px] text-muted-foreground pl-2 font-mono">
               {formatCurrency(ccv)} + {formatCurrency(spread)} + {formatCurrency(altroServizi)}
             </p>
-            <Separator />
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">IVA vendita incassata ({ivaPercent}% su {formatCurrency(imponibile)})</span>
-              <span className="text-green-600 font-semibold">+{formatCurrency(iva)}</span>
-            </div>
+
+            {/* Riga 2: Costo energia proprio verso grossista */}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
-                IVA acquisti reverse charge (22% su {formatCurrency(costoAcquistoGrossistaTotale)})
+                − Energia acquistata (PUN + Disp. + Spread gross.) × kWh
               </span>
-              <span className="text-blue-600 font-semibold">autoliquidata ↕ neutrale</span>
+              <span className="font-semibold text-destructive">−{formatCurrency(costoEnergiaGrossista)}</span>
             </div>
-            <div className="flex justify-between text-sm font-medium">
-              <span className="text-muted-foreground">Delta IVA netto da versare/recuperare</span>
-              <span className={deltaIvaNetto >= 0 ? 'text-destructive' : 'text-blue-600'}>
-                {deltaIvaNetto >= 0 ? '-' : '+'}{formatCurrency(Math.abs(deltaIvaNetto))}
-              </span>
+
+            {/* Riga 3: Fee POD */}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">− Fee gestione POD</span>
+              <span className="font-semibold text-destructive">−{formatCurrency(gestionePod)}</span>
             </div>
+
             <Separator />
+
+            {/* Riga 4: Margine industriale */}
             <div className="flex justify-between text-base font-bold pt-1">
-              <span>Margine Netto (ricavi reseller − costo grossista)</span>
-              <span className={margineNettoReale >= 0 ? 'text-green-600' : 'text-destructive'}>
-                {formatCurrency(margineNettoReale)}
+              <span>Margine Industriale Netto</span>
+              <span className={margineIndustriale >= 0 ? 'text-green-600' : 'text-destructive'}>
+                {formatCurrency(margineIndustriale)}
               </span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{formatCurrency(margineReseller)} − {formatCurrency(costoAcquistoGrossistaTotale)} = {formatCurrency(margineNettoReale)}</span>
-              <span>% su fattura netta</span>
+              <span>
+                {formatCurrency(margineReseller)} − {formatCurrency(costoEnergiaGrossista)} − {formatCurrency(gestionePod)}
+              </span>
+              <span>{margineIndustrialePerc.toFixed(1)}% sul fatturato netto</span>
             </div>
-            <div className="flex justify-between text-sm font-medium">
-              <span></span>
-              <span>{margineNettoPerc.toFixed(1)}%</span>
+            <p className="text-[10px] text-muted-foreground italic mt-1">
+              Trasporto ({formatCurrency(costoTrasportoGrossista)}) e Oneri ({formatCurrency(costoOneriGrossista)})
+              sono passanti neutri: incassati dal cliente e pagati al grossista per lo stesso importo — impatto sul margine = zero.
+            </p>
+
+            <Separator />
+
+            {/* Sezione IVA — informativa fiscale, separata dal margine */}
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-2">
+              Posizione IVA (informativa fiscale)
+            </p>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>IVA a debito riscossa dal cliente ({ivaPercent}% su {formatCurrency(imponibile)})</span>
+              <span className="text-foreground font-medium">+{formatCurrency(iva)}</span>
             </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>IVA a credito reverse charge (22% su {formatCurrency(costoAcquistoGrossistaTotale)})</span>
+              <span className="text-blue-600 font-medium">−{formatCurrency(ivaCreditoReverseCharge)}</span>
+            </div>
+            <div className="flex justify-between text-xs font-medium">
+              <span className="text-muted-foreground">
+                {deltaIvaNetto >= 0 ? 'IVA netta da versare all\'Erario' : 'Credito IVA da riportare'}
+              </span>
+              <span className={deltaIvaNetto >= 0 ? 'text-destructive' : 'text-blue-600'}>
+                {deltaIvaNetto >= 0 ? '−' : '+'}{formatCurrency(Math.abs(deltaIvaNetto))}
+              </span>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              {deltaIvaNetto < 0
+                ? `Credito IVA strutturale: l'aliquota sul cliente (${ivaPercent}%) è inferiore a quella sugli acquisti (22%) — il credito si accumula e può essere riportato o rimborsato.`
+                : `IVA netta da liquidare periodicamente all'Erario.`
+              }
+            </p>
           </div>
         </div>
       </AccordionContent>
