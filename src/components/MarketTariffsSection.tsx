@@ -217,6 +217,8 @@ interface AreraFormState {
   quotaEnergiaKwh: number;
   asosKwh: number;
   arimKwh: number;
+  asosFissaAnno: number;
+  asosPotenzaKwAnno: number;
   domesticoKwh: number;
   altriUsiKwh: number;
   delibera: string;
@@ -239,6 +241,8 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
     quotaEnergiaKwh: 0.00812,
     asosKwh: 0.02500,
     arimKwh: 0.00700,
+    asosFissaAnno: 0.00,
+    asosPotenzaKwAnno: 0.00,
     domesticoKwh: 0.02270,
     altriUsiKwh: 0.01250,
     delibera: "588/2025/R/com",
@@ -257,6 +261,8 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
         quotaEnergiaKwh: d.trasporto.quotaEnergiaKwh,
         asosKwh: d.oneri.asosKwh,
         arimKwh: d.oneri.arimKwh,
+        asosFissaAnno: d.oneri.asosFissaAnno ?? 0,
+        asosPotenzaKwAnno: d.oneri.asosPotenzaKwAnno ?? 0,
         domesticoKwh: d.accise.domesticoKwh,
         altriUsiKwh: d.accise.altriUsiKwh,
         delibera: d.delibera || "",
@@ -290,6 +296,8 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
         oneri: {
           asosKwh: form.asosKwh,
           arimKwh: form.arimKwh,
+          asosFissaAnno: form.asosFissaAnno,
+          asosPotenzaKwAnno: form.asosPotenzaKwAnno,
         },
         accise: {
           domesticoKwh: form.domesticoKwh,
@@ -477,6 +485,41 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
               <Label htmlFor="arim" className="text-xs">ARIM - Oneri Rimanenti (€/kWh)</Label>
               <Input id="arim" type="number" step="0.00001" value={form.arimKwh}
                 onChange={e => updateField('arimKwh', parseFloat(e.target.value) || 0)} />
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Oneri di Sistema — Quote aggiuntive PMI/Business */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Oneri di Sistema — Quote aggiuntive PMI/Business (usi non-domestici)
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Applicabili solo a clientela non-domestica (PMI, Business).
+            Non si applicano ai clienti domestici.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="asosFissa" className="text-xs">ASOS Quota Fissa (€/POD/anno)</Label>
+              <Input
+                id="asosFissa"
+                type="number"
+                step="0.01"
+                value={form.asosFissaAnno}
+                onChange={e => updateField('asosFissaAnno', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="asosPotenza" className="text-xs">ASOS Quota Potenza (€/kW/anno)</Label>
+              <Input
+                id="asosPotenza"
+                type="number"
+                step="0.01"
+                value={form.asosPotenzaKwAnno}
+                onChange={e => updateField('asosPotenzaKwAnno', parseFloat(e.target.value) || 0)}
+              />
             </div>
           </div>
         </div>
