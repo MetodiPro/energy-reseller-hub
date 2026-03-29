@@ -96,7 +96,13 @@ function PunCard({ onImportPun, refreshKey }: {
     }
   }, []);
 
-  const handleManualSave = () => {
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0) {
+      loadPunFromTerna();
+    }
+  }, [refreshKey, loadPunFromTerna]);
+
+
     const val = parseFloat(manualKwh);
     if (isNaN(val) || val <= 0) {
       toast.error("Inserisci un valore valido in €/kWh");
@@ -315,6 +321,12 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
   useEffect(() => {
     loadTariffs();
   }, [loadTariffs]);
+
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0) {
+      loadTariffs();
+    }
+  }, [refreshKey]);
 
   const handleSave = async () => {
     setSaving(true);
