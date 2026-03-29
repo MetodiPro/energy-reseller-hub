@@ -399,6 +399,14 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
       )}
 
 
+      {/* Customer Base Section - above Stato del progetto */}
+      {multiProductResult && multiProductResult.products.length > 0 && (
+        <CustomerBaseSection
+          multiProductResult={multiProductResult}
+          totalActiveEnd={simulationSummary.clientiAttivi}
+        />
+      )}
+
       <OverviewTab
         summary={summary}
         simulationSummary={simulationSummary}
@@ -441,10 +449,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
-      {/* Churn per prodotto */}
-      {multiProductResult && multiProductResult.products.length > 0 && (
-        <ChurnPerProductChart multiProductResult={multiProductResult} />
-      )}
 
       {/* Channel Performance - always visible */}
       {channelData.length > 0 && (
