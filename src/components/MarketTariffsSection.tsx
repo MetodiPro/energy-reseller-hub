@@ -102,7 +102,7 @@ function PunCard({ onImportPun, refreshKey }: {
     }
   }, [refreshKey, loadPunFromTerna]);
 
-
+  const handleManualSave = () => {
     const val = parseFloat(manualKwh);
     if (isNaN(val) || val <= 0) {
       toast.error("Inserisci un valore valido in €/kWh");
