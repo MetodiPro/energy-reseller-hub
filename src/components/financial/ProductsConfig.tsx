@@ -635,17 +635,24 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               <span className="text-destructive font-semibold">−{formatCurrency(accise)}</span>
             </div>
 
-            {/* Meno: IVA netta */}
+            {/* IVA netta */}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
                 {ivaNettoVersata > 0
-                  ? `− IVA netta da versare all'Erario (${ivaPercent}% debito − 22% credito RC)`
-                  : `+ Credito IVA strutturale (${ivaPercent}% debito < 22% acquisti)`}
+                  ? `− IVA netta versata Erario (${ivaPercent}% su cliente − 22% credito acquisti)`
+                  : `± IVA netta: credito strutturale (IVA cliente ${ivaPercent}% < IVA acquisti 22%)`}
               </span>
               <span className={ivaNettoVersata > 0 ? 'text-destructive font-semibold' : 'text-blue-600 font-semibold'}>
-                {ivaNettoVersata > 0 ? `−${formatCurrency(ivaNettoVersata)}` : `+${formatCurrency(ivaCreditoStrutturale)}`}
+                {ivaNettoVersata > 0 ? `−${formatCurrency(ivaNettoVersata)}` : `±${formatCurrency(ivaCreditoStrutturale)}`}
               </span>
             </div>
+            {ivaNettoVersata === 0 && (
+              <p className="text-[10px] text-blue-600 italic pl-2">
+                Poiché vendi a clienti domestici (IVA {ivaPercent}%) ma acquisti al 22%, accumuli
+                un credito IVA di {formatCurrency(ivaCreditoStrutturale)}/cliente/mese che compensa
+                i versamenti futuri — non versi IVA netta questo periodo.
+              </p>
+            )}
 
             <Separator />
 
