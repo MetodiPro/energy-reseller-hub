@@ -306,10 +306,10 @@ export const OverviewTab = ({
               {/* 2. Crediti in Corso */}
               <FinancialRow
                 label="Crediti in Corso"
-                tooltip="Fatture emesse ai clienti il cui incasso ricade oltre la finestra di simulazione (waterfall 0-30-60-90+ giorni). Non sono insoluti: ci si aspetta di incassarli. Rappresentano il credito commerciale del reseller."
+                tooltip="Fatture emesse i cui incassi ricadono oltre la finestra di simulazione di 14 mesi. Include sia crediti commerciali attesi (clienti che pagheranno con ritardo) sia le tranche del waterfall non ancora scadute per le fatture degli ultimi 3 mesi (la coda a 30-60-90gg non si chiude entro il periodo simulato). Rappresenta un'uscita dalla cassa simulata, attesa ma non ancora materializzata."
                 value={formatCurrency(simulationSummary.totalCrediti)}
                 valueClass="text-blue-600"
-                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − Incassato ${formatCurrency(summary.totalIncassato)} − Insoluti ${formatCurrency(summary.totalInsoluti)} = ${formatCurrency(simulationSummary.totalCrediti)}. Fatture emesse non ancora scadute o in attesa di pagamento.`}
+                detail={`Calcolo: Fatturato Lordo ${formatCurrency(summary.totalRevenue)} − Incassato ${formatCurrency(summary.totalIncassato)} − Insoluti ${formatCurrency(summary.totalInsoluti)} = ${formatCurrency(simulationSummary.totalCrediti)}. Nota: include le tranche a 30-60-90gg non ancora incassate per le fatture degli ultimi mesi del periodo simulato.`}
                 icon={<CreditCard className="h-4 w-4" />}
               />
               {/* 3. Depositi Cauzionali */}
@@ -352,15 +352,20 @@ export const OverviewTab = ({
 
             {/* Riconciliazione */}
             {summary.hasSimulationData && (
-              <div className="mt-4 pt-3 border-t border-dashed border-muted-foreground/20 flex items-center justify-between text-xs text-muted-foreground">
-                <span>
-                  Verifica: Incassato ({formatCurrency(simulationSummary.totalIncassato)})
-                  + Crediti ({formatCurrency(simulationSummary.totalCrediti)})
-                  + Insoluti ({formatCurrency(simulationSummary.totalInsoluti)})
-                </span>
-                <span className="font-medium text-foreground">
-                  = {formatCurrency(simulationSummary.totalIncassato + simulationSummary.totalCrediti + simulationSummary.totalInsoluti)}
-                </span>
+              <div className="mt-4 pt-3 border-t border-dashed border-muted-foreground/20">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    Verifica contabile (algebrica): Incassato ({formatCurrency(simulationSummary.totalIncassato)})
+                    + Crediti residui ({formatCurrency(simulationSummary.totalCrediti)})
+                    + Insoluti ({formatCurrency(simulationSummary.totalInsoluti)})
+                  </span>
+                  <span className="font-medium text-foreground">
+                    = {formatCurrency(simulationSummary.totalIncassato + simulationSummary.totalCrediti + simulationSummary.totalInsoluti)}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground/60 mt-1">
+                  I Crediti includono anche il waterfall non chiuso degli ultimi 3 mesi: il valore si ridurrà progressivamente con l'incasso delle tranche pendenti.
+                </div>
               </div>
             )}
           </TooltipProvider>
