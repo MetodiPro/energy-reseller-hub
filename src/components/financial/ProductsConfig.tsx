@@ -479,9 +479,8 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Materia Energia</p>
               <p className="text-base font-bold">{formatCurrency(materiaEnergia)}</p>
-              <p className="text-[10px] text-muted-foreground font-mono">PUN × kWh = {globalParams.punPerKwh.toFixed(4)} × {kWh} = {formatCurrency(quotaConsumi)}</p>
-              <p className="text-[10px] text-muted-foreground font-mono">Disp × kWh = {globalParams.dispacciamentoPerKwh.toFixed(4)} × {kWh} = {formatCurrency(quotaDisp)}</p>
-              <p className="text-[10px] text-muted-foreground font-mono">Perdite = PUN × kWh × {perditeRetePct}% = {formatCurrency(quotaPerdite)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">(PUN + Disp) × kWhFatt = ({globalParams.punPerKwh.toFixed(4)} + {globalParams.dispacciamentoPerKwh.toFixed(4)}) × {kWhFatturati.toFixed(0)}</p>
+              <p className="text-[10px] text-muted-foreground font-mono">kWhFatt = {kWh} × (1 + {perditeRetePct}%) = {kWhFatturati.toFixed(0)} kWh</p>
             </div>
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20 space-y-1">
               <p className="text-[10px] font-bold text-secondary uppercase tracking-wide">Trasporto</p>
