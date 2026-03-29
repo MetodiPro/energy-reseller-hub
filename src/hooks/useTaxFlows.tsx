@@ -96,13 +96,13 @@ export function buildTaxFlows(
     pendingIva.push({ month: m, amount: ivaDebito });
     totaleIvaDebito += ivaDebito;
 
-    // Costi REALI deducibili IVA del reseller (NO doppio conteggio):
-    // 1. Energia acquistata dal grossista (PUN + spreadGrossista) → em.costoEnergia
-    // 2. Trasporto e Oneri di sistema → pagati al distributore (per clienti fatturati)
-    // 3. Gestione POD → pagata al grossista
-    // NB: Le accise sono imposte erariali NON soggette a IVA
-    // NB: NON usare em.costiPassanti perché include materiaEnergia (PUN + disp.)
-    //     che è la componente in fattura al cliente, non il costo reale del reseller
+    // IVA a credito: base imponibile sugli acquisti del reseller.
+    // ASSUNZIONE: il grossista fattura un'unica fattura comprensiva di PUN + dispacciamento + spread
+    // assoggettata a IVA al 22% (prassi standard contratti UDD/grossista).
+    // Se il contratto con il grossista prevede fatturazione separata del dispacciamento
+    // (es. come corrispettivo Terna passante), verificare se tale componente è soggetta a IVA.
+    // In caso di dubbio, consultare il proprio consulente fiscale.
+    // Base deducibile: costoEnergiaConDisp + trasporto + oneri + gestionePOD (NO accise: non soggette a IVA)
     const costiDeducibiliIva = em.costiDeducibiliIva;
     const ivaCredito = costiDeducibiliIva * IVA_ALIQUOTA_ACQUISTI;
     pendingIvaCredito.push({ month: m, amount: ivaCredito });
