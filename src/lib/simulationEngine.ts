@@ -102,10 +102,13 @@ export function computePerClientAmounts(params: RevenueSimulationParams): PerCli
   const kWh = params.avgMonthlyConsumption;
 
   // Le perdite di rete sono addebitate al cliente finale in bolletta
-  // come componente della Materia Energia (kWh misurati + quota perdite)
+  // come componente della Materia Energia: i kWh fatturati includono la quota perdite
+  // (kWhFatturati = kWhMisurati × (1 + perdite%)), allineando la base di calcolo
+  // sia lato bolletta cliente sia lato acquisto dal grossista (simmetria volumi).
   const perditeRetePct = params.perditeRetePct ?? 10.2;
-  const quotaPerdite = params.punPerKwh * kWh * (perditeRetePct / 100);
-  const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWh + quotaPerdite;
+  const perditeRete = 1 + (perditeRetePct / 100);
+  const kWhFatturati = kWh * perditeRete;
+  const materiaEnergia = (params.punPerKwh + params.dispacciamentoPerKwh) * kWhFatturati;
   const trasporto =
     params.trasportoQuotaFissaAnno / 12 +
     (params.trasportoQuotaPotenzaKwAnno * params.potenzaImpegnataKw) / 12 +

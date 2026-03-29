@@ -104,7 +104,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                 }}
               />
               <p className="text-xs text-muted-foreground">
-                Fattore ARERA standard: BT ~10.2%, MT ~3.8%, AT ~0.6%. Aumenta il volume di kWh acquistati dal grossista rispetto a quelli fatturati.
+                Fattore ARERA standard: BT ~10.2%, MT ~3.8%, AT ~0.6%. Aumenta proporzionalmente i kWh sia in bolletta cliente (Materia Energia) sia negli acquisti dal grossista, garantendo simmetria nel recupero del costo.
               </p>
             </div>
           </div>
