@@ -220,61 +220,64 @@ export const useRevenueSimulation = (projectId: string | null) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Utente non autenticato');
 
+      // Always read from ref to get the latest state (critical for debounced saves)
+      const currentData = dataRef.current;
+
       const simulationData = {
         project_id: projectId,
-        start_date: data.startDate.toISOString().split('T')[0],
-        monthly_contracts: data.monthlyContracts,
+        start_date: currentData.startDate.toISOString().split('T')[0],
+        monthly_contracts: currentData.monthlyContracts,
         commodity_type: 'luce',
         
         // Componenti commerciali
-        ccv_monthly: data.params.ccvMonthly,
-        spread_per_kwh: data.params.spreadPerKwh,
-        spread_grossista_per_kwh: data.params.spreadGrossistaPerKwh,
-        other_services_monthly: data.params.otherServicesMonthly,
+        ccv_monthly: currentData.params.ccvMonthly,
+        spread_per_kwh: currentData.params.spreadPerKwh,
+        spread_grossista_per_kwh: currentData.params.spreadGrossistaPerKwh,
+        other_services_monthly: currentData.params.otherServicesMonthly,
         
         // Componenti fattura
-        pun_per_kwh: data.params.punPerKwh,
-        dispacciamento_per_kwh: data.params.dispacciamentoPerKwh,
-        trasporto_quota_fissa_anno: data.params.trasportoQuotaFissaAnno,
-        trasporto_quota_potenza_kw_anno: data.params.trasportoQuotaPotenzaKwAnno,
-        trasporto_quota_energia_kwh: data.params.trasportoQuotaEnergiaKwh,
-        potenza_impegnata_kw: data.params.potenzaImpegnataKw,
-        oneri_asos_kwh: data.params.oneriAsosKwh,
-        oneri_arim_kwh: data.params.oneriArimKwh,
-        accise_kwh: data.params.acciseKwh,
-        iva_percent: data.params.ivaPercent,
-        client_type: data.params.clientType,
-        perdite_rete_pct: data.params.perditeRetePct,
-        iva_payment_regime: data.params.ivaPaymentRegime,
+        pun_per_kwh: currentData.params.punPerKwh,
+        dispacciamento_per_kwh: currentData.params.dispacciamentoPerKwh,
+        trasporto_quota_fissa_anno: currentData.params.trasportoQuotaFissaAnno,
+        trasporto_quota_potenza_kw_anno: currentData.params.trasportoQuotaPotenzaKwAnno,
+        trasporto_quota_energia_kwh: currentData.params.trasportoQuotaEnergiaKwh,
+        potenza_impegnata_kw: currentData.params.potenzaImpegnataKw,
+        oneri_asos_kwh: currentData.params.oneriAsosKwh,
+        oneri_arim_kwh: currentData.params.oneriArimKwh,
+        accise_kwh: currentData.params.acciseKwh,
+        iva_percent: currentData.params.ivaPercent,
+        client_type: currentData.params.clientType,
+        perdite_rete_pct: currentData.params.perditeRetePct,
+        iva_payment_regime: currentData.params.ivaPaymentRegime,
         
         // Clienti e incasso
-        avg_monthly_consumption: data.params.avgMonthlyConsumption,
-        activation_rate: data.params.activationRate,
-        monthly_churn_rate: data.params.monthlyChurnRate,
-        churn_month1_pct: data.params.churnMonth1Pct,
-        churn_month2_pct: data.params.churnMonth2Pct,
-        churn_month3_pct: data.params.churnMonth3Pct,
-        churn_decay_factor: data.params.churnDecayFactor,
-        collection_month_0: data.params.collectionMonth0,
-        collection_month_1: data.params.collectionMonth1,
-        collection_month_2: data.params.collectionMonth2,
-        collection_month_3_plus: data.params.collectionMonth3Plus,
-        uncollectible_rate: data.params.uncollectibleRate,
+        avg_monthly_consumption: currentData.params.avgMonthlyConsumption,
+        activation_rate: currentData.params.activationRate,
+        monthly_churn_rate: currentData.params.monthlyChurnRate,
+        churn_month1_pct: currentData.params.churnMonth1Pct,
+        churn_month2_pct: currentData.params.churnMonth2Pct,
+        churn_month3_pct: currentData.params.churnMonth3Pct,
+        churn_decay_factor: currentData.params.churnDecayFactor,
+        collection_month_0: currentData.params.collectionMonth0,
+        collection_month_1: currentData.params.collectionMonth1,
+        collection_month_2: currentData.params.collectionMonth2,
+        collection_month_3_plus: currentData.params.collectionMonth3Plus,
+        uncollectible_rate: currentData.params.uncollectibleRate,
         
         // Costi grossista
-        gestione_pod_per_pod: data.params.gestionePodPerPod,
-        deposito_cauzionale_mesi: data.params.depositoMesi,
-        deposito_percentuale_attivazione: data.params.depositoPercentualeAttivazione,
-        deposito_svincolo_pagamenti_perc: data.params.depositoSvincoloPagamentiPerc ?? 50,
+        gestione_pod_per_pod: currentData.params.gestionePodPerPod,
+        deposito_cauzionale_mesi: currentData.params.depositoMesi,
+        deposito_percentuale_attivazione: currentData.params.depositoPercentualeAttivazione,
+        deposito_svincolo_pagamenti_perc: currentData.params.depositoSvincoloPagamentiPerc ?? 50,
         
         created_by: user.id,
       };
 
-      if (data.id) {
+      if (currentData.id) {
         const { error } = await supabase
           .from('project_revenue_simulations')
           .update(simulationData)
-          .eq('id', data.id);
+          .eq('id', currentData.id);
         if (error) throw error;
       } else {
         const { data: newSim, error } = await supabase
@@ -300,7 +303,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
     } finally {
       setSaving(false);
     }
-  }, [projectId, data, toast]);
+  }, [projectId, toast]);
 
   const updateParams = useCallback((key: keyof RevenueSimulationParams, value: number | string) => {
     setData(prev => ({
