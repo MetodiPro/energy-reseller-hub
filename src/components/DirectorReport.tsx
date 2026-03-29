@@ -403,7 +403,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
       {multiProductResult && multiProductResult.products.length > 0 && (
         <CustomerBaseSection
           multiProductResult={multiProductResult}
-          totalActiveEnd={simulationSummary.clientiAttivi}
+          totalActiveEnd={multiProductResult?.aggregated?.monthly?.[multiProductResult.aggregated.monthly.length - 1]?.customer?.clientiAttivi ?? simulationSummary.clientiAttivi}
         />
       )}
 
