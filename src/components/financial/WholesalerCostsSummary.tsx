@@ -75,8 +75,9 @@ export const WholesalerCostsSummary = ({
             { label: 'Costo Acquisto', value: `${((p.punPerKwh ?? 0) + (p.spreadGrossistaPerKwh ?? 0)).toFixed(4)} €/kWh` },
             { label: 'Consumo medio', value: `${p.avgMonthlyConsumption ?? 0} kWh/mese/cliente` },
           ],
-          monthly: monthlyData.map(m => ({ label: m.monthLabel, value: m.costoEnergia, clients: m.clientiAttivi })),
+          monthly: monthlyData.map(m => ({ label: m.monthLabel, value: m.costoEnergia, clients: m.clientiAttivi, kwhAcquistati: m.clientiAttivi * (p.avgMonthlyConsumption ?? 0) })),
           total: costoEnergiaTotale,
+          showMwh: true,
         };
       case 'pod':
         return {
