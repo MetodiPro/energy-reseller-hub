@@ -13,6 +13,8 @@ export interface AreraTariffData {
   oneri: {
     asosKwh: number;
     arimKwh: number;
+    asosFissaAnno?: number;    // ASOS quota fissa €/POD/anno — solo usi non-domestici
+    asosPotenzaKwAnno?: number; // ASOS quota potenza €/kW/anno — solo usi non-domestici
   };
   accise: {
     domesticoKwh: number;
