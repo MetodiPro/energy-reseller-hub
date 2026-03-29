@@ -219,11 +219,11 @@ export const OverviewTab = ({
               {/* 7. Margine Commerciale Lordo */}
               <EconomicRowHighlight
                 label="Margine Commerciale Lordo"
-                tooltip="Fatturato Netto meno tutti i costi diretti della commodity: Costo Energia al Grossista, Costi Passanti Totali e Fee Gestione POD. Rappresenta il margine industriale prima dei costi commerciali e strutturali."
-                value={formatCurrency(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale)}
-                percentValue={formatPercent(summary.imponibile > 0 ? ((summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale) / summary.imponibile) * 100 : 0)}
-                positive={(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale) >= 0}
-                detail={`Calcolo: Fatturato Netto ${formatCurrency(summary.imponibile)} − Costo Energia ${formatCurrency(summary.costoEnergiaNetto)} − Costi Passanti ${formatCurrency(summary.passthroughCosts)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.imponibile - summary.costoEnergiaNetto - summary.passthroughCosts - summary.costoGestionePodTotale)}.`}
+                tooltip="Ricavi propri del reseller (CCV + Spread + Altri Servizi) meno il costo reale pagato al grossista per l'energia (PUN + Spread Grossista) e la Fee POD. I Costi Passanti (trasporto, oneri, accise) sono esclusi perché sono partite di giro perfettamente neutrali: incassati dal cliente e riversati a terzi per lo stesso importo, impatto netto sul margine = zero."
+                value={formatCurrency(summary.margineCommercialeLordo)}
+                percentValue={formatPercent(summary.margineCommercialePercent)}
+                positive={summary.margineCommercialeLordo >= 0}
+                detail={`Calcolo: Ricavi Reseller (CCV + Spread) ${formatCurrency(summary.resellerMargin)} − Costo Energia Grossista ${formatCurrency(summary.costoEnergiaNetto)} − Fee POD ${formatCurrency(summary.costoGestionePodTotale)} = ${formatCurrency(summary.margineCommercialeLordo)}. I passanti (trasporto, oneri, accise, dispacciamento) sono esclusi: il reseller li incassa e li riversa per lo stesso importo.`}
                 icon={<Target className="h-4 w-4" />}
               />
               {/* 8. Costi Commerciali */}
