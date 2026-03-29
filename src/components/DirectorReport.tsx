@@ -27,6 +27,7 @@ import { CustomerBaseSection } from '@/components/financial/CustomerBaseSection'
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
+import { MarketDataBar } from '@/components/financial/MarketDataBar';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -398,6 +399,13 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         </Card>
       )}
 
+
+      {/* Market Data Bar - before Customer Base */}
+      <MarketDataBar
+        onUsePunLive={handleUsePunLive}
+        onNavigateToTariffs={() => {}}
+        currentPunPerKwh={revenueSimulation.data?.params?.punPerKwh}
+      />
 
       {/* Customer Base Section - above Stato del progetto */}
       {multiProductResult && multiProductResult.products.length > 0 && (
