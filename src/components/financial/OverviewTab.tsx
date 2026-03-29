@@ -108,47 +108,6 @@ export const OverviewTab = ({
         currentPunPerKwh={simulationData?.params?.punPerKwh ?? null}
       />
 
-      <Collapsible defaultOpen={false}>
-        <Card className="border-muted">
-          <CollapsibleTrigger className="w-full">
-            <CardHeader className="flex flex-row items-center justify-between py-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Info className="h-4 w-4 text-muted-foreground" />
-                Come leggere i dati finanziari
-              </CardTitle>
-              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Fatturato vs Margine</p>
-                  <p className="text-xs text-muted-foreground">
-                    Il fatturato lordo include tutto ciò che transita in fattura (passanti + IVA).
-                    Il margine commerciale è ciò che resta dopo aver pagato il grossista per l'energia.
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Costi Reali vs Passanti</p>
-                  <p className="text-xs text-muted-foreground">
-                    I costi reali del reseller sono: costo energia (PUN + spread grossista + fee POD),
-                    provvigioni canali e costi strutturali. I passanti (trasporto, oneri, accise) transitano
-                    e si annullano.
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Esiti Economici vs Finanziari</p>
-                  <p className="text-xs text-muted-foreground">
-                    Gli esiti economici misurano la redditività operativa (competenza).
-                    Gli esiti finanziari misurano la liquidità reale: incassi, crediti, depositi e saldo cassa.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
 
       <FinancialAlerts summary={summary} />
 

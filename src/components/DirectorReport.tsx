@@ -317,7 +317,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
-            Report Direzionale
+            Esiti
           </h2>
           <p className="text-muted-foreground">
             {projectName} — Panoramica KPI e report strategico per la direzione
@@ -359,7 +359,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             ) : (
               <>
                 <FileText className="h-4 w-4" />
-                Genera Report Direzionale
+                Genera Report
               </>
             )}
           </Button>
@@ -552,9 +552,9 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
+                   <CardTitle className="text-xl flex items-center gap-2">
                     <FileText className="h-5 w-5 text-primary" />
-                    Report Direzionale — {projectName}
+                    Esiti — {projectName}
                   </CardTitle>
                   <CardDescription>
                     Analisi strategica completa — Documento riservato per la direzione aziendale
