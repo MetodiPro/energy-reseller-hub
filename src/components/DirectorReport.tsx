@@ -399,6 +399,13 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
       )}
 
 
+      {/* Market Data Bar - before Customer Base */}
+      <MarketDataBar
+        onUsePunLive={handleUsePunLive}
+        onNavigateToTariffs={() => {}}
+        currentPunPerKwh={revenueSimulation.data?.punPerKwh}
+      />
+
       {/* Customer Base Section - above Stato del progetto */}
       {multiProductResult && multiProductResult.products.length > 0 && (
         <CustomerBaseSection
