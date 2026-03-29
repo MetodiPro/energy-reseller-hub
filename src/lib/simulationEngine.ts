@@ -185,7 +185,7 @@ export function runSimulationEngine(
   const SWITCH_OUT_DELAY = 2;
   const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
 
-  const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 50) / 100;
+  const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 0) / 100;
   let totalPagamentiAccumulati = 0;
 
   for (let m = 0; m < SIM_MONTHS; m++) {
