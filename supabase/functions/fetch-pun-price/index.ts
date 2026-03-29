@@ -10,8 +10,9 @@ interface TernaTokenResponse {
 }
 
 interface TernaDailyPrice {
-  base_price_EURxMWh: number;
-  [key: string]: unknown;
+  base_price_EURxMWh: string | number;
+    macrozone?: string;
+    [key: string]: unknown;
 }
 
 interface TernaPricesResponse {
@@ -53,14 +54,14 @@ function formatDateISO(d: Date): string {
 }
 
 async function getTernaToken(): Promise<string> {
-  const clientId = Deno.env.get('TERNA_CLIENT_ID');
-  const clientSecret = Deno.env.get('TERNA_CLIENT_SECRET');
+  const clientId = Deno.env.get('TERNA_KEY');
+  const clientSecret = Deno.env.get('TERNA_SECRET');
 
   if (!clientId || !clientSecret) {
-    throw new Error('TERNA_CLIENT_ID or TERNA_CLIENT_SECRET not configured');
+    throw new Error('TERNA_KEY or TERNA_SECRET not configured');
   }
 
-  console.log(`Using TERNA_CLIENT_ID: ${clientId.substring(0, 6)}...`);
+  console.log(`Using TERNA_KEY: ${clientId.substring(0, 6)}...`);
 
   const res = await fetch('https://api.terna.it/transparency/oauth/accessToken', {
     method: 'POST',
@@ -81,8 +82,8 @@ async function getTernaToken(): Promise<string> {
 
 function parsePrices(prices: TernaDailyPrice[], isoDate: string): PunData {
   const values = prices
-    .map((p) => p.base_price_EURxMWh)
-    .filter((v) => typeof v === 'number' && v > 0);
+    .map((p) => parseFloat(String(p.base_price_EURxMWh)))
+    .filter((v) => !isNaN(v) && v > 0);
 
   if (values.length === 0) {
     throw new Error('No valid price values in Terna response');
