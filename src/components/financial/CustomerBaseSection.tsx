@@ -32,24 +32,37 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
     const cols: { key: string; label: string }[] = [{ key: 'month', label: 'Mese' }];
 
     prods.forEach(p => {
+      cols.push({ key: `contratti_${p.product.id}`, label: `Contratti ${p.product.name}` });
+      cols.push({ key: `non_attivati_${p.product.id}`, label: `Non attivati ${p.product.name}` });
       cols.push({ key: `attivi_${p.product.id}`, label: `Attivi ${p.product.name}` });
       cols.push({ key: `churn_${p.product.id}`, label: `Churn ${p.product.name}` });
     });
-    cols.push({ key: 'totale_attivi', label: 'Totale Attivi' });
-    cols.push({ key: 'totale_churn', label: 'Totale Churn' });
+    cols.push({ key: 'totale_contratti', label: 'Tot. Contratti' });
+    cols.push({ key: 'totale_non_attivati', label: 'Tot. Non Attivati' });
+    cols.push({ key: 'totale_attivi', label: 'Tot. Attivi' });
+    cols.push({ key: 'totale_churn', label: 'Tot. Churn' });
 
     const rows: MonthRow[] = [];
     for (let m = 0; m < monthCount; m++) {
       const row: MonthRow = { month: prods[0].result.monthly[m].customer.monthLabel };
       let totAttivi = 0;
       let totChurn = 0;
+      let totContratti = 0;
+      let totNonAttivati = 0;
       prods.forEach(p => {
         const cm = p.result.monthly[m].customer;
+        const nonAttivati = Math.max(0, cm.contrattiNuovi - cm.attivazioni);
+        row[`contratti_${p.product.id}`] = cm.contrattiNuovi;
+        row[`non_attivati_${p.product.id}`] = nonAttivati;
         row[`attivi_${p.product.id}`] = cm.clientiAttivi;
         row[`churn_${p.product.id}`] = cm.churn;
+        totContratti += cm.contrattiNuovi;
+        totNonAttivati += nonAttivati;
         totAttivi += cm.clientiAttivi;
         totChurn += cm.churn;
       });
+      row.totale_contratti = totContratti;
+      row.totale_non_attivati = totNonAttivati;
       row.totale_attivi = totAttivi;
       row.totale_churn = totChurn;
       rows.push(row);
