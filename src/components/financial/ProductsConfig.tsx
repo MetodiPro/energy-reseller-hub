@@ -652,8 +652,7 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             </div>
             <div className="flex justify-between text-xs text-muted-foreground pb-1">
               <span>
-                {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} − {formatCurrency(accise)}
-                {ivaNettoVersata > 0 ? ` − ${formatCurrency(ivaNettoVersata)}` : ` + ${formatCurrency(ivaCreditoStrutturale)}`}
+                {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} − {formatCurrency(accise)} − {formatCurrency(ivaVersataErario)}
               </span>
               <span>{margineReseller_lordoPerc.toFixed(1)}% sulla fattura</span>
             </div>
