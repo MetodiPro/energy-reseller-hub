@@ -123,6 +123,10 @@ export const useRevenueSimulation = (projectId: string | null) => {
     params: DEFAULT_PARAMS,
   });
 
+  // Keep a ref to always have the latest data for debounced saves
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
   // Load simulation from database
   const loadSimulation = useCallback(async () => {
     if (!projectId) {
