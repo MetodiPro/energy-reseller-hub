@@ -15,7 +15,7 @@ interface CustomerBaseSectionProps {
 }
 
 interface MonthRow {
-  month: string;
+  monthLabel: string;
   [key: string]: string | number;
 }
 
@@ -29,42 +29,58 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
 
     const prods = multiProductResult.products;
     const monthCount = prods[0].result.monthly.length;
-    const cols: { key: string; label: string }[] = [{ key: 'month', label: 'Mese' }];
 
-    prods.forEach(p => {
-      cols.push({ key: `contratti_${p.product.id}`, label: `Contratti ${p.product.name}` });
-      cols.push({ key: `non_attivati_${p.product.id}`, label: `Non attivati ${p.product.name}` });
-      cols.push({ key: `attivi_${p.product.id}`, label: `Attivi ${p.product.name}` });
-      cols.push({ key: `churn_${p.product.id}`, label: `Churn ${p.product.name}` });
-    });
-    cols.push({ key: 'totale_contratti', label: 'Tot. Contratti' });
-    cols.push({ key: 'totale_non_attivati', label: 'Tot. Non Attivati' });
-    cols.push({ key: 'totale_attivi', label: 'Tot. Attivi' });
-    cols.push({ key: 'totale_churn', label: 'Tot. Churn' });
+    const cols: { key: string; label: string }[] = [{ key: 'monthLabel', label: 'Mese' }];
+
+    if (prods.length > 1) {
+      prods.forEach(p => {
+        cols.push({ key: `contratti_${p.product.id}`,   label: `Contr. ${p.product.name}` });
+        cols.push({ key: `attivazioni_${p.product.id}`, label: `Attiv. ${p.product.name}` });
+        cols.push({ key: `churn_${p.product.id}`,       label: `SwitchOut ${p.product.name}` });
+        cols.push({ key: `attivi_${p.product.id}`,      label: `Attivi ${p.product.name}` });
+        cols.push({ key: `fatturati_${p.product.id}`,   label: `Fatt. ${p.product.name}` });
+      });
+    }
+
+    cols.push({ key: 'tot_contratti',   label: 'Tot. Contratti' });
+    cols.push({ key: 'tot_attivazioni', label: 'Tot. Attivazioni' });
+    cols.push({ key: 'tot_churn',       label: 'Tot. Switch-Out' });
+    cols.push({ key: 'tot_attivi',      label: 'Tot. Attivi' });
+    cols.push({ key: 'tot_fatturati',   label: 'Tot. Fatturati' });
 
     const rows: MonthRow[] = [];
     for (let m = 0; m < monthCount; m++) {
-      const row: MonthRow = { month: prods[0].result.monthly[m].customer.monthLabel };
-      let totAttivi = 0;
-      let totChurn = 0;
+      const row: MonthRow = {
+        monthLabel: prods[0].result.monthly[m].customer.monthLabel,
+      };
+
       let totContratti = 0;
-      let totNonAttivati = 0;
+      let totAttivazioni = 0;
+      let totChurn = 0;
+      let totAttivi = 0;
+      let totFatturati = 0;
+
       prods.forEach(p => {
         const cm = p.result.monthly[m].customer;
-        const nonAttivati = Math.max(0, cm.contrattiNuovi - cm.attivazioni);
-        row[`contratti_${p.product.id}`] = cm.contrattiNuovi;
-        row[`non_attivati_${p.product.id}`] = nonAttivati;
-        row[`attivi_${p.product.id}`] = cm.clientiAttivi;
-        row[`churn_${p.product.id}`] = cm.churn;
-        totContratti += cm.contrattiNuovi;
-        totNonAttivati += nonAttivati;
-        totAttivi += cm.clientiAttivi;
-        totChurn += cm.churn;
+        row[`contratti_${p.product.id}`]   = cm.contrattiNuovi;
+        row[`attivazioni_${p.product.id}`] = cm.attivazioni;
+        row[`churn_${p.product.id}`]       = cm.churn;
+        row[`attivi_${p.product.id}`]      = cm.clientiAttivi;
+        row[`fatturati_${p.product.id}`]   = cm.clientiFatturati;
+
+        totContratti   += cm.contrattiNuovi;
+        totAttivazioni += cm.attivazioni;
+        totChurn       += cm.churn;
+        totAttivi      += cm.clientiAttivi;
+        totFatturati   += cm.clientiFatturati;
       });
-      row.totale_contratti = totContratti;
-      row.totale_non_attivati = totNonAttivati;
-      row.totale_attivi = totAttivi;
-      row.totale_churn = totChurn;
+
+      row.tot_contratti   = totContratti;
+      row.tot_attivazioni = totAttivazioni;
+      row.tot_churn       = totChurn;
+      row.tot_attivi      = totAttivi;
+      row.tot_fatturati   = totFatturati;
+
       rows.push(row);
     }
 
@@ -79,17 +95,23 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
     });
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    // Set column widths
-    ws['!cols'] = columns.map(() => ({ wch: 18 }));
+    ws['!cols'] = columns.map(() => ({ wch: 16 }));
     XLSX.utils.book_append_sheet(wb, ws, 'Customer Base');
     XLSX.writeFile(wb, 'customer_base.xlsx');
   }, [tableData, columns]);
 
   if (!multiProductResult || multiProductResult.products.length === 0) return null;
 
+  const aggregatedMonthly = multiProductResult.aggregated.monthly;
+  const lastMonth = aggregatedMonthly[aggregatedMonthly.length - 1];
+  const totalAttiviFinali = lastMonth?.customer.clientiAttivi ?? 0;
+  const totalAttivazioniCumulative = aggregatedMonthly.reduce((s, m) => s + m.customer.attivazioni, 0);
+  const totalSwitchOutCumulativo   = aggregatedMonthly.reduce((s, m) => s + m.customer.churn, 0);
+  const totalContrattiCumulativi   = aggregatedMonthly.reduce((s, m) => s + m.customer.contrattiNuovi, 0);
+
   return (
     <div className="space-y-6">
-      {/* Customer Base KPI */}
+      {/* KPI Card */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -97,21 +119,39 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
             Customer Base
           </CardTitle>
           <CardDescription>
-            Punti di fornitura attivi alla fine del periodo di simulazione previsto nelle Ipotesi Operative.
+            Evoluzione dei punti di fornitura lungo il periodo di simulazione (14 mesi).
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Summary KPIs row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">Contratti totali firmati</p>
+              <p className="text-xl font-bold text-foreground">{totalContrattiCumulativi.toLocaleString('it-IT')}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">Attivazioni totali</p>
+              <p className="text-xl font-bold text-foreground">{totalAttivazioniCumulative.toLocaleString('it-IT')}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">Switch-Out totali</p>
+              <p className="text-xl font-bold text-destructive">{totalSwitchOutCumulativo.toLocaleString('it-IT')}</p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">POD attivi a fine simulazione</p>
+              <p className="text-xl font-bold text-foreground">{totalAttiviFinali.toLocaleString('it-IT')}</p>
+            </div>
+          </div>
+
+          {/* Detail trigger button */}
           <button
             onClick={() => setDialogOpen(true)}
-            className="group flex items-center gap-4 p-4 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors cursor-pointer w-full text-left"
+            className="group flex items-center gap-3 px-4 py-2 rounded-lg border border-border bg-muted/20 hover:bg-muted/50 transition-colors cursor-pointer w-full text-left"
           >
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
-              <Users className="h-7 w-7 text-primary" />
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-foreground">{totalActiveEnd.toLocaleString('it-IT')}</p>
-              <p className="text-sm text-muted-foreground">Punti di fornitura attivi al termine della simulazione</p>
-            </div>
+            <Users className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+              Visualizza dettaglio mensile per prodotto
+            </span>
             <Badge variant="outline" className="ml-auto gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
               <MousePointerClick className="h-3 w-3" />
               Dettaglio mensile
@@ -129,7 +169,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               Customer Base — Dettaglio Mensile per Prodotto
             </DialogTitle>
             <DialogDescription>
-              Clienti attivi e switch-out mensili per ogni prodotto commerciale.
+              Per ogni mese: contratti firmati dalla rete, attivazioni (entrate in fornitura),
+              switch-out (uscite effettive con ritardo SII 2 mesi), POD attivi cumulativi e POD fatturati.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
@@ -143,7 +184,7 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               <TableHeader>
                 <TableRow>
                   {columns.map(col => (
-                    <TableHead key={col.key} className={col.key !== 'month' ? 'text-right' : ''}>
+                    <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
                       {col.label}
                     </TableHead>
                   ))}
@@ -152,18 +193,22 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               <TableBody>
                 {tableData.map((row, i) => (
                   <TableRow key={i}>
-                    {columns.map(col => (
-                      <TableCell
-                        key={col.key}
-                        className={`${col.key !== 'month' ? 'text-right' : ''} ${
-                          col.key.startsWith('totale') ? 'font-semibold' : ''
-                        } ${(col.key.startsWith('churn') || col.key === 'totale_churn') ? 'text-destructive' : ''}${(col.key.startsWith('non_attivati') || col.key === 'totale_non_attivati') ? ' text-amber-600 dark:text-amber-400' : ''}`}
-                      >
-                        {typeof row[col.key] === 'number'
-                          ? (row[col.key] as number).toLocaleString('it-IT')
-                          : row[col.key]}
-                      </TableCell>
-                    ))}
+                    {columns.map(col => {
+                      const val = row[col.key];
+                      const isChurn     = col.key.startsWith('churn_') || col.key === 'tot_churn';
+                      const isAttivi    = col.key.startsWith('attivi_') || col.key === 'tot_attivi';
+                      const isFatturati = col.key.startsWith('fatturati_') || col.key === 'tot_fatturati';
+                      const isTotal     = col.key.startsWith('tot_');
+                      const isMonth     = col.key === 'monthLabel';
+                      return (
+                        <TableCell
+                          key={col.key}
+                          className={`${!isMonth ? 'text-right' : ''} ${isTotal ? 'font-semibold' : ''} ${isChurn ? 'text-destructive' : ''} ${isAttivi ? 'text-primary' : ''} ${isFatturati ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
+                        >
+                          {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>
@@ -172,7 +217,7 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
         </DialogContent>
       </Dialog>
 
-      {/* Churn per prodotto chart moved here */}
+      {/* Churn chart */}
       <ChurnPerProductChart multiProductResult={multiProductResult} />
     </div>
   );
