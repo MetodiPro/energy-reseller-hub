@@ -292,12 +292,19 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   // IVA: gestita separatamente nel motore fiscale (useTaxFlows)
   // Non inclusa nell'analisi margini di questa card
 
-  // ── Margine industriale netto ──────────────────────────────────────────
-  // Il reseller guadagna solo su: CCV + Spread + Servizi − (energia acquistata + POD)
-  // Trasporto e oneri sono passanti neutrali: stessa cifra incassata e pagata al grossista
-  const costoProprioGrossista = costoEnergiaGrossista + gestionePod;
-  const margineIndustriale = margineReseller - costoProprioGrossista;
-  const margineIndustrialePerc = imponibile > 0 ? (margineIndustriale / imponibile) * 100 : 0;
+  // ── Margine Lordo del Reseller ────────────────────────────────────────
+  // Logica: il reseller incassa TUTTA la fattura dal cliente (IVA inclusa).
+  // Da questo toglie:
+  //   1. Quanto paga al grossista (energia + trasporto + oneri + POD, senza IVA)
+  //   2. Le accise che versa all'ADM
+  //   3. L'IVA netta che versa all'Erario (debito sul cliente meno credito reverse charge)
+  // Ciò che resta è il Margine Lordo reale del reseller.
+  const ivaDebito = iva;
+  const ivaCreditoRC = costoAcquistoGrossistaTotale * 0.22;
+  const ivaNettoVersata = Math.max(0, ivaDebito - ivaCreditoRC);  // se negativo è credito, non si versa nulla
+  const ivaCreditoStrutturale = Math.max(0, ivaCreditoRC - ivaDebito); // credito da riportare
+  const margineReseller_lordo = fattura - costoAcquistoGrossistaTotale - accise - ivaNettoVersata;
+  const margineReseller_lordoPerc = fattura > 0 ? (margineReseller_lordo / fattura) * 100 : 0;
 
   return (
     <AccordionItem value={id} className="border rounded-lg mb-3 px-1">
@@ -610,44 +617,52 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               📊 Analisi Margini per Cliente/Mese
             </p>
 
-            {/* Riga 1: Ricavi propri reseller */}
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Ricavi propri reseller (CCV + Spread + Servizi)</span>
-              <span className="font-bold text-primary">{formatCurrency(margineReseller)}</span>
+            {/* Fattura incassata */}
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-muted-foreground">Fattura incassata dal cliente (IVA {ivaPercent}% inclusa)</span>
+              <span className="text-primary font-bold">{formatCurrency(fattura)}</span>
             </div>
-            <p className="text-[10px] text-muted-foreground pl-2 font-mono">
-              {formatCurrency(ccv)} + {formatCurrency(spread)} + {formatCurrency(altroServizi)}
-            </p>
 
-            {/* Riga 2: Costo energia proprio verso grossista */}
+            {/* Meno: grossista */}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">− Fattura grossista (energia+trasp.+oneri+POD, no IVA)</span>
+              <span className="text-destructive font-semibold">−{formatCurrency(costoAcquistoGrossistaTotale)}</span>
+            </div>
+
+            {/* Meno: accise */}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">− Accise versate all'ADM</span>
+              <span className="text-destructive font-semibold">−{formatCurrency(accise)}</span>
+            </div>
+
+            {/* Meno: IVA netta */}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
-                − Energia acquistata (PUN + Disp. + Spread gross.) × kWh
+                {ivaNettoVersata > 0
+                  ? `− IVA netta da versare all'Erario (${ivaPercent}% debito − 22% credito RC)`
+                  : `+ Credito IVA strutturale (${ivaPercent}% debito < 22% acquisti)`}
               </span>
-              <span className="font-semibold text-destructive">−{formatCurrency(costoEnergiaGrossista)}</span>
-            </div>
-
-            {/* Riga 3: Fee POD */}
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">− Fee gestione POD</span>
-              <span className="font-semibold text-destructive">−{formatCurrency(gestionePod)}</span>
+              <span className={ivaNettoVersata > 0 ? 'text-destructive font-semibold' : 'text-blue-600 font-semibold'}>
+                {ivaNettoVersata > 0 ? `−${formatCurrency(ivaNettoVersata)}` : `+${formatCurrency(ivaCreditoStrutturale)}`}
+              </span>
             </div>
 
             <Separator />
 
+            {/* Margine Lordo */}
             <div className="flex justify-between text-base font-bold pt-1">
-              <span>Margine Industriale Netto</span>
-              <span className={margineIndustriale >= 0 ? 'text-green-600' : 'text-destructive'}>
-                {formatCurrency(margineIndustriale)}
+              <span>Margine Lordo Reseller</span>
+              <span className={margineReseller_lordo >= 0 ? 'text-green-600' : 'text-destructive'}>
+                {formatCurrency(margineReseller_lordo)}
               </span>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground pb-1">
-              <span>{formatCurrency(margineReseller)} − {formatCurrency(costoEnergiaGrossista)} − {formatCurrency(gestionePod)}</span>
-              <span>{margineIndustrialePerc.toFixed(1)}% sul fatturato netto</span>
+              <span>
+                {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} − {formatCurrency(accise)}
+                {ivaNettoVersata > 0 ? ` − ${formatCurrency(ivaNettoVersata)}` : ` + ${formatCurrency(ivaCreditoStrutturale)}`}
+              </span>
+              <span>{margineReseller_lordoPerc.toFixed(1)}% sulla fattura</span>
             </div>
-            <p className="text-[10px] text-muted-foreground italic">
-              Trasporto e oneri: passanti neutri — stessa cifra incassata dal cliente e pagata al grossista.
-            </p>
           </div>
         </div>
       </AccordionContent>
