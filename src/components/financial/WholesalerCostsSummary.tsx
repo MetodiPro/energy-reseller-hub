@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Building2, Info, ChevronRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Building2, ChevronRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,12 +8,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { MonthlyCostBreakdown } from '@/hooks/useSimulationSummary';
 
 interface WholesalerCostsSummaryProps {
@@ -47,43 +40,7 @@ interface WholesalerCostsSummaryProps {
 const fmt = (v: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(v);
 
-const fmt0 = (v: number) =>
-  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
-
 type DetailKey = 'energia' | 'pod' | 'dispacciamento' | 'trasporto' | 'oneri' | 'accise' | null;
-
-function CostRow({
-  label,
-  sublabel,
-  value,
-  color = 'text-destructive',
-  bold = false,
-  detailKey,
-  onShowDetail,
-}: {
-  label: string;
-  sublabel?: string;
-  value: number;
-  color?: string;
-  bold?: boolean;
-  detailKey?: DetailKey;
-  onShowDetail?: (key: DetailKey) => void;
-}) {
-  const clickable = detailKey && onShowDetail;
-  return (
-    <div
-      className={`flex justify-between items-center py-1.5 ${bold ? 'font-bold' : ''} ${clickable ? 'cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2 transition-colors group' : ''}`}
-      onClick={clickable ? () => onShowDetail(detailKey) : undefined}
-    >
-      <span className="flex items-center gap-1.5">
-        {label}
-        {sublabel && <span className="text-xs text-muted-foreground">({sublabel})</span>}
-        {clickable && <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />}
-      </span>
-      <span className={`font-mono ${color}`}>{fmt(value)}</span>
-    </div>
-  );
-}
 
 export const WholesalerCostsSummary = ({
   costoEnergiaTotale,
@@ -101,10 +58,8 @@ export const WholesalerCostsSummary = ({
 
   const totaleGrossista = costoEnergiaTotale + costoGestionePodTotale;
 
-  // Build detail content for each cost line
   const getDetailContent = (key: DetailKey) => {
     if (!key) return null;
-
     const monthlyData = costiMensili || [];
     const p = params || {};
 
@@ -189,42 +144,113 @@ export const WholesalerCostsSummary = ({
 
   const detail = getDetailContent(activeDetail);
 
+  // Build table rows
+  type CostRow = {
+    key: DetailKey;
+    label: string;
+    sublabel?: string;
+    value: number;
+    isPassthrough?: boolean;
+  };
+
+  const grossistaRows: CostRow[] = [
+    { key: 'energia', label: 'Energia Acquistata', sublabel: 'PUN + Spread Grossista', value: costoEnergiaTotale },
+    { key: 'pod', label: 'Gestione POD', value: costoGestionePodTotale },
+  ];
+
+  const passthroughRows: CostRow[] = passthroughTotals ? [
+    { key: 'dispacciamento', label: 'Dispacciamento', sublabel: 'Terna/GME', value: passthroughTotals.dispacciamento, isPassthrough: true },
+    { key: 'trasporto', label: 'Trasporto e Distribuzione', sublabel: 'Distributore', value: passthroughTotals.trasporto, isPassthrough: true },
+    { key: 'oneri', label: 'Oneri di Sistema', sublabel: 'CSEA/ARERA', value: passthroughTotals.oneriSistema, isPassthrough: true },
+    { key: 'accise', label: 'Accise', sublabel: 'Agenzia Dogane', value: passthroughTotals.accise, isPassthrough: true },
+  ] : [];
+
   return (
     <>
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Riepilogo Costi Grossista (14 mesi cumulativi)
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Building2 className="h-4 w-4" /> Riepilogo Costi Grossista (14 mesi cumulativi)
           </CardTitle>
-          <p className="text-xs text-muted-foreground">
+          <CardDescription className="text-xs">
             Calcolati mese per mese sui clienti attivi progressivi. Clicca su ogni voce per il dettaglio del calcolo.
-          </p>
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-1">
-          {/* Costi netti reseller */}
-          <CostRow label="Energia Acquistata" sublabel="PUN + Spread Grossista" value={costoEnergiaTotale} detailKey="energia" onShowDetail={setActiveDetail} />
-          <CostRow label="Gestione POD" value={costoGestionePodTotale} detailKey="pod" onShowDetail={setActiveDetail} />
-          <Separator className="my-2" />
-          <CostRow label="Totale Costi Grossista (14 mesi)" value={totaleGrossista} bold />
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground">
+                  <th className="py-2 pr-3 font-medium">Voce di Costo</th>
+                  <th className="py-2 pr-3 font-medium">Destinatario</th>
+                  <th className="py-2 pr-3 font-medium">Tipo</th>
+                  <th className="py-2 font-medium text-right">Importo (14 mesi)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Costi Grossista */}
+                {grossistaRows.map(row => (
+                  <tr
+                    key={row.key}
+                    className="border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setActiveDetail(row.key)}
+                  >
+                    <td className="py-2 pr-3 font-medium text-primary underline decoration-dotted flex items-center gap-1">
+                      {row.label}
+                      <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">Grossista</td>
+                    <td className="py-2 pr-3">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-destructive/10 text-destructive">
+                        Costo netto
+                      </span>
+                    </td>
+                    <td className="py-2 text-right font-mono text-destructive">{fmt(row.value)}</td>
+                  </tr>
+                ))}
+                {/* Subtotale Grossista */}
+                <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                  <td className="py-2 pr-3" colSpan={3}>Totale Costi Grossista</td>
+                  <td className="py-2 text-right font-mono text-destructive">{fmt(totaleGrossista)}</td>
+                </tr>
 
-          {passthroughTotals && (
-            <>
-              <Separator className="my-4" />
-              <div className="mb-2">
-                <h4 className="font-semibold text-sm">Costi Passanti in Fattura (14 mesi)</h4>
-                <p className="text-xs text-muted-foreground">
-                  Incassati dal cliente e girati ai rispettivi destinatari. Non impattano il margine.
-                </p>
-              </div>
-              <CostRow label="Dispacciamento" sublabel="Terna/GME" value={passthroughTotals.dispacciamento} color="text-amber-600" detailKey="dispacciamento" onShowDetail={setActiveDetail} />
-              <CostRow label="Trasporto e Distribuzione" sublabel="Distributore" value={passthroughTotals.trasporto} color="text-amber-600" detailKey="trasporto" onShowDetail={setActiveDetail} />
-              <CostRow label="Oneri di Sistema" sublabel="CSEA/ARERA" value={passthroughTotals.oneriSistema} color="text-amber-600" detailKey="oneri" onShowDetail={setActiveDetail} />
-              <CostRow label="Accise" sublabel="Agenzia Dogane" value={passthroughTotals.accise} color="text-amber-600" detailKey="accise" onShowDetail={setActiveDetail} />
-              <Separator className="my-2" />
-              <CostRow label="Totale Passanti (14 mesi)" value={totalePassanti} color="text-amber-600" bold />
-            </>
-          )}
+                {/* Spacer */}
+                {passthroughRows.length > 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-1"></td>
+                  </tr>
+                )}
+
+                {/* Costi Passanti */}
+                {passthroughRows.map(row => (
+                  <tr
+                    key={row.key}
+                    className="border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setActiveDetail(row.key)}
+                  >
+                    <td className="py-2 pr-3 font-medium text-primary underline decoration-dotted">
+                      {row.label}
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">{row.sublabel}</td>
+                    <td className="py-2 pr-3">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600">
+                        Passante
+                      </span>
+                    </td>
+                    <td className="py-2 text-right font-mono text-amber-600">{fmt(row.value)}</td>
+                  </tr>
+                ))}
+
+                {/* Subtotale Passanti */}
+                {passthroughRows.length > 0 && (
+                  <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                    <td className="py-2 pr-3" colSpan={3}>Totale Passanti</td>
+                    <td className="py-2 text-right font-mono text-amber-600">{fmt(totalePassanti)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
