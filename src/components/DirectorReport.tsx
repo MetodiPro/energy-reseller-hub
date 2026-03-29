@@ -427,18 +427,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
-      <OverviewTab
-        summary={summary}
-        simulationSummary={simulationSummary}
-        cashFlowData={cashFlowData}
-        cashFlowLoading={cashFlowLoading}
-        salesChannels={salesChannels}
-        getChannelBreakdown={getChannelBreakdown}
-        simulationData={revenueSimulation.data}
-        onUsePunLive={handleUsePunLive}
-        onNavigateToTariffs={() => {}}
-      />
-
       {/* Wholesaler Costs Summary with clickable details */}
       {summary.hasSimulationData && (
         <WholesalerCostsSummary
@@ -469,6 +457,17 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
+      <OverviewTab
+        summary={summary}
+        simulationSummary={simulationSummary}
+        cashFlowData={cashFlowData}
+        cashFlowLoading={cashFlowLoading}
+        salesChannels={salesChannels}
+        getChannelBreakdown={getChannelBreakdown}
+        simulationData={revenueSimulation.data}
+        onUsePunLive={handleUsePunLive}
+        onNavigateToTariffs={() => {}}
+      />
 
       {/* Channel Performance - always visible */}
       {channelData.length > 0 && (
@@ -507,8 +506,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
           </CardContent>
         </Card>
       )}
-
-      
 
       {/* ── Report Section with Charts ── */}
       {report && (
