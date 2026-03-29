@@ -223,16 +223,6 @@ export const WholesalerCostsSummary = ({
               <CostRow label="Accise" sublabel="Agenzia Dogane" value={passthroughTotals.accise} color="text-amber-600" detailKey="accise" onShowDetail={setActiveDetail} />
               <Separator className="my-2" />
               <CostRow label="Totale Passanti (14 mesi)" value={totalePassanti} color="text-amber-600" bold />
-
-              <Separator className="my-4" />
-              <CostRow label="Costo netto reseller (energia + POD)" value={totaleGrossista} bold />
-              <p className="text-xs text-muted-foreground mt-1">
-                Il vero costo del reseller: la differenza tra quanto incassa dallo spread e quanto paga al grossista.
-              </p>
-              <CostRow label="Partite di giro (girate a DSO/ADM/CSEA)" value={totalePassanti} color="text-amber-600" />
-              <p className="text-xs text-muted-foreground mt-1">
-                Importi incassati dai clienti e girati integralmente a terzi. Non impattano il margine ma richiedono gestione della liquidità.
-              </p>
             </>
           )}
         </CardContent>
