@@ -639,20 +639,22 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
                 {ivaNettoVersata > 0
-                  ? `− IVA netta versata Erario (${ivaPercent}% su cliente − 22% credito acquisti)`
-                  : `± IVA netta: credito strutturale (IVA cliente ${ivaPercent}% < IVA acquisti 22%)`}
+                  ? `− IVA netta da versare Erario`
+                  : `± IVA: credito da riportare (non è un'uscita)`}
               </span>
               <span className={ivaNettoVersata > 0 ? 'text-destructive font-semibold' : 'text-blue-600 font-semibold'}>
                 {ivaNettoVersata > 0 ? `−${formatCurrency(ivaNettoVersata)}` : `±${formatCurrency(ivaCreditoStrutturale)}`}
               </span>
             </div>
-            {ivaNettoVersata === 0 && (
-              <p className="text-[10px] text-blue-600 italic pl-2">
-                Poiché vendi a clienti domestici (IVA {ivaPercent}%) ma acquisti al 22%, accumuli
-                un credito IVA di {formatCurrency(ivaCreditoStrutturale)}/cliente/mese che compensa
-                i versamenti futuri — non versi IVA netta questo periodo.
+            <div className="text-[10px] text-muted-foreground italic pl-2 space-y-0.5">
+              <p>IVA a debito (riscossa dal cliente al {ivaPercent}%): +{formatCurrency(Math.round(iva * 100) / 100)}</p>
+              <p>IVA a credito reverse charge (22% su fattura grossista): −{formatCurrency(Math.round(ivaCreditoRC * 100) / 100)}</p>
+              <p className={ivaNettoVersata > 0 ? 'text-destructive' : 'text-blue-600'}>
+                {ivaNettoVersata > 0
+                  ? `Netto da versare: −${formatCurrency(ivaNettoVersata)}`
+                  : `Credito strutturale: +${formatCurrency(ivaCreditoStrutturale)} (IVA cliente ${ivaPercent}% < IVA acquisti 22%)`}
               </p>
-            )}
+            </div>
 
             <Separator />
 
