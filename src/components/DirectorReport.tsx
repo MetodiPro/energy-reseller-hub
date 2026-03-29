@@ -23,6 +23,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { OverviewTab } from '@/components/financial/OverviewTab';
 import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
+import { ChurnPerProductChart } from '@/components/financial/ChurnPerProductChart';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
@@ -438,6 +439,11 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             avgMonthlyConsumption: revenueSimulation.data?.params?.avgMonthlyConsumption,
           }}
         />
+      )}
+
+      {/* Churn per prodotto */}
+      {multiProductResult && multiProductResult.products.length > 0 && (
+        <ChurnPerProductChart multiProductResult={multiProductResult} />
       )}
 
       {/* Channel Performance - always visible */}
