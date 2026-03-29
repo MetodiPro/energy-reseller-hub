@@ -645,7 +645,7 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
 
             {/* Margine Lordo */}
             <div className="flex justify-between text-base font-bold pt-1">
-              <span>Margine Lordo Reseller</span>
+              <span>Margine lordo reseller netto IVA</span>
               <span className={margineReseller_lordo >= 0 ? 'text-green-600' : 'text-destructive'}>
                 {formatCurrency(margineReseller_lordo)}
               </span>
