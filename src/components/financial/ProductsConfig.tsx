@@ -293,17 +293,11 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   // Non inclusa nell'analisi margini di questa card
 
   // ── Margine Lordo del Reseller ────────────────────────────────────────
-  // Logica: il reseller incassa TUTTA la fattura dal cliente (IVA inclusa).
-  // Da questo toglie:
-  //   1. Quanto paga al grossista (energia + trasporto + oneri + POD, senza IVA)
-  //   2. Le accise che versa all'ADM
-  //   3. L'IVA netta che versa all'Erario (debito sul cliente meno credito reverse charge)
-  // Ciò che resta è il Margine Lordo reale del reseller.
-  const ivaDebito = iva;
-  const ivaCreditoRC = costoAcquistoGrossistaTotale * 0.22;
-  const ivaNettoVersata = Math.max(0, ivaDebito - ivaCreditoRC);  // se negativo è credito, non si versa nulla
-  const ivaCreditoStrutturale = Math.max(0, ivaCreditoRC - ivaDebito); // credito da riportare
-  const margineReseller_lordo = fattura - costoAcquistoGrossistaTotale - accise - ivaNettoVersata;
+  // IVA: il grossista fattura in reverse charge → saldo contabile ZERO, nessun credito reale.
+  // Il reseller versa all'Erario tutta l'IVA incassata dal cliente (meno le spese aziendali
+  // ordinarie che in questo simulatore non sono modellate → credito approssimato a zero).
+  const ivaVersataErario = iva; // tutta l'IVA incassata dal cliente è da versare
+  const margineReseller_lordo = fattura - costoAcquistoGrossistaTotale - accise - ivaVersataErario;
   const margineReseller_lordoPerc = fattura > 0 ? (margineReseller_lordo / fattura) * 100 : 0;
 
   return (
@@ -635,25 +629,16 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               <span className="text-destructive font-semibold">−{formatCurrency(accise)}</span>
             </div>
 
-            {/* IVA netta */}
+            {/* IVA da versare */}
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                {ivaNettoVersata > 0
-                  ? `− IVA netta da versare Erario`
-                  : `± IVA: credito da riportare (non è un'uscita)`}
-              </span>
-              <span className={ivaNettoVersata > 0 ? 'text-destructive font-semibold' : 'text-blue-600 font-semibold'}>
-                {ivaNettoVersata > 0 ? `−${formatCurrency(ivaNettoVersata)}` : `±${formatCurrency(ivaCreditoStrutturale)}`}
-              </span>
+              <span className="text-muted-foreground">− IVA versata all'Erario ({ivaPercent}% su {formatCurrency(imponibile)})</span>
+              <span className="text-destructive font-semibold">−{formatCurrency(ivaVersataErario)}</span>
             </div>
-            <div className="text-[10px] text-muted-foreground italic pl-2 space-y-0.5">
-              <p>IVA a debito (riscossa dal cliente al {ivaPercent}%): +{formatCurrency(Math.round(iva * 100) / 100)}</p>
-              <p>IVA a credito reverse charge (22% su fattura grossista): −{formatCurrency(Math.round(ivaCreditoRC * 100) / 100)}</p>
-              <p className={ivaNettoVersata > 0 ? 'text-destructive' : 'text-blue-600'}>
-                {ivaNettoVersata > 0
-                  ? `Netto da versare: −${formatCurrency(ivaNettoVersata)}`
-                  : `Credito strutturale: +${formatCurrency(ivaCreditoStrutturale)} (IVA cliente ${ivaPercent}% < IVA acquisti 22%)`}
-              </p>
+            <div className="text-[10px] text-muted-foreground italic pl-2">
+              Il grossista fattura in reverse charge: operazione contabile a saldo zero,
+              non genera credito IVA reale. Il reseller versa all'Erario tutta l'IVA
+              incassata dal cliente, al netto di eventuali spese aziendali con IVA
+              (affitto, software, consulenze — non modellate in questo simulatore).
             </div>
 
             <Separator />
@@ -667,8 +652,7 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             </div>
             <div className="flex justify-between text-xs text-muted-foreground pb-1">
               <span>
-                {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} − {formatCurrency(accise)}
-                {ivaNettoVersata > 0 ? ` − ${formatCurrency(ivaNettoVersata)}` : ` + ${formatCurrency(ivaCreditoStrutturale)}`}
+                {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} − {formatCurrency(accise)} − {formatCurrency(ivaVersataErario)}
               </span>
               <span>{margineReseller_lordoPerc.toFixed(1)}% sulla fattura</span>
             </div>
