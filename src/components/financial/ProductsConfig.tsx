@@ -116,7 +116,7 @@ export const ProductsConfig = ({ projectId, defaultParams, salesChannels: extern
             </Button>
           </div>
         ) : (
-          <Accordion type="multiple" defaultValue={products.map(p => p.id)}>
+          <Accordion type="multiple" defaultValue={[]}>
             {products.map(product => (
               <ProductCard
                 key={product.id}
