@@ -508,7 +508,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         </Card>
       )}
 
-      {/* Product Performance Table moved below - see after CustomerBaseSection */}
+      
 
       {/* ── Report Section with Charts ── */}
       {report && (
