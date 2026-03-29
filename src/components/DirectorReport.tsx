@@ -787,12 +787,7 @@ function ProductPerformanceTable({
             <BarChart3 className="h-4 w-4" /> Fatturato Lordo per Prodotto
           </CardTitle>
           <CardDescription className="text-xs">
-            Clicca su un prodotto per il dettaglio fatturato mensile. 
-            Il <strong>Margine Commerciale</strong> rappresenta i ricavi propri del reseller (CCV + Spread per kWh + Servizi aggiuntivi) 
-            al netto del costo energia al grossista (PUN + Spread grossista) e delle fee di gestione POD. 
-            La <strong>% Margine</strong> è calcolata sul fatturato netto (imponibile, al netto dell'IVA), 
-            non sul fatturato lordo. I costi passanti (trasporto, oneri di sistema, accise) sono partite di giro 
-            e non incidono sul margine.
+            Clicca su un prodotto per il dettaglio fatturato mensile.
           </CardDescription>
         </CardHeader>
         <CardContent>
