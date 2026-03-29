@@ -806,8 +806,6 @@ function ProductPerformanceTable({
                   <th className="py-2 pr-3 font-medium text-right">Contratti</th>
                   <th className="py-2 pr-3 font-medium text-right">Clienti Attivi</th>
                   <th className="py-2 pr-3 font-medium text-right">Fatturato</th>
-                  <th className="py-2 pr-3 font-medium text-right">Margine</th>
-                  <th className="py-2 pr-3 font-medium text-right">% Margine</th>
                   <th className="py-2 font-medium text-right">Churn Tot.</th>
                 </tr>
               </thead>
@@ -824,8 +822,6 @@ function ProductPerformanceTable({
                     <td className="py-2 pr-3 text-right">{row.totalContratti}</td>
                     <td className="py-2 pr-3 text-right">{row.clientiAttivi}</td>
                     <td className="py-2 pr-3 text-right">{fmt(row.totalFatturato)}</td>
-                    <td className="py-2 pr-3 text-right text-green-600">{fmt(row.totalMargine)}</td>
-                    <td className="py-2 pr-3 text-right">{row.marginPct.toFixed(1)}%</td>
                     <td className="py-2 text-right text-destructive">{row.totalChurn}</td>
                   </tr>
                 ))}
@@ -837,8 +833,6 @@ function ProductPerformanceTable({
                   <td className="py-2 pr-3 text-right">{totals.totalContratti}</td>
                   <td className="py-2 pr-3 text-right">{totals.clientiAttivi}</td>
                   <td className="py-2 pr-3 text-right">{fmt(totals.totalFatturato)}</td>
-                  <td className="py-2 pr-3 text-right text-green-600">{fmt(totals.totalMargine)}</td>
-                  <td className="py-2 pr-3 text-right">{totals.marginPct.toFixed(1)}%</td>
                   <td className="py-2 text-right text-destructive">{totals.totalChurn}</td>
                 </tr>
               </tbody>
