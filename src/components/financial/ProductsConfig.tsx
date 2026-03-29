@@ -289,20 +289,13 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   // Il reseller applica IVA al cliente (10% domestico, 22% business)
   // su tutto l'imponibile compresi i passanti e le accise.
   // IVA a debito (riscossa dal cliente):
-  const ivaDebito = iva; // già calcolata sopra
-  // IVA a credito (reverse charge su acquisto dal grossista al 22%):
-  const ivaCreditoReverseCharge = costoAcquistoGrossistaTotale * 0.22;
-  // Delta IVA netto da versare all'Erario (o credito da riportare):
-  const deltaIvaNetto = ivaDebito - ivaCreditoReverseCharge;
+  // IVA: gestita separatamente nel motore fiscale (useTaxFlows)
+  // Non inclusa nell'analisi margini di questa card
 
-  // ── Margine netto economico ────────────────────────────────────────────
-  // Margine = ricavi reseller (CCV + spread + servizi) - costo netto grossista
-  const margineNettoReale = margineReseller - costoAcquistoGrossistaTotale;
-  const margineNettoPerc = imponibile > 0 ? (margineNettoReale / imponibile) * 100 : 0;
-
-  // Costo reale a carico del reseller (esclude passanti neutrali)
+  // ── Margine industriale netto ──────────────────────────────────────────
+  // Il reseller guadagna solo su: CCV + Spread + Servizi − (energia acquistata + POD)
+  // Trasporto e oneri sono passanti neutrali: stessa cifra incassata e pagata al grossista
   const costoProprioGrossista = costoEnergiaGrossista + gestionePod;
-  // Margine industriale = ricavi propri - costi propri verso grossista
   const margineIndustriale = margineReseller - costoProprioGrossista;
   const margineIndustrialePerc = imponibile > 0 ? (margineIndustriale / imponibile) * 100 : 0;
 
