@@ -61,6 +61,12 @@ export const OverviewTab = ({
 }: OverviewTabProps) => {
   const strutturaliCosts = summary.costsByType.structural + summary.costsByType.direct + summary.costsByType.indirect;
 
+  // Breakdown passanti per detail
+  const dispacciamentoTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.dispacciamento || 0), 0) || 0;
+  const trasportoTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.trasporto || 0), 0) || 0;
+  const oneriTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.oneriSistema || 0), 0) || 0;
+  const acciseTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.accise || 0), 0) || 0;
+
   // Pie data for cost breakdown chart
   const pieData = (() => {
     const entries: { name: string; value: number; color: string }[] = [];
@@ -201,10 +207,10 @@ export const OverviewTab = ({
               {/* 5. Costi Passanti Totali */}
               <EconomicRow
                 label="Costi Passanti Totali"
-                tooltip="Importi fatturati ai clienti e girati integralmente a terzi (distributore, GSE, Agenzia delle Dogane). Non impattano il margine del reseller: sono una partita di giro neutra."
+                tooltip="Importi fatturati al cliente che transitano integralmente verso terzi, senza impatto sul margine. Composizione: (1) Dispacciamento: incassato in bolletta e compensato nella fattura del grossista — non è un riversamento diretto ma una partita di giro nella fattura energia. (2) Trasporto DSO: riversato al distributore locale. (3) Oneri di Sistema (ASOS/ARIM): riversati al GSE/CSEA. (4) Accise: versate all'Agenzia Dogane e Monopoli. Tutte queste componenti hanno impatto netto sul margine = zero."
                 value={formatCurrency(summary.passthroughCosts)}
                 valueClass="text-orange-600"
-                detail={`Composizione: Dispacciamento + Trasporto + Oneri (ASOS + ARIM) + Accise = ${formatCurrency(summary.passthroughCosts)}. Incassati dai clienti e riversati integralmente, impatto netto sul margine = zero.`}
+                detail={`Composizione: Dispacciamento (→ grossista/Terna) ${formatCurrency(dispacciamentoTotale)} + Trasporto (→ DSO) ${formatCurrency(trasportoTotale)} + Oneri ASOS/ARIM (→ GSE) ${formatCurrency(oneriTotale)} + Accise (→ ADM) ${formatCurrency(acciseTotale)} = ${formatCurrency(summary.passthroughCosts)}. Impatto netto sul margine reseller: zero.`}
                 icon={<ArrowRight className="h-4 w-4" />}
               />
               {/* 6. Fee Gestione POD */}
