@@ -316,7 +316,7 @@ export function AppLayout({ user }: AppLayoutProps) {
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Crea prima un progetto per accedere al Report Direzionale</p>
+              <p>Crea prima un progetto per accedere alla pagina Esiti</p>
             </div>
           );
         case 'crm':
