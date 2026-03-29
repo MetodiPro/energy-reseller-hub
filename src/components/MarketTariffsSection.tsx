@@ -22,26 +22,55 @@ interface MarketTariffsSectionProps {
 }
 
 export function MarketTariffsSection({ onImportToSimulator, onImportPun }: MarketTariffsSectionProps) {
+  const [refreshing, setRefreshing] = useState(false);
+  const [punRefreshKey, setPunRefreshKey] = useState(0);
+  const [areraRefreshKey, setAreraRefreshKey] = useState(0);
+
+  const handleRefreshAll = async () => {
+    setRefreshing(true);
+    try {
+      setPunRefreshKey(k => k + 1);
+      setAreraRefreshKey(k => k + 1);
+      toast.success('Aggiornamento avviato — PUN e tariffe ARERA in caricamento');
+    } finally {
+      setTimeout(() => setRefreshing(false), 2000);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Zap className="h-5 w-5 text-primary" />
-          Tariffe di Mercato
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Prezzi energia e componenti regolate ARERA
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            Tariffe di Mercato
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Prezzi energia e componenti regolate ARERA
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefreshAll}
+          disabled={refreshing}
+        >
+          <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
+          Aggiorna tutto
+        </Button>
       </div>
-      <PunCard onImportPun={onImportPun} />
-      <AreraCard onImportToSimulator={onImportToSimulator} />
+      <PunCard onImportPun={onImportPun} refreshKey={punRefreshKey} />
+      <AreraCard onImportToSimulator={onImportToSimulator} refreshKey={areraRefreshKey} />
     </div>
   );
 }
 
 // ─── CARD 1: PUN ──────────────────────────────────────────────
 
-function PunCard({ onImportPun }: { onImportPun?: (punPerKwh: number) => void }) {
+function PunCard({ onImportPun, refreshKey }: {
+  onImportPun?: (punPerKwh: number) => void;
+  refreshKey?: number;
+}) {
   const [loading, setLoading] = useState(false);
   const [pun, setPun] = useState<PunPriceData | null>(null);
   const [warning, setWarning] = useState<string | undefined>();
@@ -66,6 +95,12 @@ function PunCard({ onImportPun }: { onImportPun?: (punPerKwh: number) => void })
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0) {
+      loadPunFromTerna();
+    }
+  }, [refreshKey, loadPunFromTerna]);
 
   const handleManualSave = () => {
     const val = parseFloat(manualKwh);
@@ -226,7 +261,10 @@ interface AreraFormState {
   nextUpdateDate: Date | undefined;
 }
 
-function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Record<string, number>) => void }) {
+function AreraCard({ onImportToSimulator, refreshKey }: {
+  onImportToSimulator?: (fields: Record<string, number>) => void;
+  refreshKey?: number;
+}) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -283,6 +321,12 @@ function AreraCard({ onImportToSimulator }: { onImportToSimulator?: (fields: Rec
   useEffect(() => {
     loadTariffs();
   }, [loadTariffs]);
+
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0) {
+      loadTariffs();
+    }
+  }, [refreshKey]);
 
   const handleSave = async () => {
     setSaving(true);
