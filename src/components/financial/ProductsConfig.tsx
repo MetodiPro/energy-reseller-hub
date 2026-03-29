@@ -601,7 +601,7 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               <span className="font-semibold text-amber-700 dark:text-amber-400">{formatCurrency(accise)}</span>
             </div>
             <p className="text-[10px] text-muted-foreground italic">
-              Incassata dal cliente in bolletta, versata dal reseller all'ADM trimestralmente.
+              Incassata dal cliente in bolletta, versata dal reseller all'ADM mensilmente.
             </p>
           </div>
 
