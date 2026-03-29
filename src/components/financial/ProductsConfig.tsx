@@ -243,11 +243,9 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   const perditeRetePct = globalParams.perditeRetePct ?? 10.2;
   const perditeRete = 1 + (perditeRetePct / 100);
   const kWhAcquistati = kWh * perditeRete;
-  // Fattura al cliente: include perdite di rete come da normativa ARERA
-  const quotaConsumi = globalParams.punPerKwh * kWh;
-  const quotaDisp = globalParams.dispacciamentoPerKwh * kWh;
-  const quotaPerdite = globalParams.punPerKwh * kWh * (perditeRetePct / 100);
-  const materiaEnergia = quotaConsumi + quotaDisp + quotaPerdite;
+  // Fattura al cliente: perdite applicate su tutta la materia energia (PUN + dispacciamento)
+  const kWhFatturati = kWh * perditeRete;
+  const materiaEnergia = (globalParams.punPerKwh + globalParams.dispacciamentoPerKwh) * kWhFatturati;
   const trasporto =
     globalParams.trasportoQuotaFissaAnno / 12 +
     (globalParams.trasportoQuotaPotenzaKwAnno * globalParams.potenzaImpegnataKw) / 12 +
@@ -265,30 +263,42 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
   const fattura = imponibile + iva;
   const marginePerc = imponibile > 0 ? (margineReseller / imponibile) * 100 : 0;
 
-  // Costo acquisto grossista: basato su kWh acquistati (con perdite)
+  // ── Fattura del GROSSISTA al RESELLER ─────────────────────────────────
+  // Il grossista fattura: energia + trasporto + oneri + fee POD
+  // NON fattura: accise (competenza del reseller verso ADM) e IVA (reverse charge)
   const costoEnergiaGrossista = kWhAcquistati * (globalParams.punPerKwh + globalParams.dispacciamentoPerKwh + globalParams.spreadGrossistaPerKwh);
-  const costoTrasportoGrossista = trasporto; // riversato a DSO
-  const costoOneriGrossista = oneriSistema; // riversato a GSE
-  const costoAcciseGrossista = accise; // riversato a Erario
+  const costoTrasportoGrossista = trasporto;
+  const costoOneriGrossista = oneriSistema;
   const gestionePod = globalParams.gestionePodPerPod ?? 2.5;
-  const costoAcquistoGrossistaImponibile = costoEnergiaGrossista + costoTrasportoGrossista + costoOneriGrossista + gestionePod;
-  const ivaAcquisto = costoAcquistoGrossistaImponibile * 0.22; // IVA acquisti sempre al 22%
-  const costoAcquistoGrossistaTotale = costoAcquistoGrossistaImponibile + costoAcciseGrossista + ivaAcquisto;
+  // Totale imponibile fattura grossista (senza accise, senza IVA)
+  const costoAcquistoGrossistaTotale = costoEnergiaGrossista + costoTrasportoGrossista + costoOneriGrossista + gestionePod;
 
-  // Margini
-  const margineLordoPerCliente = margineReseller; // CCV + Spread + Servizi (prima di IVA)
-  const ivaVendita = iva;
-  const creditoIva = ivaAcquisto; // credito IVA su acquisti
-  const ivaNettoReseller = ivaVendita - creditoIva; // IVA a debito (positivo = da versare)
-  const margineNettoPerCliente = fattura - costoAcquistoGrossistaTotale - costoAcciseGrossista + creditoIva - ivaNettoReseller;
-  // Più semplicemente: margine netto = margine lordo - delta IVA
-  const deltaIva = ivaVendita - creditoIva;
-  const margineNetto = margineLordoPerCliente - (deltaIva > 0 ? 0 : Math.abs(deltaIva));
-  // In realtà il margine netto per il reseller è: entrate - uscite
-  // Entrate: fattura (imponibile + IVA vendita)
-  // Uscite: costo grossista (imponibile + accise + IVA acquisto 22%)
-  // Margine netto = fattura - costoAcquistoGrossistaTotale
-  const margineNettoReale = fattura - costoAcquistoGrossistaTotale;
+  // ── IVA in REVERSE CHARGE ─────────────────────────────────────────────
+  // Il grossista NON espone IVA in fattura (regime reverse charge per i rivenditori).
+  // Il reseller integra l'IVA autonomamente: la contabilizza sia a debito che a credito
+  // nella stessa liquidazione periodica → impatto cassa NETTO = zero.
+  // Non c'è quindi un'uscita di cassa verso il grossista per IVA.
+
+  // ── ACCISE: competenza DIRETTA del RESELLER verso ADM ─────────────────
+  // Le accise NON sono nella fattura del grossista.
+  // Il reseller le fattura al cliente finale e le versa direttamente all'Agenzia
+  // Dogane e Monopoli (ADM) tramite dichiarazione consumi: acconto + conguaglio a marzo.
+  // L'accisa è un obbligo diretto del reseller, indipendentemente dall'incasso dal cliente.
+
+  // ── IVA sulla fattura al CLIENTE FINALE ───────────────────────────────
+  // Il reseller applica IVA al cliente (10% domestico, 22% business)
+  // su tutto l'imponibile compresi i passanti e le accise.
+  // IVA a debito (riscossa dal cliente):
+  const ivaDebito = iva; // già calcolata sopra
+  // IVA a credito (reverse charge su acquisto dal grossista al 22%):
+  const ivaCreditoReverseCharge = costoAcquistoGrossistaTotale * 0.22;
+  // Delta IVA netto da versare all'Erario (o credito da riportare):
+  const deltaIvaNetto = ivaDebito - ivaCreditoReverseCharge;
+
+  // ── Margine netto economico ────────────────────────────────────────────
+  // Margine = ricavi reseller (CCV + spread + servizi) - costo netto grossista
+  const margineNettoReale = margineReseller - costoAcquistoGrossistaTotale;
+  const margineNettoPerc = imponibile > 0 ? (margineNettoReale / imponibile) * 100 : 0;
 
   return (
     <AccordionItem value={id} className="border rounded-lg mb-3 px-1">
@@ -538,22 +548,28 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             </div>
           </div>
 
-          {/* Costo Acquisto Grossista */}
+          {/* Fattura del Grossista al Reseller */}
           <div className="space-y-2 p-4 rounded-lg bg-destructive/5 border border-destructive/20 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-2">🏭 Costo Acquisto dal Grossista</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-1">
+              🏭 Costo Acquisto dal Grossista
+            </p>
+            <p className="text-[10px] text-muted-foreground mb-3 italic">
+              Il grossista emette un'unica fattura al reseller con energia, trasporto, oneri e fee POD.
+              Non include accise (versate dal reseller all'ADM) né IVA (regime reverse charge: neutralizzata).
+            </p>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Energia (PUN+Disp+Spread grossista) × kWh acquistati</span>
+              <span className="text-muted-foreground">Energia (PUN + Disp. + Spread grossista) × kWh acquistati</span>
               <span className="font-semibold">{formatCurrency(costoEnergiaGrossista)}</span>
             </div>
             <p className="text-[10px] text-muted-foreground font-mono pl-2">
               ({globalParams.punPerKwh.toFixed(4)} + {globalParams.dispacciamentoPerKwh.toFixed(4)} + {globalParams.spreadGrossistaPerKwh.toFixed(4)}) × {kWhAcquistati.toFixed(0)} kWh (con perdite {perditeRetePct}%)
             </p>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Trasporto (riversamento DSO)</span>
+              <span className="text-muted-foreground">Trasporto e distribuzione (DSO)</span>
               <span className="font-semibold">{formatCurrency(costoTrasportoGrossista)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Oneri di sistema (riversamento GSE)</span>
+              <span className="text-muted-foreground">Oneri di sistema (ASOS + ARIM)</span>
               <span className="font-semibold">{formatCurrency(costoOneriGrossista)}</span>
             </div>
             <div className="flex justify-between text-sm">
@@ -561,23 +577,33 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
               <span className="font-semibold">{formatCurrency(gestionePod)}</span>
             </div>
             <Separator />
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground font-medium">Subtotale imponibile acquisti</span>
-              <span className="font-bold">{formatCurrency(costoAcquistoGrossistaImponibile)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Accise (imposta erariale, no IVA)</span>
-              <span className="font-semibold">{formatCurrency(costoAcciseGrossista)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">IVA acquisti (22% su imponibile)</span>
-              <span className="font-semibold">{formatCurrency(ivaAcquisto)}</span>
-            </div>
-            <Separator />
             <div className="flex justify-between text-base font-bold pt-1">
-              <span>Totale uscita cassa grossista</span>
-              <span>{formatCurrency(costoAcquistoGrossistaTotale)}</span>
+              <span>Totale fattura grossista (imponibile)</span>
+              <span className="text-destructive">{formatCurrency(costoAcquistoGrossistaTotale)}</span>
             </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              IVA: non presente in fattura (reverse charge art. 17 DPR 633/72 — il reseller la integra
+              e la porta a credito in autoliquidazione, impatto cassa netto = zero).
+            </p>
+          </div>
+
+          {/* Accise: obbligo diretto del Reseller verso ADM */}
+          <div className="space-y-2 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">
+              🏛️ Accise — Obbligo Diretto Reseller → ADM
+            </p>
+            <p className="text-[10px] text-muted-foreground mb-2 italic">
+              Le accise NON compaiono nella fattura del grossista. Il reseller le fattura al cliente finale
+              e le versa direttamente all'Agenzia Dogane e Monopoli (acconto + conguaglio annuale a marzo).
+              Obbligo indipendente dall'incasso dal cliente.
+            </p>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Accisa ({globalParams.acciseKwh.toFixed(5)} €/kWh × {kWh} kWh)</span>
+              <span className="font-semibold text-amber-700 dark:text-amber-400">{formatCurrency(accise)}</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              Incassata dal cliente in bolletta, versata dal reseller all'ADM trimestralmente.
+            </p>
           </div>
 
           {/* Margini Lordo e Netto */}
@@ -585,39 +611,42 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             <p className="text-xs font-bold uppercase tracking-wider text-primary mb-2">📊 Analisi Margini per Cliente/Mese</p>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Margine Lordo (CCV + Spread + Servizi)</span>
-              <span className="font-bold text-primary">{formatCurrency(margineLordoPerCliente)}</span>
+              <span className="font-bold text-primary">{formatCurrency(margineReseller)}</span>
             </div>
             <p className="text-[10px] text-muted-foreground pl-2 font-mono">
               {formatCurrency(ccv)} + {formatCurrency(spread)} + {formatCurrency(altroServizi)}
             </p>
             <Separator />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>IVA vendita incassata ({ivaPercent}% su {formatCurrency(imponibile)})</span>
-              <span className="text-green-600 dark:text-green-400">+{formatCurrency(ivaVendita)}</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">IVA vendita incassata ({ivaPercent}% su {formatCurrency(imponibile)})</span>
+              <span className="text-green-600 font-semibold">+{formatCurrency(iva)}</span>
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>IVA acquisti pagata (22% su {formatCurrency(costoAcquistoGrossistaImponibile)})</span>
-              <span className="text-red-600 dark:text-red-400">−{formatCurrency(ivaAcquisto)}</span>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                IVA acquisti reverse charge (22% su {formatCurrency(costoAcquistoGrossistaTotale)})
+              </span>
+              <span className="text-blue-600 font-semibold">autoliquidata ↕ neutrale</span>
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Delta IVA (da versare/credito)</span>
-              <span className={deltaIva >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
-                {deltaIva >= 0 ? `−${formatCurrency(deltaIva)}` : `+${formatCurrency(Math.abs(deltaIva))}`}
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-muted-foreground">Delta IVA netto da versare/recuperare</span>
+              <span className={deltaIvaNetto >= 0 ? 'text-destructive' : 'text-blue-600'}>
+                {deltaIvaNetto >= 0 ? '-' : '+'}{formatCurrency(Math.abs(deltaIvaNetto))}
               </span>
             </div>
             <Separator />
             <div className="flex justify-between text-base font-bold pt-1">
-              <span>Margine Netto (fattura − costo grossista)</span>
-              <span className={margineNettoReale >= 0 ? 'text-green-700 dark:text-green-300' : 'text-destructive'}>
+              <span>Margine Netto (ricavi reseller − costo grossista)</span>
+              <span className={margineNettoReale >= 0 ? 'text-green-600' : 'text-destructive'}>
                 {formatCurrency(margineNettoReale)}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground font-mono pl-2">
-              {formatCurrency(fattura)} − {formatCurrency(costoAcquistoGrossistaTotale)} = {formatCurrency(margineNettoReale)}
-            </p>
-            <div className="flex justify-between text-xs text-muted-foreground pt-1">
-              <span>% su fattura</span>
-              <span className="font-semibold">{fattura > 0 ? ((margineNettoReale / fattura) * 100).toFixed(1) : '0.0'}%</span>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{formatCurrency(margineReseller)} − {formatCurrency(costoAcquistoGrossistaTotale)} = {formatCurrency(margineNettoReale)}</span>
+              <span>% su fattura netta</span>
+            </div>
+            <div className="flex justify-between text-sm font-medium">
+              <span></span>
+              <span>{margineNettoPerc.toFixed(1)}%</span>
             </div>
           </div>
         </div>
