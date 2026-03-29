@@ -23,7 +23,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { OverviewTab } from '@/components/financial/OverviewTab';
 import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
-import { ChurnPerProductChart } from '@/components/financial/ChurnPerProductChart';
+import { CustomerBaseSection } from '@/components/financial/CustomerBaseSection';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
@@ -317,7 +317,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
-            Report Direzionale
+            Esiti
           </h2>
           <p className="text-muted-foreground">
             {projectName} — Panoramica KPI e report strategico per la direzione
@@ -359,7 +359,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             ) : (
               <>
                 <FileText className="h-4 w-4" />
-                Genera Report Direzionale
+                Genera Report
               </>
             )}
           </Button>
@@ -398,6 +398,14 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         </Card>
       )}
 
+
+      {/* Customer Base Section - above Stato del progetto */}
+      {multiProductResult && multiProductResult.products.length > 0 && (
+        <CustomerBaseSection
+          multiProductResult={multiProductResult}
+          totalActiveEnd={simulationSummary.clientiAttivi}
+        />
+      )}
 
       <OverviewTab
         summary={summary}
@@ -441,10 +449,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
-      {/* Churn per prodotto */}
-      {multiProductResult && multiProductResult.products.length > 0 && (
-        <ChurnPerProductChart multiProductResult={multiProductResult} />
-      )}
 
       {/* Channel Performance - always visible */}
       {channelData.length > 0 && (
@@ -552,9 +556,9 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
+                   <CardTitle className="text-xl flex items-center gap-2">
                     <FileText className="h-5 w-5 text-primary" />
-                    Report Direzionale — {projectName}
+                    Esiti — {projectName}
                   </CardTitle>
                   <CardDescription>
                     Analisi strategica completa — Documento riservato per la direzione aziendale
