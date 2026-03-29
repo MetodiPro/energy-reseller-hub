@@ -96,15 +96,15 @@ export function buildTaxFlows(
     pendingIva.push({ month: m, amount: ivaDebito });
     totaleIvaDebito += ivaDebito;
 
-    // IVA a credito: base imponibile sugli acquisti del reseller.
-    // ASSUNZIONE: il grossista fattura un'unica fattura comprensiva di PUN + dispacciamento + spread
-    // assoggettata a IVA al 22% (prassi standard contratti UDD/grossista).
-    // Se il contratto con il grossista prevede fatturazione separata del dispacciamento
-    // (es. come corrispettivo Terna passante), verificare se tale componente è soggetta a IVA.
-    // In caso di dubbio, consultare il proprio consulente fiscale.
-    // Base deducibile: costoEnergiaConDisp + trasporto + oneri + gestionePOD (NO accise: non soggette a IVA)
-    const costiDeducibiliIva = em.costiDeducibiliIva;
-    const ivaCredito = costiDeducibiliIva * IVA_ALIQUOTA_ACQUISTI;
+    // IVA a credito: il grossista fattura al reseller in REVERSE CHARGE (art. 17 c.6 DPR 633/72).
+    // La reverse charge è un'operazione puramente contabile a saldo ZERO:
+    //   - Si registra IVA a debito (registro vendite) e IVA a credito (registro acquisti) per lo stesso importo
+    //   - I due importi si annullano → nessun credito IVA effettivo sull'energia acquistata
+    // Il reseller NON matura credito IVA sull'acquisto di energia elettrica.
+    // L'unico credito IVA reale deriva dalle spese aziendali ordinarie (affitto, software, consulenze)
+    // che non sono modellate in questo simulatore e che qui si approssimano a zero.
+    // Conseguenza: il reseller versa all'Erario quasi tutta l'IVA incassata dai clienti.
+    const ivaCredito = 0;
     pendingIvaCredito.push({ month: m, amount: ivaCredito });
     totaleIvaCredito += ivaCredito;
 
