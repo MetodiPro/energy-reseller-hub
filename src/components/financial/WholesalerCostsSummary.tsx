@@ -295,6 +295,7 @@ export const WholesalerCostsSummary = ({
                           <tr className="border-b text-muted-foreground">
                             <th className="py-1.5 text-left font-medium">Mese</th>
                             <th className="py-1.5 text-right font-medium">Clienti Attivi</th>
+                            {detail.showMwh && <th className="py-1.5 text-right font-medium">MWh Acquistati</th>}
                             <th className="py-1.5 text-right font-medium">Importo</th>
                           </tr>
                         </thead>
@@ -303,13 +304,18 @@ export const WholesalerCostsSummary = ({
                             <tr key={i} className="border-b last:border-0">
                               <td className="py-1.5">{m.label}</td>
                               <td className="py-1.5 text-right font-mono">{m.clients}</td>
+                              {detail.showMwh && (
+                                <td className="py-1.5 text-right font-mono">
+                                  {((m.kwhAcquistati ?? 0) / 1000).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                </td>
+                              )}
                               <td className="py-1.5 text-right font-mono">{fmt(m.value)}</td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot>
                           <tr className="font-bold border-t-2">
-                            <td className="py-2" colSpan={2}>Totale 14 mesi</td>
+                            <td className="py-2" colSpan={detail.showMwh ? 3 : 2}>Totale 14 mesi</td>
                             <td className="py-2 text-right font-mono">{fmt(detail.total)}</td>
                           </tr>
                         </tfoot>
