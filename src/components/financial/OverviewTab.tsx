@@ -172,9 +172,9 @@ export const OverviewTab = ({
               {/* 1. Clienti Attivi */}
               <EconomicRow
                 label="Clienti Attivi"
-                tooltip="Numero di clienti con fornitura attiva alla fine del periodo di simulazione (mese 14), al netto di tutte le cessazioni (churn). Rappresenta il portafoglio clienti reale che genera ricavi ricorrenti."
+                tooltip="Numero di POD con fornitura attiva al termine del periodo (mese 14). Non coincide con i contratti firmati: solo una quota (tasso di attivazione) si converte in attivazioni SII effettive, e da queste si sottraggono le cessazioni (churn) con il delay procedurale di 2 mesi previsto dal sistema SII."
                 value={String(summary.clientiAttivi)}
-                detail={`Calcolo: ${summary.contrattiTotali} contratti firmati − ${summary.contrattiTotali - summary.clientiAttivi} cessazioni (churn) = ${summary.clientiAttivi} clienti attivi a fine periodo.`}
+                detail={`Calcolo: ${summary.contrattiTotali} contratti firmati × tasso attivazione (${simulationData?.params?.activationRate ?? 85}%) = ~${Math.round(summary.contrattiTotali * (simulationData?.params?.activationRate ?? 85) / 100)} attivazioni − ${summary.contrattiTotali - summary.clientiAttivi - Math.round(summary.contrattiTotali * (100 - (simulationData?.params?.activationRate ?? 85)) / 100)} cessazioni churn (con delay 2 mesi SII) = ${summary.clientiAttivi} clienti attivi a fine periodo. Nota: i contratti non attivati (~${Math.round(summary.contrattiTotali * (100 - (simulationData?.params?.activationRate ?? 85)) / 100)}) riflettono il tasso di conversione switching.`}
                 icon={<Users className="h-4 w-4" />}
               />
               {/* 2. Fatturato Lordo */}
