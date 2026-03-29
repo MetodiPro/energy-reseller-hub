@@ -412,12 +412,22 @@ export const TaxFlowsDashboard = ({ projectId, simulationData, onUpdateParams, o
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                       <ArrowUpRight className="h-4 w-4 text-green-500" />
-                      IVA a Credito
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help underline decoration-dotted">IVA a Credito</span>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs text-xs">
+                          Calcolata al 22% su: costo energia dal grossista (PUN + dispacciamento + spread), trasporto DSO, oneri di sistema e fee gestione POD. Le accise non sono soggette a IVA. Assunzione: il grossista include il dispacciamento nella sua fattura IVA.
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     <div className="text-xl font-bold text-green-600">
                       {formatCurrency(taxFlows.totaleIvaCredito)}
                     </div>
                     <div className="text-xs text-muted-foreground">Pagata su acquisti</div>
+                    <div className="text-xs text-muted-foreground italic mt-1">
+                      Base: energia acquistata (PUN+disp.+spread) + trasporto + oneri + fee POD × 22%. Verifica con il contratto grossista la fatturazione del dispacciamento.
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">Versamenti F24</div>
