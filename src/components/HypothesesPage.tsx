@@ -4,7 +4,6 @@ import { Settings2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useEngineResult } from '@/hooks/useEngineResult';
-import { ChurnPerProductChart } from '@/components/financial/ChurnPerProductChart';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
@@ -129,8 +128,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
       />
       <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
 
-      {/* Grafico churn per prodotto */}
-      <ChurnPerProductChart multiProductResult={multiProductResult} />
+
     </div>
   );
 };
