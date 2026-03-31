@@ -73,19 +73,30 @@ export const WholesalerCostsSummary = ({
     const p = params || {};
 
     switch (key) {
-      case 'energia':
+      case 'energia_pun':
         return {
-          title: 'Dettaglio Costo Energia Acquistata',
-          description: 'PUN + Spread Grossista × kWh consumati dai clienti attivi ogni mese',
-          formula: `Costo Energia = Σ (clienti attivi × consumo medio mensile × (PUN + Spread Grossista))`,
+          title: 'Dettaglio Materia Prima Energia (PUN)',
+          description: 'Prezzo Unico Nazionale × kWh acquistati dai clienti attivi ogni mese',
+          formula: `Costo PUN = Σ (clienti attivi × consumo medio mensile × PUN)`,
           params: [
-            { label: 'PUN', value: `${(p.punPerKwh ?? 0).toFixed(4)} €/kWh` },
-            { label: 'Spread Grossista', value: `${(p.spreadGrossistaPerKwh ?? 0).toFixed(4)} €/kWh` },
-            { label: 'Costo Acquisto', value: `${((p.punPerKwh ?? 0) + (p.spreadGrossistaPerKwh ?? 0)).toFixed(4)} €/kWh` },
+            { label: 'PUN', value: `${pun.toFixed(4)} €/kWh` },
             { label: 'Consumo medio', value: `${p.avgMonthlyConsumption ?? 0} kWh/mese/cliente` },
           ],
-          monthly: monthlyData.map(m => ({ label: m.monthLabel, value: m.costoEnergia, clients: m.clientiAttivi, kwhAcquistati: m.clientiAttivi * (p.avgMonthlyConsumption ?? 0) })),
-          total: costoEnergiaTotale,
+          monthly: monthlyData.map(m => ({ label: m.monthLabel, value: m.costoEnergia * punShare, clients: m.clientiAttivi, kwhAcquistati: m.clientiAttivi * (p.avgMonthlyConsumption ?? 0) })),
+          total: costoEnergiaPun,
+          showMwh: true,
+        };
+      case 'energia_spread':
+        return {
+          title: 'Dettaglio Spread Grossista',
+          description: 'Ricarico applicato dal grossista sul prezzo PUN per ogni kWh acquistato',
+          formula: `Costo Spread = Σ (clienti attivi × consumo medio mensile × Spread Grossista)`,
+          params: [
+            { label: 'Spread Grossista', value: `${spreadG.toFixed(4)} €/kWh` },
+            { label: 'Consumo medio', value: `${p.avgMonthlyConsumption ?? 0} kWh/mese/cliente` },
+          ],
+          monthly: monthlyData.map(m => ({ label: m.monthLabel, value: m.costoEnergia * spreadShare, clients: m.clientiAttivi, kwhAcquistati: m.clientiAttivi * (p.avgMonthlyConsumption ?? 0) })),
+          total: costoEnergiaSpread,
           showMwh: true,
         };
       case 'pod':
