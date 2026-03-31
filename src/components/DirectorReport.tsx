@@ -458,15 +458,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
-      {/* Commercial Costs per Sales Channel */}
-      {salesChannels.filter(c => c.is_active).length > 0 && engineResult && (
-        <CommercialCostsPerChannel
-          engineResult={engineResult}
-          salesChannels={salesChannels}
-          formatCurrency={formatCurrency}
-        />
-      )}
-
       <OverviewTab
         summary={summary}
         simulationSummary={simulationSummary}
