@@ -458,6 +458,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
+
       <OverviewTab
         summary={summary}
         simulationSummary={simulationSummary}
@@ -469,6 +470,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         onUsePunLive={handleUsePunLive}
         onNavigateToTariffs={() => {}}
       />
+
 
       {/* ── Report Section with Charts ── */}
       {report && (
@@ -504,43 +506,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             <MiniKPI icon={<TrendingUp className="h-4 w-4" />} label="ROI (14m)" value={`${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%`} color={(cashFlowData.saldoFinale / (cashFlowData.investimentoIniziale || 1)) >= 0 ? 'text-green-600' : 'text-destructive'} />
           </div>
 
-          {/* Charts: Cost Breakdown */}
-          <div className="grid gap-6 md:grid-cols-1">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <PieChartIcon className="h-4 w-4" /> Composizione Costi
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {costBreakdownData.length > 0 ? (
-                  <div className="flex items-center gap-4">
-                    <ResponsiveContainer width="50%" height={200}>
-                      <PieChart>
-                        <Pie data={costBreakdownData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
-                          {costBreakdownData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                        </Pie>
-                        <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="space-y-2 flex-1">
-                      {costBreakdownData.map(entry => (
-                        <div key={entry.name} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span>{entry.name}</span>
-                          </div>
-                          <span className="font-medium">{formatCurrency(entry.value)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Nessun dato</div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Chart Row 2: Cash Flow Trend */}
           {cashFlowChartData.length > 0 && (
@@ -678,6 +643,148 @@ function InlineFormat({ text }: { text: string }) {
   );
 }
 
+// ── Commercial Costs per Sales Channel ──
+function CommercialCostsPerChannel({
+  engineResult,
+  salesChannels,
+  formatCurrency: fmt,
+}: {
+  engineResult: SimulationEngineResult;
+  salesChannels: SalesChannel[];
+  formatCurrency: (v: number) => string;
+}) {
+  const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+
+  const activeChannels = useMemo(() => salesChannels.filter(c => c.is_active && c.contract_share > 0), [salesChannels]);
+
+  const channelRows = useMemo(() => {
+    return activeChannels.map(ch => {
+      const monthlyData = engineResult.monthly.map(m => {
+        const share = ch.contract_share / 100;
+        let cost = 0;
+        if (ch.commission_type === 'per_contract') {
+          cost = m.customer.contrattiNuovi * share * ch.commission_amount;
+        } else {
+          cost = m.customer.attivazioni * share * ch.commission_amount;
+        }
+        const contratti = Math.round(m.customer.contrattiNuovi * share);
+        const attivazioni = Math.round(m.customer.attivazioni * share);
+        return { monthLabel: m.customer.monthLabel, contratti, attivazioni, cost };
+      });
+      const totalCost = monthlyData.reduce((s, m) => s + m.cost, 0);
+      const totalContratti = monthlyData.reduce((s, m) => s + m.contratti, 0);
+      const totalAttivazioni = monthlyData.reduce((s, m) => s + m.attivazioni, 0);
+      const cac = totalAttivazioni > 0 ? totalCost / totalAttivazioni : 0;
+      return { id: ch.id, name: ch.channel_name, commissionType: ch.commission_type, commissionAmount: ch.commission_amount, totalContratti, totalAttivazioni, totalCost, cac, monthlyData };
+    });
+  }, [activeChannels, engineResult]);
+
+  const totals = useMemo(() => ({
+    totalContratti: channelRows.reduce((s, r) => s + r.totalContratti, 0),
+    totalAttivazioni: channelRows.reduce((s, r) => s + r.totalAttivazioni, 0),
+    totalCost: channelRows.reduce((s, r) => s + r.totalCost, 0),
+  }), [channelRows]);
+
+  const selectedRow = channelRows.find(r => r.id === selectedChannel);
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Wallet className="h-4 w-4" /> Costi Commerciali per Canale di Vendita
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Provvigioni stimate per canale. Clicca su un canale per il dettaglio mensile.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground">
+                  <th className="py-2 pr-3 font-medium">Canale</th>
+                  <th className="py-2 pr-3 font-medium text-right">Tipo Comm.</th>
+                  <th className="py-2 pr-3 font-medium text-right">€/unità</th>
+                  <th className="py-2 pr-3 font-medium text-right">Contratti</th>
+                  <th className="py-2 pr-3 font-medium text-right">Attivazioni</th>
+                  <th className="py-2 pr-3 font-medium text-right">Costo Totale</th>
+                  <th className="py-2 font-medium text-right">CAC</th>
+                </tr>
+              </thead>
+              <tbody>
+                {channelRows.map(row => (
+                  <tr key={row.id} className="border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setSelectedChannel(row.id)}>
+                    <td className="py-2 pr-3 font-medium text-primary underline decoration-dotted">{row.name}</td>
+                    <td className="py-2 pr-3 text-right text-muted-foreground">{row.commissionType === 'per_contract' ? 'Per contratto' : 'Per attivazione'}</td>
+                    <td className="py-2 pr-3 text-right">{fmt(row.commissionAmount)}</td>
+                    <td className="py-2 pr-3 text-right">{row.totalContratti}</td>
+                    <td className="py-2 pr-3 text-right">{row.totalAttivazioni}</td>
+                    <td className="py-2 pr-3 text-right font-semibold">{fmt(row.totalCost)}</td>
+                    <td className="py-2 text-right">{fmt(row.cac)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                  <td className="py-2 pr-3">Totale</td>
+                  <td className="py-2 pr-3"></td>
+                  <td className="py-2 pr-3"></td>
+                  <td className="py-2 pr-3 text-right">{totals.totalContratti}</td>
+                  <td className="py-2 pr-3 text-right">{totals.totalAttivazioni}</td>
+                  <td className="py-2 pr-3 text-right">{fmt(totals.totalCost)}</td>
+                  <td className="py-2 text-right">{totals.totalAttivazioni > 0 ? fmt(totals.totalCost / totals.totalAttivazioni) : '—'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedRow && (
+        <Dialog open={!!selectedChannel} onOpenChange={(open) => { if (!open) setSelectedChannel(null); }}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wallet className="h-4 w-4" />
+                Costi Mensili — {selectedRow.name}
+              </DialogTitle>
+              <DialogDescription>
+                Dettaglio mese per mese delle provvigioni ({selectedRow.commissionType === 'per_contract' ? 'per contratto' : 'per attivazione'} × {fmt(selectedRow.commissionAmount)}).
+              </DialogDescription>
+            </DialogHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mese</TableHead>
+                    <TableHead className="text-right">Contratti</TableHead>
+                    <TableHead className="text-right">Attivazioni</TableHead>
+                    <TableHead className="text-right">Costo Provvigioni</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedRow.monthlyData.map((m, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">{m.monthLabel}</TableCell>
+                      <TableCell className="text-right">{m.contratti}</TableCell>
+                      <TableCell className="text-right">{m.attivazioni}</TableCell>
+                      <TableCell className="text-right font-semibold">{fmt(m.cost)}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="font-bold border-t-2 bg-muted/30">
+                    <TableCell>Totale</TableCell>
+                    <TableCell className="text-right">{selectedRow.totalContratti}</TableCell>
+                    <TableCell className="text-right">{selectedRow.totalAttivazioni}</TableCell>
+                    <TableCell className="text-right">{fmt(selectedRow.totalCost)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+}
 
 // ── Product Performance Table with totals + monthly revenue popup ──
 function ProductPerformanceTable({
