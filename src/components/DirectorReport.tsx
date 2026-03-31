@@ -680,6 +680,7 @@ function InlineFormat({ text }: { text: string }) {
 
 
 
+
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
 
   const activeChannels = useMemo(() => salesChannels.filter(c => c.is_active && c.contract_share > 0), [salesChannels]);
