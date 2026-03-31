@@ -13,7 +13,7 @@ import {
   Circle, 
   Clock,
   TrendingUp,
-  TrendingDown,
+  
   FileText, 
   Euro, 
   Calendar, 
