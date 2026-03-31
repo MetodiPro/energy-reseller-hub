@@ -61,10 +61,13 @@ export const OverviewTab = ({
   const strutturaliCosts = summary.costsByType.structural + summary.costsByType.direct + summary.costsByType.indirect;
 
   // Breakdown passanti per detail
+  const materiaEnergiaTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.materiaEnergia || 0), 0) || 0;
   const dispacciamentoTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.dispacciamento || 0), 0) || 0;
   const trasportoTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.trasporto || 0), 0) || 0;
   const oneriTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.oneriSistema || 0), 0) || 0;
   const acciseTotale = simulationSummary.costiMensili?.reduce((s, m) => s + (m.accise || 0), 0) || 0;
+  // Materia Energia include PUN+Dispacciamento; la quota PUN pura è la differenza
+  const punPuroTotale = materiaEnergiaTotale - dispacciamentoTotale;
 
   // Pie data for cost breakdown chart
   const pieData = (() => {
