@@ -40,7 +40,7 @@ interface WholesalerCostsSummaryProps {
 const fmt = (v: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(v);
 
-type DetailKey = 'energia' | 'pod' | 'dispacciamento' | 'trasporto' | 'oneri' | 'accise' | null;
+type DetailKey = 'energia_pun' | 'energia_spread' | 'pod' | 'dispacciamento' | 'trasporto' | 'oneri' | 'accise' | null;
 
 export const WholesalerCostsSummary = ({
   costoEnergiaTotale,
