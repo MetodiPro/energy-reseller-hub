@@ -105,6 +105,7 @@ export function buildSimulationSummary(
       clientiAttivi: customer.clientiAttivi,
       costoEnergia: m.costoEnergia,
       costoPod: m.costiGestionePod,
+      materiaEnergia: m.materiaEnergiaTotale,
       dispacciamento: m.dispacciamento,
       trasporto: m.trasportoTotale,
       oneriSistema: m.oneriSistemaTotale,
