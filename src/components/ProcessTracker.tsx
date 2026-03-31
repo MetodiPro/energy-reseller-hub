@@ -87,11 +87,16 @@ export const ProcessTracker = ({
   const { getStepTotal, getCostAmount } = useStepCosts(projectId ?? null);
   const { exportToPDF } = useExportProcessCostsPDF();
   const { getAssigneeName } = useStepAssignments(projectId ?? null);
+  const { exportToDocx } = useExportProcessCostsDocx();
   const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
   const parsedEndDate = projectEndDate ? parseISO(projectEndDate) : null;
 
   const handleExportPDF = () => {
     exportToPDF(projectName, commodityType ?? null, getCostAmount);
+  };
+
+  const handleExportDocx = () => {
+    exportToDocx(projectName, commodityType ?? null, getCostAmount);
   };
 
   const handleStartDateSelect = (date: Date | undefined) => {
