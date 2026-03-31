@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,8 @@ import {
 import { 
   CheckCircle2, 
   Circle, 
-  Clock, 
+  Clock,
   TrendingUp,
-  TrendingDown,
   FileText, 
   Euro, 
   Calendar, 
@@ -21,10 +20,7 @@ import {
   AlertTriangle,
   Flag,
   Activity,
-  HelpCircle,
-  Wallet
 } from "lucide-react";
-import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
@@ -57,52 +53,6 @@ export const Dashboard = ({
   const { getCostAmount: ownGetCostAmount } = useStepCosts(getCostAmountProp ? null : projectId ?? null);
   const getCostAmount = getCostAmountProp ?? ownGetCostAmount;
   
-  // Cash flow analysis for financial BEP
-  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId ?? null);
-  
-  // BEP trend tracking: compare with previous value
-  const [bepTrend, setBepTrend] = useState<'improving' | 'worsening' | 'stable' | null>(null);
-  
-  useEffect(() => {
-    if (cashFlowLoading || !cashFlowData.hasData || !projectId) return;
-    
-    const storageKey = `bep_previous_${projectId}`;
-    const currentExposure = cashFlowData.massimaEsposizione;
-    const currentBepMonth = cashFlowData.mesePrimoPositivo;
-    
-    try {
-      const prev = localStorage.getItem(storageKey);
-      if (prev) {
-        const parsed = JSON.parse(prev);
-        const prevExposure = parsed.exposure ?? 0;
-        const prevBepMonth = parsed.bepMonth ?? null;
-        
-        // Determine trend: BEP reached vs not, or exposure change
-        if (currentBepMonth && !prevBepMonth) {
-          setBepTrend('improving');
-        } else if (!currentBepMonth && prevBepMonth) {
-          setBepTrend('worsening');
-        } else if (!currentBepMonth && !prevBepMonth) {
-          // Both not reached: compare exposure
-          if (currentExposure < prevExposure * 0.98) setBepTrend('improving');
-          else if (currentExposure > prevExposure * 1.02) setBepTrend('worsening');
-          else setBepTrend('stable');
-        } else {
-          // Both reached: stable
-          setBepTrend('stable');
-        }
-      }
-      
-      // Save current values
-      localStorage.setItem(storageKey, JSON.stringify({
-        exposure: currentExposure,
-        bepMonth: currentBepMonth,
-        timestamp: Date.now(),
-      }));
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, [cashFlowLoading, cashFlowData, projectId]);
   
   // Filter steps by commodity type (same logic as ProcessTracker)
   const filterStep = (step: ProcessStep) => {
@@ -137,13 +87,6 @@ export const Dashboard = ({
     return total;
   }, [visibleSteps, getCostAmount]);
 
-  // Calculate estimated days
-  const totalEstimatedDays = visibleSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
-  
-  // Calculate remaining days based on completed steps
-  const remainingDays = visibleSteps
-    .filter(step => !completedStepIds.includes(step.id))
-    .reduce((sum, step) => sum + step.estimatedDays, 0);
 
   // Calculate completed phases
   const completedPhases = phases.filter(phase => {
@@ -336,7 +279,7 @@ export const Dashboard = ({
       )}
 
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-6 border-l-4 border-l-primary shadow-custom-lg hover:shadow-glow transition-shadow">
           <div className="flex items-center justify-between">
             <div>
@@ -355,7 +298,7 @@ export const Dashboard = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Fasi Completate</p>
-              <h3 className="text-3xl font-bold mt-2 text-accent">
+              <h3 className="text-3xl font-bold mt-2 text-foreground">
                 {completedPhases}/{phases.length}
               </h3>
             </div>
@@ -363,47 +306,6 @@ export const Dashboard = ({
           </div>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-warning shadow-custom-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <ShadcnTooltip>
-                <TooltipTrigger asChild>
-                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1 cursor-help">
-                    Lavoro Stimato Rimanente
-                    <HelpCircle className="h-3 w-3" />
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="font-semibold mb-1">Giorni-lavoro vs Giorni calendario</p>
-                  <p className="text-xs">
-                    <strong>Giorni-lavoro ({remainingDays})</strong>: somma delle durate stimate di ogni attività. 
-                    Rappresenta il carico di lavoro totale.
-                  </p>
-                  <p className="text-xs mt-1">
-                    <strong>Giorni calendario ({timeProgress?.daysRemaining ?? '–'})</strong>: tempo reale 
-                    disponibile fino alla data di fine progetto.
-                  </p>
-                  <p className="text-xs mt-1 text-muted-foreground">
-                    Se i giorni-lavoro superano i giorni calendario, dovrai lavorare in parallelo 
-                    su più attività o coinvolgere più persone.
-                  </p>
-                </TooltipContent>
-              </ShadcnTooltip>
-              <h3 className="text-3xl font-bold mt-2 text-warning">
-                {remainingDays}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                di {totalEstimatedDays} giorni-lavoro totali
-              </p>
-              {timeProgress && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  📅 Calendario: {timeProgress.daysRemaining} giorni reali
-                </p>
-              )}
-            </div>
-            <Clock className="h-8 w-8 text-warning" />
-          </div>
-        </Card>
 
         <Card className="p-6 border-l-4 border-l-success shadow-custom-lg">
           <div className="flex items-center justify-between">
@@ -418,89 +320,6 @@ export const Dashboard = ({
           </div>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-primary shadow-custom-lg">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <ShadcnTooltip>
-                <TooltipTrigger asChild>
-                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1 cursor-help">
-                    BEP Finanziario
-                    <HelpCircle className="h-3 w-3" />
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="font-semibold mb-1">Break-Even Point Finanziario</p>
-                  <p className="text-xs">
-                    Primo mese in cui il saldo di cassa cumulativo diventa positivo. 
-                    Tiene conto dell'aging degli incassi, depositi cauzionali, investimenti iniziali, 
-                    costi commerciali e flussi fiscali (IVA, accise).
-                  </p>
-                </TooltipContent>
-              </ShadcnTooltip>
-              {cashFlowLoading ? (
-                <h3 className="text-xl font-bold mt-2 text-muted-foreground">...</h3>
-              ) : cashFlowData.mesePrimoPositivo ? (
-                <>
-                  <h3 className="text-xl font-bold mt-2 text-primary">
-                    {cashFlowData.mesePrimoPositivo}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-1">saldo positivo</p>
-                </>
-              ) : cashFlowData.hasData ? (
-                <>
-                  <h3 className="text-lg font-bold mt-2 text-destructive">
-                    Non raggiunto
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    esposizione max: €{cashFlowData.massimaEsposizione.toLocaleString('it-IT')}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-lg font-bold mt-2 text-muted-foreground">N/D</h3>
-                  <p className="text-xs text-muted-foreground mt-1">configura simulazione</p>
-                </>
-              )}
-              {/* BEP Trend indicator */}
-              {bepTrend && bepTrend !== 'stable' && (
-                <div className={cn(
-                  "mt-2 flex items-center gap-1 text-xs font-medium rounded-full px-2 py-0.5 w-fit",
-                  bepTrend === 'improving' 
-                    ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400" 
-                    : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"
-                )}>
-                  {bepTrend === 'improving' ? (
-                    <><TrendingUp className="h-3 w-3" /> In miglioramento</>
-                  ) : (
-                    <><TrendingDown className="h-3 w-3" /> In peggioramento</>
-                  )}
-                </div>
-              )}
-            </div>
-            {/* Sparkline: saldo cumulativo 14 mesi */}
-            {cashFlowData.hasData && cashFlowData.monthlyData.length > 0 && (
-              <div className="w-24 h-14 flex-shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={cashFlowData.monthlyData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
-                    <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="2 2" strokeWidth={0.5} />
-                    <Bar 
-                      dataKey="saldoCumulativo" 
-                      radius={[1, 1, 0, 0]}
-                    >
-                      {cashFlowData.monthlyData.map((entry, index) => (
-                        <Cell 
-                          key={index} 
-                          fill={entry.saldoCumulativo >= 0 ? 'hsl(var(--chart-1))' : 'hsl(var(--destructive))'} 
-                          opacity={0.8}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-        </Card>
       </div>
 
       {/* Commodity Type Badge */}
