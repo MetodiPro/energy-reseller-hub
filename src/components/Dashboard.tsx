@@ -13,7 +13,6 @@ import {
   Circle, 
   Clock,
   TrendingUp,
-  
   FileText, 
   Euro, 
   Calendar, 
@@ -21,10 +20,7 @@ import {
   AlertTriangle,
   Flag,
   Activity,
-  HelpCircle,
-  Wallet
 } from "lucide-react";
-import { useCashFlowAnalysis } from "@/hooks/useCashFlowAnalysis";
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { processSteps, phases, type ProcessStep } from "@/data/processSteps";
 import { stepCostsData } from "@/types/stepCosts";
