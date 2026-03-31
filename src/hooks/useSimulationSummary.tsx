@@ -18,6 +18,7 @@ export interface MonthlyCostBreakdown {
   clientiAttivi: number;
   costoEnergia: number;
   costoPod: number;
+  materiaEnergia: number;
   dispacciamento: number;
   trasporto: number;
   oneriSistema: number;
@@ -104,6 +105,7 @@ export function buildSimulationSummary(
       clientiAttivi: customer.clientiAttivi,
       costoEnergia: m.costoEnergia,
       costoPod: m.costiGestionePod,
+      materiaEnergia: m.materiaEnergiaTotale,
       dispacciamento: m.dispacciamento,
       trasporto: m.trasportoTotale,
       oneriSistema: m.oneriSistemaTotale,
