@@ -56,6 +56,21 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
       ? parseISO(projectStartDate) 
       : startOfDay(new Date());
 
+    const projectEndDate = goLiveDate
+      ? parseISO(goLiveDate)
+      : null;
+
+    // Calculate total estimated days for proportional distribution
+    const totalEstimatedDays = phases.reduce((sum, phase) => {
+      const phaseSteps = processSteps.filter(s => s.phase === phase.id);
+      return sum + phaseSteps.reduce((s, step) => s + step.estimatedDays, 0);
+    }, 0);
+
+    // Use project date range if both dates are set, otherwise fall back to estimated days
+    const totalProjectDays = projectEndDate
+      ? differenceInDays(projectEndDate, baseStartDate)
+      : totalEstimatedDays;
+
     let cumulativeDays = 0;
     const phaseData: PhaseData[] = [];
 
@@ -63,8 +78,16 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
       const phaseSteps = processSteps.filter(s => s.phase === phase.id);
       const phaseDays = phaseSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
 
-      const estimatedStart = addDays(baseStartDate, cumulativeDays);
-      const estimatedEnd = addDays(estimatedStart, phaseDays);
+      // Proportionally distribute phase within the actual project date range
+      const phaseStartOffset = totalEstimatedDays > 0
+        ? Math.round((cumulativeDays / totalEstimatedDays) * totalProjectDays)
+        : 0;
+      const phaseEndOffset = totalEstimatedDays > 0
+        ? Math.round(((cumulativeDays + phaseDays) / totalEstimatedDays) * totalProjectDays)
+        : 0;
+
+      const estimatedStart = addDays(baseStartDate, phaseStartOffset);
+      const estimatedEnd = addDays(baseStartDate, phaseEndOffset);
 
       // Calculate actual dates from progress
       let actualStart: Date | null = null;
@@ -121,11 +144,11 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
 
     return {
       phases: phaseData,
-      totalDays: cumulativeDays,
-      projectEnd: addDays(baseStartDate, cumulativeDays),
+      totalDays: totalProjectDays,
+      projectEnd: projectEndDate ?? addDays(baseStartDate, totalProjectDays),
       baseStartDate,
     };
-  }, [stepProgress, projectStartDate]);
+  }, [stepProgress, projectStartDate, goLiveDate]);
 
   const today = startOfDay(new Date());
   const overallProgress = useMemo(() => {
@@ -149,7 +172,7 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
                 <Calendar className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Inizio Stimato</p>
+                <p className="text-sm text-muted-foreground">Inizio Progetto</p>
                 <p className="font-semibold">{format(timeline.baseStartDate, 'dd MMM yyyy', { locale: it })}</p>
               </div>
             </div>
@@ -163,7 +186,7 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
                 <CheckCircle2 className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Fine Stimata</p>
+                <p className="text-sm text-muted-foreground">Go-Live</p>
                 <p className="font-semibold">{format(timeline.projectEnd, 'dd MMM yyyy', { locale: it })}</p>
               </div>
             </div>
@@ -199,7 +222,7 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Go-Live</p>
+                  <p className="text-sm text-muted-foreground">Giorni al Go-Live</p>
                   <p className={cn("font-semibold", daysToGoLive < 0 && "text-destructive")}>
                     {daysToGoLive < 0 ? `${Math.abs(daysToGoLive)} giorni fa` : `${daysToGoLive} giorni`}
                   </p>
