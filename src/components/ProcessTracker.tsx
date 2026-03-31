@@ -39,7 +39,7 @@ import { StepCostDetails } from "@/components/StepCostDetails";
 import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
-import { ProcessGanttTimeline } from "@/components/ProcessGanttTimeline";
+import { useExportProcessCostsDocx } from "@/hooks/useExportProcessCostsDocx";
 import { useStepAssignments } from "@/hooks/useStepAssignments";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
@@ -86,11 +86,16 @@ export const ProcessTracker = ({
   const { getStepTotal, getCostAmount } = useStepCosts(projectId ?? null);
   const { exportToPDF } = useExportProcessCostsPDF();
   const { getAssigneeName } = useStepAssignments(projectId ?? null);
+  const { exportToDocx } = useExportProcessCostsDocx();
   const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
   const parsedEndDate = projectEndDate ? parseISO(projectEndDate) : null;
 
   const handleExportPDF = () => {
     exportToPDF(projectName, commodityType ?? null, getCostAmount);
+  };
+
+  const handleExportDocx = () => {
+    exportToDocx(projectName, commodityType ?? null, getCostAmount);
   };
 
   const handleStartDateSelect = (date: Date | undefined) => {
@@ -220,12 +225,7 @@ export const ProcessTracker = ({
     };
   }, []);
 
-  const updateStepDates = (stepId: string, startDate?: string, endDate?: string) => {
-    updateProgress(stepId, {
-      plannedStartDate: startDate,
-      plannedEndDate: endDate,
-    });
-  };
+
 
   const getCategoryColor = (category: ProcessStep['category']) => {
     const colors = {
@@ -648,15 +648,26 @@ export const ProcessTracker = ({
               <Wallet className="h-5 w-5 text-primary" />
               Riepilogo Costi di Avvio
             </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportPDF}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Esporta PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportDocx}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Word
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -708,24 +719,6 @@ export const ProcessTracker = ({
         </CardContent>
       </Card>
 
-      {/* Gantt Timeline - At the very bottom */}
-      <ProcessGanttTimeline
-        projectStartDate={parsedStartDate}
-        projectEndDate={parsedEndDate}
-        stepProgress={Object.fromEntries(
-          Object.entries(stepProgress).map(([key, value]) => [
-            key,
-            {
-              completed: value.completed,
-              plannedStartDate: value.plannedStartDate,
-              plannedEndDate: value.plannedEndDate,
-            }
-          ])
-        )}
-        commodityType={commodityType ?? null}
-        getCostAmount={getCostAmount}
-        onUpdateStepDates={updateStepDates}
-      />
     </div>
   );
 };
