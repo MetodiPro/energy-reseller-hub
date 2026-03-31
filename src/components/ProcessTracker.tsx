@@ -598,7 +598,7 @@ export const ProcessTracker = ({
                     <h4 className="font-semibold mb-3">Note Personali</h4>
                     <Textarea
                       placeholder="Aggiungi le tue note, osservazioni o dettagli specifici per questo step..."
-                      value={progress?.notes || ''}
+                      value={localNotes[step.id] !== undefined ? localNotes[step.id] : (progress?.notes || '')}
                       onChange={(e) => updateNotes(step.id, e.target.value)}
                       rows={4}
                     />
