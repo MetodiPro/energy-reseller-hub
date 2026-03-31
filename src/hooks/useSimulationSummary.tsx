@@ -18,6 +18,7 @@ export interface MonthlyCostBreakdown {
   clientiAttivi: number;
   costoEnergia: number;
   costoPod: number;
+  materiaEnergia: number;
   dispacciamento: number;
   trasporto: number;
   oneriSistema: number;
