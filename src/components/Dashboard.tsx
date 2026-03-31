@@ -363,47 +363,6 @@ export const Dashboard = ({
           </div>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-warning shadow-custom-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <ShadcnTooltip>
-                <TooltipTrigger asChild>
-                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1 cursor-help">
-                    Lavoro Stimato Rimanente
-                    <HelpCircle className="h-3 w-3" />
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="font-semibold mb-1">Giorni-lavoro vs Giorni calendario</p>
-                  <p className="text-xs">
-                    <strong>Giorni-lavoro ({remainingDays})</strong>: somma delle durate stimate di ogni attività. 
-                    Rappresenta il carico di lavoro totale.
-                  </p>
-                  <p className="text-xs mt-1">
-                    <strong>Giorni calendario ({timeProgress?.daysRemaining ?? '–'})</strong>: tempo reale 
-                    disponibile fino alla data di fine progetto.
-                  </p>
-                  <p className="text-xs mt-1 text-muted-foreground">
-                    Se i giorni-lavoro superano i giorni calendario, dovrai lavorare in parallelo 
-                    su più attività o coinvolgere più persone.
-                  </p>
-                </TooltipContent>
-              </ShadcnTooltip>
-              <h3 className="text-3xl font-bold mt-2 text-warning">
-                {remainingDays}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                di {totalEstimatedDays} giorni-lavoro totali
-              </p>
-              {timeProgress && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  📅 Calendario: {timeProgress.daysRemaining} giorni reali
-                </p>
-              )}
-            </div>
-            <Clock className="h-8 w-8 text-warning" />
-          </div>
-        </Card>
 
         <Card className="p-6 border-l-4 border-l-success shadow-custom-lg">
           <div className="flex items-center justify-between">
