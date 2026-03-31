@@ -506,43 +506,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             <MiniKPI icon={<TrendingUp className="h-4 w-4" />} label="ROI (14m)" value={`${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%`} color={(cashFlowData.saldoFinale / (cashFlowData.investimentoIniziale || 1)) >= 0 ? 'text-green-600' : 'text-destructive'} />
           </div>
 
-          {/* Charts: Cost Breakdown */}
-          <div className="grid gap-6 md:grid-cols-1">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <PieChartIcon className="h-4 w-4" /> Composizione Costi
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {costBreakdownData.length > 0 ? (
-                  <div className="flex items-center gap-4">
-                    <ResponsiveContainer width="50%" height={200}>
-                      <PieChart>
-                        <Pie data={costBreakdownData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
-                          {costBreakdownData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                        </Pie>
-                        <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="space-y-2 flex-1">
-                      {costBreakdownData.map(entry => (
-                        <div key={entry.name} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span>{entry.name}</span>
-                          </div>
-                          <span className="font-medium">{formatCurrency(entry.value)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Nessun dato</div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Chart Row 2: Cash Flow Trend */}
           {cashFlowChartData.length > 0 && (
