@@ -66,7 +66,7 @@ export const useExportProcessCostsDocx = () => {
       }
     });
 
-    const children: Paragraph[] | (Paragraph | Table)[] = [];
+    const children: (Paragraph | Table)[] = [];
 
     // Title
     children.push(new Paragraph({ heading: HeadingLevel.TITLE, alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: 'Costi di Avvio Reseller', bold: true, font: 'Arial', size: 36, color: '7C3AED' })] }));
