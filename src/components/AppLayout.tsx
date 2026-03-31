@@ -58,7 +58,7 @@ function SectionLoader() {
 }
 
 const VALID_SECTIONS = [
-  'overview', 'dashboard', 'process', 'deadlines', 'step-docs', 'team',
+  'overview', 'dashboard', 'process', 'step-docs', 'team',
   'documents', 'consultants', 'tariffs', 'hypotheses', 'director-report', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile', 'crm',
 ];
