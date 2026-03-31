@@ -225,12 +225,7 @@ export const ProcessTracker = ({
     };
   }, []);
 
-  const updateStepDates = (stepId: string, startDate?: string, endDate?: string) => {
-    updateProgress(stepId, {
-      plannedStartDate: startDate,
-      plannedEndDate: endDate,
-    });
-  };
+
 
   const getCategoryColor = (category: ProcessStep['category']) => {
     const colors = {
