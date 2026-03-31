@@ -172,7 +172,7 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
                 <Calendar className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Inizio Stimato</p>
+                <p className="text-sm text-muted-foreground">Inizio Progetto</p>
                 <p className="font-semibold">{format(timeline.baseStartDate, 'dd MMM yyyy', { locale: it })}</p>
               </div>
             </div>
@@ -186,7 +186,7 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
                 <CheckCircle2 className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Fine Stimata</p>
+                <p className="text-sm text-muted-foreground">Go-Live</p>
                 <p className="font-semibold">{format(timeline.projectEnd, 'dd MMM yyyy', { locale: it })}</p>
               </div>
             </div>
@@ -222,7 +222,7 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Go-Live</p>
+                  <p className="text-sm text-muted-foreground">Giorni al Go-Live</p>
                   <p className={cn("font-semibold", daysToGoLive < 0 && "text-destructive")}>
                     {daysToGoLive < 0 ? `${Math.abs(daysToGoLive)} giorni fa` : `${daysToGoLive} giorni`}
                   </p>
