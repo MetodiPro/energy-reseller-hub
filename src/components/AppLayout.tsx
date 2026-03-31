@@ -193,15 +193,6 @@ export function AppLayout({ user }: AppLayoutProps) {
               }}
             />
           );
-        case 'deadlines':
-          return (
-            <RegulatoryCalendar
-              projectId={currentProjectId}
-              eveLicenseDate={currentProject?.eve_license_date}
-              evgLicenseDate={currentProject?.evg_license_date}
-              commodityType={currentProject?.commodity_type}
-            />
-          );
         case 'step-docs':
           return <StepDocuments projectId={currentProjectId} />;
         case 'team':

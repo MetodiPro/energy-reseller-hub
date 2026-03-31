@@ -59,7 +59,7 @@ const projectItems = [
 const operativeItems = [
   { id: "process", title: "Processo", icon: ListTodo },
   { id: "gantt", title: "Timeline", icon: BarChart3 },
-  { id: "deadlines", title: "Scadenze", icon: Calendar },
+  
   { id: "step-docs", title: "Documenti Step", icon: Link },
   { id: "documents", title: "Documenti", icon: FolderOpen },
   { id: "crm", title: "CRM Clienti", icon: ContactRound },
