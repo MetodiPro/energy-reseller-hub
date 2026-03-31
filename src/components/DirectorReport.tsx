@@ -679,12 +679,7 @@ function InlineFormat({ text }: { text: string }) {
 }
 
 
-
-
-  const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
-
-  const activeChannels = useMemo(() => salesChannels.filter(c => c.is_active && c.contract_share > 0), [salesChannels]);
-
+// ── Product Performance Table with totals + monthly revenue popup ──
   const channelRows = useMemo(() => {
     return activeChannels.map(ch => {
       const monthlyData = engineResult.monthly.map(m => {
