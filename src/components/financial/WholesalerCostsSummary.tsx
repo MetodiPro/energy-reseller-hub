@@ -175,7 +175,8 @@ export const WholesalerCostsSummary = ({
   };
 
   const grossistaRows: CostRow[] = [
-    { key: 'energia', label: 'Energia Acquistata', sublabel: 'PUN + Spread Grossista', value: costoEnergiaTotale },
+    { key: 'energia_pun', label: 'Materia Prima (PUN)', sublabel: 'Prezzo Unico Nazionale', value: costoEnergiaPun },
+    { key: 'energia_spread', label: 'Spread Grossista', sublabel: 'Ricarico sul PUN', value: costoEnergiaSpread },
     { key: 'pod', label: 'Gestione POD', value: costoGestionePodTotale },
   ];
 
