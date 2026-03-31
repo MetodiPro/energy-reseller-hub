@@ -469,11 +469,11 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         onNavigateToTariffs={() => {}}
       />
 
-      {/* Commercial Costs per Product */}
-      {multiProductResult && multiProductResult.products.length > 0 && (
-        <CommercialCostsPerProduct
-          multiProductResult={multiProductResult}
-          products={products}
+      {/* Commercial Costs per Sales Channel */}
+      {salesChannels.filter(c => c.is_active).length > 0 && engineResult && (
+        <CommercialCostsPerChannel
+          engineResult={engineResult}
+          salesChannels={salesChannels}
           formatCurrency={formatCurrency}
         />
       )}
