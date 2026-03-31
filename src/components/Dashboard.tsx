@@ -57,38 +57,6 @@ export const Dashboard = ({
   const { getCostAmount: ownGetCostAmount } = useStepCosts(getCostAmountProp ? null : projectId ?? null);
   const getCostAmount = getCostAmountProp ?? ownGetCostAmount;
   
-      const prev = localStorage.getItem(storageKey);
-      if (prev) {
-        const parsed = JSON.parse(prev);
-        const prevExposure = parsed.exposure ?? 0;
-        const prevBepMonth = parsed.bepMonth ?? null;
-        
-        // Determine trend: BEP reached vs not, or exposure change
-        if (currentBepMonth && !prevBepMonth) {
-          setBepTrend('improving');
-        } else if (!currentBepMonth && prevBepMonth) {
-          setBepTrend('worsening');
-        } else if (!currentBepMonth && !prevBepMonth) {
-          // Both not reached: compare exposure
-          if (currentExposure < prevExposure * 0.98) setBepTrend('improving');
-          else if (currentExposure > prevExposure * 1.02) setBepTrend('worsening');
-          else setBepTrend('stable');
-        } else {
-          // Both reached: stable
-          setBepTrend('stable');
-        }
-      }
-      
-      // Save current values
-      localStorage.setItem(storageKey, JSON.stringify({
-        exposure: currentExposure,
-        bepMonth: currentBepMonth,
-        timestamp: Date.now(),
-      }));
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, [cashFlowLoading, cashFlowData, projectId]);
   
   // Filter steps by commodity type (same logic as ProcessTracker)
   const filterStep = (step: ProcessStep) => {
