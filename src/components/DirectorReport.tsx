@@ -678,16 +678,8 @@ function InlineFormat({ text }: { text: string }) {
   );
 }
 
-// ── Commercial Costs per Sales Channel ──
-function CommercialCostsPerChannel({
-  engineResult,
-  salesChannels,
-  formatCurrency: fmt,
-}: {
-  engineResult: SimulationEngineResult;
-  salesChannels: SalesChannel[];
-  formatCurrency: (v: number) => string;
-}) {
+
+
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
 
   const activeChannels = useMemo(() => salesChannels.filter(c => c.is_active && c.contract_share > 0), [salesChannels]);
