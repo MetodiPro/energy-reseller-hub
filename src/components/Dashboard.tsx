@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
