@@ -458,6 +458,14 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         />
       )}
 
+      {/* Commercial Costs per Sales Channel */}
+      {salesChannels.filter(c => c.is_active).length > 0 && engineResult && (
+        <CommercialCostsPerChannel
+          engineResult={engineResult}
+          salesChannels={salesChannels}
+          formatCurrency={formatCurrency}
+        />
+      )}
 
       <OverviewTab
         summary={summary}
@@ -471,6 +479,43 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         onNavigateToTariffs={() => {}}
       />
 
+      {/* Channel Performance - always visible */}
+      {channelData.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="h-4 w-4" /> Performance Canali di Vendita
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={channelData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" fontSize={10} />
+                  <YAxis tickFormatter={(v) => `€${v}`} fontSize={10} />
+                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <Bar dataKey="costo" name="Costo Totale" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="space-y-3 flex flex-col justify-center">
+                {channelData.map(ch => (
+                  <div key={ch.name} className="flex items-center justify-between border-b pb-2">
+                    <div>
+                      <p className="text-sm font-medium">{ch.name}</p>
+                      <p className="text-xs text-muted-foreground">{ch.contratti} contratti</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold">{formatCurrency(ch.costo)}</p>
+                      <p className="text-xs text-muted-foreground">CAC: {formatCurrency(ch.costoPerCliente)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── Report Section with Charts ── */}
       {report && (
@@ -506,6 +551,43 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
             <MiniKPI icon={<TrendingUp className="h-4 w-4" />} label="ROI (14m)" value={`${(cashFlowData.investimentoIniziale > 0 ? (cashFlowData.saldoFinale / cashFlowData.investimentoIniziale * 100) : 0).toFixed(1)}%`} color={(cashFlowData.saldoFinale / (cashFlowData.investimentoIniziale || 1)) >= 0 ? 'text-green-600' : 'text-destructive'} />
           </div>
 
+          {/* Charts: Cost Breakdown */}
+          <div className="grid gap-6 md:grid-cols-1">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4" /> Composizione Costi
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {costBreakdownData.length > 0 ? (
+                  <div className="flex items-center gap-4">
+                    <ResponsiveContainer width="50%" height={200}>
+                      <PieChart>
+                        <Pie data={costBreakdownData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
+                          {costBreakdownData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="space-y-2 flex-1">
+                      {costBreakdownData.map(entry => (
+                        <div key={entry.name} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span>{entry.name}</span>
+                          </div>
+                          <span className="font-medium">{formatCurrency(entry.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">Nessun dato</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Chart Row 2: Cash Flow Trend */}
           {cashFlowChartData.length > 0 && (
