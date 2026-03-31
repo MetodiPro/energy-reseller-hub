@@ -724,6 +724,149 @@ function InlineFormat({ text }: { text: string }) {
   );
 }
 
+// ── Commercial Costs per Product ──
+function CommercialCostsPerProduct({
+  multiProductResult,
+  products: allProducts,
+  formatCurrency: fmt,
+}: {
+  multiProductResult: NonNullable<ReturnType<typeof useEngineResult>['multiProductResult']>;
+  products: any[];
+  formatCurrency: (v: number) => string;
+}) {
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+
+  const rows = useMemo(() => {
+    return multiProductResult.products.map(({ product, result }) => {
+      const totalCostiPassanti = result.monthly.reduce((s, m) => s + m.costiPassanti, 0);
+      const totalCostoEnergia = result.monthly.reduce((s, m) => s + m.costoEnergia, 0);
+      const totalCostiPod = result.monthly.reduce((s, m) => s + m.costiGestionePod, 0);
+      const totalCostoTotale = totalCostoEnergia + totalCostiPod + totalCostiPassanti;
+
+      return {
+        id: product.id,
+        name: product.name,
+        costiPassanti: totalCostiPassanti,
+        costoEnergia: totalCostoEnergia,
+        costiPod: totalCostiPod,
+        costoTotale: totalCostoTotale,
+        monthly: result.monthly,
+      };
+    });
+  }, [multiProductResult]);
+
+  const totals = useMemo(() => ({
+    costiPassanti: rows.reduce((s, r) => s + r.costiPassanti, 0),
+    costoEnergia: rows.reduce((s, r) => s + r.costoEnergia, 0),
+    costiPod: rows.reduce((s, r) => s + r.costiPod, 0),
+    costoTotale: rows.reduce((s, r) => s + r.costoTotale, 0),
+  }), [rows]);
+
+  const selectedRow = rows.find(r => r.id === selectedProduct);
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Wallet className="h-4 w-4" /> Costi Commerciali per Prodotto
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Clicca su un prodotto per il dettaglio mensile dei costi.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground">
+                  <th className="py-2 pr-3 font-medium">Prodotto</th>
+                  <th className="py-2 pr-3 font-medium text-right">Costo Energia</th>
+                  <th className="py-2 pr-3 font-medium text-right">Gestione POD</th>
+                  <th className="py-2 pr-3 font-medium text-right">Costi Passanti</th>
+                  <th className="py-2 font-medium text-right">Costo Totale</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => (
+                  <tr
+                    key={row.id}
+                    className="border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setSelectedProduct(row.id)}
+                  >
+                    <td className="py-2 pr-3 font-medium text-primary underline decoration-dotted">{row.name}</td>
+                    <td className="py-2 pr-3 text-right">{fmt(row.costoEnergia)}</td>
+                    <td className="py-2 pr-3 text-right">{fmt(row.costiPod)}</td>
+                    <td className="py-2 pr-3 text-right">{fmt(row.costiPassanti)}</td>
+                    <td className="py-2 text-right font-semibold">{fmt(row.costoTotale)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                  <td className="py-2 pr-3">Totale</td>
+                  <td className="py-2 pr-3 text-right">{fmt(totals.costoEnergia)}</td>
+                  <td className="py-2 pr-3 text-right">{fmt(totals.costiPod)}</td>
+                  <td className="py-2 pr-3 text-right">{fmt(totals.costiPassanti)}</td>
+                  <td className="py-2 text-right">{fmt(totals.costoTotale)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedRow && (
+        <Dialog open={!!selectedProduct} onOpenChange={(open) => { if (!open) setSelectedProduct(null); }}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wallet className="h-4 w-4" />
+                Costi Mensili — {selectedRow.name}
+              </DialogTitle>
+              <DialogDescription>
+                Dettaglio mese per mese dei costi commerciali del prodotto.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mese</TableHead>
+                    <TableHead className="text-right">Clienti Attivi</TableHead>
+                    <TableHead className="text-right">Costo Energia</TableHead>
+                    <TableHead className="text-right">Gestione POD</TableHead>
+                    <TableHead className="text-right">Passanti</TableHead>
+                    <TableHead className="text-right">Totale</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedRow.monthly.map((m, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">{m.customer.monthLabel}</TableCell>
+                      <TableCell className="text-right">{m.customer.clientiAttivi}</TableCell>
+                      <TableCell className="text-right">{fmt(m.costoEnergia)}</TableCell>
+                      <TableCell className="text-right">{fmt(m.costiGestionePod)}</TableCell>
+                      <TableCell className="text-right">{fmt(m.costiPassanti)}</TableCell>
+                      <TableCell className="text-right font-semibold">{fmt(m.costoEnergia + m.costiGestionePod + m.costiPassanti)}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="font-bold border-t-2 bg-muted/30">
+                    <TableCell>Totale</TableCell>
+                    <TableCell className="text-right">—</TableCell>
+                    <TableCell className="text-right">{fmt(selectedRow.costoEnergia)}</TableCell>
+                    <TableCell className="text-right">{fmt(selectedRow.costiPod)}</TableCell>
+                    <TableCell className="text-right">{fmt(selectedRow.costiPassanti)}</TableCell>
+                    <TableCell className="text-right">{fmt(selectedRow.costoTotale)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
 // ── Product Performance Table with totals + monthly revenue popup ──
 function ProductPerformanceTable({
   multiProductResult,
