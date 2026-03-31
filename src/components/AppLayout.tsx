@@ -109,21 +109,6 @@ export function AppLayout({ user }: AppLayoutProps) {
     setTimeout(() => revenueSimForTariffs.saveSimulation(), 500);
   }, [revenueSimForTariffs]);
 
-  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, currentProject?.commodity_type);
-
-  // Fetch deadlines
-  useEffect(() => {
-    const fetchDeadlines = async () => {
-      if (!currentProjectId) { setRegulatoryDeadlines([]); return; }
-      const { data } = await supabase
-        .from('regulatory_deadlines')
-        .select('*')
-        .eq('project_id', currentProjectId)
-        .order('due_date', { ascending: true });
-      setRegulatoryDeadlines(data || []);
-    };
-    fetchDeadlines();
-  }, [currentProjectId]);
 
   // Wizard / startup dialog logic
   useEffect(() => {
