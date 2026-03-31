@@ -708,24 +708,6 @@ export const ProcessTracker = ({
         </CardContent>
       </Card>
 
-      {/* Gantt Timeline - At the very bottom */}
-      <ProcessGanttTimeline
-        projectStartDate={parsedStartDate}
-        projectEndDate={parsedEndDate}
-        stepProgress={Object.fromEntries(
-          Object.entries(stepProgress).map(([key, value]) => [
-            key,
-            {
-              completed: value.completed,
-              plannedStartDate: value.plannedStartDate,
-              plannedEndDate: value.plannedEndDate,
-            }
-          ])
-        )}
-        commodityType={commodityType ?? null}
-        getCostAmount={getCostAmount}
-        onUpdateStepDates={updateStepDates}
-      />
     </div>
   );
 };
