@@ -354,30 +354,6 @@ export const OverviewTab = ({
           </CardContent>
         </Card>
 
-        {/* Sales Channel Cost Breakdown */}
-        {channelPieData.length > 0 && (
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Costi Commerciali per Canale</CardTitle><CardDescription>Distribuzione provvigioni ({totalContracts} contratti)</CardDescription></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <RechartsPie>
-                  <Pie data={channelPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${percent.toFixed(0)}%`}>
-                    {channelPieData.map((entry, index) => (<Cell key={`ch-cell-${index}`} fill={entry.color} />))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                </RechartsPie>
-              </ResponsiveContainer>
-              <div className="space-y-2 mt-4">
-                {channelPieData.map((entry) => (
-                  <div key={entry.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} /><span className="text-sm font-medium">{entry.name}</span></div>
-                    <div className="text-right"><span className="text-sm font-bold">{formatCurrency(entry.value)}</span><span className="text-xs text-muted-foreground ml-2">({entry.percent.toFixed(1)}%)</span></div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       <FinancialTrendChart cashFlowData={cashFlowData} loading={cashFlowLoading} />
