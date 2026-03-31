@@ -185,11 +185,6 @@ export const useStepProgress = (
       if (error) throw error;
     } catch (error: any) {
       console.error("Error saving step progress:", error);
-      toast({
-        title: "Errore nel salvataggio",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   }, [userId, projectId, toast]);
 
