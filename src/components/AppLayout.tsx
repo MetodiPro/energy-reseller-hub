@@ -30,7 +30,7 @@ import type { User } from '@supabase/supabase-js';
 const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard })));
 const ProcessTracker = lazy(() => import('@/components/ProcessTracker').then(m => ({ default: m.ProcessTracker })));
 const ProjectOverview = lazy(() => import('@/components/ProjectOverview').then(m => ({ default: m.ProjectOverview })));
-const RegulatoryCalendar = lazy(() => import('@/components/RegulatoryCalendar').then(m => ({ default: m.RegulatoryCalendar })));
+
 const StepDocuments = lazy(() => import('@/components/StepDocuments').then(m => ({ default: m.StepDocuments })));
 const ProjectTeamManager = lazy(() => import('@/components/ProjectTeamManager').then(m => ({ default: m.ProjectTeamManager })));
 const DocumentManager = lazy(() => import('@/components/DocumentManager').then(m => ({ default: m.DocumentManager })));
