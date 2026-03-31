@@ -57,20 +57,6 @@ export const Dashboard = ({
   const { getCostAmount: ownGetCostAmount } = useStepCosts(getCostAmountProp ? null : projectId ?? null);
   const getCostAmount = getCostAmountProp ?? ownGetCostAmount;
   
-  // Cash flow analysis for financial BEP
-  const { cashFlowData, loading: cashFlowLoading } = useCashFlowAnalysis(projectId ?? null);
-  
-  // BEP trend tracking: compare with previous value
-  const [bepTrend, setBepTrend] = useState<'improving' | 'worsening' | 'stable' | null>(null);
-  
-  useEffect(() => {
-    if (cashFlowLoading || !cashFlowData.hasData || !projectId) return;
-    
-    const storageKey = `bep_previous_${projectId}`;
-    const currentExposure = cashFlowData.massimaEsposizione;
-    const currentBepMonth = cashFlowData.mesePrimoPositivo;
-    
-    try {
       const prev = localStorage.getItem(storageKey);
       if (prev) {
         const parsed = JSON.parse(prev);
