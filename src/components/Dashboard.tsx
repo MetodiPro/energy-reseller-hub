@@ -336,7 +336,7 @@ export const Dashboard = ({
       )}
 
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-6 border-l-4 border-l-primary shadow-custom-lg hover:shadow-glow transition-shadow">
           <div className="flex items-center justify-between">
             <div>
