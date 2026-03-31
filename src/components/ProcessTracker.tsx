@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -197,9 +197,28 @@ export const ProcessTracker = ({
     });
   };
 
-  const updateNotes = (stepId: string, notes: string) => {
-    updateProgress(stepId, { notes });
-  };
+  // Debounced notes: local state for instant typing, save after 800ms idle
+  const [localNotes, setLocalNotes] = useState<Record<string, string>>({});
+  const notesTimerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const updateNotes = useCallback((stepId: string, notes: string) => {
+    setLocalNotes(prev => ({ ...prev, [stepId]: notes }));
+    
+    if (notesTimerRef.current[stepId]) {
+      clearTimeout(notesTimerRef.current[stepId]);
+    }
+    notesTimerRef.current[stepId] = setTimeout(() => {
+      updateProgress(stepId, { notes });
+      delete notesTimerRef.current[stepId];
+    }, 800);
+  }, [updateProgress]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(notesTimerRef.current).forEach(clearTimeout);
+    };
+  }, []);
 
   const updateStepDates = (stepId: string, startDate?: string, endDate?: string) => {
     updateProgress(stepId, {
@@ -579,7 +598,7 @@ export const ProcessTracker = ({
                     <h4 className="font-semibold mb-3">Note Personali</h4>
                     <Textarea
                       placeholder="Aggiungi le tue note, osservazioni o dettagli specifici per questo step..."
-                      value={progress?.notes || ''}
+                      value={localNotes[step.id] !== undefined ? localNotes[step.id] : (progress?.notes || '')}
                       onChange={(e) => updateNotes(step.id, e.target.value)}
                       rows={4}
                     />
