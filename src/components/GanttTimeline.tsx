@@ -144,11 +144,11 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
 
     return {
       phases: phaseData,
-      totalDays: cumulativeDays,
-      projectEnd: addDays(baseStartDate, cumulativeDays),
+      totalDays: totalProjectDays,
+      projectEnd: projectEndDate ?? addDays(baseStartDate, totalProjectDays),
       baseStartDate,
     };
-  }, [stepProgress, projectStartDate]);
+  }, [stepProgress, projectStartDate, goLiveDate]);
 
   const today = startOfDay(new Date());
   const overallProgress = useMemo(() => {
