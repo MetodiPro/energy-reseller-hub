@@ -46,7 +46,7 @@ const SettingsPage = lazy(() => import('@/components/SettingsPage').then(m => ({
 const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const MarketTariffsPage = lazy(() => import('@/components/MarketTariffsSection').then(m => ({ default: m.MarketTariffsSection })));
 const HypothesesPage = lazy(() => import('@/components/HypothesesPage').then(m => ({ default: m.HypothesesPage })));
-const CrmDashboard = lazy(() => import('@/components/CrmDashboard').then(m => ({ default: m.CrmDashboard })));
+
 const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m => ({ default: m.DirectorReport })));
 
 function SectionLoader() {
@@ -60,7 +60,7 @@ function SectionLoader() {
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'step-docs', 'team',
   'documents', 'consultants', 'tariffs', 'hypotheses', 'director-report', 'financials', 'business-plan', 'marketing',
-  'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile', 'crm',
+  'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile',
 ];
 
 interface AppLayoutProps {
@@ -293,15 +293,6 @@ export function AppLayout({ user }: AppLayoutProps) {
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Crea prima un progetto per accedere alla pagina Esiti</p>
-            </div>
-          );
-        case 'crm':
-          return currentProjectId ? (
-            <CrmDashboard projectId={currentProjectId} userId={user.id} />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <ContactRound className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Crea prima un progetto per accedere al CRM Clienti</p>
             </div>
           );
         case 'settings':
