@@ -355,7 +355,7 @@ export const Dashboard = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Fasi Completate</p>
-              <h3 className="text-3xl font-bold mt-2 text-accent">
+              <h3 className="text-3xl font-bold mt-2 text-foreground">
                 {completedPhases}/{phases.length}
               </h3>
             </div>
