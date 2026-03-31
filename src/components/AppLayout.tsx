@@ -19,7 +19,7 @@ import { useStepProgress } from '@/hooks/useStepProgress';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { useExportPDF } from '@/hooks/useExportPDF';
-import { useDeadlineNotifications } from '@/hooks/useDeadlineNotifications';
+
 import { useLazyUnifiedExport } from '@/hooks/useLazyUnifiedExport';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
