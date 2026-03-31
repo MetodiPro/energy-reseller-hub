@@ -56,6 +56,21 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
       ? parseISO(projectStartDate) 
       : startOfDay(new Date());
 
+    const projectEndDate = goLiveDate
+      ? parseISO(goLiveDate)
+      : null;
+
+    // Calculate total estimated days for proportional distribution
+    const totalEstimatedDays = phases.reduce((sum, phase) => {
+      const phaseSteps = processSteps.filter(s => s.phase === phase.id);
+      return sum + phaseSteps.reduce((s, step) => s + step.estimatedDays, 0);
+    }, 0);
+
+    // Use project date range if both dates are set, otherwise fall back to estimated days
+    const totalProjectDays = projectEndDate
+      ? differenceInDays(projectEndDate, baseStartDate)
+      : totalEstimatedDays;
+
     let cumulativeDays = 0;
     const phaseData: PhaseData[] = [];
 
@@ -63,8 +78,16 @@ export const GanttTimeline = ({ stepProgress, projectStartDate, goLiveDate, proj
       const phaseSteps = processSteps.filter(s => s.phase === phase.id);
       const phaseDays = phaseSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
 
-      const estimatedStart = addDays(baseStartDate, cumulativeDays);
-      const estimatedEnd = addDays(estimatedStart, phaseDays);
+      // Proportionally distribute phase within the actual project date range
+      const phaseStartOffset = totalEstimatedDays > 0
+        ? Math.round((cumulativeDays / totalEstimatedDays) * totalProjectDays)
+        : 0;
+      const phaseEndOffset = totalEstimatedDays > 0
+        ? Math.round(((cumulativeDays + phaseDays) / totalEstimatedDays) * totalProjectDays)
+        : 0;
+
+      const estimatedStart = addDays(baseStartDate, phaseStartOffset);
+      const estimatedEnd = addDays(baseStartDate, phaseEndOffset);
 
       // Calculate actual dates from progress
       let actualStart: Date | null = null;
