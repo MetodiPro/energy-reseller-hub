@@ -40,6 +40,7 @@ import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/ste
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
 import { ProcessGanttTimeline } from "@/components/ProcessGanttTimeline";
+import { useExportProcessCostsDocx } from "@/hooks/useExportProcessCostsDocx";
 import { useStepAssignments } from "@/hooks/useStepAssignments";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
