@@ -123,13 +123,6 @@ export const Dashboard = ({
     return total;
   }, [visibleSteps, getCostAmount]);
 
-  // Calculate estimated days
-  const totalEstimatedDays = visibleSteps.reduce((sum, step) => sum + step.estimatedDays, 0);
-  
-  // Calculate remaining days based on completed steps
-  const remainingDays = visibleSteps
-    .filter(step => !completedStepIds.includes(step.id))
-    .reduce((sum, step) => sum + step.estimatedDays, 0);
 
   // Calculate completed phases
   const completedPhases = phases.filter(phase => {
