@@ -267,7 +267,7 @@ const sectionToTab: Record<string, string> = {
   'Dashboard': 'dashboard',
   'Processo': 'process',
   'Timeline': 'gantt',
-  'Scadenze': 'deadlines',
+  
   'Documenti': 'documents',
   'Team': 'team',
   'Consulenti': 'consultants',

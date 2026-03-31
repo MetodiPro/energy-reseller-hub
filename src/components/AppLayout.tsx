@@ -19,7 +19,7 @@ import { useStepProgress } from '@/hooks/useStepProgress';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { useExportPDF } from '@/hooks/useExportPDF';
-import { useDeadlineNotifications } from '@/hooks/useDeadlineNotifications';
+
 import { useLazyUnifiedExport } from '@/hooks/useLazyUnifiedExport';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
@@ -30,7 +30,7 @@ import type { User } from '@supabase/supabase-js';
 const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard })));
 const ProcessTracker = lazy(() => import('@/components/ProcessTracker').then(m => ({ default: m.ProcessTracker })));
 const ProjectOverview = lazy(() => import('@/components/ProjectOverview').then(m => ({ default: m.ProjectOverview })));
-const RegulatoryCalendar = lazy(() => import('@/components/RegulatoryCalendar').then(m => ({ default: m.RegulatoryCalendar })));
+
 const StepDocuments = lazy(() => import('@/components/StepDocuments').then(m => ({ default: m.StepDocuments })));
 const ProjectTeamManager = lazy(() => import('@/components/ProjectTeamManager').then(m => ({ default: m.ProjectTeamManager })));
 const DocumentManager = lazy(() => import('@/components/DocumentManager').then(m => ({ default: m.DocumentManager })));
@@ -58,7 +58,7 @@ function SectionLoader() {
 }
 
 const VALID_SECTIONS = [
-  'overview', 'dashboard', 'process', 'deadlines', 'step-docs', 'team',
+  'overview', 'dashboard', 'process', 'step-docs', 'team',
   'documents', 'consultants', 'tariffs', 'hypotheses', 'director-report', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile', 'crm',
 ];
@@ -85,7 +85,7 @@ export function AppLayout({ user }: AppLayoutProps) {
 
   const [showWizard, setShowWizard] = useState(false);
   const [showStartupDialog, setShowStartupDialog] = useState(false);
-  const [regulatoryDeadlines, setRegulatoryDeadlines] = useState<any[]>([]);
+  
   const [navigateToPhase, setNavigateToPhase] = useState<number | null>(null);
 
   const currentProjectId = currentProject?.id ?? null;
@@ -109,21 +109,6 @@ export function AppLayout({ user }: AppLayoutProps) {
     setTimeout(() => revenueSimForTariffs.saveSimulation(), 500);
   }, [revenueSimForTariffs]);
 
-  useDeadlineNotifications(regulatoryDeadlines, !!currentProjectId, currentProject?.commodity_type);
-
-  // Fetch deadlines
-  useEffect(() => {
-    const fetchDeadlines = async () => {
-      if (!currentProjectId) { setRegulatoryDeadlines([]); return; }
-      const { data } = await supabase
-        .from('regulatory_deadlines')
-        .select('*')
-        .eq('project_id', currentProjectId)
-        .order('due_date', { ascending: true });
-      setRegulatoryDeadlines(data || []);
-    };
-    fetchDeadlines();
-  }, [currentProjectId]);
 
   // Wizard / startup dialog logic
   useEffect(() => {
@@ -206,15 +191,6 @@ export function AppLayout({ user }: AppLayoutProps) {
               onUpdateProjectEndDate={(date) => {
                 if (currentProjectId) updateProjectEndDate(currentProjectId, date);
               }}
-            />
-          );
-        case 'deadlines':
-          return (
-            <RegulatoryCalendar
-              projectId={currentProjectId}
-              eveLicenseDate={currentProject?.eve_license_date}
-              evgLicenseDate={currentProject?.evg_license_date}
-              commodityType={currentProject?.commodity_type}
             />
           );
         case 'step-docs':
