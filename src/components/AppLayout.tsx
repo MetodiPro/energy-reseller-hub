@@ -85,7 +85,7 @@ export function AppLayout({ user }: AppLayoutProps) {
 
   const [showWizard, setShowWizard] = useState(false);
   const [showStartupDialog, setShowStartupDialog] = useState(false);
-  const [regulatoryDeadlines, setRegulatoryDeadlines] = useState<any[]>([]);
+  
   const [navigateToPhase, setNavigateToPhase] = useState<number | null>(null);
 
   const currentProjectId = currentProject?.id ?? null;
