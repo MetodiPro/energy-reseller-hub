@@ -56,6 +56,15 @@ export const WholesalerCostsSummary = ({
     ? passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema + passthroughTotals.accise
     : 0;
 
+  // Split energia into PUN and Spread components
+  const pun = params?.punPerKwh ?? 0;
+  const spreadG = params?.spreadGrossistaPerKwh ?? 0;
+  const totalRate = pun + spreadG;
+  const punShare = totalRate > 0 ? pun / totalRate : 1;
+  const spreadShare = totalRate > 0 ? spreadG / totalRate : 0;
+  const costoEnergiaPun = costoEnergiaTotale * punShare;
+  const costoEnergiaSpread = costoEnergiaTotale * spreadShare;
+
   const totaleGrossista = costoEnergiaTotale + costoGestionePodTotale;
 
   const getDetailContent = (key: DetailKey) => {
