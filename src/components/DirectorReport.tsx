@@ -469,6 +469,15 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         onNavigateToTariffs={() => {}}
       />
 
+      {/* Commercial Costs per Product */}
+      {multiProductResult && multiProductResult.products.length > 0 && (
+        <CommercialCostsPerProduct
+          multiProductResult={multiProductResult}
+          products={products}
+          formatCurrency={formatCurrency}
+        />
+      )}
+
       {/* Channel Performance - always visible */}
       {channelData.length > 0 && (
         <Card>
