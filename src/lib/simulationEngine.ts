@@ -267,6 +267,8 @@ export function runSimulationEngine(
       contrattiNuovi,
       attivazioni,
       churn,
+      churnM0,
+      churnOrdinario,
       clientiAttivi: cumulativeActiveCustomers,
       clientiFatturati,
     };
