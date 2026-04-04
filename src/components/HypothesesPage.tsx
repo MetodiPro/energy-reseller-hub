@@ -1,8 +1,6 @@
-import { useCallback, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Settings2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
-import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
@@ -22,10 +20,7 @@ interface HypothesesPageProps {
 export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRevenueSimulation }: HypothesesPageProps) => {
   const ownRevenueSimulation = useRevenueSimulation(sharedRevenueSimulation ? null : projectId);
   const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
-  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
-  const { engineResult, multiProductResult } = useEngineResult(projectId, { simulationData: sharedSimData });
-  const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
-  const { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading, refetch: refetchChannels } = useSalesChannels(projectId);
+  const { channels: salesChannels, refetch: refetchChannels } = useSalesChannels(projectId);
   const navigate = useNavigate();
 
   // --- ARERA tariff mismatch detection ---
