@@ -49,6 +49,7 @@ export const ProductsConfig = ({ projectId, defaultParams, salesChannels: extern
       client_type: defaultParams.clientType,
       iva_percent: defaultParams.ivaPercent,
       activation_rate: defaultParams.activationRate,
+      churn_month0_pct: defaultParams.churnMonth0Pct ?? 0,
       churn_month1_pct: defaultParams.churnMonth1Pct,
       churn_month2_pct: defaultParams.churnMonth2Pct,
       churn_month3_pct: defaultParams.churnMonth3Pct,
@@ -400,7 +401,16 @@ const ProductCard = ({ product, channels, globalParams, onChange, onDelete }: Pr
             <Separator />
 
             <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">Switch-out (Churn)</h4>
-            <div className="grid grid-cols-3 gap-2">
+            <p className="text-xs text-muted-foreground italic">
+              Mese 0: % dei POD appena attivati che ricevono switch-out nello stesso mese di attivazione
+              (concorrente first-in wins, doppia sottoscrizione). Uscita effettiva 2 mesi dopo (ritardo SII).
+              Mesi 1-3: % applicata ai POD attivi nei mesi successivi all'attivazione.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Mese 0 — attivazione (%)</Label>
+                <Input type="number" min={0} max={100} step={0.1} value={product.churn_month0_pct} onChange={e => onChange(id, 'churn_month0_pct', parseFloat(e.target.value) || 0)} className="h-8" />
+              </div>
               <div className="space-y-1">
                 <Label className="text-xs">1° mese (%)</Label>
                 <Input type="number" min={0} max={100} step={0.1} value={product.churn_month1_pct} onChange={e => onChange(id, 'churn_month1_pct', parseFloat(e.target.value) || 0)} className="h-8" />
