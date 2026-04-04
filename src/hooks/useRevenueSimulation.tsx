@@ -92,6 +92,7 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
   avgMonthlyConsumption: 200,
   activationRate: 85,
   monthlyChurnRate: 1.5,
+  churnMonth0Pct: 0,
   churnMonth1Pct: 3.0,
   churnMonth2Pct: 2.0,
   churnMonth3Pct: 1.5,
