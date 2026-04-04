@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Users, Download, MousePointerClick } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 import { ChurnPerProductChart } from './ChurnPerProductChart';
+import { ActivationsPerProductChart } from './ActivationsPerProductChart';
+import { ActivePodsPerProductChart } from './ActivePodsPerProductChart';
 import * as XLSX from 'xlsx';
 
 interface CustomerBaseSectionProps {
@@ -216,6 +218,12 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Activations chart */}
+      <ActivationsPerProductChart multiProductResult={multiProductResult} />
+
+      {/* Active PODs chart */}
+      <ActivePodsPerProductChart multiProductResult={multiProductResult} />
 
       {/* Churn chart */}
       <ChurnPerProductChart multiProductResult={multiProductResult} />
