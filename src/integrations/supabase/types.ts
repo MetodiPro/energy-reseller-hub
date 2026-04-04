@@ -1391,6 +1391,7 @@ export type Database = {
           ccv_monthly: number
           channel_id: string | null
           churn_decay_factor: number
+          churn_month0_pct: number
           churn_month1_pct: number
           churn_month2_pct: number
           churn_month3_pct: number
@@ -1419,6 +1420,7 @@ export type Database = {
           ccv_monthly?: number
           channel_id?: string | null
           churn_decay_factor?: number
+          churn_month0_pct?: number
           churn_month1_pct?: number
           churn_month2_pct?: number
           churn_month3_pct?: number
@@ -1447,6 +1449,7 @@ export type Database = {
           ccv_monthly?: number
           channel_id?: string | null
           churn_decay_factor?: number
+          churn_month0_pct?: number
           churn_month1_pct?: number
           churn_month2_pct?: number
           churn_month3_pct?: number

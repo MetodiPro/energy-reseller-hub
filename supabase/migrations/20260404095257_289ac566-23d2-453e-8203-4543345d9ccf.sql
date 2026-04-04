@@ -1,0 +1,1 @@
+ALTER TABLE simulation_products ADD COLUMN IF NOT EXISTS churn_month0_pct numeric NOT NULL DEFAULT 0;
