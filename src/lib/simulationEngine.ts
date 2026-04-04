@@ -423,7 +423,7 @@ export function runMultiProductEngine(
           avgMonthlyConsumption: globalParams.avgMonthlyConsumption,
           clientType: globalParams.clientType, ivaPercent: globalParams.ivaPercent,
           activationRate: globalParams.activationRate,
-          churnMonth1Pct: globalParams.churnMonth1Pct, churnMonth2Pct: globalParams.churnMonth2Pct,
+          churnMonth0Pct: globalParams.churnMonth0Pct ?? 0, churnMonth1Pct: globalParams.churnMonth1Pct, churnMonth2Pct: globalParams.churnMonth2Pct,
           churnMonth3Pct: globalParams.churnMonth3Pct, churnDecayFactor: globalParams.churnDecayFactor,
           collectionMonth0: globalParams.collectionMonth0, collectionMonth1: globalParams.collectionMonth1,
           collectionMonth2: globalParams.collectionMonth2, collectionMonth3Plus: globalParams.collectionMonth3Plus,
