@@ -39,6 +39,24 @@ export interface AreraTariffResponse {
   error?: string;
 }
 
+export interface AreraAISearchResult {
+  success: boolean;
+  data?: {
+    quarter: string;
+    year: number;
+    delibera: string;
+    effective_date: string;
+    next_update_date: string;
+    trasporto: { quotaFissaAnno: number; quotaPotenzaKwAnno: number; quotaEnergiaKwh: number };
+    oneri: { asosKwh: number; arimKwh: number; asosFissaAnno: number; asosPotenzaKwAnno: number };
+    accise: { domesticoKwh: number; altriUsiKwh: number };
+    confidence: string;
+    source_description: string;
+  };
+  error?: string;
+}
+
+/** Read stored tariffs from storage */
 export async function fetchAreraTariffs(clientType?: string): Promise<AreraTariffResponse> {
   const { data, error } = await supabase.functions.invoke('fetch-arera-tariffs', {
     body: { _action: 'read', clientType: clientType ?? 'domestico' },
@@ -48,6 +66,7 @@ export async function fetchAreraTariffs(clientType?: string): Promise<AreraTarif
   return data as AreraTariffResponse;
 }
 
+/** Save tariffs to storage */
 export async function updateAreraTariffs(tariffs: Partial<AreraTariffData>): Promise<AreraTariffResponse> {
   const payload = {
     _action: 'write',
@@ -66,4 +85,13 @@ export async function updateAreraTariffs(tariffs: Partial<AreraTariffData>): Pro
   if (error) throw new Error(error.message || 'Impossibile aggiornare le tariffe ARERA');
   if (data?.success === false) throw new Error(data?.error || 'Salvataggio fallito lato server');
   return data as AreraTariffResponse;
+}
+
+/** Search for latest ARERA tariffs using AI */
+export async function searchAreraTariffsAI(): Promise<AreraAISearchResult> {
+  const { data, error } = await supabase.functions.invoke('search-arera-tariffs', {
+    body: {},
+  });
+  if (error) throw new Error(error.message || 'Errore nella ricerca AI delle tariffe ARERA');
+  return data as AreraAISearchResult;
 }

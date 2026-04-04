@@ -29,7 +29,7 @@ import {
   Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchCurrentPunPrice } from '@/lib/api/punPrice';
+// PUN is now manual — no auto-fetch
 import { fetchAreraTariffs } from '@/lib/api/areraTariffs';
 import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 
@@ -75,46 +75,11 @@ export const InvoiceComponentsInput = ({ params, onUpdate }: InvoiceComponentsIn
   const totaleFattura = imponibile + iva;
 
   const handleFetchPun = async () => {
-    setLoadingPun(true);
-    try {
-      const response = await fetchCurrentPunPrice();
-      
-      if (response.success && response.data) {
-        onUpdate('punPerKwh', response.data.averagePriceKwh);
-        setPunSource(response.data.source);
-        setPunDate(response.data.date);
-        
-        toast({
-          title: 'PUN Aggiornato',
-          description: (
-            <div className="space-y-1">
-              <p>Prezzo medio: {response.data.averagePrice.toFixed(2)} €/MWh</p>
-              <p className="text-xs text-muted-foreground">
-                Min: {response.data.minPrice.toFixed(2)} - Max: {response.data.maxPrice.toFixed(2)} €/MWh
-              </p>
-              <p className="text-xs text-muted-foreground">Fonte: {response.data.source}</p>
-            </div>
-          ),
-        });
-        
-        if (response.warning) {
-          toast({
-            title: 'Avviso',
-            description: response.warning,
-            variant: 'destructive',
-          });
-        }
-      }
-    } catch (error: any) {
-      console.error('Error fetching PUN:', error);
-      toast({
-        title: 'Errore',
-        description: error.message || 'Impossibile recuperare il prezzo PUN',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingPun(false);
-    }
+    // PUN is now manual — redirect user to tariffs page
+    toast({
+      title: 'PUN manuale',
+      description: 'Vai alla sezione Tariffe di Mercato per inserire il PUN manualmente dal sito GME.',
+    });
   };
 
   const handleFetchArera = async () => {

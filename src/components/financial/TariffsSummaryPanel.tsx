@@ -20,7 +20,7 @@ import {
   Building2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchCurrentPunPrice } from '@/lib/api/punPrice';
+// PUN is now manual — no auto-fetch
 import { fetchAreraTariffs } from '@/lib/api/areraTariffs';
 import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 
@@ -47,19 +47,8 @@ export const TariffsSummaryPanel = ({ params, onUpdate }: TariffsSummaryPanelPro
   const handleRefreshAll = async () => {
     setLoading(true);
     try {
-      // Fetch PUN and ARERA in parallel
-      const [punResponse, areraResponse] = await Promise.all([
-        fetchCurrentPunPrice(),
-        fetchAreraTariffs(params.clientType),
-      ]);
-
-      if (punResponse.success && punResponse.data) {
-        onUpdate('punPerKwh', punResponse.data.averagePriceKwh);
-        setPunInfo({
-          source: punResponse.data.source,
-          date: punResponse.data.date,
-        });
-      }
+      // PUN is manual — only refresh ARERA
+      const areraResponse = await fetchAreraTariffs(params.clientType);
 
       if (areraResponse.success && areraResponse.data) {
         onUpdate('trasportoQuotaFissaAnno', areraResponse.data.trasporto.quotaFissaAnno);
