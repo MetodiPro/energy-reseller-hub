@@ -297,6 +297,18 @@ export function AppLayout({ user }: AppLayoutProps) {
               <p>Crea prima un progetto per configurare i costi grossista</p>
             </div>
           );
+        case 'customer-base':
+          return currentProjectId ? (
+            <CustomerBasePage
+              projectId={currentProjectId}
+              sharedRevenueSimulation={revenueSimForTariffs}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per visualizzare la Customer Base</p>
+            </div>
+          );
         case 'director-report':
           return currentProjectId ? (
             <DirectorReport
