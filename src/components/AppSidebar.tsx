@@ -73,8 +73,8 @@ const teamItems = [
 
 const strategyItems = [
   { id: "tariffs", title: "Tariffe di Mercato", icon: Zap },
-  { id: "wholesaler", title: "Grossista (Udd)", icon: Truck },
   { id: "hypotheses", title: "Ipotesi Operative", icon: Settings },
+  { id: "wholesaler", title: "Grossista (Udd)", icon: Truck },
   { id: "director-report", title: "Esiti", icon: ClipboardCheck },
   { id: "financials", title: "Finanza", icon: DollarSign },
   { id: "business-plan", title: "Business Plan", icon: FileText },
