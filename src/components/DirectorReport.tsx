@@ -410,13 +410,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
         currentPunPerKwh={revenueSimulation.data?.params?.punPerKwh}
       />
 
-      {/* Customer Base Section (includes Churn chart at end) */}
-      {multiProductResult && multiProductResult.products.length > 0 && (
-        <CustomerBaseSection
-          multiProductResult={multiProductResult}
-          totalActiveEnd={multiProductResult?.aggregated?.monthly?.[multiProductResult.aggregated.monthly.length - 1]?.customer?.clientiAttivi ?? simulationSummary.clientiAttivi}
-        />
-      )}
 
       {/* Product Performance Table - after Customer Base / Switch-out chart */}
       {multiProductResult && multiProductResult.products.length > 0 && (
