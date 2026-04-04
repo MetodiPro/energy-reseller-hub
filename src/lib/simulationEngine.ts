@@ -212,6 +212,7 @@ export function runSimulationEngine(
       const churnMonth0 = Math.round(attivazioni * churnMonth0Rate);
       if ((m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
         pendingChurnExits[m + SWITCH_OUT_DELAY] += churnMonth0;
+        pendingChurnM0Exits[m + SWITCH_OUT_DELAY] += churnMonth0;
       }
     }
 
