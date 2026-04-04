@@ -19,9 +19,10 @@ import { fetchAreraTariffs, updateAreraTariffs, searchAreraTariffsAI, type Arera
 interface MarketTariffsSectionProps {
   onImportToSimulator?: (fields: Record<string, number>) => void;
   onImportPun?: (punPerKwh: number) => void;
+  savedPunPerKwh?: number;
 }
 
-export function MarketTariffsSection({ onImportToSimulator, onImportPun }: MarketTariffsSectionProps) {
+export function MarketTariffsSection({ onImportToSimulator, onImportPun, savedPunPerKwh }: MarketTariffsSectionProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -33,7 +34,7 @@ export function MarketTariffsSection({ onImportToSimulator, onImportPun }: Marke
           Prezzi energia e componenti regolate ARERA
         </p>
       </div>
-      <PunCard onImportPun={onImportPun} />
+      <PunCard onImportPun={onImportPun} savedPunPerKwh={savedPunPerKwh} />
       <AreraCard onImportToSimulator={onImportToSimulator} refreshKey={0} />
     </div>
   );
