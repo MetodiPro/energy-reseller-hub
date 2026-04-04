@@ -241,6 +241,7 @@ export function runSimulationEngine(
     // Registra l'uscita effettiva 2 mesi dopo (realtà SII: switching richiede 2 mesi)
     if (churnProgrammato > 0 && (m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
       pendingChurnExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
+      pendingChurnOrdExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
     }
 
     // L'uscita effettiva avviene al mese corrente solo se era stata programmata 2 mesi fa
