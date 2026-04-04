@@ -257,6 +257,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         avg_monthly_consumption: currentData.params.avgMonthlyConsumption,
         activation_rate: currentData.params.activationRate,
         monthly_churn_rate: currentData.params.monthlyChurnRate,
+        churn_month0_pct: currentData.params.churnMonth0Pct ?? 0,
         churn_month1_pct: currentData.params.churnMonth1Pct,
         churn_month2_pct: currentData.params.churnMonth2Pct,
         churn_month3_pct: currentData.params.churnMonth3Pct,
