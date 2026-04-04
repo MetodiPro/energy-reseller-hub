@@ -56,6 +56,7 @@ export const useSimulationProducts = (projectId: string | null) => {
         client_type: r.client_type,
         iva_percent: Number(r.iva_percent),
         activation_rate: Number(r.activation_rate),
+        churn_month0_pct: Number(r.churn_month0_pct ?? 0),
         churn_month1_pct: Number(r.churn_month1_pct),
         churn_month2_pct: Number(r.churn_month2_pct),
         churn_month3_pct: Number(r.churn_month3_pct),
