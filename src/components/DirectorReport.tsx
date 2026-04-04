@@ -26,7 +26,7 @@ import { useSalesChannels, SalesChannel } from '@/hooks/useSalesChannels';
 import { SimulationEngineResult } from '@/lib/simulationEngine';
 import { OverviewTab } from '@/components/financial/OverviewTab';
 import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
-import { CustomerBaseSection } from '@/components/financial/CustomerBaseSection';
+
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
