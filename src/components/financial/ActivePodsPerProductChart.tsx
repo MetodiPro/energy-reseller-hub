@@ -72,7 +72,7 @@ export const ActivePodsPerProductChart = ({ multiProductResult }: ActivePodsPerP
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Aree impilate = POD attivi in fornitura per ciascun prodotto commerciale, mese per mese.
+          Aree impilate = POD attivi in fornitura per prodotto. I POD fatturati (base di calcolo del fatturato) partono dal 3° mese: nei primi 2 mesi i POD sono attivi ma non ancora inclusi nel ciclo di fatturazione.
         </p>
       </CardHeader>
       <CardContent>
