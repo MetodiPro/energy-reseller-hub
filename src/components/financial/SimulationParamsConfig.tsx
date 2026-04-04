@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ interface SimulationParamsConfigProps {
 export const SimulationParamsConfig = ({ projectId, simulationHook, commodityType }: SimulationParamsConfigProps) => {
   const { data, loading, updateMonthlyContract, updateStartDate, saveSimulation } = simulationHook;
   const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const [yearInput, setYearInput] = useState('');
 
   const debouncedSave = useCallback(() => {
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
@@ -31,6 +32,22 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
     updateStartDate(date);
     debouncedSave();
   }, [updateStartDate, debouncedSave]);
+
+  const commitYearInput = useCallback(() => {
+    const year = parseInt(yearInput, 10);
+
+    if (!isNaN(year) && year >= 2024 && year <= 2035) {
+      handleStartDateChange(new Date(data.startDate.getFullYear() === year ? year : year, data.startDate.getMonth(), 1));
+      setYearInput(String(year));
+      return;
+    }
+
+    setYearInput(String(data.startDate.getFullYear()));
+  }, [data.startDate, handleStartDateChange, yearInput]);
+
+  useEffect(() => {
+    setYearInput(String(data.startDate.getFullYear()));
+  }, [data.startDate]);
 
   if (loading) {
     return (
@@ -80,14 +97,16 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
               <div className="space-y-2">
                 <Label>Anno</Label>
                 <Input
-                  type="number"
-                  min="2024"
-                  max="2035"
-                  value={startDate.getFullYear()}
-                  onChange={(e) => {
-                    const year = parseInt(e.target.value);
-                    if (!isNaN(year) && year >= 2000 && year <= 2099) {
-                      handleStartDateChange(new Date(year, startDate.getMonth(), 1));
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={yearInput}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => setYearInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  onBlur={commitYearInput}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      commitYearInput();
                     }
                   }}
                 />
