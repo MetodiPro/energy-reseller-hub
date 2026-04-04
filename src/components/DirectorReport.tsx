@@ -403,12 +403,6 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
       )}
 
 
-      {/* Market Data Bar - before Customer Base */}
-      <MarketDataBar
-        onUsePunLive={handleUsePunLive}
-        onNavigateToTariffs={() => {}}
-        currentPunPerKwh={revenueSimulation.data?.params?.punPerKwh}
-      />
 
 
       {/* Product Performance Table - after Customer Base / Switch-out chart */}
