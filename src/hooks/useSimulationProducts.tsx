@@ -13,6 +13,7 @@ export interface SimulationProduct {
   client_type: string;
   iva_percent: number;
   activation_rate: number;
+  churn_month0_pct: number;
   churn_month1_pct: number;
   churn_month2_pct: number;
   churn_month3_pct: number;
