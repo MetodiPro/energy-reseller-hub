@@ -119,16 +119,14 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
         </div>
 
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-          {multiProductResult.products.map((p, idx) => {
-            const lastMonth = p.result.monthly[p.result.monthly.length - 1].customer;
+          {multiProductResult.products.map((p) => {
             const totalChurn    = p.result.monthly.reduce((s, m) => s + m.customer.churn, 0);
             const totalChurnM0  = p.result.monthly.reduce((s, m) => s + (m.customer.churnM0 ?? 0), 0);
             const totalChurnOrd = p.result.monthly.reduce((s, m) => s + (m.customer.churnOrdinario ?? 0), 0);
             return (
               <div key={p.product.id} className="p-3 rounded-lg border bg-card text-card-foreground">
                 <p className="text-xs text-muted-foreground font-medium truncate">{p.product.name}</p>
-                <p className="text-lg font-bold">{lastMonth.clientiAttivi.toLocaleString('it-IT')} attivi</p>
-                <p className="text-xs text-muted-foreground">{totalChurn.toLocaleString('it-IT')} switch-out totali</p>
+                <p className="text-lg font-bold">{totalChurn.toLocaleString('it-IT')} switch-out totali</p>
                 {hasChurnM0 && (
                   <>
                     <p className="text-xs text-muted-foreground">↳ {totalChurnM0.toLocaleString('it-IT')} da churn m0</p>
