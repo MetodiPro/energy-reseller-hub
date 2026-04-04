@@ -1,5 +1,4 @@
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
-import { useSimulationProducts } from '@/hooks/useSimulationProducts';
 import { useEngineResult } from '@/hooks/useEngineResult';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { CustomerBaseSection } from '@/components/financial/CustomerBaseSection';
@@ -13,9 +12,10 @@ interface CustomerBasePageProps {
 export const CustomerBasePage = ({ projectId, sharedRevenueSimulation }: CustomerBasePageProps) => {
   const ownRevenueSimulation = useRevenueSimulation(projectId);
   const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
-  const { products } = useSimulationProducts(projectId);
-  const multiProductResult = useEngineResult(revenueSimulation.data, products);
-  const simulationSummary = useSimulationSummary(revenueSimulation.data);
+
+  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
+  const { multiProductResult, engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
+  const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
 
   if (!multiProductResult || multiProductResult.products.length === 0) {
     return (
