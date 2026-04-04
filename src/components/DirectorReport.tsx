@@ -30,7 +30,7 @@ import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSu
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { exportDirectorReportDocx } from '@/lib/exportDirectorReportDocx';
-import { MarketDataBar } from '@/components/financial/MarketDataBar';
+
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
