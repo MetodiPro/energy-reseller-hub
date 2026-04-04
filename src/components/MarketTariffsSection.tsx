@@ -42,11 +42,41 @@ export function MarketTariffsSection({ onImportToSimulator, onImportPun, savedPu
 
 // ─── CARD 1: PUN (Manual Input) ──────────────────────────────
 
-function PunCard({ onImportPun }: {
+function PunCard({ onImportPun, savedPunPerKwh }: {
   onImportPun?: (punPerKwh: number) => void;
+  savedPunPerKwh?: number;
 }) {
-  const [pun, setPun] = useState<PunPriceData | null>(null);
+  const [pun, setPun] = useState<PunPriceData | null>(() => {
+    if (savedPunPerKwh && savedPunPerKwh > 0) {
+      return {
+        date: new Date().toISOString().split('T')[0],
+        averagePrice: Math.round(savedPunPerKwh * 1000 * 100) / 100,
+        averagePriceKwh: savedPunPerKwh,
+        minPrice: Math.round(savedPunPerKwh * 1000 * 100) / 100,
+        maxPrice: Math.round(savedPunPerKwh * 1000 * 100) / 100,
+        source: 'Dal simulatore',
+        data_freshness: 'manual' as const,
+        reference_date: new Date().toISOString().split('T')[0],
+      };
+    }
+    return null;
+  });
   const [manualKwh, setManualKwh] = useState<string>("");
+
+  useEffect(() => {
+    if (savedPunPerKwh && savedPunPerKwh > 0 && !pun) {
+      setPun({
+        date: new Date().toISOString().split('T')[0],
+        averagePrice: Math.round(savedPunPerKwh * 1000 * 100) / 100,
+        averagePriceKwh: savedPunPerKwh,
+        minPrice: Math.round(savedPunPerKwh * 1000 * 100) / 100,
+        maxPrice: Math.round(savedPunPerKwh * 1000 * 100) / 100,
+        source: 'Dal simulatore',
+        data_freshness: 'manual' as const,
+        reference_date: new Date().toISOString().split('T')[0],
+      });
+    }
+  }, [savedPunPerKwh]);
 
   const handleManualSave = () => {
     const val = parseFloat(manualKwh);
