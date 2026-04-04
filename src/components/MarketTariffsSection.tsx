@@ -22,43 +22,19 @@ interface MarketTariffsSectionProps {
 }
 
 export function MarketTariffsSection({ onImportToSimulator, onImportPun }: MarketTariffsSectionProps) {
-  const [refreshing, setRefreshing] = useState(false);
-  const [areraRefreshKey, setAreraRefreshKey] = useState(0);
-
-  const handleRefreshAll = async () => {
-    setRefreshing(true);
-    try {
-      setAreraRefreshKey(k => k + 1);
-      toast.success('Aggiornamento ARERA avviato');
-    } finally {
-      setTimeout(() => setRefreshing(false), 2000);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            Tariffe di Mercato
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Prezzi energia e componenti regolate ARERA
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefreshAll}
-          disabled={refreshing}
-        >
-          <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
-          Aggiorna ARERA
-        </Button>
+      <div>
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary" />
+          Tariffe di Mercato
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Prezzi energia e componenti regolate ARERA
+        </p>
       </div>
       <PunCard onImportPun={onImportPun} />
-      <AreraCard onImportToSimulator={onImportToSimulator} refreshKey={areraRefreshKey} />
+      <AreraCard onImportToSimulator={onImportToSimulator} refreshKey={0} />
     </div>
   );
 }
