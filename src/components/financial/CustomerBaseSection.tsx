@@ -172,11 +172,10 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               Customer Base — Dettaglio Mensile per Prodotto
             </DialogTitle>
             <DialogDescription>
-              Per ogni mese: contratti firmati dalla rete, attivazioni (entrate in fornitura con 2 mesi di lag dalla firma),
-              switch-out (uscite effettive: ogni recesso produce uscita 2 mesi dopo per il processo SII),
-              POD attivi cumulativi e POD fatturati.
-              <span className="block mt-1 text-xs">
-                ⓘ Switch-out = 0 nei mesi 1-2: fisiologico, il ritardo SII fa emergere le prime uscite dal mese 3.
+              Per ogni mese: contratti firmati dalla rete, attivazioni (entrate in fornitura con 2 mesi di lag dalla firma), switch-out (uscite effettive: ogni recesso — incluso il churn mese 0 — produce uscita 2 mesi dopo per il processo SII), POD attivi cumulativi e POD fatturati.
+              <span className="block mt-1 text-xs opacity-80">
+                ⓘ Switch-out mesi 1-2 = 0: fisiologico, le prime uscite emergono dal mese 3 per il ritardo SII.
+                Switch-out mesi 3+: somma di churn mese 0 (quota delle attivazioni di 2 mesi fa) e churn ordinario (% sui POD attivi).
                 POD fatturati = 0 nei mesi 1-3: il primo ciclo di fatturazione completo si apre dal 3° mese dall'attivazione.
               </span>
             </DialogDescription>

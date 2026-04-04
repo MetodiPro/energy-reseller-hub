@@ -85,7 +85,7 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
         </div>
         <p className="text-sm text-muted-foreground">
           Barre = switch-out mensili per prodotto.
-          A fine periodo di simulazione (14 mesi) risultano attivi <strong>{totalActiveEnd.toLocaleString('it-IT')}</strong> POD in fornitura. Gli switch-out dei mesi 1-2 sono zero per costruzione: il ritardo SII di 2 mesi fa sì che i primi recessi diventino uscite effettive solo dal 3° mese in poi.
+          A fine simulazione risultano attivi <strong>{totalActiveEnd.toLocaleString('it-IT')}</strong> POD. Gli switch-out includono due componenti: (1) churn mese 0 — POD appena attivati che ricevono switch-out immediato (first-in wins perso, doppia sottoscrizione), emesso 2 mesi dopo l'attivazione; (2) churn ordinario — uscita naturale del portafoglio attivo, con decadimento mensile. I mesi 1-2 mostrano switch-out zero: fisiologico per il ritardo SII di 2 mesi.
         </p>
       </CardHeader>
       <CardContent>

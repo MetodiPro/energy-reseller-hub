@@ -80,7 +80,7 @@ export const ActivationsPerProductChart = ({ multiProductResult }: ActivationsPe
         </div>
         <p className="text-sm text-muted-foreground">
           Barre = attivazioni mensili (switch-in) per prodotto.
-          Le attivazioni avvengono con 2 mesi di ritardo rispetto alla firma del contratto (tempo di preparazione dossier + scadenza SII del 10 del mese). Gli switch-out effettivi seguono a loro volta un ulteriore ritardo di 2 mesi dalla richiesta di recesso.
+          Le attivazioni avvengono con 2 mesi di ritardo rispetto alla firma. Se il churn mese 0 è &gt; 0%, una quota delle attivazioni mensili riceve subito una richiesta di switch-out (es. first-in wins perso, doppia sottoscrizione) che diventa uscita effettiva 2 mesi dopo.
         </p>
       </CardHeader>
       <CardContent>
