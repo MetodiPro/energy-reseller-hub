@@ -72,7 +72,7 @@ export const ActivePodsPerProductChart = ({ multiProductResult }: ActivePodsPerP
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Aree impilate = POD attivi in fornitura per prodotto. I POD fatturati (base di calcolo del fatturato) partono dal 3° mese: nei primi 2 mesi i POD sono attivi ma non ancora inclusi nel ciclo di fatturazione.
+          Aree impilate = POD attivi in fornitura per prodotto. I POD attivi includono sia quelli fatturati (dalla 3ª mensilità) sia quelli in fase di prima attivazione. Il churn mese 0 erode silenziosamente ogni coorte: con churn m0 &gt; 0%, una quota fissa delle attivazioni mensili uscirà 2 mesi dopo, visibile come componente costante negli switch-out.
         </p>
       </CardHeader>
       <CardContent>
