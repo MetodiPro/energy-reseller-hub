@@ -48,6 +48,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
     cols.push({ key: 'tot_contratti',   label: 'Tot. Contratti' });
     cols.push({ key: 'tot_attivazioni', label: 'Tot. Attivazioni' });
     cols.push({ key: 'tot_churn',       label: 'Tot. Switch-Out' });
+    cols.push({ key: 'tot_churnM0',     label: 'di cui Churn M0' });
+    cols.push({ key: 'tot_churnOrd',    label: 'di cui Churn Ord.' });
     cols.push({ key: 'tot_attivi',      label: 'Tot. Attivi' });
     cols.push({ key: 'tot_fatturati',   label: 'Tot. Fatturati' });
 
