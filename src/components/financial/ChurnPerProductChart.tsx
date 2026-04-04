@@ -79,13 +79,13 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1">
               <Users className="h-3 w-3" />
-              Clienti attivi al mese {lastMonthActive}: <span className="font-bold">{totalActiveEnd.toLocaleString('it-IT')}</span>
+              POD attivi a fine simulazione: <span className="font-bold">{totalActiveEnd.toLocaleString('it-IT')}</span>
             </Badge>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
           Barre = switch-out mensili per prodotto.
-          Al giorno 1 del {lastMonthActive + 1}° mese resteranno <strong>{totalActiveEnd.toLocaleString('it-IT')}</strong> accessi attivi in fornitura.
+          A fine periodo di simulazione (14 mesi) risultano attivi <strong>{totalActiveEnd.toLocaleString('it-IT')}</strong> POD in fornitura. Gli switch-out dei mesi 1-2 sono zero per costruzione: il ritardo SII di 2 mesi fa sì che i primi recessi diventino uscite effettive solo dal 3° mese in poi.
         </p>
       </CardHeader>
       <CardContent>
