@@ -11,8 +11,8 @@ interface TernaTokenResponse {
 
 interface TernaDailyPrice {
   base_price_EURxMWh: string | number;
-    macrozone?: string;
-    [key: string]: unknown;
+  macrozone?: string;
+  [key: string]: unknown;
 }
 
 interface TernaPricesResponse {
@@ -53,30 +53,23 @@ function formatDateISO(d: Date): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-async function getTernaToken(): Promise<string> {
-  const clientId = Deno.env.get('TERNA_KEY');
-  const clientSecret = Deno.env.get('TERNA_SECRET');
-
-  if (!clientId || !clientSecret) {
-    throw new Error('TERNA_KEY or TERNA_SECRET not configured');
-  }
-
-  console.log(`Using TERNA_KEY: ${clientId.substring(0, 6)}...`);
+async function getTernaToken(clientId: string, clientSecret: string): Promise<string> {
+  console.log(`OAuth: using key ${clientId.substring(0, 6)}...`);
 
   const res = await fetch('https://api.terna.it/transparency/oauth/accessToken', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(12000),
   });
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Terna OAuth failed: ${res.status} - ${body}`);
+    throw new Error(`Terna OAuth ${res.status}: ${body.substring(0, 300)}`);
   }
 
   const data: TernaTokenResponse = await res.json();
-  console.log('Terna OAuth token obtained successfully');
+  console.log('Terna token OK');
   return data.access_token;
 }
 
@@ -85,12 +78,9 @@ function parsePrices(prices: TernaDailyPrice[], isoDate: string): PunData {
     .map((p) => parseFloat(String(p.base_price_EURxMWh)))
     .filter((v) => !isNaN(v) && v > 0);
 
-  if (values.length === 0) {
-    throw new Error('No valid price values in Terna response');
-  }
+  if (values.length === 0) throw new Error('Nessun valore prezzo valido nella risposta Terna');
 
-  const sum = values.reduce((a, b) => a + b, 0);
-  const avg = sum / values.length;
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
 
   return {
     date: isoDate,
@@ -104,24 +94,25 @@ function parsePrices(prices: TernaDailyPrice[], isoDate: string): PunData {
   };
 }
 
-async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> {
+async function fetchTernaPrices(token: string, subscriptionKey: string, refDate: Date): Promise<PunData> {
   const dmyDate = formatDateDMY(refDate);
   const isoDate = formatDateISO(refDate);
 
-  const endpoints = [
-    `https://api.terna.it/transparency/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
+  const urls = [
     `https://api.terna.it/transparency/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}`,
+    `https://api.terna.it/transparency/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
   ];
 
   let lastError = '';
-  for (const url of endpoints) {
-    console.log(`Trying Terna endpoint: ${url.split('?')[0]}`);
-    const subscriptionKey = Deno.env.get('TERNA_KEY') ?? '';
+
+  for (const url of urls) {
+    console.log(`Trying: ${url}`);
+
     const res = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Ocp-Apim-Subscription-Key': subscriptionKey,
-        Accept: 'application/json',
+        'Accept': 'application/json',
       },
       signal: AbortSignal.timeout(15000),
     });
@@ -131,58 +122,49 @@ async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> 
       const prices = json.daily_prices;
 
       if (!prices || prices.length === 0) {
-        lastError = `No price data from ${url.split('?')[0]}`;
+        lastError = `Risposta vuota da ${url}`;
+        console.warn(lastError);
         continue;
       }
 
-      console.log(`Success from ${url.split('?')[0]}, got ${prices.length} records`);
+      console.log(`OK: ${prices.length} records da ${url}`);
       return parsePrices(prices, isoDate);
     }
 
     const body = await res.text();
-    lastError = `${url.split('?')[0]} returned ${res.status}: ${body.substring(0, 200)}`;
-    console.warn(lastError);
+    lastError = `HTTP ${res.status} da ${url}: ${body.substring(0, 400)}`;
+    console.error(lastError);
   }
 
-  throw new Error(`All Terna endpoints failed. Last: ${lastError}`);
+  throw new Error(`Tutti gli endpoint Terna falliti. Ultimo errore: ${lastError}`);
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+
+  const clientId = Deno.env.get('TERNA_KEY') ?? '';
+  const clientSecret = Deno.env.get('TERNA_SECRET') ?? '';
+
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
 
   try {
-    const { date } = await req.json().catch(() => ({}));
+    if (!clientId || !clientSecret) throw new Error('TERNA_KEY o TERNA_SECRET non configurati');
 
-    // Use yesterday (Terna publishes day-after)
-    let refDate: Date;
-    if (date) {
-      refDate = new Date(date);
-      refDate.setDate(refDate.getDate() - 1);
-    } else {
-      refDate = new Date();
-      refDate.setDate(refDate.getDate() - 1);
-    }
+    console.log(`Fetch PUN per ${formatDateISO(yesterday)}...`);
 
-    console.log(`Fetching PUN for ${formatDateISO(refDate)} via Terna API...`);
+    const token = await getTernaToken(clientId, clientSecret);
+    const punData = await fetchTernaPrices(token, clientId, yesterday);
 
-    const token = await getTernaToken();
-    const punData = await fetchTernaPrices(token, refDate);
-
-    // Set the response date to the originally requested date
-    const requestedDate = date ? new Date(date) : new Date();
-    punData.date = formatDateISO(requestedDate);
+    punData.date = formatDateISO(now);
 
     return new Response(JSON.stringify({ success: true, data: punData }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Terna API error, using fallback:', error);
-
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error('Terna error:', errMsg);
 
     const fallback: PunData = {
       ...FALLBACK,
@@ -194,7 +176,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         data: fallback,
-        warning: 'Terna API non raggiungibile. Utilizzati valori di stima aggiornati a marzo 2026.',
+        warning: `Terna non raggiungibile: ${errMsg}`,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
