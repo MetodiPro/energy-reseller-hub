@@ -182,12 +182,16 @@ export function runSimulationEngine(
 
   const monthly: MonthlyEngineResult[] = [];
 
-  // Coda degli switch-out: i clienti che "decidono" di uscire al mese m
-  // cessano effettivamente al mese m + SWITCH_OUT_DELAY
+  // Coda degli switch-out ordinari: recesso comunicato al mese m → uscita effettiva m+2
+  // (regola SII delibera 487/2015: switching richiede 2 mesi)
   const SWITCH_OUT_DELAY = 2;
-  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
-  const pendingChurnM0Exits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
-  const pendingChurnOrdExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+  // Coda degli switch-out da churn mese 0: SE1 concorrente caricata entro il 10 del
+  // mese di attivazione → switch-out effettivo il 1° del mese successivo (delay = 1).
+  // Modellazione worst-case: il POD entra in fornitura 1 solo mese senza generare fatture.
+  const SWITCH_OUT_DELAY_M0 = 1;
+  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY + 1).fill(0);
+  const pendingChurnM0Exits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY + 1).fill(0);
+  const pendingChurnOrdExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY + 1).fill(0);
 
   const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 0) / 100;
   let totalPagamentiAccumulati = 0;
