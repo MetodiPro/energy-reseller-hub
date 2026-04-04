@@ -45,6 +45,8 @@ export interface MonthlyCustomerData {
   contrattiNuovi: number;
   attivazioni: number;
   churn: number;
+  churnM0: number;
+  churnOrdinario: number;
   clientiAttivi: number;
   clientiFatturati: number;
 }
@@ -184,6 +186,8 @@ export function runSimulationEngine(
   // cessano effettivamente al mese m + SWITCH_OUT_DELAY
   const SWITCH_OUT_DELAY = 2;
   const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+  const pendingChurnM0Exits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+  const pendingChurnOrdExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
 
   const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 0) / 100;
   let totalPagamentiAccumulati = 0;
@@ -208,6 +212,7 @@ export function runSimulationEngine(
       const churnMonth0 = Math.round(attivazioni * churnMonth0Rate);
       if ((m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
         pendingChurnExits[m + SWITCH_OUT_DELAY] += churnMonth0;
+        pendingChurnM0Exits[m + SWITCH_OUT_DELAY] += churnMonth0;
       }
     }
 
@@ -236,10 +241,13 @@ export function runSimulationEngine(
     // Registra l'uscita effettiva 2 mesi dopo (realtà SII: switching richiede 2 mesi)
     if (churnProgrammato > 0 && (m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
       pendingChurnExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
+      pendingChurnOrdExits[m + SWITCH_OUT_DELAY] += churnProgrammato;
     }
 
     // L'uscita effettiva avviene al mese corrente solo se era stata programmata 2 mesi fa
     const churn = pendingChurnExits[m] ?? 0;
+    const churnM0 = pendingChurnM0Exits[m] ?? 0;
+    const churnOrdinario = pendingChurnOrdExits[m] ?? 0;
 
     cumulativeActiveCustomers = Math.max(
       0,
@@ -259,6 +267,8 @@ export function runSimulationEngine(
       contrattiNuovi,
       attivazioni,
       churn,
+      churnM0,
+      churnOrdinario,
       clientiAttivi: cumulativeActiveCustomers,
       clientiFatturati,
     };
@@ -492,6 +502,8 @@ function aggregateProductResults(
         contrattiNuovi: s(x => x.customer.contrattiNuovi),
         attivazioni: s(x => x.customer.attivazioni),
         churn: s(x => x.customer.churn),
+        churnM0: s(x => x.customer.churnM0),
+        churnOrdinario: s(x => x.customer.churnOrdinario),
         clientiAttivi: s(x => x.customer.clientiAttivi),
         clientiFatturati: s(x => x.customer.clientiFatturati),
       },
