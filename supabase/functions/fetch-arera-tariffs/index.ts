@@ -163,12 +163,21 @@ Deno.serve(async (req) => {
           accise: { ...existing.accise, ...(tariffData.accise || {}) },
         };
 
-        const saved = await writeTariffsToStorage(supabase, merged);
-        const response = buildResponse(saved, 'storage', clientType);
-
-        return new Response(JSON.stringify(response), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      let saved: AreraTariffs;
+      let freshness: 'storage' | 'default_init' = 'storage';
+      try {
+        saved = await writeTariffsToStorage(supabase, merged);
+      } catch (writeError) {
+        console.error('Storage write failed:', writeError);
+        return new Response(
+          JSON.stringify({ success: false, error: `Salvataggio fallito: ${(writeError as Error).message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      const response = buildResponse(saved, freshness, clientType);
+      return new Response(JSON.stringify(response), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
       }
 
       // Otherwise it's just a read with clientType in body (backward compat)
