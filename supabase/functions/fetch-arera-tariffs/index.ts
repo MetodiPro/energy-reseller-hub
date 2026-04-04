@@ -134,25 +134,22 @@ Deno.serve(async (req) => {
   try {
     const supabase = getServiceClient();
 
-    if (req.method === 'GET') {
-      // Read tariffs from storage
-      const url = new URL(req.url);
-      const clientType = url.searchParams.get('clientType') || undefined;
+    // supabase.functions.invoke usa sempre POST — distinguiamo read/write tramite _action
+    const body = await req.json().catch(() => ({}));
+    const { _action, clientType, ...tariffData } = body;
 
+    if (!_action || _action === 'read') {
+      // Lettura tariffe
       const { tariffs, freshness } = await readTariffsFromStorage(supabase);
       const response = buildResponse(tariffs, freshness, clientType);
-
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (req.method === 'POST') {
-      const body = await req.json();
-      const { clientType, ...tariffData } = body;
-
-      // If body contains tariff fields, it's an update
-      if (tariffData.quarter || tariffData.trasporto || tariffData.oneri || tariffData.accise) {
+    if (_action === 'write') {
+      // Scrittura tariffe — tariffData contiene i campi da aggiornare
+      if (tariffData.trasporto || tariffData.oneri || tariffData.accise || tariffData.delibera) {
         // Merge with existing to allow partial updates
         const { tariffs: existing } = await readTariffsFromStorage(supabase);
         const merged: AreraTariffs = {
@@ -179,18 +176,12 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
       }
-
-      // Otherwise it's just a read with clientType in body (backward compat)
-      const { tariffs, freshness } = await readTariffsFromStorage(supabase);
-      const response = buildResponse(tariffs, freshness, clientType);
-
-      return new Response(JSON.stringify(response), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
+    // _action sconosciuta — lettura di fallback
+    const { tariffs, freshness } = await readTariffsFromStorage(supabase);
+    const response = buildResponse(tariffs, freshness, clientType);
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
