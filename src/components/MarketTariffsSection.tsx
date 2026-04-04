@@ -115,7 +115,7 @@ function PunCard({ onImportPun }: {
               GME — Gestore Mercati Energetici <ExternalLink className="h-3.5 w-3.5" />
             </a>
             <p className="text-xs text-muted-foreground">
-              Vai alla sezione "Statistiche → Mercato Elettrico → Dati di Sintesi" e consulta il PUN medio del giorno/mese corrente. Copia il valore in €/MWh e dividilo per 1000 per ottenere €/kWh.
+              Consulta il PUN medio aggiornato e inserisci il valore in €/kWh.
             </p>
           </div>
         </div>
