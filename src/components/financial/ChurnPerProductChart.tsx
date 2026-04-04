@@ -113,18 +113,6 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
                   opacity={0.7}
                 />
               ))}
-              {products.map((p, idx) => (
-                <Line
-                  key={`attivi_${idx}`}
-                  yAxisId="active"
-                  type="monotone"
-                  dataKey={`attivi_${idx}`}
-                  name={`Attivi ${p.name}`}
-                  stroke={PRODUCT_COLORS[idx % PRODUCT_COLORS.length]}
-                  strokeWidth={2}
-                  dot={false}
-                />
-              ))}
             </ComposedChart>
           </ResponsiveContainer>
         </div>
