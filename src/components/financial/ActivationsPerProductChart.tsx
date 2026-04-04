@@ -79,7 +79,7 @@ export const ActivationsPerProductChart = ({ multiProductResult }: ActivationsPe
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Barre = attivazioni mensili per prodotto · Linee = nuovi contratti firmati per prodotto.
+          Barre = attivazioni mensili (switch-in) per prodotto.
           Le attivazioni avvengono con 2 mesi di ritardo rispetto alla firma (ritardo SII).
         </p>
       </CardHeader>
