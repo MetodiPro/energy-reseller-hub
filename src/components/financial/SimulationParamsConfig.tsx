@@ -84,7 +84,12 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   min="2024"
                   max="2035"
                   value={startDate.getFullYear()}
-                  onChange={(e) => handleStartDateChange(new Date(parseInt(e.target.value) || 2026, startDate.getMonth(), 1))}
+                  onChange={(e) => {
+                    const year = parseInt(e.target.value);
+                    if (!isNaN(year) && year >= 2000 && year <= 2099) {
+                      handleStartDateChange(new Date(year, startDate.getMonth(), 1));
+                    }
+                  }}
                 />
               </div>
             </div>
