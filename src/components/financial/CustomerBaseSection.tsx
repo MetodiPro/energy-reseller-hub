@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Users, Download, MousePointerClick } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 import { ChurnPerProductChart } from './ChurnPerProductChart';
+import { ContractsPerProductChart } from './ContractsPerProductChart';
 import { ActivationsPerProductChart } from './ActivationsPerProductChart';
 import { ActivePodsPerProductChart } from './ActivePodsPerProductChart';
 import * as XLSX from 'xlsx';
