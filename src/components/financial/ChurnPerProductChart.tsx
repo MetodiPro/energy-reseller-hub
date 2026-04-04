@@ -84,7 +84,7 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Barre = switch-out mensili per prodotto · Linee = clienti attivi cumulativi per prodotto.
+          Barre = switch-out mensili per prodotto.
           Al giorno 1 del {lastMonthActive + 1}° mese resteranno <strong>{totalActiveEnd.toLocaleString('it-IT')}</strong> accessi attivi in fornitura.
         </p>
       </CardHeader>
