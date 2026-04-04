@@ -186,6 +186,8 @@ export function runSimulationEngine(
   // cessano effettivamente al mese m + SWITCH_OUT_DELAY
   const SWITCH_OUT_DELAY = 2;
   const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+  const pendingChurnM0Exits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+  const pendingChurnOrdExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
 
   const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 0) / 100;
   let totalPagamentiAccumulati = 0;
