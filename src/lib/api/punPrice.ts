@@ -12,4 +12,4 @@ export interface PunPriceData {
   reference_date: string;
 }
 
-export const GME_URL = 'https://www.mercatoelettrico.org/it/Statistiche/ME/DatiSintesi.aspx';
+export const GME_URL = 'https://www.mercatoelettrico.org/';
