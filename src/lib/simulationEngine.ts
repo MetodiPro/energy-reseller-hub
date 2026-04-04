@@ -199,6 +199,18 @@ export function runSimulationEngine(
           )
         : 0;
 
+    // Churn mese 0: POD appena attivati che ricevono switch-out nello stesso mese
+    // di attivazione (es. concorrente first-in wins nel mese di limbo, ripensamento
+    // tardivo, doppia sottoscrizione scoperta post-attivazione).
+    // La richiesta SII parte nel mese di attivazione → uscita effettiva 2 mesi dopo.
+    const churnMonth0Rate = (params.churnMonth0Pct ?? 0) / 100;
+    if (attivazioni > 0 && churnMonth0Rate > 0) {
+      const churnMonth0 = Math.round(attivazioni * churnMonth0Rate);
+      if ((m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
+        pendingChurnExits[m + SWITCH_OUT_DELAY] += churnMonth0;
+      }
+    }
+
     // Calcola quanti clienti "comunicano" il recesso questo mese
     // Modello granulare: mesi 3,4,5 manuali, poi decadimento esponenziale
     const churnMonthIndex = m - 3; // 0-based index dei mesi di churn (0=primo mese)
@@ -371,6 +383,7 @@ export interface ProductConfig {
   clientType: string;
   ivaPercent: number;
   activationRate: number;
+  churnMonth0Pct: number;
   churnMonth1Pct: number;
   churnMonth2Pct: number;
   churnMonth3Pct: number;
@@ -410,7 +423,7 @@ export function runMultiProductEngine(
           avgMonthlyConsumption: globalParams.avgMonthlyConsumption,
           clientType: globalParams.clientType, ivaPercent: globalParams.ivaPercent,
           activationRate: globalParams.activationRate,
-          churnMonth1Pct: globalParams.churnMonth1Pct, churnMonth2Pct: globalParams.churnMonth2Pct,
+          churnMonth0Pct: globalParams.churnMonth0Pct ?? 0, churnMonth1Pct: globalParams.churnMonth1Pct, churnMonth2Pct: globalParams.churnMonth2Pct,
           churnMonth3Pct: globalParams.churnMonth3Pct, churnDecayFactor: globalParams.churnDecayFactor,
           collectionMonth0: globalParams.collectionMonth0, collectionMonth1: globalParams.collectionMonth1,
           collectionMonth2: globalParams.collectionMonth2, collectionMonth3Plus: globalParams.collectionMonth3Plus,
