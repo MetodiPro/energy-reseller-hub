@@ -248,7 +248,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
 
       const simulationData = {
         project_id: projectId,
-        start_date: currentData.startDate.toISOString().split('T')[0],
+        start_date: formatLocalDate(currentData.startDate),
         monthly_contracts: currentData.monthlyContracts,
         commodity_type: 'luce',
         
