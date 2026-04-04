@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, TrendingDown } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
 import {
   ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
@@ -30,15 +30,16 @@ const CHURN_ORD_COLORS = [
 ];
 
 export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChartProps) => {
-  const { chartData, products, totalActiveEnd, hasChurnM0 } = useMemo(() => {
+  const { chartData, products, totalSwitchOut, hasChurnM0 } = useMemo(() => {
     if (!multiProductResult || multiProductResult.products.length === 0) {
-      return { chartData: [], products: [], totalActiveEnd: 0, hasChurnM0: false };
+      return { chartData: [], products: [], totalSwitchOut: 0, hasChurnM0: false };
     }
 
     const prods = multiProductResult.products;
     const monthCount = prods[0].result.monthly.length;
     const data: Record<string, any>[] = [];
     let anyChurnM0 = false;
+    let totSwitchOut = 0;
 
     for (let m = 0; m < monthCount; m++) {
       const row: Record<string, any> = {
@@ -49,19 +50,15 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
         row[`churnM0_${idx}`]  = cm.churnM0 ?? 0;
         row[`churnOrd_${idx}`] = cm.churnOrdinario ?? 0;
         if ((cm.churnM0 ?? 0) > 0) anyChurnM0 = true;
+        totSwitchOut += cm.churn;
       });
       data.push(row);
     }
 
-    let totalEnd = 0;
-    prods.forEach(p => {
-      totalEnd += p.result.monthly[monthCount - 1].customer.clientiAttivi;
-    });
-
     return {
       chartData: data,
       products: prods.map(p => p.product),
-      totalActiveEnd: totalEnd,
+      totalSwitchOut: totSwitchOut,
       hasChurnM0: anyChurnM0,
     };
   }, [multiProductResult]);
@@ -77,8 +74,8 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
             Andamento Switch-out per Prodotto
           </CardTitle>
           <Badge variant="outline" className="gap-1">
-            <Users className="h-3 w-3" />
-            POD attivi a fine simulazione: <span className="font-bold">{totalActiveEnd.toLocaleString('it-IT')}</span>
+            <TrendingDown className="h-3 w-3" />
+            Switch-out totali a fine simulazione: <span className="font-bold">{totalSwitchOut.toLocaleString('it-IT')}</span>
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -122,16 +119,14 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
         </div>
 
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-          {multiProductResult.products.map((p, idx) => {
-            const lastMonth = p.result.monthly[p.result.monthly.length - 1].customer;
+          {multiProductResult.products.map((p) => {
             const totalChurn    = p.result.monthly.reduce((s, m) => s + m.customer.churn, 0);
             const totalChurnM0  = p.result.monthly.reduce((s, m) => s + (m.customer.churnM0 ?? 0), 0);
             const totalChurnOrd = p.result.monthly.reduce((s, m) => s + (m.customer.churnOrdinario ?? 0), 0);
             return (
               <div key={p.product.id} className="p-3 rounded-lg border bg-card text-card-foreground">
                 <p className="text-xs text-muted-foreground font-medium truncate">{p.product.name}</p>
-                <p className="text-lg font-bold">{lastMonth.clientiAttivi.toLocaleString('it-IT')} attivi</p>
-                <p className="text-xs text-muted-foreground">{totalChurn.toLocaleString('it-IT')} switch-out totali</p>
+                <p className="text-lg font-bold">{totalChurn.toLocaleString('it-IT')} switch-out totali</p>
                 {hasChurnM0 && (
                   <>
                     <p className="text-xs text-muted-foreground">↳ {totalChurnM0.toLocaleString('it-IT')} da churn m0</p>
