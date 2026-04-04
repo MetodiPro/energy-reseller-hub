@@ -74,8 +74,8 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
             Andamento Switch-out per Prodotto
           </CardTitle>
           <Badge variant="outline" className="gap-1">
-            <Users className="h-3 w-3" />
-            POD attivi a fine simulazione: <span className="font-bold">{totalActiveEnd.toLocaleString('it-IT')}</span>
+            <TrendingDown className="h-3 w-3" />
+            Switch-out totali a fine simulazione: <span className="font-bold">{totalSwitchOut.toLocaleString('it-IT')}</span>
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
