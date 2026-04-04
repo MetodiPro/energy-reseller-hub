@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2 } from 'lucide-react';
+import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck } from 'lucide-react';
 import { processSteps } from '@/data/processSteps';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
@@ -46,6 +46,7 @@ const SettingsPage = lazy(() => import('@/components/SettingsPage').then(m => ({
 const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const MarketTariffsPage = lazy(() => import('@/components/MarketTariffsSection').then(m => ({ default: m.MarketTariffsSection })));
 const HypothesesPage = lazy(() => import('@/components/HypothesesPage').then(m => ({ default: m.HypothesesPage })));
+const WholesalerPage = lazy(() => import('@/components/WholesalerPage').then(m => ({ default: m.WholesalerPage })));
 
 const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m => ({ default: m.DirectorReport })));
 
@@ -279,6 +280,20 @@ export function AppLayout({ user }: AppLayoutProps) {
             <div className="text-center py-12 text-muted-foreground">
               <Settings2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Crea prima un progetto per configurare le ipotesi operative</p>
+            </div>
+          );
+        case 'wholesaler':
+          return currentProjectId ? (
+            <WholesalerPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+              sharedRevenueSimulation={revenueSimForTariffs}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per configurare i costi grossista</p>
             </div>
           );
         case 'director-report':
