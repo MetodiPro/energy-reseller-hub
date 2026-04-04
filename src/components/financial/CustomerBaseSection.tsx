@@ -48,6 +48,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
     cols.push({ key: 'tot_contratti',   label: 'Tot. Contratti' });
     cols.push({ key: 'tot_attivazioni', label: 'Tot. Attivazioni' });
     cols.push({ key: 'tot_churn',       label: 'Tot. Switch-Out' });
+    cols.push({ key: 'tot_churnM0',     label: 'di cui Churn M0' });
+    cols.push({ key: 'tot_churnOrd',    label: 'di cui Churn Ord.' });
     cols.push({ key: 'tot_attivi',      label: 'Tot. Attivi' });
     cols.push({ key: 'tot_fatturati',   label: 'Tot. Fatturati' });
 
@@ -60,6 +62,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
       let totContratti = 0;
       let totAttivazioni = 0;
       let totChurn = 0;
+      let totChurnM0 = 0;
+      let totChurnOrd = 0;
       let totAttivi = 0;
       let totFatturati = 0;
 
@@ -74,6 +78,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
         totContratti   += cm.contrattiNuovi;
         totAttivazioni += cm.attivazioni;
         totChurn       += cm.churn;
+        totChurnM0     += cm.churnM0 ?? 0;
+        totChurnOrd    += cm.churnOrdinario ?? 0;
         totAttivi      += cm.clientiAttivi;
         totFatturati   += cm.clientiFatturati;
       });
@@ -81,6 +87,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
       row.tot_contratti   = totContratti;
       row.tot_attivazioni = totAttivazioni;
       row.tot_churn       = totChurn;
+      row.tot_churnM0     = totChurnM0;
+      row.tot_churnOrd    = totChurnOrd;
       row.tot_attivi      = totAttivi;
       row.tot_fatturati   = totFatturati;
 
