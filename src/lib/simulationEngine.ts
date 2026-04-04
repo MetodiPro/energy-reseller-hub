@@ -502,6 +502,8 @@ function aggregateProductResults(
         contrattiNuovi: s(x => x.customer.contrattiNuovi),
         attivazioni: s(x => x.customer.attivazioni),
         churn: s(x => x.customer.churn),
+        churnM0: s(x => x.customer.churnM0),
+        churnOrdinario: s(x => x.customer.churnOrdinario),
         clientiAttivi: s(x => x.customer.clientiAttivi),
         clientiFatturati: s(x => x.customer.clientiFatturati),
       },
