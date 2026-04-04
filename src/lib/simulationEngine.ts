@@ -214,9 +214,9 @@ export function runSimulationEngine(
     const churnMonth0Rate = (params.churnMonth0Pct ?? 0) / 100;
     if (attivazioni > 0 && churnMonth0Rate > 0) {
       const churnMonth0 = Math.round(attivazioni * churnMonth0Rate);
-      if ((m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
-        pendingChurnExits[m + SWITCH_OUT_DELAY] += churnMonth0;
-        pendingChurnM0Exits[m + SWITCH_OUT_DELAY] += churnMonth0;
+      if ((m + SWITCH_OUT_DELAY_M0) < pendingChurnExits.length) {
+        pendingChurnExits[m + SWITCH_OUT_DELAY_M0] += churnMonth0;
+        pendingChurnM0Exits[m + SWITCH_OUT_DELAY_M0] += churnMonth0;
       }
     }
 
