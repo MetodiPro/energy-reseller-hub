@@ -171,7 +171,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         
         setData({
           id: simulation.id,
-          startDate: new Date(simulation.start_date),
+          startDate: parseStoredDate(simulation.start_date),
           monthlyContracts: monthlyContracts.length === 12 
             ? monthlyContracts as MonthlyContractsTarget 
             : DEFAULT_MONTHLY_CONTRACTS,
