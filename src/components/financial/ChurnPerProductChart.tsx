@@ -95,7 +95,6 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis yAxisId="churn" orientation="left" tick={{ fontSize: 11 }} label={{ value: 'Switch-out', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
-              <YAxis yAxisId="active" orientation="right" tick={{ fontSize: 11 }} label={{ value: 'Clienti attivi', angle: 90, position: 'insideRight', style: { fontSize: 11 } }} />
               <Tooltip
                 formatter={(value: number, name: string) => {
                   const num = Math.round(value).toLocaleString('it-IT');
