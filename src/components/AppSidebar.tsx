@@ -19,6 +19,7 @@ import {
   Briefcase,
   ContactRound,
   ClipboardCheck,
+  Truck,
 } from "lucide-react";
 import {
   Sidebar,
