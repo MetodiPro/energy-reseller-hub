@@ -246,6 +246,8 @@ export function runSimulationEngine(
 
     // L'uscita effettiva avviene al mese corrente solo se era stata programmata 2 mesi fa
     const churn = pendingChurnExits[m] ?? 0;
+    const churnM0 = pendingChurnM0Exits[m] ?? 0;
+    const churnOrdinario = pendingChurnOrdExits[m] ?? 0;
 
     cumulativeActiveCustomers = Math.max(
       0,
