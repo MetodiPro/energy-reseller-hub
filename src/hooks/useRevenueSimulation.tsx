@@ -115,6 +115,26 @@ const DEFAULT_PARAMS: RevenueSimulationParams = {
 
 const DEFAULT_MONTHLY_CONTRACTS: MonthlyContractsTarget = [30, 40, 50, 60, 70, 80, 90, 100, 100, 100, 100, 100];
 
+const parseStoredDate = (value: string | null | undefined) => {
+  if (!value) return new Date(2026, 0, 1);
+
+  const [year, month, day] = value.split('-').map(Number);
+  if ([year, month, day].every((part) => Number.isFinite(part))) {
+    return new Date(year, month - 1, day);
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date(2026, 0, 1) : parsed;
+};
+
+const formatLocalDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
 export const useRevenueSimulation = (projectId: string | null) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -151,7 +171,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
         
         setData({
           id: simulation.id,
-          startDate: new Date(simulation.start_date),
+          startDate: parseStoredDate(simulation.start_date),
           monthlyContracts: monthlyContracts.length === 12 
             ? monthlyContracts as MonthlyContractsTarget 
             : DEFAULT_MONTHLY_CONTRACTS,
@@ -228,7 +248,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
 
       const simulationData = {
         project_id: projectId,
-        start_date: currentData.startDate.toISOString().split('T')[0],
+        start_date: formatLocalDate(currentData.startDate),
         monthly_contracts: currentData.monthlyContracts,
         commodity_type: 'luce',
         
