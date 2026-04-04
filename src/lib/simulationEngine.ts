@@ -371,6 +371,7 @@ export interface ProductConfig {
   clientType: string;
   ivaPercent: number;
   activationRate: number;
+  churnMonth0Pct: number;
   churnMonth1Pct: number;
   churnMonth2Pct: number;
   churnMonth3Pct: number;
