@@ -282,6 +282,20 @@ export function AppLayout({ user }: AppLayoutProps) {
               <p>Crea prima un progetto per configurare le ipotesi operative</p>
             </div>
           );
+        case 'wholesaler':
+          return currentProjectId ? (
+            <WholesalerPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+              sharedRevenueSimulation={revenueSimForTariffs}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per configurare i costi grossista</p>
+            </div>
+          );
         case 'director-report':
           return currentProjectId ? (
             <DirectorReport
