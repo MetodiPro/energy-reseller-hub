@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RefreshCw, Zap, FileText, CalendarIcon, ExternalLink, Save, Loader2, ArrowDownToLine, AlertTriangle, Sparkles } from "lucide-react";
+import { Zap, FileText, CalendarIcon, ExternalLink, Save, Loader2, ArrowDownToLine, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
