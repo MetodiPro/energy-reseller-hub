@@ -8,13 +8,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RefreshCw, Zap, FileText, CalendarIcon, ExternalLink, Save, Loader2, ArrowDownToLine, AlertTriangle } from "lucide-react";
+import { RefreshCw, Zap, FileText, CalendarIcon, ExternalLink, Save, Loader2, ArrowDownToLine, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { fetchCurrentPunPrice, type PunPriceData } from "@/lib/api/punPrice";
-import { fetchAreraTariffs, updateAreraTariffs, type AreraTariffData } from "@/lib/api/areraTariffs";
+import { type PunPriceData, GME_URL } from "@/lib/api/punPrice";
+import { fetchAreraTariffs, updateAreraTariffs, searchAreraTariffsAI, type AreraTariffData } from "@/lib/api/areraTariffs";
 
 interface MarketTariffsSectionProps {
   onImportToSimulator?: (fields: Record<string, number>) => void;
@@ -23,15 +23,13 @@ interface MarketTariffsSectionProps {
 
 export function MarketTariffsSection({ onImportToSimulator, onImportPun }: MarketTariffsSectionProps) {
   const [refreshing, setRefreshing] = useState(false);
-  const [punRefreshKey, setPunRefreshKey] = useState(0);
   const [areraRefreshKey, setAreraRefreshKey] = useState(0);
 
   const handleRefreshAll = async () => {
     setRefreshing(true);
     try {
-      setPunRefreshKey(k => k + 1);
       setAreraRefreshKey(k => k + 1);
-      toast.success('Aggiornamento avviato — PUN e tariffe ARERA in caricamento');
+      toast.success('Aggiornamento ARERA avviato');
     } finally {
       setTimeout(() => setRefreshing(false), 2000);
     }
@@ -56,51 +54,22 @@ export function MarketTariffsSection({ onImportToSimulator, onImportPun }: Marke
           disabled={refreshing}
         >
           <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
-          Aggiorna tutto
+          Aggiorna ARERA
         </Button>
       </div>
-      <PunCard onImportPun={onImportPun} refreshKey={punRefreshKey} />
+      <PunCard onImportPun={onImportPun} />
       <AreraCard onImportToSimulator={onImportToSimulator} refreshKey={areraRefreshKey} />
     </div>
   );
 }
 
-// ─── CARD 1: PUN ──────────────────────────────────────────────
+// ─── CARD 1: PUN (Manual Input) ──────────────────────────────
 
-function PunCard({ onImportPun, refreshKey }: {
+function PunCard({ onImportPun }: {
   onImportPun?: (punPerKwh: number) => void;
-  refreshKey?: number;
 }) {
-  const [loading, setLoading] = useState(false);
   const [pun, setPun] = useState<PunPriceData | null>(null);
-  const [warning, setWarning] = useState<string | undefined>();
   const [manualKwh, setManualKwh] = useState<string>("");
-  const [isManual, setIsManual] = useState(false);
-
-  const loadPunFromTerna = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetchCurrentPunPrice();
-      setPun(res.data);
-      setWarning(res.warning);
-      setIsManual(false);
-      if (res.data.data_freshness === 'live') {
-        toast.success("PUN aggiornato dai dati Terna");
-      } else {
-        toast.info("Terna non raggiungibile — valore stimato caricato. Puoi inserire il PUN manualmente.");
-      }
-    } catch (err: any) {
-      toast.error("Errore nel recupero del PUN: " + (err.message || ""));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (refreshKey && refreshKey > 0) {
-      loadPunFromTerna();
-    }
-  }, [refreshKey, loadPunFromTerna]);
 
   const handleManualSave = () => {
     const val = parseFloat(manualKwh);
@@ -115,12 +84,10 @@ function PunCard({ onImportPun, refreshKey }: {
       minPrice: Math.round(val * 1000 * 100) / 100,
       maxPrice: Math.round(val * 1000 * 100) / 100,
       source: 'Inserimento manuale',
-      data_freshness: 'fallback',
+      data_freshness: 'manual',
       reference_date: new Date().toISOString().split('T')[0],
     });
-    setWarning(undefined);
-    setIsManual(true);
-    toast.success(`PUN impostato manualmente: €${val.toFixed(5)}/kWh`);
+    toast.success(`PUN impostato: €${val.toFixed(5)}/kWh`);
   };
 
   const handleImportPun = () => {
@@ -129,27 +96,21 @@ function PunCard({ onImportPun, refreshKey }: {
     toast.success(`PUN €${pun.averagePriceKwh.toFixed(5)}/kWh importato nel simulatore`);
   };
 
-  const isLive = pun?.data_freshness === 'live';
-
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">PUN Index GME</CardTitle>
-          </div>
-          <Button variant="outline" size="sm" onClick={loadPunFromTerna} disabled={loading}>
-            <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-            Aggiorna da Terna
-          </Button>
+        <div className="flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base">PUN — Prezzo Unico Nazionale</CardTitle>
         </div>
-        <CardDescription>Prezzo Unico Nazionale dell'energia elettrica — aggiornamento manuale</CardDescription>
+        <CardDescription>
+          Inserisci il PUN manualmente consultando il sito GME
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Manual input section */}
         <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
-          <h4 className="text-sm font-semibold">Inserimento manuale PUN</h4>
+          <h4 className="text-sm font-semibold">Inserimento PUN</h4>
           <div className="flex items-end gap-3">
             <div className="flex-1 space-y-1.5">
               <Label htmlFor="punManual" className="text-xs">PUN (€/kWh)</Label>
@@ -167,15 +128,23 @@ function PunCard({ onImportPun, refreshKey }: {
               Applica
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Puoi consultare il prezzo su{' '}
-            <a href="https://www.mercatoelettrico.org/it/Statistiche/ME/DatiSint662.aspx" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-0.5">
-              GME — Mercato Elettrico <ExternalLink className="h-3 w-3" />
+          <div className="rounded border bg-background p-3 space-y-2">
+            <p className="text-xs font-medium text-foreground">📊 Dove trovare il PUN aggiornato:</p>
+            <a
+              href={GME_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-primary hover:underline inline-flex items-center gap-1 font-medium"
+            >
+              GME — Gestore Mercati Energetici <ExternalLink className="h-3.5 w-3.5" />
             </a>
-          </p>
+            <p className="text-xs text-muted-foreground">
+              Vai alla sezione "Statistiche → Mercato Elettrico → Dati di Sintesi" e consulta il PUN medio del giorno/mese corrente. Copia il valore in €/MWh e dividilo per 1000 per ottenere €/kWh.
+            </p>
+          </div>
         </div>
 
-        {pun ? (
+        {pun && (
           <>
             <Separator />
             <div className="flex items-baseline gap-4">
@@ -187,56 +156,26 @@ function PunCard({ onImportPun, refreshKey }: {
                   €{pun.averagePrice.toFixed(2)}<span className="text-xs">/MWh</span>
                 </p>
               </div>
-              <Badge variant={isLive ? "default" : "secondary"} className={cn(
-                "ml-auto",
-                isLive ? "bg-green-600 hover:bg-green-700 text-white"
-                  : isManual ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : "bg-yellow-500 hover:bg-yellow-600 text-white"
-              )}>
-                <span className={cn("inline-block h-2 w-2 rounded-full mr-1.5",
-                  isLive ? "bg-green-300" : isManual ? "bg-blue-200" : "bg-yellow-200"
-                )} />
-                {isLive ? "Live Terna" : isManual ? "Manuale" : "Stimato"}
+              <Badge variant="secondary" className="ml-auto bg-blue-500 hover:bg-blue-600 text-white">
+                <span className="inline-block h-2 w-2 rounded-full mr-1.5 bg-blue-200" />
+                Manuale
               </Badge>
             </div>
-
-            {!isManual && (
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>Min: €{pun.minPrice.toFixed(2)}/MWh</span>
-                <span>Max: €{pun.maxPrice.toFixed(2)}/MWh</span>
-              </div>
-            )}
-
             <p className="text-xs text-muted-foreground">
-              {isManual ? "Valore inserito manualmente" : (
-                <>Dati del {pun.reference_date ? format(new Date(pun.reference_date + 'T00:00:00'), "dd/MM/yyyy") : "N/D"} — Fonte: {pun.source}</>
-              )}
+              Valore inserito manualmente il {format(new Date(pun.date + 'T00:00:00'), "dd/MM/yyyy")}
             </p>
-
-            {!isLive && !isManual && warning && (
-              <Alert className="border-blue-500/50 bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-200">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-sm space-y-1">
-                  <p>Quota Terna temporaneamente esaurita (rate limit) — il valore mostrato è una stima aggiornata.</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-300">Puoi inserire il PUN manualmente nel campo sopra oppure riprovare più tardi.</p>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {onImportPun && pun && (
+            {onImportPun && (
               <Button size="sm" variant="outline" onClick={handleImportPun} className="gap-2 w-full">
                 <ArrowDownToLine className="h-4 w-4" />
                 Importa PUN nel Simulatore (€{pun.averagePriceKwh.toFixed(5)}/kWh)
               </Button>
             )}
           </>
-        ) : loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
+        )}
+
+        {!pun && (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Clicca "Aggiorna da Terna" per recuperare il PUN oppure inseriscilo manualmente.
+            Consulta il sito GME e inserisci il PUN corrente nel campo sopra.
           </p>
         )}
       </CardContent>
@@ -268,10 +207,12 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [searchingAI, setSearchingAI] = useState(false);
   const [requiresUpdate, setRequiresUpdate] = useState(false);
   const [daysUntilUpdate, setDaysUntilUpdate] = useState(0);
   const [nextUpdateStr, setNextUpdateStr] = useState("");
   const [dataFreshness, setDataFreshness] = useState<string>("");
+  const [aiConfidence, setAiConfidence] = useState<string>("");
 
   const [form, setForm] = useState<AreraFormState>({
     quotaFissaAnno: 23.00,
@@ -324,9 +265,45 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
 
   useEffect(() => {
     if (refreshKey && refreshKey > 0) {
-      loadTariffs();
+      handleSearchAI();
     }
   }, [refreshKey]);
+
+  const handleSearchAI = async () => {
+    setSearchingAI(true);
+    try {
+      const result = await searchAreraTariffsAI();
+      if (!result.success || !result.data) {
+        toast.error("Ricerca AI fallita: " + (result.error || "Nessun dato"));
+        return;
+      }
+      const d = result.data;
+      setForm({
+        quotaFissaAnno: d.trasporto.quotaFissaAnno,
+        quotaPotenzaKwAnno: d.trasporto.quotaPotenzaKwAnno,
+        quotaEnergiaKwh: d.trasporto.quotaEnergiaKwh,
+        asosKwh: d.oneri.asosKwh,
+        arimKwh: d.oneri.arimKwh,
+        asosFissaAnno: d.oneri.asosFissaAnno ?? 0,
+        asosPotenzaKwAnno: d.oneri.asosPotenzaKwAnno ?? 0,
+        domesticoKwh: d.accise.domesticoKwh,
+        altriUsiKwh: d.accise.altriUsiKwh,
+        delibera: d.delibera || "",
+        effectiveDate: d.effective_date ? new Date(d.effective_date + 'T00:00:00') : undefined,
+        nextUpdateDate: d.next_update_date ? new Date(d.next_update_date + 'T00:00:00') : undefined,
+      });
+      setAiConfidence(d.confidence || 'medium');
+      toast.success(
+        `Tariffe ARERA trovate (${d.delibera}) — Confidenza: ${d.confidence}. Verifica i valori e salva.`,
+        { duration: 6000 }
+      );
+    } catch (err: any) {
+      console.error('AI search error:', err);
+      toast.error("Errore ricerca AI: " + (err.message || "Errore sconosciuto"));
+    } finally {
+      setSearchingAI(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -359,7 +336,7 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
       setDataFreshness(res.data_freshness);
 
       setSaved(true);
-      toast.success("Tariffe ARERA aggiornate");
+      toast.success("Tariffe ARERA salvate nel database");
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
       console.error('ARERA save error:', err);
@@ -399,14 +376,33 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-primary" />
-          <CardTitle className="text-base">Tariffe ARERA — Componenti Regolate</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base">Tariffe ARERA — Componenti Regolate</CardTitle>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleSearchAI} disabled={searchingAI}>
+            {searchingAI ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            {searchingAI ? "Ricerca in corso..." : "Cerca con AI"}
+          </Button>
         </div>
         <CardDescription>
-          Valori aggiornabili manualmente ad ogni delibera trimestrale
+          Usa l'AI per trovare le tariffe più recenti, poi verifica e salva
           {dataFreshness === 'default_init' && (
             <Badge variant="outline" className="ml-2 text-xs">Valori iniziali</Badge>
+          )}
+          {aiConfidence && (
+            <Badge variant="outline" className={cn("ml-2 text-xs",
+              aiConfidence === 'high' ? "border-green-500 text-green-700" :
+              aiConfidence === 'medium' ? "border-yellow-500 text-yellow-700" :
+              "border-red-500 text-red-700"
+            )}>
+              Confidenza AI: {aiConfidence}
+            </Badge>
           )}
         </CardDescription>
       </CardHeader>
@@ -415,7 +411,7 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
         <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
           <h4 className="text-sm font-semibold flex items-center gap-1.5">
             <ExternalLink className="h-3.5 w-3.5" />
-            Dove trovare i dati aggiornati
+            Dove verificare i dati
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div className="space-y-1.5">
@@ -470,25 +466,18 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
             </div>
           </div>
         </div>
+
         {/* Update warning banner */}
         {requiresUpdate && (
           <Alert className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-200">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="space-y-2">
               <p className="font-medium">
-                ⚠ Aggiornamento trimestrale disponibile — Verifica la nuova delibera ARERA e aggiorna i valori.
+                ⚠ Aggiornamento trimestrale disponibile — Clicca "Cerca con AI" per trovare i nuovi valori.
               </p>
               <p className="text-sm">
                 Prossimo aggiornamento atteso: {nextUpdateStr ? format(new Date(nextUpdateStr + 'T00:00:00'), "dd/MM/yyyy") : "N/D"}
               </p>
-              <a
-                href="https://www.arera.it/area-operatori/prezzi-e-tariffe/oneri-generali-di-sistema-e-ulteriori-componenti"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm underline hover:no-underline"
-              >
-                Consulta ARERA <ExternalLink className="h-3 w-3" />
-              </a>
             </AlertDescription>
           </Alert>
         )}
@@ -536,35 +525,24 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
 
         <Separator />
 
-        {/* Oneri di Sistema — Quote aggiuntive PMI/Business */}
+        {/* Oneri PMI/Business */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             Oneri di Sistema — Quote aggiuntive PMI/Business (usi non-domestici)
           </h3>
           <p className="text-xs text-muted-foreground">
             Applicabili solo a clientela non-domestica (PMI, Business).
-            Non si applicano ai clienti domestici.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="asosFissa" className="text-xs">ASOS Quota Fissa (€/POD/anno)</Label>
-              <Input
-                id="asosFissa"
-                type="number"
-                step="0.01"
-                value={form.asosFissaAnno}
-                onChange={e => updateField('asosFissaAnno', parseFloat(e.target.value) || 0)}
-              />
+              <Input id="asosFissa" type="number" step="0.01" value={form.asosFissaAnno}
+                onChange={e => updateField('asosFissaAnno', parseFloat(e.target.value) || 0)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="asosPotenza" className="text-xs">ASOS Quota Potenza (€/kW/anno)</Label>
-              <Input
-                id="asosPotenza"
-                type="number"
-                step="0.01"
-                value={form.asosPotenzaKwAnno}
-                onChange={e => updateField('asosPotenzaKwAnno', parseFloat(e.target.value) || 0)}
-              />
+              <Input id="asosPotenza" type="number" step="0.01" value={form.asosPotenzaKwAnno}
+                onChange={e => updateField('asosPotenzaKwAnno', parseFloat(e.target.value) || 0)} />
             </div>
           </div>
         </div>
@@ -627,7 +605,7 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
           {onImportToSimulator && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
-                Seleziona il tipo di clientela del tuo progetto per importare l'aliquota accise corretta. Domestico: {form.domesticoKwh.toFixed(5)} €/kWh — Business/PMI: {form.altriUsiKwh.toFixed(5)} €/kWh
+                Seleziona il tipo di clientela per importare l'aliquota accise corretta.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button size="sm" variant="outline" onClick={() => handleImportWithAccise(form.domesticoKwh, `Domestici (${form.domesticoKwh.toFixed(5)} €/kWh)`)}>

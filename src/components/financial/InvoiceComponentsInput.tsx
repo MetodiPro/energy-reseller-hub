@@ -29,7 +29,7 @@ import {
   Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchCurrentPunPrice } from '@/lib/api/punPrice';
+// PUN is now manual — no auto-fetch
 import { fetchAreraTariffs } from '@/lib/api/areraTariffs';
 import type { RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 
