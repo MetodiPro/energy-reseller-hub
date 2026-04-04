@@ -202,9 +202,10 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         ...response,
-        warning: `Errore interno. Utilizzate tariffe di default (delibera ${DEFAULT_TARIFFS.delibera}).`,
+        success: false,
+        warning: `Errore interno: ${(error as Error).message}. Utilizzate tariffe di default (delibera ${DEFAULT_TARIFFS.delibera}).`,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
