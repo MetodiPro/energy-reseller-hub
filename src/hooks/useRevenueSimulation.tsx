@@ -31,6 +31,7 @@ export interface ClientParams {
   avgMonthlyConsumption: number;  // Consumo medio kWh/mese
   activationRate: number;         // Tasso attivazione %
   monthlyChurnRate: number;       // Tasso switch-out mensile % (legacy/fallback)
+  churnMonth0Pct: number;         // Churn mese 0 (switch-out immediato all'attivazione) %
   churnMonth1Pct: number;         // Churn 1° mese dopo attivazione %
   churnMonth2Pct: number;         // Churn 2° mese %
   churnMonth3Pct: number;         // Churn 3° mese %

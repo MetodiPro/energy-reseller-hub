@@ -42,6 +42,7 @@ export const useEngineResult = (
       clientType: p.client_type,
       ivaPercent: p.iva_percent,
       activationRate: p.activation_rate,
+      churnMonth0Pct: p.churn_month0_pct ?? 0,
       churnMonth1Pct: p.churn_month1_pct,
       churnMonth2Pct: p.churn_month2_pct,
       churnMonth3Pct: p.churn_month3_pct,
