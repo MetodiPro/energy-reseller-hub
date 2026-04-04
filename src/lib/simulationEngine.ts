@@ -45,6 +45,8 @@ export interface MonthlyCustomerData {
   contrattiNuovi: number;
   attivazioni: number;
   churn: number;
+  churnM0: number;
+  churnOrdinario: number;
   clientiAttivi: number;
   clientiFatturati: number;
 }
