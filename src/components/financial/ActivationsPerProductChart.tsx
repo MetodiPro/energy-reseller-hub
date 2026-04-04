@@ -86,11 +86,10 @@ export const ActivationsPerProductChart = ({ multiProductResult }: ActivationsPe
       <CardContent>
         <div className="h-[380px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis yAxisId="activations" orientation="left" tick={{ fontSize: 11 }} label={{ value: 'Attivazioni', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
-              <YAxis yAxisId="contracts" orientation="right" tick={{ fontSize: 11 }} label={{ value: 'Contratti firmati', angle: 90, position: 'insideRight', style: { fontSize: 11 } }} />
+              <YAxis tick={{ fontSize: 11 }} label={{ value: 'Attivazioni', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
               <Tooltip
                 formatter={(value: number, name: string) => {
                   const num = Math.round(value).toLocaleString('it-IT');
@@ -101,7 +100,6 @@ export const ActivationsPerProductChart = ({ multiProductResult }: ActivationsPe
               {products.map((p, idx) => (
                 <Bar
                   key={`attivazioni_${idx}`}
-                  yAxisId="activations"
                   dataKey={`attivazioni_${idx}`}
                   name={`Attivazioni ${p.name}`}
                   fill={ACTIVATION_COLORS[idx % ACTIVATION_COLORS.length]}
@@ -109,20 +107,7 @@ export const ActivationsPerProductChart = ({ multiProductResult }: ActivationsPe
                   opacity={0.75}
                 />
               ))}
-              {products.map((p, idx) => (
-                <Line
-                  key={`contratti_${idx}`}
-                  yAxisId="contracts"
-                  type="monotone"
-                  dataKey={`contratti_${idx}`}
-                  name={`Contratti ${p.name}`}
-                  stroke={PRODUCT_COLORS[idx % PRODUCT_COLORS.length]}
-                  strokeWidth={2}
-                  strokeDasharray="5 3"
-                  dot={false}
-                />
-              ))}
-            </ComposedChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
