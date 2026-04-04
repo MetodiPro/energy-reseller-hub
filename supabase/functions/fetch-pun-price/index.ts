@@ -109,8 +109,8 @@ async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> 
   const isoDate = formatDateISO(refDate);
 
   const endpoints = [
-    `https://api.terna.it/fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
-    `https://api.terna.it/market-and-fees/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
+    `https://api.terna.it/transparency/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}&dataType=Orario`,
+    `https://api.terna.it/transparency/v1.0/daily-prices?dateFrom=${encodeURIComponent(dmyDate)}&dateTo=${encodeURIComponent(dmyDate)}`,
   ];
 
   let lastError = '';
