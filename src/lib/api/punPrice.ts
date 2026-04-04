@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+// PUN price is now manually entered by the user.
+// This file only exports the types used across the app.
 
 export interface PunPriceData {
   date: string;
@@ -7,25 +8,8 @@ export interface PunPriceData {
   minPrice: number;
   maxPrice: number;
   source: string;
-  data_freshness: 'live' | 'fallback';
+  data_freshness: 'live' | 'fallback' | 'manual';
   reference_date: string;
 }
 
-export interface PunPriceResponse {
-  success: boolean;
-  data: PunPriceData;
-  warning?: string;
-}
-
-export async function fetchCurrentPunPrice(date?: Date): Promise<PunPriceResponse> {
-  const { data, error } = await supabase.functions.invoke('fetch-pun-price', {
-    body: date ? { date: date.toISOString() } : {},
-  });
-
-  if (error) {
-    console.error('Error fetching PUN price:', error);
-    throw new Error(error.message || 'Impossibile recuperare il prezzo PUN');
-  }
-
-  return data as PunPriceResponse;
-}
+export const GME_URL = 'https://www.mercatoelettrico.org/it/Statistiche/ME/DatiSintesi.aspx';
