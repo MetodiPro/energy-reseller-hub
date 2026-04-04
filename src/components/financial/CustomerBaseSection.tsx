@@ -62,6 +62,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
       let totContratti = 0;
       let totAttivazioni = 0;
       let totChurn = 0;
+      let totChurnM0 = 0;
+      let totChurnOrd = 0;
       let totAttivi = 0;
       let totFatturati = 0;
 
