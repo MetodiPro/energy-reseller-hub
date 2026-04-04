@@ -199,6 +199,18 @@ export function runSimulationEngine(
           )
         : 0;
 
+    // Churn mese 0: POD appena attivati che ricevono switch-out nello stesso mese
+    // di attivazione (es. concorrente first-in wins nel mese di limbo, ripensamento
+    // tardivo, doppia sottoscrizione scoperta post-attivazione).
+    // La richiesta SII parte nel mese di attivazione → uscita effettiva 2 mesi dopo.
+    const churnMonth0Rate = (params.churnMonth0Pct ?? 0) / 100;
+    if (attivazioni > 0 && churnMonth0Rate > 0) {
+      const churnMonth0 = Math.round(attivazioni * churnMonth0Rate);
+      if ((m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
+        pendingChurnExits[m + SWITCH_OUT_DELAY] += churnMonth0;
+      }
+    }
+
     // Calcola quanti clienti "comunicano" il recesso questo mese
     // Modello granulare: mesi 3,4,5 manuali, poi decadimento esponenziale
     const churnMonthIndex = m - 3; // 0-based index dei mesi di churn (0=primo mese)
