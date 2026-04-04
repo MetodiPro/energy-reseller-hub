@@ -116,9 +116,14 @@ async function fetchTernaPrices(token: string, refDate: Date): Promise<PunData> 
   let lastError = '';
   for (const url of endpoints) {
     console.log(`Trying Terna endpoint: ${url.split('?')[0]}`);
+    const subscriptionKey = Deno.env.get('TERNA_KEY') ?? '';
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: AbortSignal.timeout(10000),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Ocp-Apim-Subscription-Key': subscriptionKey,
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(15000),
     });
 
     if (res.ok) {
