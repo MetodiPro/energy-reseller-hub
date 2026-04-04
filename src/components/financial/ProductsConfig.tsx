@@ -49,6 +49,7 @@ export const ProductsConfig = ({ projectId, defaultParams, salesChannels: extern
       client_type: defaultParams.clientType,
       iva_percent: defaultParams.ivaPercent,
       activation_rate: defaultParams.activationRate,
+      churn_month0_pct: defaultParams.churnMonth0Pct ?? 0,
       churn_month1_pct: defaultParams.churnMonth1Pct,
       churn_month2_pct: defaultParams.churnMonth2Pct,
       churn_month3_pct: defaultParams.churnMonth3Pct,
