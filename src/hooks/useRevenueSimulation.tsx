@@ -181,6 +181,7 @@ export const useRevenueSimulation = (projectId: string | null) => {
             avgMonthlyConsumption: Number(simulation.avg_monthly_consumption),
             activationRate: Number(simulation.activation_rate),
             monthlyChurnRate: Number(simulation.monthly_churn_rate ?? DEFAULT_PARAMS.monthlyChurnRate),
+            churnMonth0Pct: Number((simulation as any).churn_month0_pct ?? DEFAULT_PARAMS.churnMonth0Pct),
             churnMonth1Pct: Number((simulation as any).churn_month1_pct ?? DEFAULT_PARAMS.churnMonth1Pct),
             churnMonth2Pct: Number((simulation as any).churn_month2_pct ?? DEFAULT_PARAMS.churnMonth2Pct),
             churnMonth3Pct: Number((simulation as any).churn_month3_pct ?? DEFAULT_PARAMS.churnMonth3Pct),
