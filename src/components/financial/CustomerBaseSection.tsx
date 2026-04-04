@@ -220,6 +220,9 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
         </DialogContent>
       </Dialog>
 
+      {/* Contracts chart */}
+      <ContractsPerProductChart multiProductResult={multiProductResult} />
+
       {/* Activations chart */}
       <ActivationsPerProductChart multiProductResult={multiProductResult} />
 
