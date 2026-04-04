@@ -78,6 +78,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
         totContratti   += cm.contrattiNuovi;
         totAttivazioni += cm.attivazioni;
         totChurn       += cm.churn;
+        totChurnM0     += cm.churnM0 ?? 0;
+        totChurnOrd    += cm.churnOrdinario ?? 0;
         totAttivi      += cm.clientiAttivi;
         totFatturati   += cm.clientiFatturati;
       });
