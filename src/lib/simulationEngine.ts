@@ -451,6 +451,7 @@ export function runMultiProductEngine(
       clientType: product.clientType as any,
       ivaPercent: product.ivaPercent,
       activationRate: product.activationRate,
+      churnMonth0Pct: product.churnMonth0Pct,
       churnMonth1Pct: product.churnMonth1Pct,
       churnMonth2Pct: product.churnMonth2Pct,
       churnMonth3Pct: product.churnMonth3Pct,
