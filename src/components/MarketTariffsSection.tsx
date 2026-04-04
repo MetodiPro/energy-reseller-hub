@@ -362,7 +362,8 @@ function AreraCard({ onImportToSimulator, refreshKey }: {
       toast.success("Tariffe ARERA aggiornate");
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      toast.error("Errore salvataggio: " + (err.message || ""));
+      console.error('ARERA save error:', err);
+      toast.error("Errore salvataggio: " + (err.message || "Errore sconosciuto — controlla console"));
     } finally {
       setSaving(false);
     }
