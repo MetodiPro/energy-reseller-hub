@@ -84,7 +84,7 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Barre = switch-out mensili per prodotto · Linee = clienti attivi cumulativi per prodotto.
+          Barre = switch-out mensili per prodotto.
           Al giorno 1 del {lastMonthActive + 1}° mese resteranno <strong>{totalActiveEnd.toLocaleString('it-IT')}</strong> accessi attivi in fornitura.
         </p>
       </CardHeader>
@@ -95,7 +95,6 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis yAxisId="churn" orientation="left" tick={{ fontSize: 11 }} label={{ value: 'Switch-out', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} />
-              <YAxis yAxisId="active" orientation="right" tick={{ fontSize: 11 }} label={{ value: 'Clienti attivi', angle: 90, position: 'insideRight', style: { fontSize: 11 } }} />
               <Tooltip
                 formatter={(value: number, name: string) => {
                   const num = Math.round(value).toLocaleString('it-IT');
@@ -112,18 +111,6 @@ export const ChurnPerProductChart = ({ multiProductResult }: ChurnPerProductChar
                   fill={CHURN_COLORS[idx % CHURN_COLORS.length]}
                   stackId="churn"
                   opacity={0.7}
-                />
-              ))}
-              {products.map((p, idx) => (
-                <Line
-                  key={`attivi_${idx}`}
-                  yAxisId="active"
-                  type="monotone"
-                  dataKey={`attivi_${idx}`}
-                  name={`Attivi ${p.name}`}
-                  stroke={PRODUCT_COLORS[idx % PRODUCT_COLORS.length]}
-                  strokeWidth={2}
-                  dot={false}
                 />
               ))}
             </ComposedChart>
