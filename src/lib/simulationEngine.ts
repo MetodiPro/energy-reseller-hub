@@ -182,12 +182,16 @@ export function runSimulationEngine(
 
   const monthly: MonthlyEngineResult[] = [];
 
-  // Coda degli switch-out: i clienti che "decidono" di uscire al mese m
-  // cessano effettivamente al mese m + SWITCH_OUT_DELAY
+  // Coda degli switch-out ordinari: recesso comunicato al mese m → uscita effettiva m+2
+  // (regola SII delibera 487/2015: switching richiede 2 mesi)
   const SWITCH_OUT_DELAY = 2;
-  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
-  const pendingChurnM0Exits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
-  const pendingChurnOrdExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY).fill(0);
+  // Coda degli switch-out da churn mese 0: SE1 concorrente caricata entro il 10 del
+  // mese di attivazione → switch-out effettivo il 1° del mese successivo (delay = 1).
+  // Modellazione worst-case: il POD entra in fornitura 1 solo mese senza generare fatture.
+  const SWITCH_OUT_DELAY_M0 = 1;
+  const pendingChurnExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY + 1).fill(0);
+  const pendingChurnM0Exits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY + 1).fill(0);
+  const pendingChurnOrdExits: number[] = new Array(SIM_MONTHS + SWITCH_OUT_DELAY + 1).fill(0);
 
   const svincoloPct = (params.depositoSvincoloPagamentiPerc ?? 0) / 100;
   let totalPagamentiAccumulati = 0;
@@ -210,9 +214,9 @@ export function runSimulationEngine(
     const churnMonth0Rate = (params.churnMonth0Pct ?? 0) / 100;
     if (attivazioni > 0 && churnMonth0Rate > 0) {
       const churnMonth0 = Math.round(attivazioni * churnMonth0Rate);
-      if ((m + SWITCH_OUT_DELAY) < pendingChurnExits.length) {
-        pendingChurnExits[m + SWITCH_OUT_DELAY] += churnMonth0;
-        pendingChurnM0Exits[m + SWITCH_OUT_DELAY] += churnMonth0;
+      if ((m + SWITCH_OUT_DELAY_M0) < pendingChurnExits.length) {
+        pendingChurnExits[m + SWITCH_OUT_DELAY_M0] += churnMonth0;
+        pendingChurnM0Exits[m + SWITCH_OUT_DELAY_M0] += churnMonth0;
       }
     }
 
