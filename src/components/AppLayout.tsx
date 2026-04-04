@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck } from 'lucide-react';
+import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck, Users } from 'lucide-react';
 import { processSteps } from '@/data/processSteps';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
@@ -49,6 +49,7 @@ const HypothesesPage = lazy(() => import('@/components/HypothesesPage').then(m =
 const WholesalerPage = lazy(() => import('@/components/WholesalerPage').then(m => ({ default: m.WholesalerPage })));
 
 const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m => ({ default: m.DirectorReport })));
+const CustomerBasePage = lazy(() => import('@/components/CustomerBasePage').then(m => ({ default: m.CustomerBasePage })));
 
 function SectionLoader() {
   return (
@@ -294,6 +295,18 @@ export function AppLayout({ user }: AppLayoutProps) {
             <div className="text-center py-12 text-muted-foreground">
               <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Crea prima un progetto per configurare i costi grossista</p>
+            </div>
+          );
+        case 'customer-base':
+          return currentProjectId ? (
+            <CustomerBasePage
+              projectId={currentProjectId}
+              sharedRevenueSimulation={revenueSimForTariffs}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per visualizzare la Customer Base</p>
             </div>
           );
         case 'director-report':
