@@ -22,7 +22,7 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
   const ownRevenueSimulation = useRevenueSimulation(sharedRevenueSimulation ? null : projectId);
   const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
   const { channels: salesChannels, refetch: refetchChannels } = useSalesChannels(projectId);
-  const navigate = useNavigate();
+  
 
   // --- ARERA tariff mismatch detection ---
   const [tariffeMismatch, setTariffeMismatch] = useState(false);
