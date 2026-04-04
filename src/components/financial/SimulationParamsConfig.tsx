@@ -101,6 +101,7 @@ export const SimulationParamsConfig = ({ projectId, simulationHook, commodityTyp
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={yearInput}
+                  onFocus={(e) => e.currentTarget.select()}
                   onChange={(e) => setYearInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   onBlur={commitYearInput}
                   onKeyDown={(e) => {
