@@ -26,44 +26,7 @@ import {
 import { ProjectCost, CostCategory } from '@/hooks/useProjectFinancials';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-// Monthly breakdown data from simulation
-interface MonthlyBreakdown {
-  month: number;
-  monthLabel: string;
-  clientiAttivi: number;
-  costoEnergia: number;
-  costoPod: number;
-  dispacciamento: number;
-  trasporto: number;
-  oneriSistema: number;
-  accise: number;
-}
-
-// Dati costi passanti dal simulatore
-interface SimulatedPassthroughCosts {
-  costoEnergiaTotale: number;
-  costoGestionePodTotale: number;
-  totalPassanti: number;
-  // Dettagli per calcolo
-  clientiAttivi: number;
-  consumoMedioMensile: number;
-  punPerKwh: number;
-  spreadGrossistaPerKwh: number;
-  spreadResellerPerKwh: number;
-  gestionePodPerPod: number;
-  // Dettaglio componenti passanti fattura
-  dispacciamentoPerKwh?: number;
-  trasportoQuotaFissaAnno?: number;
-  trasportoQuotaPotenzaKwAnno?: number;
-  trasportoQuotaEnergiaKwh?: number;
-  potenzaImpegnataKw?: number;
-  oneriAsosKwh?: number;
-  oneriArimKwh?: number;
-  acciseKwh?: number;
-  ivaPercent?: number;
-  // Serie mensile per dettaglio progressivo
-  monthlyBreakdown?: MonthlyBreakdown[];
-}
+// Monthly commission breakdown by channel
 
 // Monthly commission breakdown by channel
 interface MonthlyCommissionBreakdown {
