@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart3, ChevronRight } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 
@@ -70,110 +71,156 @@ export function ProductPerformanceTable({
   }), [rows]);
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <BarChart3 className="h-4 w-4" /> Fatturato Lordo per Prodotto
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Clicca sul nome di un prodotto per espandere il dettaglio fatturato mensile.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b text-left text-muted-foreground">
-                <th className="py-2 pr-3 font-medium">Prodotto</th>
-                <th className="py-2 pr-3 font-medium">Canale</th>
-                <th className="py-2 pr-3 font-medium text-right">Quota %</th>
-                <th className="py-2 pr-3 font-medium text-right">Contratti</th>
-                <th className="py-2 pr-3 font-medium text-right">Clienti Attivi</th>
-                <th className="py-2 pr-3 font-medium text-right">Fatturato</th>
-                <th className="py-2 font-medium text-right">Churn Tot.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(row => {
-                const isExpanded = expandedProducts.has(row.id);
-                return (
-                  <Collapsible key={row.id} open={isExpanded} onOpenChange={() => toggleProduct(row.id)} asChild>
-                    <>
-                      <CollapsibleTrigger asChild>
-                        <tr className="border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors">
-                          <td className="py-2 pr-3 font-medium text-primary">
-                            <span className="inline-flex items-center gap-1 underline decoration-dotted">
-                              <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
-                              {row.name}
-                            </span>
-                          </td>
-                          <td className="py-2 pr-3 text-muted-foreground">{row.channelName}</td>
-                          <td className="py-2 pr-3 text-right">{row.contractShare}%</td>
-                          <td className="py-2 pr-3 text-right">{row.totalContratti}</td>
-                          <td className="py-2 pr-3 text-right">{row.clientiAttivi}</td>
-                          <td className="py-2 pr-3 text-right">{fmt(row.totalFatturato)}</td>
-                          <td className="py-2 text-right text-destructive">{row.totalChurn}</td>
-                        </tr>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent asChild>
-                        <tr>
-                          <td colSpan={7} className="p-0">
-                            <div className="bg-muted/20 border-y border-border px-4 py-3">
-                              <p className="text-xs font-medium text-muted-foreground mb-2">
-                                Dettaglio Mensile — {row.name}
-                              </p>
-                              <div className="overflow-x-auto max-h-[350px]">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead className="text-xs">Mese</TableHead>
-                                      <TableHead className="text-xs text-right">Fatturato</TableHead>
-                                      <TableHead className="text-xs text-right">Margine</TableHead>
-                                      <TableHead className="text-xs text-right">Attivi</TableHead>
-                                      <TableHead className="text-xs text-right">Fatturati</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {row.monthly.map((m, i) => (
-                                      <TableRow key={i}>
-                                        <TableCell className="text-xs font-medium">{m.customer.monthLabel}</TableCell>
-                                        <TableCell className="text-xs text-right">{fmt(m.fatturato)}</TableCell>
-                                        <TableCell className="text-xs text-right text-emerald-600 dark:text-emerald-400">{fmt(m.margineCommerciale)}</TableCell>
-                                        <TableCell className="text-xs text-right">{m.customer.clientiAttivi}</TableCell>
-                                        <TableCell className="text-xs text-right">{m.customer.clientiFatturati}</TableCell>
+    <TooltipProvider delayDuration={200}>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" /> Fatturato Lordo per Prodotto
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Clicca sul nome di un prodotto per espandere il dettaglio fatturato mensile.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground">
+                  <th className="py-2 pr-3 font-medium">Prodotto</th>
+                  <th className="py-2 pr-3 font-medium">Canale</th>
+                  <th className="py-2 pr-3 font-medium text-right">Quota %</th>
+                  <th className="py-2 pr-3 font-medium text-right">Contratti</th>
+                  <th className="py-2 pr-3 font-medium text-right">Clienti Attivi</th>
+                  <th className="py-2 pr-3 font-medium text-right">Fatturato</th>
+                  <th className="py-2 font-medium text-right">Churn Tot.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(row => {
+                  const isExpanded = expandedProducts.has(row.id);
+                  return (
+                    <Collapsible key={row.id} open={isExpanded} onOpenChange={() => toggleProduct(row.id)} asChild>
+                      <>
+                        <CollapsibleTrigger asChild>
+                          <tr className="border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                            <td className="py-2 pr-3 font-medium text-primary">
+                              <span className="inline-flex items-center gap-1 underline decoration-dotted">
+                                <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                                {row.name}
+                              </span>
+                            </td>
+                            <td className="py-2 pr-3 text-muted-foreground">{row.channelName}</td>
+                            <td className="py-2 pr-3 text-right">{row.contractShare}%</td>
+                            <td className="py-2 pr-3 text-right">{row.totalContratti}</td>
+                            <td className="py-2 pr-3 text-right">{row.clientiAttivi}</td>
+                            <td className="py-2 pr-3 text-right">{fmt(row.totalFatturato)}</td>
+                            <td className="py-2 text-right text-destructive">{row.totalChurn}</td>
+                          </tr>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent asChild>
+                          <tr>
+                            <td colSpan={7} className="p-0">
+                              <div className="bg-muted/20 border-y border-border px-4 py-3">
+                                <p className="text-xs font-medium text-muted-foreground mb-2">
+                                  Dettaglio Mensile — {row.name}
+                                </p>
+                                <div className="overflow-x-auto max-h-[350px]">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead className="text-xs">Mese</TableHead>
+                                        <TableHead className="text-xs text-right">
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <span className="underline decoration-dotted cursor-help">Fatturato</span>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs text-xs">
+                                              <p className="font-semibold mb-1">Fatturato Lordo (IVA inclusa)</p>
+                                              <p>= Clienti Fatturati × Fattura unitaria</p>
+                                              <p className="mt-1 text-muted-foreground">
+                                                Fattura unitaria = (Passanti + Margine) × (1 + IVA%)<br />
+                                                Passanti = Materia Energia + Trasporto + Oneri + Accise<br />
+                                                Margine = CCV + Spread×kWh + Servizi
+                                              </p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TableHead>
+                                        <TableHead className="text-xs text-right">
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <span className="underline decoration-dotted cursor-help">Margine</span>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="max-w-xs text-xs">
+                                              <p className="font-semibold mb-1">Margine Commerciale Reseller</p>
+                                              <p>= Clienti Fatturati × Margine unitario</p>
+                                              <p className="mt-1 text-muted-foreground">
+                                                Margine unitario = CCV mensile + (Spread €/kWh × Consumo kWh) + Servizi aggiuntivi<br />
+                                                È la parte di fatturato che resta al reseller, al netto dei costi passanti.
+                                              </p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TableHead>
+                                        <TableHead className="text-xs text-right">Fatturati</TableHead>
                                       </TableRow>
-                                    ))}
-                                    <TableRow className="font-bold border-t-2 bg-muted/30">
-                                      <TableCell className="text-xs">Totale</TableCell>
-                                      <TableCell className="text-xs text-right">{fmt(row.totalFatturato)}</TableCell>
-                                      <TableCell className="text-xs text-right text-emerald-600 dark:text-emerald-400">{fmt(row.totalMargine)}</TableCell>
-                                      <TableCell className="text-xs text-right">{row.clientiAttivi}</TableCell>
-                                      <TableCell className="text-xs text-right">—</TableCell>
-                                    </TableRow>
-                                  </TableBody>
-                                </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {row.monthly.map((m, i) => (
+                                        <TableRow key={i}>
+                                          <TableCell className="text-xs font-medium">{m.customer.monthLabel}</TableCell>
+                                          <TableCell className="text-xs text-right">
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <span className="cursor-help">{fmt(m.fatturato)}</span>
+                                              </TooltipTrigger>
+                                              <TooltipContent side="left" className="max-w-xs text-xs">
+                                                <p>{m.customer.clientiFatturati} clienti × fattura unitaria = {fmt(m.fatturato)}</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TableCell>
+                                          <TableCell className="text-xs text-right text-emerald-600 dark:text-emerald-400">
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <span className="cursor-help">{fmt(m.margineCommerciale)}</span>
+                                              </TooltipTrigger>
+                                              <TooltipContent side="left" className="max-w-xs text-xs">
+                                                <p>{m.customer.clientiFatturati} clienti × (CCV + Spread×kWh + Servizi) = {fmt(m.margineCommerciale)}</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TableCell>
+                                          <TableCell className="text-xs text-right">{m.customer.clientiFatturati}</TableCell>
+                                        </TableRow>
+                                      ))}
+                                      <TableRow className="font-bold border-t-2 bg-muted/30">
+                                        <TableCell className="text-xs">Totale</TableCell>
+                                        <TableCell className="text-xs text-right">{fmt(row.totalFatturato)}</TableCell>
+                                        <TableCell className="text-xs text-right text-emerald-600 dark:text-emerald-400">{fmt(row.totalMargine)}</TableCell>
+                                        <TableCell className="text-xs text-right">—</TableCell>
+                                      </TableRow>
+                                    </TableBody>
+                                  </Table>
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                        </tr>
-                      </CollapsibleContent>
-                    </>
-                  </Collapsible>
-                );
-              })}
-              <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
-                <td className="py-2 pr-3 pl-6">Totale</td>
-                <td className="py-2 pr-3"></td>
-                <td className="py-2 pr-3 text-right">100%</td>
-                <td className="py-2 pr-3 text-right">{totals.totalContratti}</td>
-                <td className="py-2 pr-3 text-right">{totals.clientiAttivi}</td>
-                <td className="py-2 pr-3 text-right">{fmt(totals.totalFatturato)}</td>
-                <td className="py-2 text-right text-destructive">{totals.totalChurn}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+                            </td>
+                          </tr>
+                        </CollapsibleContent>
+                      </>
+                    </Collapsible>
+                  );
+                })}
+                <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                  <td className="py-2 pr-3 pl-6">Totale</td>
+                  <td className="py-2 pr-3"></td>
+                  <td className="py-2 pr-3 text-right">100%</td>
+                  <td className="py-2 pr-3 text-right">{totals.totalContratti}</td>
+                  <td className="py-2 pr-3 text-right">{totals.clientiAttivi}</td>
+                  <td className="py-2 pr-3 text-right">{fmt(totals.totalFatturato)}</td>
+                  <td className="py-2 text-right text-destructive">{totals.totalChurn}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }
