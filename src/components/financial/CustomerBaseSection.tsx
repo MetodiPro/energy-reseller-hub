@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Download, MousePointerClick } from 'lucide-react';
+import { Users, Download } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 import { ChurnPerProductChart } from './ChurnPerProductChart';
 import { ContractsPerProductChart } from './ContractsPerProductChart';
