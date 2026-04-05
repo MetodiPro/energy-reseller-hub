@@ -19,7 +19,7 @@ import { exportGrossistaReport, exportFiscaleReport } from '@/lib/exportFinancia
 
 import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
-import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
+
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
 
