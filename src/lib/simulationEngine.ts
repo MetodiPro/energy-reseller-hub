@@ -328,10 +328,21 @@ export function runSimulationEngine(
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 
-    // Componenti fattura consumi reali (NO deposito) per il calcolo deposito
-    const fatturaMensileSpreadsGrossista = m >= 2 ? cumulativeActiveCustomers * kWh * (1 + ((params.perditeRetePct ?? 0) / 100)) * params.spreadGrossistaPerKwh : 0;
-    const fatturaMensileFeePoD = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
-    const fatturaMensileConsumiTotale = fatturaMensileSpreadsGrossista + fatturaMensileFeePoD;
+    // Fattura mensile grossista al reseller — componenti consumi reali
+    // Spread e fee POD sono fatturati sui consumi/POD reali, NON entrano nel deposito
+    const fatturaMensileSpreadsGrossista = m >= 2
+      ? cumulativeActiveCustomers * kWhAcquistati * params.spreadGrossistaPerKwh
+      : 0;
+    const fatturaMensileFeePoD = m >= 2
+      ? cumulativeActiveCustomers * gestionePodPerPod
+      : 0;
+    // Totale fattura consumi = componenti garantite + spread + fee
+    const fatturaMensileConsumiTotale = m >= 2
+      ? cumulativeActiveCustomers * (
+          kWhAcquistati * (params.punPerKwh + params.dispacciamentoPerKwh + params.spreadGrossistaPerKwh)
+          + perClient.trasporto + perClient.oneriSistema + gestionePodPerPod
+        )
+      : 0;
 
     const deposit: MonthlyDepositEngineData = {
       depositoLordoAttivazioni,
