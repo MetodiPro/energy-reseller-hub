@@ -314,7 +314,9 @@ export function runSimulationEngine(
     // Base: costo garantito dal grossista (materia + trasporto + oneri + gestione POD) × N mesi
     // NO accise (versate dal reseller alla dogana), NO IVA
     const switchingRequests = m >= 1 ? Math.round((m - 1 < 12 ? monthlyContracts[m - 1] : 0) * (params.activationRate / 100)) : 0;
-    const costoMensileGarantito = perClient.costoGarantitoPerCliente + gestionePodPerPod;
+    // Base garanzia = solo componenti anticipate dal grossista: Materia Energia (PUN+Disp) + Trasporto + Oneri
+    // Fee POD esclusa: fatturata mensilmente sui POD attivi reali, NON è un'anticipazione del grossista
+    const costoMensileGarantito = perClient.costoGarantitoPerCliente;
     const depositoLordoAttivazioni = switchingRequests * costoMensileGarantito * depositoMesi * depositoPercentuale;
     // Rilascio: quando il churn effettivo avviene, la garanzia per quei POD viene rilasciata
     const depositoRilasciatoChurn = churn * costoMensileGarantito * depositoMesi * depositoPercentuale;
