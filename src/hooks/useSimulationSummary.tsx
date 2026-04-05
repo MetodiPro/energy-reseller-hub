@@ -114,7 +114,7 @@ export function buildSimulationSummary(
     const switchingRequests = customer.month >= 1
       ? Math.round(
           (customer.month - 1 < 12
-            ? (data.params.monthlyContracts?.[customer.month - 1] ?? 0)
+            ? (data.monthlyContracts?.[customer.month - 1] ?? 0)
             : 0) * (data.params.activationRate / 100)
         )
       : 0;
