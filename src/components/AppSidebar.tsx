@@ -78,6 +78,7 @@ const strategyItems = [
   { id: "customer-base", title: "Customer Base", icon: Users },
   { id: "wholesaler", title: "Grossista (Udd)", icon: Truck },
   { id: "costs", title: "Costi", icon: TrendingDown },
+  { id: "revenues", title: "Ricavi", icon: TrendingUp },
   { id: "director-report", title: "Esiti", icon: ClipboardCheck },
   { id: "financials", title: "Finanza", icon: DollarSign },
   { id: "business-plan", title: "Business Plan", icon: FileText },

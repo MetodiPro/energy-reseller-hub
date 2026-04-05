@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck, Users, TrendingDown } from 'lucide-react';
+import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck, Users, TrendingDown, TrendingUp } from 'lucide-react';
 import { processSteps } from '@/data/processSteps';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
@@ -51,6 +51,7 @@ const WholesalerPage = lazy(() => import('@/components/WholesalerPage').then(m =
 const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m => ({ default: m.DirectorReport })));
 const CustomerBasePage = lazy(() => import('@/components/CustomerBasePage').then(m => ({ default: m.CustomerBasePage })));
 const CostsPage = lazy(() => import('@/components/CostsPage').then(m => ({ default: m.CostsPage })));
+const RevenuesPage = lazy(() => import('@/components/RevenuesPage').then(m => ({ default: m.RevenuesPage })));
 
 function SectionLoader() {
   return (
@@ -62,7 +63,7 @@ function SectionLoader() {
 
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'step-docs', 'team',
-  'documents', 'consultants', 'tariffs', 'wholesaler', 'costs', 'hypotheses', 'customer-base', 'director-report', 'financials', 'business-plan', 'marketing',
+  'documents', 'consultants', 'tariffs', 'wholesaler', 'costs', 'revenues', 'hypotheses', 'customer-base', 'director-report', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile',
 ];
 
@@ -215,6 +216,18 @@ export function AppLayout({ user }: AppLayoutProps) {
             <div className="text-center py-12 text-muted-foreground">
               <TrendingDown className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Crea prima un progetto per accedere alla gestione costi</p>
+            </div>
+          );
+        case 'revenues':
+          return currentProjectId ? (
+            <RevenuesPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per accedere ai Ricavi</p>
             </div>
           );
         case 'financials':
