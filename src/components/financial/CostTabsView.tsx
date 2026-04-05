@@ -184,11 +184,6 @@ export const CostTabsView = ({
       }
     });
     
-    // Add simulated commercial costs to commercial total
-    if (simulatedCommercial) {
-      result.commercial.total += simulatedCommercial.totaleCostiCommerciali;
-    }
-    
     return result;
   }, [costs, commodityType, activeChannelNames, simulatedCommercial]);
   
