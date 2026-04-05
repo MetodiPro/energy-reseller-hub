@@ -529,6 +529,9 @@ function aggregateProductResults(
         pagamentiConsumi: s(x => x.deposit.pagamentiConsumi),
         depositoRichiesto: s(x => x.deposit.depositoRichiesto),
         deltaDeposito: s(x => x.deposit.deltaDeposito),
+        fatturaMensileSpreadsGrossista: s(x => x.deposit.fatturaMensileSpreadsGrossista),
+        fatturaMensileFeePoD: s(x => x.deposit.fatturaMensileFeePoD),
+        fatturaMensileConsumiTotale: s(x => x.deposit.fatturaMensileConsumiTotale),
       },
       collection: {
         incassoScadenza: s(x => x.collection.incassoScadenza),
