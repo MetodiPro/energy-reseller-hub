@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ShieldCheck, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -14,6 +16,13 @@ import {
 } from 'recharts';
 import type { MonthlyDepositData } from '@/hooks/useSimulationSummary';
 
+interface PerClientBreakdown {
+  materiaEnergia: number;
+  trasporto: number;
+  oneriSistema: number;
+  costoGarantitoPerCliente: number;
+}
+
 interface WholesalerGuaranteeSectionProps {
   depositiMensili: MonthlyDepositData[];
   depositoIniziale: number;
@@ -22,14 +31,177 @@ interface WholesalerGuaranteeSectionProps {
   depositoMesi: number;
   depositoPercentualeAttivazione: number;
   depositoVersatoFase4: number;
+  perClientBreakdown?: PerClientBreakdown;
+  gestionePodPerPod?: number;
 }
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
 
+const fmt2 = (v: number) =>
+  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
 const fmtSigned = (v: number) => {
   const s = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(v));
   return v > 0 ? `+${s}` : v < 0 ? `-${s}` : s;
+};
+
+// ── Sub-component: Popover tooltip for Fabbisogno Teorico cell ──
+const FabbisognoTooltip = ({
+  d,
+  depositoMesi,
+  depositoPercentuale,
+  perClient,
+  gestionePod,
+  depositoVersatoFase4,
+  depositoSulConto,
+  deltaEffettivo,
+}: {
+  d: MonthlyDepositData;
+  depositoMesi: number;
+  depositoPercentuale: number;
+  perClient?: PerClientBreakdown;
+  gestionePod: number;
+  depositoVersatoFase4: number;
+  depositoSulConto: number;
+  deltaEffettivo: number;
+}) => {
+  const costoMensileGarantito = (perClient?.costoGarantitoPerCliente ?? 0) + gestionePod;
+  const svincoloImporto = d.cumulativePagamenti * d.svincoloPct;
+  const coperto = depositoVersatoFase4 > 0 && d.depositoRichiesto <= depositoVersatoFase4;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          className={`text-right underline decoration-dotted underline-offset-4 cursor-help hover:text-primary transition-colors ${coperto ? 'text-muted-foreground' : ''}`}
+        >
+          {fmt(d.depositoRichiesto)}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[420px] text-xs" side="left" align="start">
+        <div className="space-y-3">
+          <p className="font-semibold text-sm border-b pb-2">
+            📐 Calcolo fabbisogno — {d.monthLabel}
+          </p>
+
+          {/* Step 1: Costo garantito per cliente */}
+          {perClient && (
+            <div className="space-y-1">
+              <p className="font-medium text-muted-foreground">① Costo mensile garantito per cliente:</p>
+              <div className="pl-3 space-y-0.5">
+                <div className="flex justify-between">
+                  <span>Materia Energia (PUN + Disp.)</span>
+                  <span className="font-mono">{fmt2(perClient.materiaEnergia)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Trasporto e Distribuzione</span>
+                  <span className="font-mono">{fmt2(perClient.trasporto)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Oneri di Sistema (ASOS + ARIM)</span>
+                  <span className="font-mono">{fmt2(perClient.oneriSistema)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Fee Gestione POD</span>
+                  <span className="font-mono">{fmt2(gestionePod)}</span>
+                </div>
+                <div className="flex justify-between border-t pt-0.5 font-semibold">
+                  <span>Totale garantito/cliente/mese</span>
+                  <span className="font-mono">{fmt2(costoMensileGarantito)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Movimenti del mese */}
+          <div className="space-y-1">
+            <p className="font-medium text-muted-foreground">② Movimenti mese {d.month}:</p>
+            <div className="pl-3 space-y-0.5">
+              <div className="flex justify-between">
+                <span>Nuove richieste switching</span>
+                <span className="font-mono">{d.switchingRequests} POD</span>
+              </div>
+              <div className="flex justify-between text-orange-600">
+                <span>+ Deposito lordo attivazioni</span>
+                <span className="font-mono">
+                  {d.switchingRequests} × {fmt2(costoMensileGarantito)} × {depositoMesi}m × {(depositoPercentuale * 100).toFixed(0)}% = {fmt(d.depositoLordoAttivazioni)}
+                </span>
+              </div>
+              <div className="flex justify-between text-green-600">
+                <span>− Rilascio churn ({d.churn} POD)</span>
+                <span className="font-mono">−{fmt(d.depositoRilasciatoChurn)}</span>
+              </div>
+              {d.svincoloPct > 0 && (
+                <div className="flex justify-between text-blue-600">
+                  <span>− Svincolo pagamenti ({(d.svincoloPct * 100).toFixed(0)}%)</span>
+                  <span className="font-mono">−{fmt(svincoloImporto)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Step 3: Cumulativi */}
+          <div className="space-y-1">
+            <p className="font-medium text-muted-foreground">③ Valori cumulativi al mese {d.month}:</p>
+            <div className="pl-3 space-y-0.5">
+              <div className="flex justify-between">
+                <span>Σ Depositi lordi</span>
+                <span className="font-mono">{fmt(d.cumulativeLordo)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Σ Rilasci churn</span>
+                <span className="font-mono">−{fmt(d.cumulativeRestituito)}</span>
+              </div>
+              {d.svincoloPct > 0 && (
+                <div className="flex justify-between">
+                  <span>Σ Pagamenti × {(d.svincoloPct * 100).toFixed(0)}%</span>
+                  <span className="font-mono">−{fmt(svincoloImporto)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Step 4: Formula finale */}
+          <div className="border-t pt-2 space-y-1">
+            <p className="font-medium text-muted-foreground">④ Formula:</p>
+            <p className="font-mono text-[11px] bg-muted p-2 rounded">
+              max(0, {fmt(d.cumulativeLordo)} − {fmt(d.cumulativeRestituito)}{d.svincoloPct > 0 ? ` − ${fmt(svincoloImporto)}` : ''})
+            </p>
+            <div className="flex justify-between font-semibold text-sm">
+              <span>= Fabbisogno teorico</span>
+              <span className="font-mono">{fmt(d.depositoRichiesto)}</span>
+            </div>
+          </div>
+
+          {/* Step 5: Confronto con Fase 4 */}
+          <div className="border-t pt-2 space-y-1">
+            <p className="font-medium text-muted-foreground">⑤ Confronto con Fase 4:</p>
+            <div className="pl-3 space-y-0.5">
+              <div className="flex justify-between">
+                <span>Deposito Fase 4</span>
+                <span className="font-mono">{fmt(depositoVersatoFase4)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Fabbisogno teorico</span>
+                <span className="font-mono">{fmt(d.depositoRichiesto)}</span>
+              </div>
+              <div className="flex justify-between font-semibold border-t pt-0.5">
+                <span>Sul conto = max(fabbisogno, Fase4)</span>
+                <span className="font-mono">{fmt(depositoSulConto)}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Movimento di cassa effettivo</span>
+                <span className={`font-mono ${deltaEffettivo > 0 ? 'text-orange-600' : deltaEffettivo < 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {deltaEffettivo === 0 ? '—' : fmtSigned(deltaEffettivo)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 };
 
 export const WholesalerGuaranteeSection = ({
@@ -40,13 +212,11 @@ export const WholesalerGuaranteeSection = ({
   depositoMesi,
   depositoPercentualeAttivazione,
   depositoVersatoFase4,
+  perClientBreakdown,
+  gestionePodPerPod = 2.5,
 }: WholesalerGuaranteeSectionProps) => {
 
-  // ── Calcolo versamenti aggiuntivi effettivi ────────────────────────────────
-  // Il depositoVersatoFase4 è già sul conto del grossista prima del mese 0.
-  // La curva nel grafico mostra il totale sul conto del grossista:
-  //   depositoSulConto(m) = max(depositoRichiesto(m), depositoVersatoFase4)
-  //   → non scende mai sotto il depositoVersatoFase4 (il grossista tiene sempre la garanzia iniziale)
+  const depositoPercentuale = depositoPercentualeAttivazione / 100;
 
   const chartData = depositiMensili.map((d, i) => {
     const depositoSulConto = Math.max(d.depositoRichiesto, depositoVersatoFase4);
@@ -62,12 +232,8 @@ export const WholesalerGuaranteeSection = ({
     };
   });
 
-  // Totale versamenti aggiuntivi effettivi (solo incrementi oltre Fase 4)
   const totalVersamenti = chartData.reduce((s, d) => s + Math.max(0, d.deltaEffettivo), 0);
-  // Totale svincoli effettivi
   const totalSvincoli = chartData.reduce((s, d) => s + Math.min(0, d.deltaEffettivo), 0);
-
-  // Deposito massimo effettivo sul conto
   const depositoMassimoEffettivo = Math.max(depositoMassimo, depositoVersatoFase4);
 
   return (
@@ -184,13 +350,10 @@ export const WholesalerGuaranteeSection = ({
                     value === 'depositoSulConto' ? 'Deposito sul conto grossista' : 'Fabbisogno teorico'
                   }
                 />
-                {/* Linea di riferimento deposito Fase 4 */}
                 {depositoVersatoFase4 > 0 && (
                   <ReferenceLine y={depositoVersatoFase4} stroke="hsl(var(--muted-foreground))" strokeDasharray="6 3" label={{ value: `Fase 4: ${fmt(depositoVersatoFase4)}`, position: 'right', fontSize: 10 }} />
                 )}
-                {/* Fabbisogno teorico del motore (tratteggiato grigio) */}
                 <Line type="monotone" dataKey="depositoRichiestoMotore" stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeDasharray="4 4" dot={false} />
-                {/* Deposito effettivo sul conto (linea principale) */}
                 <Line type="monotone" dataKey="depositoSulConto" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -201,7 +364,13 @@ export const WholesalerGuaranteeSection = ({
       {/* ── Tabella movimenti mensili ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Movimenti mensili del deposito</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Movimenti mensili del deposito
+            <span className="text-xs font-normal text-muted-foreground flex items-center gap-1">
+              <Info className="h-3 w-3" />
+              Clicca su un importo per il dettaglio di calcolo
+            </span>
+          </CardTitle>
           <CardDescription>
             "Sul conto" = deposito totale presente presso il grossista (Fase 4 + integrativi).
             "Movimento effettivo" = variazione reale di cassa: positivo = versamento integrativo, negativo = svincolo.
@@ -222,14 +391,23 @@ export const WholesalerGuaranteeSection = ({
               </thead>
               <tbody>
                 {chartData.map((d, i) => {
-                  const fabbisogno = depositiMensili[i].depositoRichiesto;
-                  const coperto = depositoVersatoFase4 > 0 && fabbisogno <= depositoVersatoFase4;
+                  const monthData = depositiMensili[i];
+                  const coperto = depositoVersatoFase4 > 0 && monthData.depositoRichiesto <= depositoVersatoFase4;
                   return (
                     <tr key={i} className="border-b">
                       <td className="py-2 px-3">{d.name}</td>
                       <td className="text-right py-2 px-3">{d.clienti}</td>
-                      <td className={`text-right py-2 px-3 ${coperto ? 'text-muted-foreground' : ''}`}>
-                        {fmt(fabbisogno)}
+                      <td className="text-right py-2 px-3">
+                        <FabbisognoTooltip
+                          d={monthData}
+                          depositoMesi={depositoMesi}
+                          depositoPercentuale={depositoPercentuale}
+                          perClient={perClientBreakdown}
+                          gestionePod={gestionePodPerPod}
+                          depositoVersatoFase4={depositoVersatoFase4}
+                          depositoSulConto={d.depositoSulConto}
+                          deltaEffettivo={d.deltaEffettivo}
+                        />
                       </td>
                       <td className="text-right py-2 px-3 font-medium">
                         {fmt(d.depositoSulConto)}

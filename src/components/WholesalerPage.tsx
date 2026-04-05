@@ -114,6 +114,13 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
             depositoMesi={params?.depositoMesi ?? 2}
             depositoPercentualeAttivazione={params?.depositoPercentualeAttivazione ?? 100}
             depositoVersatoFase4={depositoVersatoFase4}
+            perClientBreakdown={engineResult?.perClient ? {
+              materiaEnergia: engineResult.perClient.materiaEnergia,
+              trasporto: engineResult.perClient.trasporto,
+              oneriSistema: engineResult.perClient.oneriSistema,
+              costoGarantitoPerCliente: engineResult.perClient.costoGarantitoPerCliente,
+            } : undefined}
+            gestionePodPerPod={params?.gestionePodPerPod ?? 2.5}
           />
         </TabsContent>
 
