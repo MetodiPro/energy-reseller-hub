@@ -42,8 +42,8 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
       <WholesalerCostsConfig
         config={{
           punPerKwh: params?.punPerKwh ?? 0.12,
-          punOverride: params?.punOverride ?? null,
-          PunAutoUpdate: params?.punAutoUpdate ?? false,
+          punOverride: null,
+          punAutoUpdate: false,
           spreadGrossistaPerKwh: params?.spreadGrossistaPerKwh ?? 0.008,
           gestionePodPerPod: params?.gestionePodPerPod ?? 2.50,
           depositoMesi: params?.depositoMesi ?? 2,
