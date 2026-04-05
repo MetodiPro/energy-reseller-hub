@@ -407,7 +407,7 @@ export const DirectorReport = ({ projectId, projectName, commodityType, sharedRe
 
       {/* Product Performance Table - after Customer Base / Switch-out chart */}
       {multiProductResult && multiProductResult.products.length > 0 && (
-        <ProductPerformanceTable
+        <ProductPerformanceTableShared
           multiProductResult={multiProductResult}
           salesChannels={salesChannels}
           products={products}
