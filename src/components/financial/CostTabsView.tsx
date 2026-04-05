@@ -163,7 +163,6 @@ export const CostTabsView = ({
   onEdit,
   onDelete,
   onAdd,
-  simulatedPassthrough,
   activeChannelNames = [],
   simulatedCommercial,
 }: CostTabsViewProps) => {
@@ -171,7 +170,6 @@ export const CostTabsView = ({
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
     
     const result: Record<keyof typeof COST_CATEGORIES, { costs: ProjectCost[]; total: number }> = {
-      passthrough: { costs: [], total: 0 },
       operational: { costs: [], total: 0 },
       commercial: { costs: [], total: 0 },
       infrastructure: { costs: [], total: 0 },
@@ -179,10 +177,10 @@ export const CostTabsView = ({
     
     filtered.forEach(cost => {
       const category = categorizeCost(cost);
-      if (category === null) return;
+      if (category === null || category === 'passthrough') return;
+      if (!(category in result)) return;
       
       const amount = cost.amount * cost.quantity;
-      // Exclude duplicate commission costs from total when channels are active
       const isDuplicate = category === 'commercial' && isCommissionDuplicate(cost, activeChannelNames);
       
       result[category].costs.push(cost);
@@ -191,17 +189,13 @@ export const CostTabsView = ({
       }
     });
     
-    if (simulatedPassthrough) {
-      result.passthrough.total = simulatedPassthrough.costoEnergiaTotale + simulatedPassthrough.costoGestionePodTotale;
-    }
-    
     // Add simulated commercial costs to commercial total
     if (simulatedCommercial) {
       result.commercial.total += simulatedCommercial.totaleCostiCommerciali;
     }
     
     return result;
-  }, [costs, commodityType, simulatedPassthrough, activeChannelNames, simulatedCommercial]);
+  }, [costs, commodityType, activeChannelNames, simulatedCommercial]);
   
   const totalCosts = Object.values(categorizedCosts).reduce((sum, cat) => sum + cat.total, 0);
   
