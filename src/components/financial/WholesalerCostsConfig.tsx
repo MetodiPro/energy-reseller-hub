@@ -216,6 +216,10 @@ export const WholesalerCostsConfig = ({
               </div>
             </div>
           </div>
+          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1">
+            <Info className="h-3 w-3 mt-0.5 shrink-0" />
+            La fee POD è un servizio B2B fatturato con IVA 22% separata dalla fornitura energetica. Inserire il valore netto IVA. L'IVA (22%) è recuperabile in reverse charge.
+          </p>
         </div>
         
         <Separator />
