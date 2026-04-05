@@ -6,7 +6,7 @@ import {
   TrendingUp, TrendingDown, FileDown, Receipt,
   Calculator, Wallet, Zap, FileSpreadsheet,
 } from 'lucide-react';
-import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
+import { useProjectFinancials } from '@/hooks/useProjectFinancials';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { useRevenueSimulation, type RevenueSimulationParams } from '@/hooks/useRevenueSimulation';
 import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
