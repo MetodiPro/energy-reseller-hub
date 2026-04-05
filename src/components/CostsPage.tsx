@@ -97,27 +97,6 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         onEdit={(cost) => { setEditingCost(cost); setShowCostDialog(true); }}
         onDelete={async (id) => { if (confirm('Sei sicuro di voler eliminare questo costo?')) await deleteCost(id); }}
         onAdd={() => { setEditingCost(null); setShowCostDialog(true); }}
-        simulatedPassthrough={{
-          costoEnergiaTotale: simulationSummary.costoEnergiaTotale,
-          costoGestionePodTotale: simulationSummary.costoGestionePodTotale,
-          totalPassanti: simulationSummary.totalPassanti,
-          clientiAttivi: simulationSummary.clientiAttivi,
-          consumoMedioMensile: revenueSimulation.data?.params?.avgMonthlyConsumption || 200,
-          punPerKwh: revenueSimulation.data?.params?.punPerKwh || 0.12,
-          spreadGrossistaPerKwh: revenueSimulation.data?.params?.spreadGrossistaPerKwh ?? 0.008,
-          spreadResellerPerKwh: revenueSimulation.data?.params?.spreadPerKwh || 0.015,
-          gestionePodPerPod: revenueSimulation.data?.params?.gestionePodPerPod || 2.50,
-          dispacciamentoPerKwh: revenueSimulation.data?.params?.dispacciamentoPerKwh || 0.01,
-          trasportoQuotaFissaAnno: revenueSimulation.data?.params?.trasportoQuotaFissaAnno || 23,
-          trasportoQuotaPotenzaKwAnno: revenueSimulation.data?.params?.trasportoQuotaPotenzaKwAnno || 22,
-          trasportoQuotaEnergiaKwh: revenueSimulation.data?.params?.trasportoQuotaEnergiaKwh || 0.008,
-          potenzaImpegnataKw: revenueSimulation.data?.params?.potenzaImpegnataKw || 3,
-          oneriAsosKwh: revenueSimulation.data?.params?.oneriAsosKwh || 0.025,
-          oneriArimKwh: revenueSimulation.data?.params?.oneriArimKwh || 0.007,
-          acciseKwh: revenueSimulation.data?.params?.acciseKwh || 0.0227,
-          ivaPercent: revenueSimulation.data?.params?.ivaPercent || 10,
-          monthlyBreakdown: simulationSummary.costiMensili,
-        }}
         activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
         simulatedCommercial={cashFlowData.hasData ? {
           totaleCostiCommerciali: cashFlowData.totaleCostiCommerciali,
