@@ -2,7 +2,6 @@ import { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, Download } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
@@ -17,99 +16,112 @@ interface CustomerBaseSectionProps {
   totalActiveEnd: number;
 }
 
-interface MonthRow {
-  monthLabel: string;
-  [key: string]: string | number;
+interface ProductTableData {
+  productName: string;
+  rows: { monthLabel: string; contratti: number; attivazioni: number; churn: number; churnM0: number; churnOrd: number; attivi: number; fatturati: number }[];
 }
 
-export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: CustomerBaseSectionProps) => {
-  
+const PRODUCT_COLS = [
+  { key: 'monthLabel', label: 'Mese' },
+  { key: 'contratti', label: 'Contratti' },
+  { key: 'attivazioni', label: 'Attivazioni' },
+  { key: 'churn', label: 'Switch-Out' },
+  { key: 'churnM0', label: 'di cui M0' },
+  { key: 'churnOrd', label: 'di cui Ord.' },
+  { key: 'attivi', label: 'Attivi' },
+  { key: 'fatturati', label: 'Fatturati' },
+];
 
-  const { tableData, columns } = useMemo(() => {
+const AGGREGATE_COLS = [
+  { key: 'monthLabel', label: 'Mese' },
+  { key: 'tot_contratti', label: 'Tot. Contratti' },
+  { key: 'tot_attivazioni', label: 'Tot. Attivazioni' },
+  { key: 'tot_churn', label: 'Tot. Switch-Out' },
+  { key: 'tot_churnM0', label: 'di cui Churn M0' },
+  { key: 'tot_churnOrd', label: 'di cui Churn Ord.' },
+  { key: 'tot_attivi', label: 'Tot. Attivi' },
+  { key: 'tot_fatturati', label: 'Tot. Fatturati' },
+];
+
+export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: CustomerBaseSectionProps) => {
+
+  const { productTables, aggregateRows } = useMemo(() => {
     if (!multiProductResult || multiProductResult.products.length === 0) {
-      return { tableData: [] as MonthRow[], columns: [] as { key: string; label: string }[] };
+      return { productTables: [] as ProductTableData[], aggregateRows: [] as Record<string, string | number>[] };
     }
 
     const prods = multiProductResult.products;
     const monthCount = prods[0].result.monthly.length;
 
-    const cols: { key: string; label: string }[] = [{ key: 'monthLabel', label: 'Mese' }];
+    const tables: ProductTableData[] = prods.map(p => ({
+      productName: p.product.name,
+      rows: Array.from({ length: monthCount }, (_, m) => {
+        const cm = p.result.monthly[m].customer;
+        return {
+          monthLabel: cm.monthLabel,
+          contratti: cm.contrattiNuovi,
+          attivazioni: cm.attivazioni,
+          churn: cm.churn,
+          churnM0: cm.churnM0 ?? 0,
+          churnOrd: cm.churnOrdinario ?? 0,
+          attivi: cm.clientiAttivi,
+          fatturati: cm.clientiFatturati,
+        };
+      }),
+    }));
 
-    if (prods.length > 1) {
-      prods.forEach(p => {
-        cols.push({ key: `contratti_${p.product.id}`,   label: `Contr. ${p.product.name}` });
-        cols.push({ key: `attivazioni_${p.product.id}`, label: `Attiv. ${p.product.name}` });
-        cols.push({ key: `churn_${p.product.id}`,       label: `SwitchOut ${p.product.name}` });
-        cols.push({ key: `attivi_${p.product.id}`,      label: `Attivi ${p.product.name}` });
-        cols.push({ key: `fatturati_${p.product.id}`,   label: `Fatt. ${p.product.name}` });
-      });
-    }
-
-    cols.push({ key: 'tot_contratti',   label: 'Tot. Contratti' });
-    cols.push({ key: 'tot_attivazioni', label: 'Tot. Attivazioni' });
-    cols.push({ key: 'tot_churn',       label: 'Tot. Switch-Out' });
-    cols.push({ key: 'tot_churnM0',     label: 'di cui Churn M0' });
-    cols.push({ key: 'tot_churnOrd',    label: 'di cui Churn Ord.' });
-    cols.push({ key: 'tot_attivi',      label: 'Tot. Attivi' });
-    cols.push({ key: 'tot_fatturati',   label: 'Tot. Fatturati' });
-
-    const rows: MonthRow[] = [];
+    const aggRows: Record<string, string | number>[] = [];
     for (let m = 0; m < monthCount; m++) {
-      const row: MonthRow = {
-        monthLabel: prods[0].result.monthly[m].customer.monthLabel,
-      };
-
-      let totContratti = 0;
-      let totAttivazioni = 0;
-      let totChurn = 0;
-      let totChurnM0 = 0;
-      let totChurnOrd = 0;
-      let totAttivi = 0;
-      let totFatturati = 0;
-
+      let totC = 0, totA = 0, totCh = 0, totM0 = 0, totOrd = 0, totAtt = 0, totF = 0;
       prods.forEach(p => {
         const cm = p.result.monthly[m].customer;
-        row[`contratti_${p.product.id}`]   = cm.contrattiNuovi;
-        row[`attivazioni_${p.product.id}`] = cm.attivazioni;
-        row[`churn_${p.product.id}`]       = cm.churn;
-        row[`attivi_${p.product.id}`]      = cm.clientiAttivi;
-        row[`fatturati_${p.product.id}`]   = cm.clientiFatturati;
-
-        totContratti   += cm.contrattiNuovi;
-        totAttivazioni += cm.attivazioni;
-        totChurn       += cm.churn;
-        totChurnM0     += cm.churnM0 ?? 0;
-        totChurnOrd    += cm.churnOrdinario ?? 0;
-        totAttivi      += cm.clientiAttivi;
-        totFatturati   += cm.clientiFatturati;
+        totC += cm.contrattiNuovi;
+        totA += cm.attivazioni;
+        totCh += cm.churn;
+        totM0 += cm.churnM0 ?? 0;
+        totOrd += cm.churnOrdinario ?? 0;
+        totAtt += cm.clientiAttivi;
+        totF += cm.clientiFatturati;
       });
-
-      row.tot_contratti   = totContratti;
-      row.tot_attivazioni = totAttivazioni;
-      row.tot_churn       = totChurn;
-      row.tot_churnM0     = totChurnM0;
-      row.tot_churnOrd    = totChurnOrd;
-      row.tot_attivi      = totAttivi;
-      row.tot_fatturati   = totFatturati;
-
-      rows.push(row);
+      aggRows.push({
+        monthLabel: prods[0].result.monthly[m].customer.monthLabel,
+        tot_contratti: totC, tot_attivazioni: totA, tot_churn: totCh,
+        tot_churnM0: totM0, tot_churnOrd: totOrd, tot_attivi: totAtt, tot_fatturati: totF,
+      });
     }
 
-    return { tableData: rows, columns: cols };
+    return { productTables: tables, aggregateRows: aggRows };
   }, [multiProductResult]);
 
   const handleExportXlsx = useCallback(() => {
-    if (tableData.length === 0) return;
-    const wsData = [columns.map(c => c.label)];
-    tableData.forEach(row => {
-      wsData.push(columns.map(c => String(row[c.key] ?? '')));
-    });
+    if (!multiProductResult || multiProductResult.products.length === 0) return;
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = columns.map(() => ({ wch: 16 }));
-    XLSX.utils.book_append_sheet(wb, ws, 'Customer Base');
+
+    // One sheet per product
+    productTables.forEach(pt => {
+      const wsData = [PRODUCT_COLS.map(c => c.label)];
+      pt.rows.forEach(row => {
+        wsData.push(PRODUCT_COLS.map(c => String((row as any)[c.key] ?? '')));
+      });
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = PRODUCT_COLS.map(() => ({ wch: 16 }));
+      const sheetName = pt.productName.substring(0, 31);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+
+    // Aggregate sheet if multiple products
+    if (productTables.length > 1) {
+      const wsData = [AGGREGATE_COLS.map(c => c.label)];
+      aggregateRows.forEach(row => {
+        wsData.push(AGGREGATE_COLS.map(c => String(row[c.key] ?? '')));
+      });
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = AGGREGATE_COLS.map(() => ({ wch: 16 }));
+      XLSX.utils.book_append_sheet(wb, ws, 'Riepilogo');
+    }
+
     XLSX.writeFile(wb, 'customer_base.xlsx');
-  }, [tableData, columns]);
+  }, [multiProductResult, productTables, aggregateRows]);
 
   if (!multiProductResult || multiProductResult.products.length === 0) return null;
 
@@ -117,8 +129,17 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
   const lastMonth = aggregatedMonthly[aggregatedMonthly.length - 1];
   const totalAttiviFinali = lastMonth?.customer.clientiAttivi ?? 0;
   const totalAttivazioniCumulative = aggregatedMonthly.reduce((s, m) => s + m.customer.attivazioni, 0);
-  const totalSwitchOutCumulativo   = aggregatedMonthly.reduce((s, m) => s + m.customer.churn, 0);
-  const totalContrattiCumulativi   = aggregatedMonthly.reduce((s, m) => s + m.customer.contrattiNuovi, 0);
+  const totalSwitchOutCumulativo = aggregatedMonthly.reduce((s, m) => s + m.customer.churn, 0);
+  const totalContrattiCumulativi = aggregatedMonthly.reduce((s, m) => s + m.customer.contrattiNuovi, 0);
+
+  const cellStyle = (key: string) => {
+    const isMonth = key === 'monthLabel';
+    const isChurn = key === 'churn' || key === 'tot_churn';
+    const isAttivi = key === 'attivi' || key === 'tot_attivi';
+    const isFatturati = key === 'fatturati' || key === 'tot_fatturati';
+    const isTotal = key.startsWith('tot_');
+    return `${!isMonth ? 'text-right' : ''} ${isTotal ? 'font-semibold' : ''} ${isChurn ? 'text-destructive' : ''} ${isAttivi ? 'text-primary' : ''} ${isFatturati ? 'text-emerald-600 dark:text-emerald-400' : ''}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -134,7 +155,6 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Summary KPIs row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="rounded-lg border border-border bg-muted/30 p-3">
               <p className="text-xs text-muted-foreground">Contratti totali firmati</p>
@@ -153,82 +173,110 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               <p className="text-xl font-bold text-foreground">{totalAttiviFinali.toLocaleString('it-IT')}</p>
             </div>
           </div>
-
         </CardContent>
       </Card>
 
-      {/* Monthly Detail Table */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Dettaglio Mensile per Prodotto
-              </CardTitle>
+      {/* Export button */}
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={handleExportXlsx} className="gap-2">
+          <Download className="h-4 w-4" />
+          Esporta Excel (tutte le tabelle)
+        </Button>
+      </div>
+
+      {/* One table per product */}
+      {productTables.map((pt, idx) => (
+        <Card key={idx}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Dettaglio Mensile — {pt.productName}
+            </CardTitle>
+            {idx === 0 && (
               <CardDescription className="mt-1">
-                Per ogni mese: contratti firmati dalla rete, attivazioni (entrate in fornitura con 2 mesi di lag dalla firma), switch-out (uscite effettive), POD attivi cumulativi e POD fatturati.
+                Per ogni mese: contratti firmati, attivazioni (con 2 mesi di lag), switch-out, POD attivi e fatturati.
                 <span className="block mt-1 text-xs opacity-80">
-                  ⓘ Switch-out mesi 1-2 = 0: fisiologico, le prime uscite emergono dal mese 3 per il ritardo SII.
-                  POD fatturati = 0 nei mesi 1-3: il primo ciclo di fatturazione completo si apre dal 3° mese dall'attivazione.
+                  ⓘ Switch-out mesi 1-2 = 0: fisiologico. POD fatturati = 0 nei mesi 1-3: primo ciclo fatturazione dal 3° mese.
                 </span>
               </CardDescription>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleExportXlsx} className="gap-2 shrink-0">
-              <Download className="h-4 w-4" />
-              Esporta Excel
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto max-h-[500px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columns.map(col => (
-                    <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
-                      {col.label}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tableData.map((row, i) => (
-                  <TableRow key={i}>
-                    {columns.map(col => {
-                      const val = row[col.key];
-                      const isChurn     = col.key.startsWith('churn_') || col.key === 'tot_churn';
-                      const isAttivi    = col.key.startsWith('attivi_') || col.key === 'tot_attivi';
-                      const isFatturati = col.key.startsWith('fatturati_') || col.key === 'tot_fatturati';
-                      const isTotal     = col.key.startsWith('tot_');
-                      const isMonth     = col.key === 'monthLabel';
-                      return (
-                        <TableCell
-                          key={col.key}
-                          className={`${!isMonth ? 'text-right' : ''} ${isTotal ? 'font-semibold' : ''} ${isChurn ? 'text-destructive' : ''} ${isAttivi ? 'text-primary' : ''} ${isFatturati ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
-                        >
-                          {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
-                        </TableCell>
-                      );
-                    })}
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto max-h-[400px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {PRODUCT_COLS.map(col => (
+                      <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
+                        {col.label}
+                      </TableHead>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {pt.rows.map((row, i) => (
+                    <TableRow key={i}>
+                      {PRODUCT_COLS.map(col => {
+                        const val = (row as any)[col.key];
+                        return (
+                          <TableCell key={col.key} className={cellStyle(col.key)}>
+                            {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
-      {/* Contracts chart */}
+      {/* Aggregate table when multiple products */}
+      {productTables.length > 1 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Riepilogo Aggregato
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto max-h-[400px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {AGGREGATE_COLS.map(col => (
+                      <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
+                        {col.label}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {aggregateRows.map((row, i) => (
+                    <TableRow key={i}>
+                      {AGGREGATE_COLS.map(col => {
+                        const val = row[col.key];
+                        return (
+                          <TableCell key={col.key} className={cellStyle(col.key)}>
+                            {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <ContractsPerProductChart multiProductResult={multiProductResult} />
-
-      {/* Activations chart */}
       <ActivationsPerProductChart multiProductResult={multiProductResult} />
-
-      {/* Churn chart */}
       <ChurnPerProductChart multiProductResult={multiProductResult} />
-
-      {/* Active PODs chart */}
       <ActivePodsPerProductChart multiProductResult={multiProductResult} />
     </div>
   );
