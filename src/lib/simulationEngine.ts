@@ -58,6 +58,10 @@ export interface MonthlyDepositEngineData {
   pagamentiConsumi: number;
   depositoRichiesto: number;
   deltaDeposito: number;
+  // Componenti della fattura consumi reali (NO deposito)
+  fatturaMensileSpreadsGrossista: number;
+  fatturaMensileFeePoD: number;
+  fatturaMensileConsumiTotale: number;
 }
 
 /** Dati mensili incassi */
