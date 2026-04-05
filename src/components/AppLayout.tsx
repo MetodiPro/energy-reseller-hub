@@ -218,6 +218,18 @@ export function AppLayout({ user }: AppLayoutProps) {
               <p>Crea prima un progetto per accedere alla gestione costi</p>
             </div>
           );
+        case 'revenues':
+          return currentProjectId ? (
+            <RevenuesPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per accedere ai Ricavi</p>
+            </div>
+          );
         case 'financials':
           return currentProjectId ? (
             <FinancialDashboard
