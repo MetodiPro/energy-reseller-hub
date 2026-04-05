@@ -98,6 +98,9 @@ export function buildSimulationSummary(
       fatturatoMensileStimato,
       depositoRichiesto: deposit.depositoRichiesto,
       deltaDeposito: deposit.deltaDeposito,
+      fatturaMensileSpread: deposit.fatturaMensileSpreadsGrossista,
+      fatturaMensileFee: deposit.fatturaMensileFeePoD,
+      fatturaMensileConsumiTotale: deposit.fatturaMensileConsumiTotale,
     });
 
     if (customer.month === 2) depositoIniziale = deposit.depositoRichiesto;
