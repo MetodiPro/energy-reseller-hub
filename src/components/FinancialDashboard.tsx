@@ -43,7 +43,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
   const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
 
-  const [activeTab, setActiveTab] = useState('revenues');
+  const [activeTab, setActiveTab] = useState('margins');
 
   const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
   const handleExportGrossista = useCallback(() => {
