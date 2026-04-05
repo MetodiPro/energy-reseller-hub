@@ -267,17 +267,19 @@ export const WholesalerCostsSummary = ({
 
                 {/* Subtotale Passanti */}
                 {passthroughRows.length > 0 && (
-                  <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
-                    <td className="py-2 pr-3" colSpan={3}>Totale Passanti (grossista)</td>
-                    <td className="py-2 text-right font-mono text-amber-600">{fmt(totalePassanti)}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan={4} className="py-1.5 px-1">
-                      <p className="text-[10px] text-muted-foreground italic">
-                        Accise escluse da questo riepilogo: versate dal reseller direttamente all'Agenzia delle Dogane (ADM). Visibili nella sezione Flussi Fiscali.
-                      </p>
-                    </td>
-                  </tr>
+                  <>
+                    <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                      <td className="py-2 pr-3" colSpan={3}>Totale Passanti (grossista)</td>
+                      <td className="py-2 text-right font-mono text-amber-600">{fmt(totalePassanti)}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan={4} className="py-1.5 px-1">
+                        <p className="text-[10px] text-muted-foreground italic">
+                          Accise escluse da questo riepilogo: versate dal reseller direttamente all'Agenzia delle Dogane (ADM). Visibili nella sezione Flussi Fiscali.
+                        </p>
+                      </td>
+                    </tr>
+                  </>
                 )}
               </tbody>
             </table>
