@@ -198,14 +198,6 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
                   </CardTitle>
                   <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
                 </div>
-                {idx === 0 && (
-                  <CardDescription className="mt-1">
-                    Per ogni mese: contratti firmati, attivazioni (con 2 mesi di lag), switch-out, POD attivi e fatturati.
-                    <span className="block mt-1 text-xs opacity-80">
-                      ⓘ Switch-out mesi 1-2 = 0: fisiologico. POD fatturati = 0 nei mesi 1-3: primo ciclo fatturazione dal 3° mese.
-                    </span>
-                  </CardDescription>
-                )}
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
