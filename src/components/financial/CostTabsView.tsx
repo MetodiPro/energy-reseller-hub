@@ -327,13 +327,6 @@ export const CostTabsView = ({
                 )}
 
                 {/* Manual cost entries */}
-                {key === 'commercial' && category.costs.length > 0 && simulatedCommercial && (
-                  <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-muted-foreground" />
-                    Costi Commerciali Manuali
-                    <Badge variant="secondary" className="text-xs font-normal">{category.costs.length} voci</Badge>
-                  </h4>
-                )}
                 {renderCostTable(category.costs, key === 'commercial')}
               </TabsContent>
             );
