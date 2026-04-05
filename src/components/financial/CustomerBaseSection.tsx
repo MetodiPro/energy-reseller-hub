@@ -23,7 +23,7 @@ interface MonthRow {
 }
 
 export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: CustomerBaseSectionProps) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  
 
   const { tableData, columns } = useMemo(() => {
     if (!multiProductResult || multiProductResult.products.length === 0) {
