@@ -63,7 +63,7 @@ function SectionLoader() {
 
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'step-docs', 'team',
-  'documents', 'consultants', 'tariffs', 'wholesaler', 'costs', 'hypotheses', 'customer-base', 'director-report', 'financials', 'business-plan', 'marketing',
+  'documents', 'consultants', 'tariffs', 'wholesaler', 'costs', 'revenues', 'hypotheses', 'customer-base', 'director-report', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile',
 ];
 
