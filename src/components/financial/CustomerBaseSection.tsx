@@ -216,6 +216,9 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               </TableBody>
             </Table>
           </div>
+        </CardContent>
+      </Card>
+
       {/* Contracts chart */}
       <ContractsPerProductChart multiProductResult={multiProductResult} />
 
