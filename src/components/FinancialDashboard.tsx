@@ -17,16 +17,11 @@ import { useEngineResult } from '@/hooks/useEngineResult';
 import { buildTaxFlows } from '@/hooks/useTaxFlows';
 import { exportGrossistaReport, exportFiscaleReport } from '@/lib/exportFinancialExcel';
 
-import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
-import { PassthroughCostsCard } from '@/components/financial/PassthroughCostsCard';
 import { WhatIfSimulator } from '@/components/financial/WhatIfSimulator';
 import { MarginAnalysis } from '@/components/financial/MarginAnalysis';
 import { ResellerRevenueSimulator } from '@/components/financial/ResellerRevenueSimulator';
-import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CashFlowDashboard } from '@/components/financial/CashFlowDashboard';
 import { TaxFlowsDashboard } from '@/components/financial/TaxFlowsDashboard';
-
-import { CostEditDialog } from '@/components/financial/CostEditDialog';
 
 interface FinancialDashboardProps {
   projectId: string;
