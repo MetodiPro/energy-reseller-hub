@@ -36,6 +36,7 @@ export const WholesalerGuaranteeSection = ({
   depositoFinale,
   depositoMesi,
   depositoPercentualeAttivazione,
+  depositoVersatoFase4,
 }: WholesalerGuaranteeSectionProps) => {
   const chartData = depositiMensili.map((d) => ({
     name: d.monthLabel,
