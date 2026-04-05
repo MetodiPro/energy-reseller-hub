@@ -25,6 +25,10 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
   const navigate = useNavigate();
 
+  // Legge il deposito cauzionale versato al grossista dalla Fase 4 del processo.
+  const { getCostAmount } = useStepCosts(projectId);
+  const depositoVersatoFase4 = getCostAmount('step-4-2', 'deposito-cauzionale');
+
   const params = revenueSimulation.data?.params;
 
   return (
