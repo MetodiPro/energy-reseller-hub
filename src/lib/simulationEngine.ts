@@ -328,6 +328,10 @@ export function runSimulationEngine(
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 
+    // Perdite di rete: il grossista fattura kWh maggiorati del fattore perdite
+    const perditeRete = 1 + ((params.perditeRetePct ?? 0) / 100);
+    const kWhAcquistati = kWh * perditeRete;
+
     // Fattura mensile grossista al reseller — componenti consumi reali
     // Spread e fee POD sono fatturati sui consumi/POD reali, NON entrano nel deposito
     const fatturaMensileSpreadsGrossista = m >= 2
