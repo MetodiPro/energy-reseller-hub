@@ -1,9 +1,10 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Download } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Users, Download, ChevronDown } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 import { ChurnPerProductChart } from './ChurnPerProductChart';
 import { ContractsPerProductChart } from './ContractsPerProductChart';
@@ -186,92 +187,110 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
 
       {/* One table per product */}
       {productTables.map((pt, idx) => (
-        <Card key={idx}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Dettaglio Mensile — {pt.productName}
-            </CardTitle>
-            {idx === 0 && (
-              <CardDescription className="mt-1">
-                Per ogni mese: contratti firmati, attivazioni (con 2 mesi di lag), switch-out, POD attivi e fatturati.
-                <span className="block mt-1 text-xs opacity-80">
-                  ⓘ Switch-out mesi 1-2 = 0: fisiologico. POD fatturati = 0 nei mesi 1-3: primo ciclo fatturazione dal 3° mese.
-                </span>
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[400px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {PRODUCT_COLS.map(col => (
-                      <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
-                        {col.label}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pt.rows.map((row, i) => (
-                    <TableRow key={i}>
-                      {PRODUCT_COLS.map(col => {
-                        const val = (row as any)[col.key];
-                        return (
-                          <TableCell key={col.key} className={cellStyle(col.key)}>
-                            {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <Collapsible key={idx} defaultOpen={false}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Dettaglio Mensile — {pt.productName}
+                  </CardTitle>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                </div>
+                {idx === 0 && (
+                  <CardDescription className="mt-1">
+                    Per ogni mese: contratti firmati, attivazioni (con 2 mesi di lag), switch-out, POD attivi e fatturati.
+                    <span className="block mt-1 text-xs opacity-80">
+                      ⓘ Switch-out mesi 1-2 = 0: fisiologico. POD fatturati = 0 nei mesi 1-3: primo ciclo fatturazione dal 3° mese.
+                    </span>
+                  </CardDescription>
+                )}
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="overflow-auto max-h-[400px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {PRODUCT_COLS.map(col => (
+                          <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
+                            {col.label}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pt.rows.map((row, i) => (
+                        <TableRow key={i}>
+                          {PRODUCT_COLS.map(col => {
+                            const val = (row as any)[col.key];
+                            return (
+                              <TableCell key={col.key} className={cellStyle(col.key)}>
+                                {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       ))}
 
       {/* Aggregate table when multiple products */}
       {productTables.length > 1 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Riepilogo Aggregato
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-[400px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {AGGREGATE_COLS.map(col => (
-                      <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
-                        {col.label}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {aggregateRows.map((row, i) => (
-                    <TableRow key={i}>
-                      {AGGREGATE_COLS.map(col => {
-                        const val = row[col.key];
-                        return (
-                          <TableCell key={col.key} className={cellStyle(col.key)}>
-                            {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <Collapsible defaultOpen={false}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-3 cursor-pointer hover:bg-muted/30 transition-colors">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Riepilogo Aggregato
+                  </CardTitle>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <div className="overflow-auto max-h-[400px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {AGGREGATE_COLS.map(col => (
+                          <TableHead key={col.key} className={col.key !== 'monthLabel' ? 'text-right' : ''}>
+                            {col.label}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {aggregateRows.map((row, i) => (
+                        <TableRow key={i}>
+                          {AGGREGATE_COLS.map(col => {
+                            const val = row[col.key];
+                            return (
+                              <TableCell key={col.key} className={cellStyle(col.key)}>
+                                {typeof val === 'number' ? val.toLocaleString('it-IT') : val}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
 
       <ContractsPerProductChart multiProductResult={multiProductResult} />
