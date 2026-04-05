@@ -1,8 +1,11 @@
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useEngineResult } from '@/hooks/useEngineResult';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
+import { useSimulationProducts } from '@/hooks/useSimulationProducts';
+import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { CustomerBaseSection } from '@/components/financial/CustomerBaseSection';
 import { CustomerBaseGuide } from '@/components/financial/CustomerBaseGuide';
+import { ProductPerformanceTable } from '@/components/financial/ProductPerformanceTable';
 import { Users } from 'lucide-react';
 
 interface CustomerBasePageProps {
@@ -17,6 +20,8 @@ export const CustomerBasePage = ({ projectId, sharedRevenueSimulation }: Custome
   const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
   const { multiProductResult, engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
+  const { products } = useSimulationProducts(projectId);
+  const { channels: salesChannels } = useSalesChannels(projectId);
 
   if (!multiProductResult || multiProductResult.products.length === 0) {
     return (
@@ -42,6 +47,12 @@ export const CustomerBasePage = ({ projectId, sharedRevenueSimulation }: Custome
       />
 
       <CustomerBaseGuide />
+
+      <ProductPerformanceTable
+        multiProductResult={multiProductResult}
+        salesChannels={salesChannels}
+        products={products}
+      />
     </div>
   );
 };
