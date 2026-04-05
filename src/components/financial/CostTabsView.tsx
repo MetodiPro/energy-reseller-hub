@@ -291,16 +291,7 @@ export const CostTabsView = ({
         <div>
           <CardTitle>Gestione Costi per Categoria</CardTitle>
           <CardDescription className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span>Totale costi: {formatCurrency(totalCosts)}</span>
-              {commodityType && (
-                <Badge variant="secondary">Solo Energia Elettrica</Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Costi gestionali, commerciali e infrastrutturali del progetto. 
-              I costi energia e grossista sono nella pagina dedicata.
-            </p>
+            <span>Totale costi gestionali, commerciali e infrastrutturali: {formatCurrency(totalCosts)}</span>
           </CardDescription>
         </div>
         <Button onClick={onAdd}>
