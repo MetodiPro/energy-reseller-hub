@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Download, MousePointerClick } from 'lucide-react';
+import { Users, Download } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 import { ChurnPerProductChart } from './ChurnPerProductChart';
 import { ContractsPerProductChart } from './ContractsPerProductChart';
@@ -23,7 +23,7 @@ interface MonthRow {
 }
 
 export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: CustomerBaseSectionProps) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  
 
   const { tableData, columns } = useMemo(() => {
     if (!multiProductResult || multiProductResult.products.length === 0) {
@@ -154,47 +154,34 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
             </div>
           </div>
 
-          {/* Detail trigger button */}
-          <button
-            onClick={() => setDialogOpen(true)}
-            className="group flex items-center gap-3 px-4 py-2 rounded-lg border border-border bg-muted/20 hover:bg-muted/50 transition-colors cursor-pointer w-full text-left"
-          >
-            <Users className="h-5 w-5 text-primary" />
-            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-              Visualizza dettaglio mensile per prodotto
-            </span>
-            <Badge variant="outline" className="ml-auto gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-              <MousePointerClick className="h-3 w-3" />
-              Dettaglio mensile
-            </Badge>
-          </button>
         </CardContent>
       </Card>
 
-      {/* Monthly Detail Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Customer Base — Dettaglio Mensile per Prodotto
-            </DialogTitle>
-            <DialogDescription>
-              Per ogni mese: contratti firmati dalla rete, attivazioni (entrate in fornitura con 2 mesi di lag dalla firma), switch-out (uscite effettive: ogni recesso — incluso il churn mese 0 — produce uscita 2 mesi dopo per il processo SII), POD attivi cumulativi e POD fatturati.
-              <span className="block mt-1 text-xs opacity-80">
-                ⓘ Switch-out mesi 1-2 = 0: fisiologico, le prime uscite emergono dal mese 3 per il ritardo SII.
-                Switch-out mesi 3+: somma di churn mese 0 (quota delle attivazioni di 2 mesi fa) e churn ordinario (% sui POD attivi).
-                POD fatturati = 0 nei mesi 1-3: il primo ciclo di fatturazione completo si apre dal 3° mese dall'attivazione.
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={handleExportXlsx} className="gap-2">
+      {/* Monthly Detail Table */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Dettaglio Mensile per Prodotto
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Per ogni mese: contratti firmati dalla rete, attivazioni (entrate in fornitura con 2 mesi di lag dalla firma), switch-out (uscite effettive), POD attivi cumulativi e POD fatturati.
+                <span className="block mt-1 text-xs opacity-80">
+                  ⓘ Switch-out mesi 1-2 = 0: fisiologico, le prime uscite emergono dal mese 3 per il ritardo SII.
+                  POD fatturati = 0 nei mesi 1-3: il primo ciclo di fatturazione completo si apre dal 3° mese dall'attivazione.
+                </span>
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleExportXlsx} className="gap-2 shrink-0">
               <Download className="h-4 w-4" />
               Esporta Excel
             </Button>
           </div>
-          <div className="overflow-auto flex-1">
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-auto max-h-[500px]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -229,8 +216,8 @@ export const CustomerBaseSection = ({ multiProductResult, totalActiveEnd }: Cust
               </TableBody>
             </Table>
           </div>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
 
       {/* Contracts chart */}
       <ContractsPerProductChart multiProductResult={multiProductResult} />
