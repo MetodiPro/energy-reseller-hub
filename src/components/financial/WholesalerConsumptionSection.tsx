@@ -110,16 +110,16 @@ export const WholesalerConsumptionSection = ({
                 <Tooltip
                   formatter={(value: number, name: string) => [
                     fmt(value),
-                    name === 'garantiti' ? 'Componenti passanti+PUN'
-                      : name === 'spread' ? 'Spread Grossista'
-                      : 'Fee POD'
+                    name === 'Passanti + PUN' ? 'Passanti + PUN (garantiti)'
+                      : name === 'Spread Grossista' ? 'Spread Grossista'
+                      : 'Fee Gestione POD'
                   ]}
                   labelStyle={{ fontSize: 11 }}
                 />
                 <Legend />
-                <Bar dataKey="garantiti" stackId="a" fill="hsl(var(--primary))" name="Passanti+PUN" />
-                <Bar dataKey="spread" stackId="a" fill="hsl(var(--accent))" name="Spread" />
-                <Bar dataKey="fee" stackId="a" fill="hsl(var(--muted-foreground))" name="Fee POD" />
+                <Bar dataKey="garantiti" stackId="a" fill="hsl(var(--primary))" name="Passanti + PUN" radius={[0,0,0,0]} />
+                <Bar dataKey="spread" stackId="a" fill="#ef4444" name="Spread Grossista" radius={[0,0,0,0]} />
+                <Bar dataKey="fee" stackId="a" fill="#f97316" name="Fee Gestione POD" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
