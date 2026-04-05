@@ -140,6 +140,9 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
           />
         </TabsContent>
       </Tabs>
+
+      {/* ── Guida metodologica e fonti ── */}
+      <WholesalerGuideSection />
     </div>
   );
 };
