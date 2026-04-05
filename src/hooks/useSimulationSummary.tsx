@@ -86,6 +86,11 @@ export function buildSimulationSummary(
   const depositiMensili: MonthlyDepositData[] = [];
   const costiMensili: MonthlyCostBreakdown[] = [];
 
+  let cumulativeLordo = 0;
+  let cumulativeRestituito = 0;
+  let cumulativePagamenti = 0;
+  const svincoloPct = (data.params.depositoSvincoloPagamentiPerc ?? 0) / 100;
+
   for (const m of monthly) {
     const { customer, deposit, collection } = m;
 
@@ -99,7 +104,20 @@ export function buildSimulationSummary(
     costoEnergiaTotale += m.costoEnergia;
     cumulativeCollection += collection.totaleIncassi;
 
+    cumulativeLordo += deposit.depositoLordoAttivazioni;
+    cumulativeRestituito += deposit.depositoRilasciatoChurn;
+    cumulativePagamenti += deposit.pagamentiConsumi;
+
     const fatturatoMensileStimato = m.fatturatoStimatoAttivi;
+
+    // Compute switchingRequests the same way as engine
+    const switchingRequests = customer.month >= 1
+      ? Math.round(
+          (customer.month - 1 < 12
+            ? (data.params.monthlyContracts?.[customer.month - 1] ?? 0)
+            : 0) * (data.params.activationRate / 100)
+        )
+      : 0;
 
     depositiMensili.push({
       month: customer.month,
@@ -111,6 +129,15 @@ export function buildSimulationSummary(
       fatturaMensileSpread: deposit.fatturaMensileSpreadsGrossista,
       fatturaMensileFee: deposit.fatturaMensileFeePoD,
       fatturaMensileConsumiTotale: deposit.fatturaMensileConsumiTotale,
+      depositoLordoAttivazioni: deposit.depositoLordoAttivazioni,
+      depositoRilasciatoChurn: deposit.depositoRilasciatoChurn,
+      pagamentiConsumi: deposit.pagamentiConsumi,
+      switchingRequests,
+      churn: customer.churn,
+      cumulativeLordo,
+      cumulativeRestituito,
+      cumulativePagamenti,
+      svincoloPct,
     });
 
     if (customer.month === 2) depositoIniziale = deposit.depositoRichiesto;
