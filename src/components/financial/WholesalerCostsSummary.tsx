@@ -53,8 +53,9 @@ export const WholesalerCostsSummary = ({
   const [activeDetail, setActiveDetail] = useState<DetailKey>(null);
 
   const totalePassanti = passthroughTotals
-    ? passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema + passthroughTotals.accise
+    ? passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema
     : 0;
+  // accise escluse: pagate dal reseller direttamente ad ADM, non al grossista
 
   // Split energia into PUN and Spread components
   const pun = params?.punPerKwh ?? 0;
