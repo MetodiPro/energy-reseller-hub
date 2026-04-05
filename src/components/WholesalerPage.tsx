@@ -8,6 +8,7 @@ import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsCon
 import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
 import { WholesalerGuaranteeSection } from '@/components/financial/WholesalerGuaranteeSection';
 import { WholesalerConsumptionSection } from '@/components/financial/WholesalerConsumptionSection';
+import { WholesalerGuideSection } from '@/components/financial/WholesalerGuideSection';
 import { useNavigate } from 'react-router-dom';
 
 interface WholesalerPageProps {
@@ -139,6 +140,9 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
           />
         </TabsContent>
       </Tabs>
+
+      {/* ── Guida metodologica e fonti ── */}
+      <WholesalerGuideSection />
     </div>
   );
 };
