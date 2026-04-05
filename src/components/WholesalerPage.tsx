@@ -113,6 +113,7 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
             depositoFinale={simulationSummary.depositoFinale}
             depositoMesi={params?.depositoMesi ?? 2}
             depositoPercentualeAttivazione={params?.depositoPercentualeAttivazione ?? 100}
+            depositoVersatoFase4={depositoVersatoFase4}
           />
         </TabsContent>
 
