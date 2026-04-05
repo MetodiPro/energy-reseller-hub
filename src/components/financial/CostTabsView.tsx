@@ -331,9 +331,7 @@ export const CostTabsView = ({
                   <div className="text-right">
                     <p className="text-2xl font-bold">{formatCurrency(category.total)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {key === 'commercial' && simulatedCommercial
-                        ? `${category.costs.length} voci manuali + provvigioni canali`
-                        : `${category.costs.length} ${category.costs.length === 1 ? 'voce' : 'voci'}`}
+                      {`${category.costs.length} ${category.costs.length === 1 ? 'voce' : 'voci'}`}
                     </p>
                   </div>
                 </div>
