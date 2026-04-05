@@ -58,6 +58,10 @@ export interface MonthlyDepositEngineData {
   pagamentiConsumi: number;
   depositoRichiesto: number;
   deltaDeposito: number;
+  // Componenti della fattura consumi reali (NO deposito)
+  fatturaMensileSpreadsGrossista: number;
+  fatturaMensileFeePoD: number;
+  fatturaMensileConsumiTotale: number;
 }
 
 /** Dati mensili incassi */
@@ -324,12 +328,20 @@ export function runSimulationEngine(
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 
+    // Componenti fattura consumi reali (NO deposito) per il calcolo deposito
+    const fatturaMensileSpreadsGrossista = m >= 2 ? cumulativeActiveCustomers * kWh * (1 + ((params.perditeRetePct ?? 0) / 100)) * params.spreadGrossistaPerKwh : 0;
+    const fatturaMensileFeePoD = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
+    const fatturaMensileConsumiTotale = fatturaMensileSpreadsGrossista + fatturaMensileFeePoD;
+
     const deposit: MonthlyDepositEngineData = {
       depositoLordoAttivazioni,
       depositoRilasciatoChurn,
       pagamentiConsumi,
       depositoRichiesto,
       deltaDeposito,
+      fatturaMensileSpreadsGrossista,
+      fatturaMensileFeePoD,
+      fatturaMensileConsumiTotale,
     };
 
     // ── Costi operativi/energia ──
@@ -517,6 +529,9 @@ function aggregateProductResults(
         pagamentiConsumi: s(x => x.deposit.pagamentiConsumi),
         depositoRichiesto: s(x => x.deposit.depositoRichiesto),
         deltaDeposito: s(x => x.deposit.deltaDeposito),
+        fatturaMensileSpreadsGrossista: s(x => x.deposit.fatturaMensileSpreadsGrossista),
+        fatturaMensileFeePoD: s(x => x.deposit.fatturaMensileFeePoD),
+        fatturaMensileConsumiTotale: s(x => x.deposit.fatturaMensileConsumiTotale),
       },
       collection: {
         incassoScadenza: s(x => x.collection.incassoScadenza),
