@@ -20,6 +20,7 @@ interface WholesalerGuaranteeSectionProps {
   depositoFinale: number;
   depositoMesi: number;
   depositoPercentualeAttivazione: number;
+  depositoVersatoFase4: number;
 }
 
 const fmt = (v: number) =>
