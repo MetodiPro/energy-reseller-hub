@@ -328,12 +328,20 @@ export function runSimulationEngine(
     const deltaDeposito = depositoRichiesto - previousDeposito;
     previousDeposito = depositoRichiesto;
 
+    // Componenti fattura consumi reali (NO deposito) per il calcolo deposito
+    const fatturaMensileSpreadsGrossista = m >= 2 ? cumulativeActiveCustomers * kWh * (1 + ((params.perditeRetePct ?? 0) / 100)) * params.spreadGrossistaPerKwh : 0;
+    const fatturaMensileFeePoD = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
+    const fatturaMensileConsumiTotale = fatturaMensileSpreadsGrossista + fatturaMensileFeePoD;
+
     const deposit: MonthlyDepositEngineData = {
       depositoLordoAttivazioni,
       depositoRilasciatoChurn,
       pagamentiConsumi,
       depositoRichiesto,
       deltaDeposito,
+      fatturaMensileSpreadsGrossista,
+      fatturaMensileFeePoD,
+      fatturaMensileConsumiTotale,
     };
 
     // ── Costi operativi/energia ──
