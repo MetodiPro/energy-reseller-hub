@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck, Users, TrendingDown } from 'lucide-react';
+import { Zap, LogOut, Download, FileText, DollarSign, ContactRound, Settings2, Truck, Users, TrendingDown, TrendingUp } from 'lucide-react';
 import { processSteps } from '@/data/processSteps';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { ProjectWizard } from '@/components/ProjectWizard';
