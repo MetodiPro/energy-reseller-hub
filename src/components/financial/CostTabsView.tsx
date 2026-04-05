@@ -54,7 +54,6 @@ interface CostTabsViewProps {
   onEdit: (cost: ProjectCost) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
-  simulatedPassthrough?: SimulatedPassthroughCosts;
   activeChannelNames?: string[];
   simulatedCommercial?: {
     totaleCostiCommerciali: number;
