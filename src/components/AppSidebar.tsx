@@ -20,6 +20,7 @@ import {
   ContactRound,
   ClipboardCheck,
   Truck,
+  TrendingDown,
 } from "lucide-react";
 import {
   Sidebar,
