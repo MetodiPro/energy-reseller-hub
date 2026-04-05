@@ -177,7 +177,7 @@ export const CostTabsView = ({
     
     filtered.forEach(cost => {
       const category = categorizeCost(cost);
-      if (category === null || category === 'passthrough') return;
+      if (category === null) return;
       if (!(category in result)) return;
       
       const amount = cost.amount * cost.quantity;
