@@ -98,24 +98,6 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         onDelete={async (id) => { if (confirm('Sei sicuro di voler eliminare questo costo?')) await deleteCost(id); }}
         onAdd={() => { setEditingCost(null); setShowCostDialog(true); }}
         activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
-        simulatedCommercial={cashFlowData.hasData ? {
-          totaleCostiCommerciali: cashFlowData.totaleCostiCommerciali,
-          monthlyBreakdown: cashFlowData.monthlyData.map(m => ({
-            month: m.month,
-            monthLabel: m.monthLabel,
-            contrattiNuovi: m.contrattiNuovi,
-            clientiAttivati: m.month >= 2 ? Math.round((m.month - 2 < 12 ? (revenueSimulation.data?.monthlyContracts?.[m.month - 2] ?? 0) : 0) * ((revenueSimulation.data?.params?.activationRate ?? 85) / 100)) : 0,
-            costiCommerciali: m.costiCommerciali,
-          })),
-          channelBreakdown: getChannelBreakdown(simulationSummary.contrattiTotali).map(ch => ({
-            channel_name: ch.channel_name,
-            commission_amount: ch.commission_amount,
-            commission_type: ch.commission_type as 'per_contract' | 'per_activation',
-            contracts: ch.contracts,
-            activations: ch.activations,
-            cost: ch.cost,
-          })),
-        } : undefined}
       />
 
       <CostEditDialog

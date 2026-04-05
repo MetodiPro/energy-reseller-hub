@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   Building2, 
   Briefcase, 
@@ -14,33 +13,10 @@ import {
   Plus,
   Zap,
   Flame,
-  TrendingUp,
-  Users,
   AlertCircle,
 } from 'lucide-react';
 import { ProjectCost, CostCategory } from '@/hooks/useProjectFinancials';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-// Monthly commission breakdown by channel
-
-// Monthly commission breakdown by channel
-interface MonthlyCommissionBreakdown {
-  month: number;
-  monthLabel: string;
-  contrattiNuovi: number;
-  clientiAttivati: number;
-  costiCommerciali: number;
-}
-
-// Channel breakdown for summary
-interface ChannelBreakdownData {
-  channel_name: string;
-  commission_amount: number;
-  commission_type: 'per_contract' | 'per_activation';
-  contracts: number;
-  activations: number;
-  cost: number;
-}
 
 interface CostTabsViewProps {
   costs: ProjectCost[];
@@ -50,11 +26,6 @@ interface CostTabsViewProps {
   onDelete: (id: string) => void;
   onAdd: () => void;
   activeChannelNames?: string[];
-  simulatedCommercial?: {
-    totaleCostiCommerciali: number;
-    monthlyBreakdown: MonthlyCommissionBreakdown[];
-    channelBreakdown: ChannelBreakdownData[];
-  };
 }
 
 const COST_CATEGORIES = {
