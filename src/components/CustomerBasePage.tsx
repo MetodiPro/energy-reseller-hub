@@ -2,6 +2,7 @@ import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useEngineResult } from '@/hooks/useEngineResult';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
 import { CustomerBaseSection } from '@/components/financial/CustomerBaseSection';
+import { CustomerBaseGuide } from '@/components/financial/CustomerBaseGuide';
 import { Users } from 'lucide-react';
 
 interface CustomerBasePageProps {
@@ -39,6 +40,8 @@ export const CustomerBasePage = ({ projectId, sharedRevenueSimulation }: Custome
         multiProductResult={multiProductResult}
         totalActiveEnd={multiProductResult.aggregated.monthly[multiProductResult.aggregated.monthly.length - 1]?.customer?.clientiAttivi ?? simulationSummary.clientiAttivi}
       />
+
+      <CustomerBaseGuide />
     </div>
   );
 };
