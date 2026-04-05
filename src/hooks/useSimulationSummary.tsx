@@ -10,6 +10,10 @@ export interface MonthlyDepositData {
   fatturatoMensileStimato: number;
   depositoRichiesto: number;
   deltaDeposito: number;
+  // Consumi reali fatturati dal grossista al reseller (NON nel deposito)
+  fatturaMensileSpread: number;
+  fatturaMensileFee: number;
+  fatturaMensileConsumiTotale: number;
 }
 
 export interface MonthlyCostBreakdown {
