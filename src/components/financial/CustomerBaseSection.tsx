@@ -1,9 +1,10 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Download } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Users, Download, ChevronDown } from 'lucide-react';
 import { MultiProductEngineResult } from '@/lib/simulationEngine';
 import { ChurnPerProductChart } from './ChurnPerProductChart';
 import { ContractsPerProductChart } from './ContractsPerProductChart';
