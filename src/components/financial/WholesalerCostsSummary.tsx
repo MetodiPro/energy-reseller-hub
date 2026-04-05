@@ -184,8 +184,9 @@ export const WholesalerCostsSummary = ({
     { key: 'dispacciamento', label: 'Dispacciamento', sublabel: 'Terna/GME', value: passthroughTotals.dispacciamento, isPassthrough: true },
     { key: 'trasporto', label: 'Trasporto e Distribuzione', sublabel: 'Distributore', value: passthroughTotals.trasporto, isPassthrough: true },
     { key: 'oneri', label: 'Oneri di Sistema', sublabel: 'CSEA/ARERA', value: passthroughTotals.oneriSistema, isPassthrough: true },
-    { key: 'accise', label: 'Accise', sublabel: 'Agenzia Dogane', value: passthroughTotals.accise, isPassthrough: true },
   ] : [];
+  // NOTA: Le accise NON appaiono qui — sono versate dal reseller direttamente
+  // all'Agenzia delle Dogane e sono gestite nella sezione Flussi Fiscali.
 
   return (
     <>
