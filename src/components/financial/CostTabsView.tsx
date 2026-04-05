@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
-  ArrowLeftRight, 
   Building2, 
   Briefcase, 
   Settings,
@@ -15,13 +14,9 @@ import {
   Plus,
   Zap,
   Flame,
-  Calculator,
-  Info,
   TrendingUp,
   Users,
   AlertCircle,
-  Truck,
-  Shield
 } from 'lucide-react';
 import { ProjectCost, CostCategory } from '@/hooks/useProjectFinancials';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
