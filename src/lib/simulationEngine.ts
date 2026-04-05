@@ -360,9 +360,6 @@ export function runSimulationEngine(
     };
 
     // ── Costi operativi/energia ──
-    // Perdite di rete: il grossista fattura kWh maggiorati del fattore perdite
-    const perditeRete = 1 + ((params.perditeRetePct ?? 0) / 100);
-    const kWhAcquistati = kWh * perditeRete;
     const costiGestionePod = m >= 2 ? cumulativeActiveCustomers * gestionePodPerPod : 0;
     const costoEnergia = m >= 2 ? cumulativeActiveCustomers * kWhAcquistati * (params.punPerKwh + params.spreadGrossistaPerKwh) : 0;
     const costoEnergiaConDisp = m >= 2 ? cumulativeActiveCustomers * kWhAcquistati * (params.punPerKwh + params.dispacciamentoPerKwh + params.spreadGrossistaPerKwh) : 0;
