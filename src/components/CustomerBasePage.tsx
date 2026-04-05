@@ -40,6 +40,8 @@ export const CustomerBasePage = ({ projectId, sharedRevenueSimulation }: Custome
         multiProductResult={multiProductResult}
         totalActiveEnd={multiProductResult.aggregated.monthly[multiProductResult.aggregated.monthly.length - 1]?.customer?.clientiAttivi ?? simulationSummary.clientiAttivi}
       />
+
+      <CustomerBaseGuide />
     </div>
   );
 };
