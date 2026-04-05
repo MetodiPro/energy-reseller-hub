@@ -155,7 +155,7 @@ export const CostTabsView = ({
     });
     
     return result;
-  }, [costs, commodityType, activeChannelNames, simulatedCommercial]);
+  }, [costs, commodityType, activeChannelNames]);
   
   const totalCosts = Object.values(categorizedCosts).reduce((sum, cat) => sum + cat.total, 0);
   
