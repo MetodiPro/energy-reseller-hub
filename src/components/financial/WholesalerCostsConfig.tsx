@@ -192,8 +192,9 @@ export const WholesalerCostsConfig = ({
                     <TooltipTrigger>
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Costo fisso applicato dal grossista per ogni punto di fornitura attivo</p>
+                    <TooltipContent className="max-w-xs">
+                      <p>Costo fisso applicato dal grossista per ogni punto di fornitura attivo.</p>
+                      <p className="mt-1 text-yellow-300 font-medium">⚠ Servizio B2B soggetto a IVA 22% (fattura separata). Il valore qui inserito è al netto IVA. L'IVA è recuperabile in reverse charge.</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -215,6 +216,10 @@ export const WholesalerCostsConfig = ({
               </div>
             </div>
           </div>
+          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1">
+            <Info className="h-3 w-3 mt-0.5 shrink-0" />
+            La fee POD è un servizio B2B fatturato con IVA 22% separata dalla fornitura energetica. Inserire il valore netto IVA. L'IVA (22%) è recuperabile in reverse charge.
+          </p>
         </div>
         
         <Separator />
