@@ -20,6 +20,7 @@ interface WholesalerGuaranteeSectionProps {
   depositoFinale: number;
   depositoMesi: number;
   depositoPercentualeAttivazione: number;
+  depositoVersatoFase4: number;
 }
 
 const fmt = (v: number) =>
@@ -35,6 +36,7 @@ export const WholesalerGuaranteeSection = ({
   depositoFinale,
   depositoMesi,
   depositoPercentualeAttivazione,
+  depositoVersatoFase4,
 }: WholesalerGuaranteeSectionProps) => {
   const chartData = depositiMensili.map((d) => ({
     name: d.monthLabel,
@@ -54,13 +56,30 @@ export const WholesalerGuaranteeSection = ({
     <div className="space-y-6">
       {/* KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-purple-200 dark:border-purple-800">
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Deposito Iniziale</p>
-            <p className="text-2xl font-bold mt-1">
+            <p className="text-sm text-muted-foreground">Depositato (Fase 4 Processo)</p>
+            <p className="text-2xl font-bold mt-1 text-purple-700 dark:text-purple-300">
+              {fmt(depositoVersatoFase4)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Impostato nello step Garanzie Finanziarie Grossista
+            </p>
+          </CardContent>
+        </Card>
+        <Card className={depositoIniziale > depositoVersatoFase4 ? 'border-orange-300 dark:border-orange-700' : 'border-green-300 dark:border-green-700'}>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Richiesto mese 1 switching</p>
+            <p className={`text-2xl font-bold mt-1 ${depositoIniziale > depositoVersatoFase4 ? 'text-orange-600' : 'text-green-600'}`}>
               {fmt(depositoIniziale)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Mese avvio switching</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {depositoIniziale > depositoVersatoFase4
+                ? `⚠ Integrativo: ${fmt(depositoIniziale - depositoVersatoFase4)}`
+                : depositoVersatoFase4 > depositoIniziale
+                ? `✓ Fase 4 capiente (eccesso: ${fmt(depositoVersatoFase4 - depositoIniziale)})`
+                : `✓ Perfettamente allineato`}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -69,16 +88,7 @@ export const WholesalerGuaranteeSection = ({
             <p className="text-2xl font-bold mt-1 text-orange-600">
               {fmt(depositoMassimo)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Picco nel periodo</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Deposito Finale</p>
-            <p className="text-2xl font-bold mt-1">
-              {fmt(depositoFinale)}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">Fine periodo simulato</p>
+            <p className="text-xs text-muted-foreground mt-1">Picco nel periodo simulato</p>
           </CardContent>
         </Card>
         <Card>
@@ -89,6 +99,38 @@ export const WholesalerGuaranteeSection = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Alert allineamento Fase 4 */}
+      {depositoIniziale > depositoVersatoFase4 && depositoVersatoFase4 > 0 && (
+        <Card className="border-orange-300 bg-orange-50 dark:bg-orange-950/20">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-orange-800 dark:text-orange-200">
+              <strong>⚠ Attenzione — Deposito integrativo richiesto:</strong> il deposito calcolato dal simulatore per il mese 1 di switching (
+              {fmt(depositoIniziale)}) è superiore a quello impostato nella Fase 4 del processo ({fmt(depositoVersatoFase4)}).
+              Potrebbe essere necessario versare un integrazione di {fmt(depositoIniziale - depositoVersatoFase4)} al grossista.
+              Verifica il valore nella sezione <strong>Processo → Fase 4 → Garanzie Finanziarie Grossista</strong>.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+      {depositoVersatoFase4 === 0 && (
+        <Card className="border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>Nota:</strong> nessun deposito impostato nella Fase 4 del processo. Vai in <strong>Processo → Fase 4 → Garanzie Finanziarie Grossista</strong> e inserisci l'importo concordato col grossista nel campo "Deposito Cauzionale Grossista".
+            </p>
+          </CardContent>
+        </Card>
+      )}
+      {depositoVersatoFase4 >= depositoIniziale && depositoVersatoFase4 > 0 && (
+        <Card className="border-green-300 bg-green-50 dark:bg-green-950/20">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-green-800 dark:text-green-200">
+              <strong>✓ Garanzia capiente:</strong> il deposito impostato nella Fase 4 ({fmt(depositoVersatoFase4)}) copre il fabbisogno del mese 1 di switching ({fmt(depositoIniziale)}). Nessun versamento integrativo iniziale necessario.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Grafico evoluzione deposito */}
       <Card>

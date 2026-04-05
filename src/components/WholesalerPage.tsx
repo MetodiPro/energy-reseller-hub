@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useEngineResult } from '@/hooks/useEngineResult';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
+import { useStepCosts } from '@/hooks/useStepCosts';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
 import { WholesalerGuaranteeSection } from '@/components/financial/WholesalerGuaranteeSection';
@@ -23,6 +24,10 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
   const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
   const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
   const navigate = useNavigate();
+
+  // Legge il deposito cauzionale versato al grossista dalla Fase 4 del processo.
+  const { getCostAmount } = useStepCosts(projectId);
+  const depositoVersatoFase4 = getCostAmount('step-4-2', 'deposito-cauzionale');
 
   const params = revenueSimulation.data?.params;
 
@@ -108,6 +113,7 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
             depositoFinale={simulationSummary.depositoFinale}
             depositoMesi={params?.depositoMesi ?? 2}
             depositoPercentualeAttivazione={params?.depositoPercentualeAttivazione ?? 100}
+            depositoVersatoFase4={depositoVersatoFase4}
           />
         </TabsContent>
 
