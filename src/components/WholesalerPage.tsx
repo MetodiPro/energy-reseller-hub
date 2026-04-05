@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useEngineResult } from '@/hooks/useEngineResult';
 import { useSimulationSummary } from '@/hooks/useSimulationSummary';
+import { useStepCosts } from '@/hooks/useStepCosts';
 import { WholesalerCostsConfig } from '@/components/financial/WholesalerCostsConfig';
 import { WholesalerCostsSummary } from '@/components/financial/WholesalerCostsSummary';
 import { WholesalerGuaranteeSection } from '@/components/financial/WholesalerGuaranteeSection';
