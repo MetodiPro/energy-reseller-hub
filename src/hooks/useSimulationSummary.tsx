@@ -14,6 +14,16 @@ export interface MonthlyDepositData {
   fatturaMensileSpread: number;
   fatturaMensileFee: number;
   fatturaMensileConsumiTotale: number;
+  // Breakdown deposito per tooltip dettagliato
+  depositoLordoAttivazioni: number;
+  depositoRilasciatoChurn: number;
+  pagamentiConsumi: number;
+  switchingRequests: number;
+  churn: number;
+  cumulativeLordo: number;
+  cumulativeRestituito: number;
+  cumulativePagamenti: number;
+  svincoloPct: number;
 }
 
 export interface MonthlyCostBreakdown {
