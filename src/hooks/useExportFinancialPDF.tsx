@@ -1,6 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { ProjectCost } from './useProjectFinancials';
+import { processSteps } from '@/data/processSteps';
+import { stepCostsData, costCategoryLabels, StepCostCategory } from '@/types/stepCosts';
 
 const COST_CATEGORY_LABELS: Record<string, string> = {
   operational: 'Gestionali',
@@ -28,7 +30,6 @@ type CostCategory = 'operational' | 'commercial' | 'infrastructure';
 const categorizeCost = (cost: ProjectCost): CostCategory | null => {
   const name = cost.name.toLowerCase();
 
-  // Exclude passthrough/energy costs (same logic as CostTabsView)
   const energyPatterns = ['energia acquistata', 'trasporto e distribuzione', 'corrispettivi trasporto', 'oneri di sistema'];
   if (energyPatterns.some(p => name.includes(p))) return null;
 
@@ -43,10 +44,18 @@ const categorizeCost = (cost: ProjectCost): CostCategory | null => {
   return 'operational';
 };
 
+interface StartupCostEntry {
+  name: string;
+  category: string;
+  stepName: string;
+  amount: number;
+}
+
 export const useExportFinancialPDF = () => {
   const exportToPDF = (
     projectName: string,
     costs: ProjectCost[],
+    startupCosts?: { getCostAmount: (stepId: string, itemId: string) => number; commodityType?: string | null },
   ) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -57,7 +66,7 @@ export const useExportFinancialPDF = () => {
 
     doc.setFontSize(22);
     doc.setTextColor(255, 255, 255);
-    doc.text('Report Costi', pageWidth / 2, 18, { align: 'center' });
+    doc.text('Report Costi Generali', pageWidth / 2, 18, { align: 'center' });
 
     doc.setFontSize(12);
     doc.text(projectName, pageWidth / 2, 28, { align: 'center' });
@@ -68,6 +77,96 @@ export const useExportFinancialPDF = () => {
     doc.text(`Generato il ${new Date().toLocaleDateString('it-IT')}`, pageWidth / 2, 45, { align: 'center' });
 
     let yPosition = 55;
+
+    // ===== SECTION 1: STARTUP COSTS =====
+    if (startupCosts) {
+      const { getCostAmount, commodityType } = startupCosts;
+
+      const visibleSteps = processSteps.filter(step => {
+        if (!step.commodityType || step.commodityType === 'all') return true;
+        if (!commodityType) return true;
+        if (commodityType === 'solo-luce') return step.commodityType === 'solo-luce';
+        return true;
+      });
+
+      const startupEntries: StartupCostEntry[] = [];
+      let startupTotal = 0;
+
+      visibleSteps.forEach(step => {
+        const stepData = stepCostsData[step.id];
+        if (stepData) {
+          stepData.items.forEach(item => {
+            const amount = getCostAmount(step.id, item.id);
+            if (amount > 0) {
+              startupEntries.push({
+                name: item.name,
+                category: costCategoryLabels[item.category].label,
+                stepName: step.title,
+                amount,
+              });
+              startupTotal += amount;
+            }
+          });
+        }
+      });
+
+      if (startupEntries.length > 0) {
+        doc.setFontSize(14);
+        doc.setTextColor(59, 130, 246);
+        doc.setFont(undefined!, 'bold');
+        doc.text('Riepilogo Costi di Avvio', 14, yPosition);
+        yPosition += 4;
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont(undefined!, 'normal');
+        doc.text(`Investimento Totale Stimato: ${formatCurrency(startupTotal)}`, 14, yPosition + 5);
+        yPosition += 12;
+
+        const startupData = startupEntries.map(e => [
+          e.name,
+          e.category,
+          e.stepName,
+          formatCurrency(e.amount),
+        ]);
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [['Voce', 'Categoria', 'Step di Riferimento', 'Importo']],
+          body: startupData,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [34, 197, 94],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 9,
+          },
+          bodyStyles: { fontSize: 9 },
+          columnStyles: {
+            0: { cellWidth: 50 },
+            1: { cellWidth: 35 },
+            2: { cellWidth: 50 },
+            3: { halign: 'right', cellWidth: 30, fontStyle: 'bold' },
+          },
+          styles: { cellPadding: 3 },
+          foot: [['', '', 'TOTALE', formatCurrency(startupTotal)]],
+          footStyles: {
+            fillColor: [241, 245, 249],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            halign: 'right',
+          },
+        });
+
+        yPosition = (doc as any).lastAutoTable.finalY + 15;
+      }
+    }
+
+    // ===== SECTION 2: OPERATIONAL COSTS =====
+    if (yPosition > 230) {
+      doc.addPage();
+      yPosition = 20;
+    }
 
     // Categorize costs
     const categorized: Record<CostCategory, ProjectCost[]> = {
@@ -86,9 +185,15 @@ export const useExportFinancialPDF = () => {
     // Summary table
     doc.setFontSize(14);
     doc.setTextColor(59, 130, 246);
-    doc.setFont(undefined, 'bold');
-    doc.text('Riepilogo Costi', 14, yPosition);
-    yPosition += 10;
+    doc.setFont(undefined!, 'bold');
+    doc.text('Costi Operativi', 14, yPosition);
+    yPosition += 4;
+
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont(undefined!, 'normal');
+    doc.text(`Totale costi gestionali, commerciali e di infrastruttura: ${formatCurrency(totalCosts)}`, 14, yPosition + 5);
+    yPosition += 14;
 
     const summaryData = (['operational', 'commercial', 'infrastructure'] as CostCategory[]).map(cat => {
       const catTotal = categorized[cat].reduce((sum, c) => sum + (c.amount * c.quantity), 0);
@@ -135,7 +240,7 @@ export const useExportFinancialPDF = () => {
 
       doc.setFontSize(13);
       doc.setTextColor(color[0], color[1], color[2]);
-      doc.setFont(undefined, 'bold');
+      doc.setFont(undefined!, 'bold');
       doc.text(`Costi ${COST_CATEGORY_LABELS[cat]}`, 14, yPosition);
       yPosition += 8;
 
@@ -196,7 +301,7 @@ export const useExportFinancialPDF = () => {
       );
     }
 
-    const fileName = `report-costi-${projectName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `report-costi-generali-${projectName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
   };
 

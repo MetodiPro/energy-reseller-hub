@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FileDown, TrendingDown, Euro } from 'lucide-react';
+import { FileDown, TrendingDown } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
+import { useStepCosts } from '@/hooks/useStepCosts';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
@@ -24,6 +23,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
   const { costs, categories, loading, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
   const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
+  const { getCostAmount } = useStepCosts(projectId);
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
@@ -59,7 +59,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
   }, [filteredCosts]);
 
   const handleTemplateApplied = () => refetch();
-  const handleExportPDF = () => exportToPDF(projectName, filteredCosts);
+  const handleExportPDF = () => exportToPDF(projectName, filteredCosts, { getCostAmount, commodityType });
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
     if (isEdit && editId) {
       await updateCost(editId, costData);
@@ -94,39 +94,6 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
           <FileDown className="h-4 w-4" />
           Esporta PDF
         </Button>
-      </div>
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="border-border">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Totale Costi</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {formatCurrency(totalOneTime + totalRecurring)}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {filteredCosts.length} {filteredCosts.length === 1 ? 'voce' : 'voci'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-border">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Costi Ricorrenti</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {formatCurrency(totalRecurring)}
-            </p>
-            <Badge variant="outline" className="mt-1 text-xs">Mensili / Annuali</Badge>
-          </CardContent>
-        </Card>
-        <Card className="border-border">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Costi Una Tantum</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {formatCurrency(totalOneTime)}
-            </p>
-            <Badge variant="outline" className="mt-1 text-xs">Setup iniziale</Badge>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Startup Costs Summary */}
