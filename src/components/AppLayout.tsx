@@ -52,6 +52,7 @@ const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m =
 const CustomerBasePage = lazy(() => import('@/components/CustomerBasePage').then(m => ({ default: m.CustomerBasePage })));
 const CostsPage = lazy(() => import('@/components/CostsPage').then(m => ({ default: m.CostsPage })));
 const RevenuesPage = lazy(() => import('@/components/RevenuesPage').then(m => ({ default: m.RevenuesPage })));
+const EsitiEconomiciPage = lazy(() => import('@/components/EsitiEconomiciPage').then(m => ({ default: m.EsitiEconomiciPage })));
 
 function SectionLoader() {
   return (
