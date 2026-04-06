@@ -12,8 +12,6 @@ import {
 import { processSteps } from "@/data/processSteps";
 import { stepCostsData, costCategoryLabels, StepCostCategory, StepCostItem } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
-import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
-import { useExportProcessCostsDocx } from "@/hooks/useExportProcessCostsDocx";
 import { cn } from "@/lib/utils";
 
 interface StartupCostsSummaryProps {
