@@ -204,6 +204,12 @@ export const CostTabsView = ({
                 <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                   {cost.description || '-'}
                 </TableCell>
+                <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                  {cost.date 
+                    ? format(parseISO(cost.date), 'd MMM yyyy', { locale: it })
+                    : <span className="italic text-muted-foreground/50">Non impostata</span>
+                  }
+                </TableCell>
                 <TableCell className="text-right font-mono">
                   {formatCurrency(cost.amount)}
                 </TableCell>
