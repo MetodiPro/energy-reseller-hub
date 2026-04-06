@@ -94,12 +94,6 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
       <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
       <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
 
-      {engineResult && salesChannels.filter(c => c.is_active).length > 0 && (
-        <CommercialCostsPerChannel
-          engineResult={engineResult}
-          salesChannels={salesChannels}
-        />
-      )}
     </div>
   );
 };

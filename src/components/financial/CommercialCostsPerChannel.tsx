@@ -13,7 +13,7 @@ interface CommercialCostsPerChannelProps {
 }
 
 const defaultFmt = (v: number) =>
-  v.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
 export function CommercialCostsPerChannel({
   engineResult,
