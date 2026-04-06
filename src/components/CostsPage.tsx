@@ -112,6 +112,9 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         headerActions={<CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />}
       />
 
+      {/* Monthly Cost Dynamics */}
+      <CostDynamicsTimeline projectId={projectId} costs={filteredCosts} commodityType={commodityType} />
+
       <CostEditDialog
         open={showCostDialog}
         onOpenChange={(open) => { setShowCostDialog(open); if (!open) setEditingCost(null); }}
