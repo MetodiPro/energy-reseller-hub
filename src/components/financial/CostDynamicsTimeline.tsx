@@ -86,8 +86,10 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
       return (y - baseYear) * 12 + (m - baseMonth);
     };
 
-    const recurringCosts = costs.filter(c => c.is_recurring);
-    const oneTimeCosts = costs.filter(c => !c.is_recurring);
+    // Filter out passthrough costs (energy, transport etc.) - they don't belong here
+    const operationalCosts = costs.filter(c => !(c as any).is_passthrough);
+    const recurringCosts = operationalCosts.filter(c => c.is_recurring);
+    const oneTimeCosts = operationalCosts.filter(c => !c.is_recurring);
 
     for (let m = 0; m < MONTHS; m++) {
       const details: Array<{ name: string; amount: number; type: 'startup' | 'operational'; category: string }> = [];
