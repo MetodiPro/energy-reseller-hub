@@ -183,131 +183,105 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
   if (timelineData.grandTotal === 0) return null;
 
   return (
-    <div className="space-y-6">
-      {/* Timeline Table */}
-      <Card className="border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <CalendarClock className="h-5 w-5 text-primary" />
-            </div>
-            Dinamica Finanziaria dei Costi
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Distribuzione temporale mese per mese di tutti i costi di avvio e operativi
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[100px]">Mese</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Costi Avvio</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Costi Operativi</TableHead>
-                  <TableHead className="text-right min-w-[120px] font-bold">Totale Mese</TableHead>
-                  <TableHead className="text-right min-w-[120px]">Cumulativo</TableHead>
-                  <TableHead className="min-w-[40px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {timelineData.monthly.map(row => {
-                  if (row.total === 0 && row.month > 5) return null; // skip empty late months
-                  return (
-                    <TableRow key={row.month} className={row.total > 0 ? '' : 'opacity-50'}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <span className="text-foreground">{row.label}</span>
-                          {phaseDescriptions[row.month] && (
-                            <p className="text-xs text-muted-foreground">{phaseDescriptions[row.month]}</p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {row.startupCosts > 0 ? formatCurrency(row.startupCosts) : '–'}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {row.operationalCosts > 0 ? formatCurrency(row.operationalCosts) : '–'}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-bold text-foreground">
-                        {row.total > 0 ? formatCurrency(row.total) : '–'}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm text-primary font-semibold">
-                        {formatCurrency(row.cumulative)}
-                      </TableCell>
-                      <TableCell>
-                        {row.details.length > 0 && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                              </TooltipTrigger>
-                              <TooltipContent side="left" className="max-w-xs">
-                                <div className="space-y-1">
-                                  {row.details.map((d, i) => (
-                                    <div key={i} className="flex justify-between gap-4 text-xs">
-                                      <span className={d.type === 'startup' ? 'text-primary' : 'text-muted-foreground'}>
-                                        {d.name}
-                                      </span>
-                                      <span className="font-mono font-medium whitespace-nowrap">
-                                        {formatCurrency(d.amount)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {/* Totals row */}
-                <TableRow className="border-t-2 border-border bg-muted/30 font-bold">
-                  <TableCell className="text-foreground">TOTALE</TableCell>
-                  <TableCell className="text-right font-mono text-sm">
-                    {formatCurrency(timelineData.monthly.reduce((s, r) => s + r.startupCosts, 0))}
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-sm">
-                    {formatCurrency(timelineData.monthly.reduce((s, r) => s + r.operationalCosts, 0))}
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-sm text-foreground">
-                    {formatCurrency(timelineData.grandTotal)}
-                  </TableCell>
-                  <TableCell></TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+    <Card className="border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <CalendarClock className="h-5 w-5 text-primary" />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Chart by category */}
-      <Card className="border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Ripartizione per Categoria</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Distribuzione complessiva dei costi per tipologia di spesa
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={timelineData.chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`} />
-                <YAxis type="category" dataKey="label" width={160} tick={{ fontSize: 12 }} />
-                <RechartsTooltip
-                  formatter={(value: number) => formatCurrency(value)}
-                  labelFormatter={(label) => label}
-                />
-                <Bar dataKey="total" name="Importo" radius={[0, 4, 4, 0]}>
-                  {timelineData.chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
+          Dinamica Finanziaria dei Costi
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Distribuzione temporale mese per mese di tutti i costi di avvio e operativi
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[100px]">Mese</TableHead>
+                <TableHead className="text-right min-w-[120px]">Costi Avvio</TableHead>
+                <TableHead className="text-right min-w-[120px]">Costi Operativi</TableHead>
+                <TableHead className="text-right min-w-[120px] font-bold">Totale Mese</TableHead>
+                <TableHead className="text-right min-w-[120px]">Cumulativo</TableHead>
+                <TableHead className="min-w-[40px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {timelineData.monthly.map(row => {
+                if (row.total === 0 && row.month > 5) return null;
+                return (
+                  <TableRow key={row.month} className={row.total > 0 ? '' : 'opacity-50'}>
+                    <TableCell className="font-medium">
+                      <div>
+                        <span className="text-foreground">{row.label}</span>
+                        {phaseDescriptions[row.month] && (
+                          <p className="text-xs text-muted-foreground">{phaseDescriptions[row.month]}</p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm">
+                      {row.startupCosts > 0 ? formatCurrency(row.startupCosts) : '–'}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm">
+                      {row.operationalCosts > 0 ? formatCurrency(row.operationalCosts) : '–'}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm font-bold text-foreground">
+                      {row.total > 0 ? formatCurrency(row.total) : '–'}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm text-primary font-semibold">
+                      {formatCurrency(row.cumulative)}
+                    </TableCell>
+                    <TableCell>
+                      {row.details.length > 0 && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent side="left" className="max-w-xs">
+                              <div className="space-y-1">
+                                {row.details.map((d, i) => (
+                                  <div key={i} className="flex justify-between gap-4 text-xs">
+                                    <span className={d.type === 'startup' ? 'text-primary' : 'text-muted-foreground'}>
+                                      {d.name}
+                                    </span>
+                                    <span className="font-mono font-medium whitespace-nowrap">
+                                      {formatCurrency(d.amount)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              <TableRow className="border-t-2 border-border bg-muted/30 font-bold">
+                <TableCell className="text-foreground">TOTALE</TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {formatCurrency(timelineData.monthly.reduce((s, r) => s + r.startupCosts, 0))}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm">
+                  {formatCurrency(timelineData.monthly.reduce((s, r) => s + r.operationalCosts, 0))}
+                </TableCell>
+                <TableCell className="text-right font-mono text-sm text-foreground">
+                  {formatCurrency(timelineData.grandTotal)}
+                </TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
               </BarChart>
             </ResponsiveContainer>
           </div>
