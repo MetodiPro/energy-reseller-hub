@@ -378,10 +378,10 @@ export function runSimulationEngine(
     // ── Pre-computed breakdown ──
     const ivaTotale = clientiFatturati * perClient.iva;
     const materiaEnergiaTotale = clientiFatturati * perClient.materiaEnergia;
-    const dispacciamentoTotale = clientiFatturati * params.dispacciamentoPerKwh * kWh;
-    const trasportoTotale = clientiFatturati * perClient.trasporto;
-    const oneriSistemaTotale = clientiFatturati * perClient.oneriSistema;
-    const acciseTotale = clientiFatturati * perClient.accise;
+    const dispacciamentoTotale = cumulativeActiveCustomers * kWhAcquistati * params.dispacciamentoPerKwh;
+    const trasportoTotale = cumulativeActiveCustomers * perClient.trasporto;
+    const oneriSistemaTotale = cumulativeActiveCustomers * perClient.oneriSistema;
+    const acciseTotale = cumulativeActiveCustomers * perClient.accise;
     const fatturatoStimatoAttivi = cumulativeActiveCustomers * perClient.fattura;
     // Base IVA credito in reverse charge: tutta la fattura del grossista al reseller.
     // Deve usare clientiAttivi come base uniforme (il grossista fattura per POD attivi).
