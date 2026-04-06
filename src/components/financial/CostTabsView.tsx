@@ -92,12 +92,10 @@ const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES | null 
   const energyPatterns = ['energia acquistata', 'trasporto e distribuzione', 'corrispettivi trasporto', 'oneri di sistema'];
   if (energyPatterns.some(p => name.includes(p))) return null;
   
-  const commercialPatterns = ['agent', 'provvigion', 'marketing', 'promozion', 'vendita', 'acquisizione', 'lead', 'campagna'];
-  if (cost.cost_type === 'commercial' || commercialPatterns.some(p => name.includes(p))) return 'commercial';
-  
-  const infraPatterns = ['fidejussion', 'garanz', 'costituzione', 'notaio', 'licenza', 'setup', 'assicurazione', 'consulenza', 'legale', 'ufficio', 'arredamento'];
-  if (cost.cost_type === 'structural' || infraPatterns.some(p => name.includes(p))) return 'infrastructure';
-  
+  // Use the saved cost_type as the primary categorization
+  if (cost.cost_type === 'commercial') return 'commercial';
+  if (cost.cost_type === 'structural') return 'infrastructure';
+  // 'direct' and 'indirect' both map to operational
   return 'operational';
 };
 
