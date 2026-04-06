@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import { Settings2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
-import { useEngineResult } from '@/hooks/useEngineResult';
+
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { ProductsConfig } from '@/components/financial/ProductsConfig';
-import { CommercialCostsPerChannel } from '@/components/financial/CommercialCostsPerChannel';
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { fetchAreraTariffs, type AreraTariffData } from '@/lib/api/areraTariffs';
@@ -25,8 +25,6 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
   const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
   const { channels: salesChannels, refetch: refetchChannels } = useSalesChannels(projectId);
 
-  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
-  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
 
   // --- ARERA tariff mismatch detection ---
   const [tariffeMismatch, setTariffeMismatch] = useState(false);
@@ -94,12 +92,6 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
       <SalesChannelsConfig projectId={projectId} onChannelChange={refetchChannels} />
       <ProductsConfig projectId={projectId} defaultParams={revenueSimulation.data.params} salesChannels={salesChannels} />
 
-      {engineResult && salesChannels.filter(c => c.is_active).length > 0 && (
-        <CommercialCostsPerChannel
-          engineResult={engineResult}
-          salesChannels={salesChannels}
-        />
-      )}
     </div>
   );
 };

@@ -5,11 +5,14 @@ import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials'
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { useStepCosts } from '@/hooks/useStepCosts';
+import { useEngineResult } from '@/hooks/useEngineResult';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
 import { CostDynamicsTimeline } from '@/components/financial/CostDynamicsTimeline';
+import { CommercialCostsPerChannel } from '@/components/financial/CommercialCostsPerChannel';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CostsPageProps {
@@ -27,6 +30,10 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
   const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const { getCostAmount } = useStepCosts(projectId);
+  const revenueSimulation = useRevenueSimulation(projectId);
+  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
+  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
+  const activeChannels = salesChannels.filter(c => c.is_active && c.contract_share > 0);
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
@@ -117,6 +124,14 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
           Esporta PDF
         </Button>
       </div>
+
+      {/* Commercial Costs per Channel */}
+      {engineResult && activeChannels.length > 0 && (
+        <CommercialCostsPerChannel
+          engineResult={engineResult}
+          salesChannels={salesChannels}
+        />
+      )}
 
       {/* Startup Costs Summary */}
       <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
