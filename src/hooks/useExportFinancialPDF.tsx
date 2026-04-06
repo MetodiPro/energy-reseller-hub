@@ -206,13 +206,37 @@ export const useExportFinancialPDF = () => {
       if (cat) categorized[cat].push(cost);
     });
 
-    const totalCosts = Object.values(categorized).flat().reduce((sum, c) => sum + (c.amount * c.quantity), 0);
+    // Date-aware cost computation (same logic as CostTabsView)
+    const computeDateAwareCost = (cost: ProjectCost): number => {
+      const MONTHS = 14;
+      let bm = new Date().getMonth();
+      let by = new Date().getFullYear();
+      if (startupCosts?.plannedStartDate) {
+        const parts = startupCosts.plannedStartDate.split('-');
+        by = parseInt(parts[0], 10);
+        bm = parseInt(parts[1], 10) - 1;
+      }
+      const getOffset = (d: string | null | undefined): number => {
+        if (!d) return 0;
+        const parts = d.split('-');
+        return (parseInt(parts[0], 10) - by) * 12 + (parseInt(parts[1], 10) - 1 - bm);
+      };
+      if (cost.is_recurring) {
+        const startMonth = Math.max(0, getOffset(cost.date));
+        const activeMonths = Math.max(0, MONTHS - startMonth);
+        return (cost.amount * (cost.quantity || 1)) / 12 * activeMonths;
+      } else {
+        return cost.amount * (cost.quantity || 1);
+      }
+    };
+
+    const totalCosts = Object.values(categorized).flat().reduce((sum, c) => sum + computeDateAwareCost(c), 0);
 
     // Summary table
     doc.setFontSize(14);
     doc.setTextColor(59, 130, 246);
     doc.setFont(undefined!, 'bold');
-    doc.text('Costi Operativi', 14, yPosition);
+    doc.text('Costi Operativi (14 mesi)', 14, yPosition);
     yPosition += 4;
 
     doc.setFontSize(10);
@@ -222,7 +246,7 @@ export const useExportFinancialPDF = () => {
     yPosition += 14;
 
     const summaryData = (['operational', 'commercial', 'infrastructure'] as CostCategoryKey[]).map(cat => {
-      const catTotal = categorized[cat].reduce((sum, c) => sum + (c.amount * c.quantity), 0);
+      const catTotal = categorized[cat].reduce((sum, c) => sum + computeDateAwareCost(c), 0);
       const pct = totalCosts > 0 ? `${((catTotal / totalCosts) * 100).toFixed(1)}%` : '0%';
       return [COST_CATEGORY_LABELS[cat], `${categorized[cat].length} voci`, formatCurrency(catTotal), pct];
     });
