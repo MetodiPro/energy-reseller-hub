@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,6 +8,7 @@ import { ProjectCost } from '@/hooks/useProjectFinancials';
 import { stepCostsData } from '@/types/stepCosts';
 import { stepTimingConfig, phaseDescriptions } from '@/lib/costTimingConfig';
 import { processSteps } from '@/data/processSteps';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CostDynamicsTimelineProps {
   projectId: string;
