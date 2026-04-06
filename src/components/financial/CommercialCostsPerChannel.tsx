@@ -28,14 +28,14 @@ export function CommercialCostsPerChannel({
     return activeChannels.map(ch => {
       const monthlyData = engineResult.monthly.map(m => {
         const share = ch.contract_share / 100;
-        let cost = 0;
-        if (ch.commission_type === 'per_contract') {
-          cost = m.customer.contrattiNuovi * share * ch.commission_amount;
-        } else {
-          cost = m.customer.attivazioni * share * ch.commission_amount;
-        }
         const contratti = Math.round(m.customer.contrattiNuovi * share);
         const attivazioni = Math.round(m.customer.attivazioni * share);
+        let cost = 0;
+        if (ch.commission_type === 'per_contract') {
+          cost = contratti * ch.commission_amount;
+        } else {
+          cost = attivazioni * ch.commission_amount;
+        }
         return { monthLabel: m.customer.monthLabel, contratti, attivazioni, cost };
       });
       const totalCost = monthlyData.reduce((s, m) => s + m.cost, 0);
