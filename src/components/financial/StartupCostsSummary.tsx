@@ -41,6 +41,26 @@ const formatCurrency = (value: number) =>
 export const StartupCostsSummary = ({ projectId, projectName, commodityType }: StartupCostsSummaryProps) => {
   const { getCostAmount } = useStepCosts(projectId);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [stepDates, setStepDates] = useState<Record<string, string>>({});
+
+  // Fetch planned_end_date for each step from step_progress
+  useEffect(() => {
+    const fetchStepDates = async () => {
+      const { data } = await supabase
+        .from('step_progress')
+        .select('step_id, planned_end_date')
+        .eq('project_id', projectId)
+        .not('planned_end_date', 'is', null);
+      if (data) {
+        const map: Record<string, string> = {};
+        data.forEach((row: any) => {
+          if (row.planned_end_date) map[row.step_id] = row.planned_end_date;
+        });
+        setStepDates(map);
+      }
+    };
+    fetchStepDates();
+  }, [projectId]);
 
   const costSummary = useMemo(() => {
     const visibleStepIds = processSteps
