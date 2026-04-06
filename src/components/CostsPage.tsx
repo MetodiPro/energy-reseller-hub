@@ -114,7 +114,7 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
       />
 
       {/* Monthly Cost Dynamics */}
-      <CostDynamicsTimeline projectId={projectId} costs={filteredCosts} commodityType={commodityType} />
+      <CostDynamicsTimeline projectId={projectId} costs={filteredCosts} commodityType={commodityType} plannedStartDate={plannedStartDate} />
 
       <CostEditDialog
         open={showCostDialog}
