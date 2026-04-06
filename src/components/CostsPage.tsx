@@ -30,6 +30,25 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
+  const [stepDates, setStepDates] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchStepDates = async () => {
+      const { data } = await supabase
+        .from('step_progress')
+        .select('step_id, planned_end_date')
+        .eq('project_id', projectId);
+      if (data) {
+        const map: Record<string, string | null> = {};
+        data.forEach((row: any) => {
+          map[row.step_id] = row.planned_end_date || null;
+        });
+        setStepDates(map);
+      }
+    };
+    fetchStepDates();
+  }, [projectId]);
 
   const filteredCosts = useMemo(() => {
     return costs.filter(cost => {
