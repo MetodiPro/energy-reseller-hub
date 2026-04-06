@@ -77,10 +77,17 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
       });
     });
 
-    // Operational costs: recurring = spread monthly, one-time = by date or month 0
+    // Helper: compute month offset from base date for a given date string
+    const getMonthOffset = (dateStr: string | null | undefined): number => {
+      if (!dateStr) return 0;
+      const parts = dateStr.split('-');
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      return (y - baseYear) * 12 + (m - baseMonth);
+    };
+
     const recurringCosts = costs.filter(c => c.is_recurring);
     const oneTimeCosts = costs.filter(c => !c.is_recurring);
-    const recurringMonthly = recurringCosts.reduce((sum, c) => sum + (c.amount * (c.quantity || 1)) / 12, 0);
 
     for (let m = 0; m < MONTHS; m++) {
       const details: Array<{ name: string; amount: number; type: 'startup' | 'operational'; category: string }> = [];
@@ -93,24 +100,21 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
         startupTotal += item.amount;
       });
 
-      // Recurring operational (monthly portion)
-      if (recurringMonthly > 0) {
-        recurringCosts.forEach(c => {
+      // Recurring operational: only from the month the cost starts
+      recurringCosts.forEach(c => {
+        const startMonth = Math.max(0, getMonthOffset(c.date));
+        if (m >= startMonth) {
           const monthlyPortion = (c.amount * (c.quantity || 1)) / 12;
           if (monthlyPortion > 0) {
             details.push({ name: c.name, amount: monthlyPortion, type: 'operational', category: c.cost_type });
+            opTotal += monthlyPortion;
           }
-        });
-        opTotal += recurringMonthly;
-      }
+        }
+      });
 
-      // One-time operational costs: place at month 0 if no date
+      // One-time operational costs: place at their date month or month 0
       oneTimeCosts.forEach(c => {
-        const costMonth = c.date ? (() => {
-          const d = new Date(c.date!);
-          // Simple: if within first 14 months, compute offset; otherwise skip
-          return Math.max(0, Math.min(13, d.getMonth())); // simplified
-        })() : 0;
+        const costMonth = Math.max(0, Math.min(13, getMonthOffset(c.date)));
         if (costMonth === m) {
           const amount = c.amount * (c.quantity || 1);
           details.push({ name: c.name, amount, type: 'operational', category: c.cost_type });
