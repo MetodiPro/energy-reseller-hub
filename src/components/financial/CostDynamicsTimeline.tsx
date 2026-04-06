@@ -14,7 +14,10 @@ interface CostDynamicsTimelineProps {
   projectId: string;
   costs: ProjectCost[];
   commodityType?: string | null;
+  plannedStartDate?: string | null;
 }
+
+const MONTHS_IT = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -36,11 +39,28 @@ const CATEGORY_COLORS: Record<string, string> = {
   indirect: 'hsl(162, 63%, 41%)',
 };
 
-export const CostDynamicsTimeline = ({ projectId, costs, commodityType }: CostDynamicsTimelineProps) => {
+export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedStartDate }: CostDynamicsTimelineProps) => {
   const { getCostAmount } = useStepCosts(projectId);
 
   const timelineData = useMemo(() => {
     const MONTHS = 14;
+
+    // Compute base date from planned_start_date
+    let baseMonth = new Date().getMonth();
+    let baseYear = new Date().getFullYear();
+    if (plannedStartDate) {
+      const parts = plannedStartDate.split('-');
+      baseYear = parseInt(parts[0], 10);
+      baseMonth = parseInt(parts[1], 10) - 1; // 0-indexed
+    }
+
+    const getMonthLabel = (offset: number) => {
+      const totalMonth = baseMonth + offset;
+      const m = ((totalMonth % 12) + 12) % 12;
+      const y = baseYear + Math.floor(totalMonth / 12);
+      return `${MONTHS_IT[m]} ${y}`;
+    };
+
     const monthlyItems: Array<{
       month: number;
       label: string;
@@ -117,7 +137,7 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType }: CostDy
 
       monthlyItems.push({
         month: m,
-        label: `Mese ${m + 1}`,
+        label: getMonthLabel(m),
         startupCosts: startupTotal,
         operationalCosts: opTotal,
         total: startupTotal + opTotal,
@@ -158,7 +178,7 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType }: CostDy
     const grandTotal = cumulative;
 
     return { monthly: withCumulative, chartData, grandTotal };
-  }, [costs, commodityType, getCostAmount]);
+  }, [costs, commodityType, getCostAmount, plannedStartDate]);
 
   if (timelineData.grandTotal === 0) return null;
 

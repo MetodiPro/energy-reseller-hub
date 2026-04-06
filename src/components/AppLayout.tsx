@@ -211,6 +211,7 @@ export function AppLayout({ user }: AppLayoutProps) {
               projectId={currentProjectId}
               projectName={currentProject?.name || 'Progetto Corrente'}
               commodityType={currentProject?.commodity_type}
+              plannedStartDate={currentProject?.planned_start_date}
             />
           ) : (
             <div className="text-center py-12 text-muted-foreground">
