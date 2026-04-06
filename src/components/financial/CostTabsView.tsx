@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { ProjectCost, CostCategory } from '@/hooks/useProjectFinancials';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface CostTabsViewProps {
   costs: ProjectCost[];
@@ -33,22 +34,22 @@ const COST_CATEGORIES = {
     label: 'Gestionali',
     description: 'Software, personale, assistenza clienti, SII',
     icon: Settings,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
+    colorClass: 'text-primary',
+    bgClass: 'bg-primary/10',
   },
   commercial: {
     label: 'Commerciali',
     description: 'Acquisizione clienti, agenti, marketing, provvigioni',
     icon: Briefcase,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
+    colorClass: 'text-primary',
+    bgClass: 'bg-primary/10',
   },
   infrastructure: {
     label: 'Infrastruttura',
     description: 'Ufficio, licenze, garanzie, consulenze, setup iniziale',
     icon: Building2,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
+    colorClass: 'text-primary',
+    bgClass: 'bg-primary/10',
   },
 };
 
@@ -60,16 +61,6 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-const formatCurrencyShort = (value: number) => {
-  return new Intl.NumberFormat('it-IT', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
-// Filter costs by commodity type
 const filterByCommodity = (cost: ProjectCost, commodityType: string | null): boolean => {
   const costName = cost.name.toLowerCase();
   const commodityFilter = (cost as any).commodity_filter;
@@ -91,7 +82,6 @@ const filterByCommodity = (cost: ProjectCost, commodityType: string | null): boo
   return true;
 };
 
-// Categorize cost - EXCLUDE passthrough from manual costs
 const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES | null => {
   if ((cost as any).is_passthrough === true) return null;
   
@@ -108,14 +98,12 @@ const categorizeCost = (cost: ProjectCost): keyof typeof COST_CATEGORIES | null 
   return 'operational';
 };
 
-// Detect if a commercial cost is a commission entry that duplicates simulated channel costs
 const isCommissionDuplicate = (cost: ProjectCost, activeChannels: string[]): boolean => {
   if (activeChannels.length === 0) return false;
   const name = cost.name.toLowerCase();
   const commissionPatterns = ['provvigion', 'commission', 'rete agenti', 'call center', 'referral', 'sportell'];
   if (!commissionPatterns.some(p => name.includes(p))) return false;
   
-  // Check if the cost references a channel that is NOT active
   const activeNormalized = activeChannels.map(c => c.toLowerCase());
   const mentionsInactiveChannel = !activeNormalized.some(ch => name.includes(ch.split(' ')[0]));
   
@@ -185,7 +173,7 @@ export const CostTabsView = ({
           {costList.map(cost => {
             const isDuplicate = checkDuplicates && isCommissionDuplicate(cost, activeChannelNames);
             return (
-              <TableRow key={cost.id} className={isDuplicate ? 'opacity-50 bg-amber-50/50 dark:bg-amber-950/10' : ''}>
+              <TableRow key={cost.id} className={isDuplicate ? 'opacity-50 bg-muted/30' : ''}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     {cost.name.toLowerCase().includes('gas') || cost.name.toLowerCase().includes('smc') ? (
@@ -251,16 +239,16 @@ export const CostTabsView = ({
   };
 
   return (
-    <Card>
+    <Card className="border-border">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Gestione Costi per Categoria</CardTitle>
-          <CardDescription className="flex flex-col gap-1">
-            <span>Totale costi gestionali, commerciali e infrastrutturali: {formatCurrency(totalCosts)}</span>
+          <CardTitle className="text-lg">Costi Operativi per Categoria</CardTitle>
+          <CardDescription>
+            Totale costi gestionali, commerciali e infrastrutturali: <span className="font-semibold text-foreground">{formatCurrency(totalCosts)}</span>
           </CardDescription>
         </div>
-        <Button onClick={onAdd}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={onAdd} className="gap-2">
+          <Plus className="h-4 w-4" />
           Aggiungi Costo
         </Button>
       </CardHeader>
@@ -272,7 +260,7 @@ export const CostTabsView = ({
               const category = categorizedCosts[key as keyof typeof COST_CATEGORIES];
               return (
                 <TabsTrigger key={key} value={key} className="flex items-center gap-2">
-                  <Icon className={`h-4 w-4 ${config.color}`} />
+                  <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{config.label}</span>
                   <Badge variant="secondary" className="ml-1">
                     {category.costs.length}
@@ -290,43 +278,39 @@ export const CostTabsView = ({
               <TabsContent key={key} value={key} className="mt-4">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${config.bgColor}`}>
-                      <Icon className={`h-5 w-5 ${config.color}`} />
+                    <div className={cn("p-2 rounded-lg", config.bgClass)}>
+                      <Icon className={cn("h-5 w-5", config.colorClass)} />
                     </div>
                     <div>
-                      <h3 className="font-semibold">{config.label}</h3>
+                      <h3 className="font-semibold text-foreground">{config.label}</h3>
                       <p className="text-sm text-muted-foreground">{config.description}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold">{formatCurrency(category.total)}</p>
+                    <p className="text-2xl font-bold text-foreground">{formatCurrency(category.total)}</p>
                     <p className="text-sm text-muted-foreground">
                       {`${category.costs.length} ${category.costs.length === 1 ? 'voce' : 'voci'}`}
                     </p>
                   </div>
                 </div>
-                
-                
 
-                {/* Warning for duplicate manual costs */}
                 {key === 'commercial' && activeChannelNames.length > 0 && category.costs.some(c => isCommissionDuplicate(c, activeChannelNames)) && (
-                  <div className="mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <div className="mb-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-muted/30 p-3">
                     <div className="flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
-                        <p className="font-medium text-amber-800 dark:text-amber-300">
+                        <p className="font-medium text-foreground">
                           Costi provvigioni non coerenti con i canali attivi
                         </p>
-                        <p className="text-amber-700 dark:text-amber-400 mt-1">
+                        <p className="text-muted-foreground mt-1">
                           Hai configurato solo <strong>{activeChannelNames.join(', ')}</strong> come {activeChannelNames.length === 1 ? 'canale attivo' : 'canali attivi'}. 
-                          Le voci evidenziate sono escluse dal totale. Eliminale per tenere pulita la scheda.
+                          Le voci evidenziate sono escluse dal totale.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Manual cost entries */}
                 {renderCostTable(category.costs, key === 'commercial')}
               </TabsContent>
             );
