@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Wallet, TrendingUp, Calculator,
+  Wallet, TrendingUp, Calculator, FileText,
   ChevronDown, FileCheck, Users, Monitor, Shield,
   GraduationCap, UserCheck, Building2, MoreHorizontal,
 } from "lucide-react";
