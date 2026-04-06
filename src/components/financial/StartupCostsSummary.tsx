@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,12 +7,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Wallet, TrendingUp, Calculator, FileText,
   ChevronDown, FileCheck, Users, Monitor, Shield,
-  GraduationCap, UserCheck, Building2, MoreHorizontal,
+  GraduationCap, UserCheck, Building2, MoreHorizontal, CalendarDays,
 } from "lucide-react";
 import { processSteps } from "@/data/processSteps";
 import { stepCostsData, costCategoryLabels, StepCostCategory, StepCostItem } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { format, parseISO } from "date-fns";
+import { it } from "date-fns/locale";
 
 interface StartupCostsSummaryProps {
   projectId: string;
@@ -38,6 +41,26 @@ const formatCurrency = (value: number) =>
 export const StartupCostsSummary = ({ projectId, projectName, commodityType }: StartupCostsSummaryProps) => {
   const { getCostAmount } = useStepCosts(projectId);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [stepDates, setStepDates] = useState<Record<string, string>>({});
+
+  // Fetch planned_end_date for each step from step_progress
+  useEffect(() => {
+    const fetchStepDates = async () => {
+      const { data } = await supabase
+        .from('step_progress')
+        .select('step_id, planned_end_date')
+        .eq('project_id', projectId)
+        .not('planned_end_date', 'is', null);
+      if (data) {
+        const map: Record<string, string> = {};
+        data.forEach((row: any) => {
+          if (row.planned_end_date) map[row.step_id] = row.planned_end_date;
+        });
+        setStepDates(map);
+      }
+    };
+    fetchStepDates();
+  }, [projectId]);
 
   const costSummary = useMemo(() => {
     const visibleStepIds = processSteps
@@ -156,11 +179,12 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="mt-1 ml-2 mr-2 mb-2 rounded-lg border border-border bg-muted/20 overflow-hidden">
-                        <Table>
+                         <Table>
                           <TableHeader>
                             <TableRow className="hover:bg-transparent">
                               <TableHead className="text-xs">Voce</TableHead>
                               <TableHead className="text-xs">Step di Riferimento</TableHead>
+                              <TableHead className="text-xs">Scadenza</TableHead>
                               <TableHead className="text-xs text-right">Importo</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -175,6 +199,16 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
                                 </TableCell>
                                 <TableCell className="py-2">
                                   <span className="text-xs text-muted-foreground">{entry.stepName}</span>
+                                </TableCell>
+                                <TableCell className="py-2">
+                                  {stepDates[entry.stepId] ? (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <CalendarDays className="h-3 w-3" />
+                                      {format(parseISO(stepDates[entry.stepId]), "d MMM yyyy", { locale: it })}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground/50 italic">Non impostata</span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="py-2 text-right font-mono text-sm font-medium">
                                   {formatCurrency(entry.amount)}
