@@ -90,13 +90,10 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
             <p className="text-sm text-muted-foreground">{projectName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />
-          <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-            <FileDown className="h-4 w-4" />
-            Esporta PDF
-          </Button>
-        </div>
+        <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+          <FileDown className="h-4 w-4" />
+          Esporta PDF
+        </Button>
       </div>
 
       {/* Quick stats */}
