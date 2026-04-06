@@ -25,8 +25,6 @@ export const HypothesesPage = ({ projectId, projectName, commodityType, sharedRe
   const revenueSimulation = sharedRevenueSimulation || ownRevenueSimulation;
   const { channels: salesChannels, refetch: refetchChannels } = useSalesChannels(projectId);
 
-  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
-  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
 
   // --- ARERA tariff mismatch detection ---
   const [tariffeMismatch, setTariffeMismatch] = useState(false);
