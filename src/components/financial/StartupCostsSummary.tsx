@@ -112,16 +112,6 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
             </div>
             Riepilogo Costi di Avvio
           </CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
-              <Download className="h-4 w-4" />
-              PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExportDocx} className="gap-2">
-              <FileText className="h-4 w-4" />
-              Word
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
