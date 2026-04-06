@@ -371,7 +371,9 @@ export function runSimulationEngine(
 
     // ── Costi passanti e margine (per i clienti fatturati) ──
     const costiPassanti = clientiFatturati * perClient.passantiTotale;
-    const margineCommerciale = clientiFatturati * perClient.margineTotale;
+    const margineCcvTotale = clientiFatturati * perClient.ccv;
+    const margineSpreadTotale = clientiFatturati * perClient.spread;
+    const margineAltroTotale = clientiFatturati * perClient.altroServizi;
 
     // ── Pre-computed breakdown ──
     const ivaTotale = clientiFatturati * perClient.iva;
