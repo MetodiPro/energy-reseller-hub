@@ -6,6 +6,8 @@ import { stepCostsData, costCategoryLabels, StepCostCategory } from '@/types/ste
 import { stepTimingConfig, phaseDescriptions } from '@/lib/costTimingConfig';
 import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
+import type { SimulationEngineResult } from '@/lib/simulationEngine';
+import type { SalesChannel } from '@/hooks/useSalesChannels';
 
 const COST_CATEGORY_LABELS: Record<string, string> = {
   operational: 'Gestionali',
@@ -75,6 +77,8 @@ interface ExportOptions {
   commodityType?: string | null;
   plannedStartDate?: string | null;
   stepDates?: Record<string, string | null>;
+  engineResult?: SimulationEngineResult | null;
+  salesChannels?: SalesChannel[];
 }
 
 export const useExportFinancialPDF = () => {
