@@ -115,17 +115,6 @@ export const CostEditDialog = ({ open, onOpenChange, editingCost, categories, pr
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="cost-cat">Categoria</Label>
-            <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
-              <SelectTrigger><SelectValue placeholder="Seleziona categoria" /></SelectTrigger>
-              <SelectContent>
-                {categories.filter(c => c.type === formData.cost_type).map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="cost-desc">Descrizione</Label>
             <Textarea id="cost-desc" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={2} />
           </div>
