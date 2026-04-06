@@ -52,10 +52,12 @@ export const WholesalerCostsSummary = ({
 }: WholesalerCostsSummaryProps) => {
   const [activeDetail, setActiveDetail] = useState<DetailKey>(null);
 
+  const dispacciamentoTotale = passthroughTotals?.dispacciamento ?? 0;
   const totalePassanti = passthroughTotals
-    ? passthroughTotals.dispacciamento + passthroughTotals.trasporto + passthroughTotals.oneriSistema
+    ? passthroughTotals.trasporto + passthroughTotals.oneriSistema
     : 0;
   // accise escluse: pagate dal reseller direttamente ad ADM, non al grossista
+  // dispacciamento incluso nei costi grossista: pagato al grossista in fattura
 
   // Split energia into PUN and Spread components
   const pun = params?.punPerKwh ?? 0;
@@ -66,7 +68,7 @@ export const WholesalerCostsSummary = ({
   const costoEnergiaPun = costoEnergiaTotale * punShare;
   const costoEnergiaSpread = costoEnergiaTotale * spreadShare;
 
-  const totaleGrossista = costoEnergiaTotale + costoGestionePodTotale;
+  const totaleGrossista = costoEnergiaTotale + costoGestionePodTotale + dispacciamentoTotale;
 
   const getDetailContent = (key: DetailKey) => {
     if (!key) return null;
