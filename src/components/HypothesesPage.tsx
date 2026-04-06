@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Settings2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
-import { useEngineResult } from '@/hooks/useEngineResult';
+
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { ProductsConfig } from '@/components/financial/ProductsConfig';
