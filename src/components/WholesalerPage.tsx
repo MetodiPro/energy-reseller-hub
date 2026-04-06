@@ -32,27 +32,13 @@ export const WholesalerPage = ({ projectId, projectName, commodityType, sharedRe
 
   const params = revenueSimulation.data?.params;
   const avgMonthlyConsumption = params?.avgMonthlyConsumption ?? 0;
-  const perditeReteFactor = 1 + ((params?.perditeRetePct ?? 0) / 100);
-  const trasportoPerCliente =
-    (params?.trasportoQuotaFissaAnno ?? 0) / 12 +
-    ((params?.trasportoQuotaPotenzaKwAnno ?? 0) * (params?.potenzaImpegnataKw ?? 0)) / 12 +
-    (params?.trasportoQuotaEnergiaKwh ?? 0) * avgMonthlyConsumption;
-  const oneriPerCliente = ((params?.oneriAsosKwh ?? 0) + (params?.oneriArimKwh ?? 0)) * avgMonthlyConsumption;
 
-  const grossistaSummaryCostsMensili = simulationSummary.costiMensili.map((month) => ({
-    ...month,
-    dispacciamento:
-      month.month >= 2
-        ? month.clientiAttivi * avgMonthlyConsumption * perditeReteFactor * (params?.dispacciamentoPerKwh ?? 0)
-        : 0,
-    trasporto: month.month >= 2 ? month.clientiAttivi * trasportoPerCliente : 0,
-    oneriSistema: month.month >= 2 ? month.clientiAttivi * oneriPerCliente : 0,
-  }));
+  const grossistaSummaryCostsMensili = simulationSummary.costiMensili;
 
   const grossistaSummaryTotals = {
-    dispacciamento: grossistaSummaryCostsMensili.reduce((sum, month) => sum + month.dispacciamento, 0),
-    trasporto: grossistaSummaryCostsMensili.reduce((sum, month) => sum + month.trasporto, 0),
-    oneriSistema: grossistaSummaryCostsMensili.reduce((sum, month) => sum + month.oneriSistema, 0),
+    dispacciamento: simulationSummary.costiMensili.reduce((sum, month) => sum + month.dispacciamento, 0),
+    trasporto: simulationSummary.costiMensili.reduce((sum, month) => sum + month.trasporto, 0),
+    oneriSistema: simulationSummary.costiMensili.reduce((sum, month) => sum + month.oneriSistema, 0),
     accise: simulationSummary.costiMensili.reduce((sum, month) => sum + month.accise, 0),
   };
 
