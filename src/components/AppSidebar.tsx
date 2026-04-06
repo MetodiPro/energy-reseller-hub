@@ -79,6 +79,7 @@ const strategyItems = [
   { id: "wholesaler", title: "Grossista (Udd)", icon: Truck },
   { id: "costs", title: "Costi Generali", icon: TrendingDown },
   { id: "revenues", title: "Ricavi Generali", icon: TrendingUp },
+  { id: "esiti-economici", title: "Esiti Economici", icon: ClipboardCheck },
   { id: "director-report", title: "Esiti", icon: ClipboardCheck },
   { id: "financials", title: "Finanza", icon: DollarSign },
   { id: "business-plan", title: "Business Plan", icon: FileText },
