@@ -66,7 +66,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <TrendingDown className="h-6 w-6" />
-            Gestione Costi
+            Costi Generali
           </h2>
           <p className="text-muted-foreground">{projectName}</p>
         </div>
