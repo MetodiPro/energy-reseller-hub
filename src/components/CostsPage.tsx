@@ -9,6 +9,7 @@ import { CostTemplateSelector } from '@/components/financial/CostTemplateSelecto
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
+import { CostDynamicsTimeline } from '@/components/financial/CostDynamicsTimeline';
 
 interface CostsPageProps {
   projectId: string;
@@ -110,6 +111,9 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
         headerActions={<CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />}
       />
+
+      {/* Monthly Cost Dynamics */}
+      <CostDynamicsTimeline projectId={projectId} costs={filteredCosts} commodityType={commodityType} />
 
       <CostEditDialog
         open={showCostDialog}
