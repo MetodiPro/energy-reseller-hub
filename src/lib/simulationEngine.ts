@@ -84,6 +84,9 @@ export interface MonthlyEngineResult {
   costoEnergia: number;          // Per Esiti Economici: PUN + spreadGrossista (senza dispacciamento)
   costoEnergiaConDisp: number;   // Per Cash Flow: PUN + dispacciamento + spreadGrossista (uscita reale di cassa)
   margineCommerciale: number;
+  margineCcvTotale: number;
+  margineSpreadTotale: number;
+  margineAltroTotale: number;
   // Pre-computed breakdown fields for multi-product aggregation
   ivaTotale: number;
   materiaEnergiaTotale: number;
@@ -368,7 +371,9 @@ export function runSimulationEngine(
 
     // ── Costi passanti e margine (per i clienti fatturati) ──
     const costiPassanti = clientiFatturati * perClient.passantiTotale;
-    const margineCommerciale = clientiFatturati * perClient.margineTotale;
+    const margineCcvTotale = clientiFatturati * perClient.ccv;
+    const margineSpreadTotale = clientiFatturati * perClient.spread;
+    const margineAltroTotale = clientiFatturati * perClient.altroServizi;
 
     // ── Pre-computed breakdown ──
     const ivaTotale = clientiFatturati * perClient.iva;
@@ -394,7 +399,10 @@ export function runSimulationEngine(
       costiGestionePod,
       costoEnergia,
       costoEnergiaConDisp,
-      margineCommerciale,
+      margineCommerciale: margineCcvTotale + margineSpreadTotale + margineAltroTotale,
+      margineCcvTotale,
+      margineSpreadTotale,
+      margineAltroTotale,
       ivaTotale,
       materiaEnergiaTotale,
       dispacciamento: dispacciamentoTotale,
@@ -560,6 +568,9 @@ function aggregateProductResults(
       costoEnergia: s(x => x.costoEnergia),
       costoEnergiaConDisp: s(x => x.costoEnergiaConDisp),
       margineCommerciale: s(x => x.margineCommerciale),
+      margineCcvTotale: s(x => x.margineCcvTotale),
+      margineSpreadTotale: s(x => x.margineSpreadTotale),
+      margineAltroTotale: s(x => x.margineAltroTotale),
       ivaTotale: s(x => x.ivaTotale),
       materiaEnergiaTotale: s(x => x.materiaEnergiaTotale),
       dispacciamento: s(x => x.dispacciamento),
