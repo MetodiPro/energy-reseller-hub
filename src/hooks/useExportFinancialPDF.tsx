@@ -27,7 +27,6 @@ type CostCategory = 'operational' | 'commercial' | 'infrastructure';
 
 const categorizeCost = (cost: ProjectCost): CostCategory | null => {
   const name = cost.name.toLowerCase();
-  const name = cost.name.toLowerCase();
   const desc = (cost.description || '').toLowerCase();
   const combined = `${name} ${desc}`;
 
