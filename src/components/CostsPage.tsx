@@ -141,6 +141,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         onDelete={async (id) => { if (confirm('Sei sicuro di voler eliminare questo costo?')) await deleteCost(id); }}
         onAdd={() => { setEditingCost(null); setShowCostDialog(true); }}
         activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
+        headerActions={<CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />}
       />
 
       <CostEditDialog
