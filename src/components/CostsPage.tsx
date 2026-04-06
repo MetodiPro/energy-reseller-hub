@@ -1,6 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileDown, TrendingDown } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { FileDown, TrendingDown, Euro } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
@@ -14,6 +16,9 @@ interface CostsPageProps {
   projectName: string;
   commodityType?: string | null;
 }
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
 export const CostsPage = ({ projectId, projectName, commodityType }: CostsPageProps) => {
   const { costs, categories, loading, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
@@ -41,6 +46,18 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
     });
   }, [costs, commodityType]);
 
+  const totalRecurring = useMemo(() => {
+    return filteredCosts
+      .filter(c => c.is_recurring)
+      .reduce((sum, c) => sum + c.amount * c.quantity, 0);
+  }, [filteredCosts]);
+
+  const totalOneTime = useMemo(() => {
+    return filteredCosts
+      .filter(c => !c.is_recurring)
+      .reduce((sum, c) => sum + c.amount * c.quantity, 0);
+  }, [filteredCosts]);
+
   const handleTemplateApplied = () => refetch();
   const handleExportPDF = () => exportToPDF(projectName, filteredCosts);
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
@@ -62,13 +79,16 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
 
   return (
     <div className="space-y-6">
+      {/* Page header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <TrendingDown className="h-6 w-6" />
-            Costi Generali
-          </h2>
-          <p className="text-muted-foreground">{projectName}</p>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary/10">
+            <TrendingDown className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Costi Generali</h2>
+            <p className="text-sm text-muted-foreground">{projectName}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />
@@ -79,8 +99,43 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         </div>
       </div>
 
+      {/* Quick stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card className="border-border">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Totale Costi</p>
+            <p className="text-2xl font-bold text-foreground mt-1">
+              {formatCurrency(totalOneTime + totalRecurring)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {filteredCosts.length} {filteredCosts.length === 1 ? 'voce' : 'voci'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Costi Ricorrenti</p>
+            <p className="text-2xl font-bold text-foreground mt-1">
+              {formatCurrency(totalRecurring)}
+            </p>
+            <Badge variant="outline" className="mt-1 text-xs">Mensili / Annuali</Badge>
+          </CardContent>
+        </Card>
+        <Card className="border-border">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">Costi Una Tantum</p>
+            <p className="text-2xl font-bold text-foreground mt-1">
+              {formatCurrency(totalOneTime)}
+            </p>
+            <Badge variant="outline" className="mt-1 text-xs">Setup iniziale</Badge>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Startup Costs Summary */}
       <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
 
+      {/* Operational Costs Tabs */}
       <CostTabsView
         costs={filteredCosts}
         categories={categories}
