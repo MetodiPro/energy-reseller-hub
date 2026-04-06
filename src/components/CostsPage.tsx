@@ -15,6 +15,7 @@ interface CostsPageProps {
   projectId: string;
   projectName: string;
   commodityType?: string | null;
+  plannedStartDate?: string | null;
 }
 
 const formatCurrency = (value: number) =>
