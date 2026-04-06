@@ -179,11 +179,12 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="mt-1 ml-2 mr-2 mb-2 rounded-lg border border-border bg-muted/20 overflow-hidden">
-                        <Table>
+                         <Table>
                           <TableHeader>
                             <TableRow className="hover:bg-transparent">
                               <TableHead className="text-xs">Voce</TableHead>
                               <TableHead className="text-xs">Step di Riferimento</TableHead>
+                              <TableHead className="text-xs">Scadenza</TableHead>
                               <TableHead className="text-xs text-right">Importo</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -198,6 +199,16 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
                                 </TableCell>
                                 <TableCell className="py-2">
                                   <span className="text-xs text-muted-foreground">{entry.stepName}</span>
+                                </TableCell>
+                                <TableCell className="py-2">
+                                  {stepDates[entry.stepId] ? (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <CalendarDays className="h-3 w-3" />
+                                      {format(parseISO(stepDates[entry.stepId]), "d MMM yyyy", { locale: it })}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground/50 italic">Non impostata</span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="py-2 text-right font-mono text-sm font-medium">
                                   {formatCurrency(entry.amount)}
