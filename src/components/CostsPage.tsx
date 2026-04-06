@@ -96,39 +96,6 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         </Button>
       </div>
 
-      {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="border-border">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Totale Costi</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {formatCurrency(totalOneTime + totalRecurring)}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {filteredCosts.length} {filteredCosts.length === 1 ? 'voce' : 'voci'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-border">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Costi Ricorrenti</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {formatCurrency(totalRecurring)}
-            </p>
-            <Badge variant="outline" className="mt-1 text-xs">Mensili / Annuali</Badge>
-          </CardContent>
-        </Card>
-        <Card className="border-border">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Costi Una Tantum</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {formatCurrency(totalOneTime)}
-            </p>
-            <Badge variant="outline" className="mt-1 text-xs">Setup iniziale</Badge>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Startup Costs Summary */}
       <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
 
