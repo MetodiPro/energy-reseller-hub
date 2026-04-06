@@ -14,7 +14,10 @@ interface CostDynamicsTimelineProps {
   projectId: string;
   costs: ProjectCost[];
   commodityType?: string | null;
+  plannedStartDate?: string | null;
 }
+
+const MONTHS_IT = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
