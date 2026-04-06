@@ -10,6 +10,7 @@ import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
 import { CostDynamicsTimeline } from '@/components/financial/CostDynamicsTimeline';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CostsPageProps {
   projectId: string;
