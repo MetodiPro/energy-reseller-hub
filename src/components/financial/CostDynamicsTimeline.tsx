@@ -1,8 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CalendarClock, Info } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CalendarClock, ChevronDown } from 'lucide-react';
 import { useStepCosts } from '@/hooks/useStepCosts';
 import { ProjectCost } from '@/hooks/useProjectFinancials';
 import { stepCostsData } from '@/types/stepCosts';
