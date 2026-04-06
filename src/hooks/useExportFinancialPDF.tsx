@@ -27,14 +27,19 @@ type CostCategory = 'operational' | 'commercial' | 'infrastructure';
 
 const categorizeCost = (cost: ProjectCost): CostCategory | null => {
   const name = cost.name.toLowerCase();
+
+  // Exclude passthrough/energy costs (same logic as CostTabsView)
+  const energyPatterns = ['energia acquistata', 'trasporto e distribuzione', 'corrispettivi trasporto', 'oneri di sistema'];
+  if (energyPatterns.some(p => name.includes(p))) return null;
+
   const desc = (cost.description || '').toLowerCase();
   const combined = `${name} ${desc}`;
 
-  const commercialPatterns = ['commissione', 'provvigion', 'agente', 'agenzia', 'marketing', 'pubblicità', 'promozione', 'vendita', 'commerciale', 'brand', 'crm', 'lead', 'customer acquisition'];
-  const infraPatterns = ['server', 'software', 'licenz', 'hardware', 'it ', 'piattaforma', 'hosting', 'infrastruttur', 'ufficio', 'affitto', 'arredamento', 'attrezzatur', 'cloud', 'tecnolog'];
-
+  const commercialPatterns = ['agent', 'provvigion', 'marketing', 'promozion', 'vendita', 'acquisizione', 'lead', 'campagna', 'commissione', 'pubblicità', 'brand', 'crm', 'customer acquisition'];
   if (cost.cost_type === 'commercial' || commercialPatterns.some(p => combined.includes(p))) return 'commercial';
-  if (infraPatterns.some(p => combined.includes(p))) return 'infrastructure';
+
+  const infraPatterns = ['fidejussion', 'garanz', 'costituzione', 'notaio', 'licenza', 'setup', 'assicurazione', 'consulenza', 'legale', 'ufficio', 'arredamento', 'server', 'software', 'hardware', 'piattaforma', 'hosting', 'infrastruttur', 'attrezzatur', 'cloud', 'tecnolog', 'affitto'];
+  if (cost.cost_type === 'structural' || infraPatterns.some(p => combined.includes(p))) return 'infrastructure';
   return 'operational';
 };
 
