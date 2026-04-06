@@ -25,6 +25,7 @@ interface CostTabsViewProps {
   costs: ProjectCost[];
   categories: CostCategory[];
   commodityType: string | null;
+  plannedStartDate?: string | null;
   onEdit: (cost: ProjectCost) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
