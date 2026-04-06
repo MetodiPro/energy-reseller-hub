@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,12 +7,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Wallet, TrendingUp, Calculator, FileText,
   ChevronDown, FileCheck, Users, Monitor, Shield,
-  GraduationCap, UserCheck, Building2, MoreHorizontal,
+  GraduationCap, UserCheck, Building2, MoreHorizontal, CalendarDays,
 } from "lucide-react";
 import { processSteps } from "@/data/processSteps";
 import { stepCostsData, costCategoryLabels, StepCostCategory, StepCostItem } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { format, parseISO } from "date-fns";
+import { it } from "date-fns/locale";
 
 interface StartupCostsSummaryProps {
   projectId: string;
