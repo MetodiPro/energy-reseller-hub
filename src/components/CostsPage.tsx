@@ -21,7 +21,7 @@ interface CostsPageProps {
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
-export const CostsPage = ({ projectId, projectName, commodityType }: CostsPageProps) => {
+export const CostsPage = ({ projectId, projectName, commodityType, plannedStartDate }: CostsPageProps) => {
   const { costs, categories, loading, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
   const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
