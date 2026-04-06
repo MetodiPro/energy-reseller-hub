@@ -5,11 +5,14 @@ import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials'
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { useStepCosts } from '@/hooks/useStepCosts';
+import { useEngineResult } from '@/hooks/useEngineResult';
+import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
 import { CostDynamicsTimeline } from '@/components/financial/CostDynamicsTimeline';
+import { CommercialCostsPerChannel } from '@/components/financial/CommercialCostsPerChannel';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CostsPageProps {
