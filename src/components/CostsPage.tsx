@@ -23,6 +23,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
   const { costs, categories, loading, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
   const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
+  const { getCostAmount } = useStepCosts(projectId);
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
