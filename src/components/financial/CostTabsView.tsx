@@ -116,6 +116,7 @@ export const CostTabsView = ({
   costs,
   categories,
   commodityType,
+  plannedStartDate,
   onEdit,
   onDelete,
   onAdd,
