@@ -90,8 +90,6 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
     return { grandTotal, byCategory, topCategories, stepsWithCosts, itemsByCategory };
   }, [commodityType, getCostAmount]);
 
-  const handleExportPDF = () => exportToPDF(projectName, commodityType || null, getCostAmount);
-  const handleExportDocx = () => exportToDocx(projectName, commodityType || null, getCostAmount);
 
   const toggleCategory = (category: string) => {
     setExpandedCategory(prev => prev === category ? null : category);
