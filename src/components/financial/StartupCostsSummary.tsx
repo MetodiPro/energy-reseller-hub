@@ -115,18 +115,12 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* Summary stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
-            <p className="text-3xl font-bold text-primary mt-1">
-              {formatCurrency(costSummary.grandTotal)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-sm text-muted-foreground">Step con costi</p>
-            <p className="text-3xl font-bold text-foreground mt-1">{costSummary.stepsWithCosts}</p>
-          </div>
+        {/* Summary stat */}
+        <div className="rounded-lg border border-border bg-muted/30 p-4">
+          <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
+          <p className="text-3xl font-bold text-primary mt-1">
+            {formatCurrency(costSummary.grandTotal)}
+          </p>
         </div>
 
         {/* Categories - clickable */}
