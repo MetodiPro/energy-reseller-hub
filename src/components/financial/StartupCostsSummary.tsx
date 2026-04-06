@@ -126,7 +126,7 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
             <div className="p-2 rounded-lg bg-primary/10">
               <Wallet className="h-5 w-5 text-primary" />
             </div>
-            Riepilogo Costi di Avvio
+            Costi di Avvio
           </CardTitle>
         </div>
       </CardHeader>
