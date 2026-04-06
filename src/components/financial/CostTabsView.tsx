@@ -27,6 +27,7 @@ interface CostTabsViewProps {
   onDelete: (id: string) => void;
   onAdd: () => void;
   activeChannelNames?: string[];
+  headerActions?: React.ReactNode;
 }
 
 const COST_CATEGORIES = {
