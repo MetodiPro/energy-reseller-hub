@@ -178,7 +178,7 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
     const grandTotal = cumulative;
 
     return { monthly: withCumulative, chartData, grandTotal };
-  }, [costs, commodityType, getCostAmount]);
+  }, [costs, commodityType, getCostAmount, plannedStartDate]);
 
   if (timelineData.grandTotal === 0) return null;
 
