@@ -242,20 +242,25 @@ export const CostTabsView = ({
 
   return (
     <Card className="border-border">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="text-lg">Costi Operativi per Categoria</CardTitle>
-          <CardDescription>
-            Totale costi gestionali, commerciali e infrastrutturali: <span className="font-semibold text-foreground">{formatCurrency(totalCosts)}</span>
-          </CardDescription>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Settings className="h-5 w-5 text-primary" />
+            </div>
+            Costi Operativi
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {headerActions}
+            <Button onClick={onAdd} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Aggiungi Costo
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {headerActions}
-          <Button onClick={onAdd} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Aggiungi Costo
-          </Button>
-        </div>
+        <CardDescription className="ml-12">
+          Totale costi gestionali, commerciali e infrastrutturali: <span className="font-semibold text-foreground">{formatCurrency(totalCosts)}</span>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="operational">
