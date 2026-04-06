@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { format, parseISO } from 'date-fns';
+import { it } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -160,10 +162,11 @@ export const CostTabsView = ({
     
     return (
       <Table>
-        <TableHeader>
+         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Descrizione</TableHead>
+            <TableHead>Data Inizio</TableHead>
             <TableHead className="text-right">Importo</TableHead>
             <TableHead className="text-right">Qtà</TableHead>
             <TableHead className="text-right">Totale</TableHead>
@@ -200,6 +203,12 @@ export const CostTabsView = ({
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                   {cost.description || '-'}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                  {cost.date 
+                    ? format(parseISO(cost.date), 'd MMM yyyy', { locale: it })
+                    : <span className="italic text-muted-foreground/50">Non impostata</span>
+                  }
                 </TableCell>
                 <TableCell className="text-right font-mono">
                   {formatCurrency(cost.amount)}
