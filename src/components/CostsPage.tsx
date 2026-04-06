@@ -90,13 +90,10 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
             <p className="text-sm text-muted-foreground">{projectName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />
-          <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-            <FileDown className="h-4 w-4" />
-            Esporta PDF
-          </Button>
-        </div>
+        <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+          <FileDown className="h-4 w-4" />
+          Esporta PDF
+        </Button>
       </div>
 
       {/* Quick stats */}
@@ -144,6 +141,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         onDelete={async (id) => { if (confirm('Sei sicuro di voler eliminare questo costo?')) await deleteCost(id); }}
         onAdd={() => { setEditingCost(null); setShowCostDialog(true); }}
         activeChannelNames={salesChannels.filter(c => c.is_active && c.contract_share > 0).map(c => c.channel_name)}
+        headerActions={<CostTemplateSelector projectId={projectId} onTemplateApplied={handleTemplateApplied} />}
       />
 
       <CostEditDialog

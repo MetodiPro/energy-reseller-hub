@@ -27,6 +27,7 @@ interface CostTabsViewProps {
   onDelete: (id: string) => void;
   onAdd: () => void;
   activeChannelNames?: string[];
+  headerActions?: React.ReactNode;
 }
 
 const COST_CATEGORIES = {
@@ -118,6 +119,7 @@ export const CostTabsView = ({
   onDelete,
   onAdd,
   activeChannelNames = [],
+  headerActions,
 }: CostTabsViewProps) => {
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
@@ -247,10 +249,13 @@ export const CostTabsView = ({
             Totale costi gestionali, commerciali e infrastrutturali: <span className="font-semibold text-foreground">{formatCurrency(totalCosts)}</span>
           </CardDescription>
         </div>
-        <Button onClick={onAdd} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Aggiungi Costo
-        </Button>
+        <div className="flex items-center gap-2">
+          {headerActions}
+          <Button onClick={onAdd} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Aggiungi Costo
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="operational">
