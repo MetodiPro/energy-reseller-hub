@@ -37,8 +37,6 @@ const formatCurrency = (value: number) =>
 
 export const StartupCostsSummary = ({ projectId, projectName, commodityType }: StartupCostsSummaryProps) => {
   const { getCostAmount } = useStepCosts(projectId);
-  const { exportToPDF } = useExportProcessCostsPDF();
-  const { exportToDocx } = useExportProcessCostsDocx();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const costSummary = useMemo(() => {
