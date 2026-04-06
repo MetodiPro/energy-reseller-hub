@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Wallet } from 'lucide-react';
@@ -58,16 +58,23 @@ export function CommercialCostsPerChannel({
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Wallet className="h-4 w-4" /> Costi Commerciali per Canale di Vendita
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Provvigioni stimate per canale. Clicca su un canale per il dettaglio mensile.
-          </CardDescription>
+      <Card className="border-border">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
+              Costi Commerciali per Canale di Vendita
+            </CardTitle>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            <p className="text-sm text-muted-foreground">Totale Provvigioni Stimate (14 mesi)</p>
+            <p className="text-3xl font-bold text-primary mt-1">{fmt(totals.totalCost)}</p>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -105,6 +112,10 @@ export function CommercialCostsPerChannel({
               </tbody>
             </table>
           </div>
+
+          <p className="text-xs text-muted-foreground pt-3 border-t border-border">
+            Provvigioni stimate per canale di vendita. Clicca su un canale per il dettaglio mensile.
+          </p>
         </CardContent>
       </Card>
 
