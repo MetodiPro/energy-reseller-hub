@@ -19,10 +19,9 @@ interface CostEditDialogProps {
 }
 
 const COST_TYPE_OPTIONS = [
-  { value: 'direct', label: 'Diretto', description: 'Collegato direttamente al progetto' },
-  { value: 'indirect', label: 'Indiretto', description: 'Non direttamente collegato' },
-  { value: 'commercial', label: 'Commerciale', description: 'Marketing e vendite' },
-  { value: 'structural', label: 'Strutturale', description: 'Costi fissi aziendali' },
+  { value: 'direct', label: 'Gestionale', description: 'Software, personale, assistenza clienti, SII' },
+  { value: 'commercial', label: 'Commerciale', description: 'Acquisizione clienti, agenti, marketing, provvigioni' },
+  { value: 'structural', label: 'Infrastruttura', description: 'Ufficio, licenze, garanzie, consulenze, setup' },
 ];
 
 export const CostEditDialog = ({ open, onOpenChange, editingCost, categories, projectId, onSubmit }: CostEditDialogProps) => {
@@ -114,17 +113,6 @@ export const CostEditDialog = ({ open, onOpenChange, editingCost, categories, pr
               <Label htmlFor="cost-unit">Unità</Label>
               <Input id="cost-unit" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cost-cat">Categoria</Label>
-            <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
-              <SelectTrigger><SelectValue placeholder="Seleziona categoria" /></SelectTrigger>
-              <SelectContent>
-                {categories.filter(c => c.type === formData.cost_type).map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="cost-desc">Descrizione</Label>
