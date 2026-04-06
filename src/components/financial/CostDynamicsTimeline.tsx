@@ -26,6 +26,27 @@ const formatCurrency = (value: number) =>
 export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedStartDate }: CostDynamicsTimelineProps) => {
   const { getCostAmount } = useStepCosts(projectId);
 
+  // Fetch planned_end_date from step_progress for each step in this project
+  const [stepDates, setStepDates] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchStepDates = async () => {
+      const { data } = await supabase
+        .from('step_progress')
+        .select('step_id, planned_end_date')
+        .eq('project_id', projectId);
+      if (data) {
+        const map: Record<string, string | null> = {};
+        data.forEach((row: any) => {
+          map[row.step_id] = row.planned_end_date || null;
+        });
+        setStepDates(map);
+      }
+    };
+    fetchStepDates();
+  }, [projectId]);
+
   const timelineData = useMemo(() => {
     const MONTHS = 14;
 
