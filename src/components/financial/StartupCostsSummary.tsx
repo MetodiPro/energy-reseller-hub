@@ -59,31 +59,11 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
   }, [commodityType, getCostAmount]);
 
   const handleExportPDF = () => {
-    const allCosts: Record<string, Record<string, number>> = {};
-    processSteps.forEach(step => {
-      const stepData = stepCostsData[step.id];
-      if (stepData) {
-        allCosts[step.id] = {};
-        stepData.items.forEach(item => {
-          allCosts[step.id][item.id] = getCostAmount(step.id, item.id);
-        });
-      }
-    });
-    exportToPDF(projectName, allCosts);
+    exportToPDF(projectName, commodityType || null, getCostAmount);
   };
 
   const handleExportDocx = () => {
-    const allCosts: Record<string, Record<string, number>> = {};
-    processSteps.forEach(step => {
-      const stepData = stepCostsData[step.id];
-      if (stepData) {
-        allCosts[step.id] = {};
-        stepData.items.forEach(item => {
-          allCosts[step.id][item.id] = getCostAmount(step.id, item.id);
-        });
-      }
-    });
-    exportToDocx(projectName, allCosts);
+    exportToDocx(projectName, commodityType || null, getCostAmount);
   };
 
   return (
