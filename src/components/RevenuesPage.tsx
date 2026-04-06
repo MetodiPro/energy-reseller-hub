@@ -17,6 +17,8 @@ export const RevenuesPage = ({ projectId, projectName }: RevenuesPageProps) => {
         <p className="text-muted-foreground">{projectName}</p>
       </div>
 
+      <ResellerRevenueSimulator projectId={projectId} simulationHook={revenueSimulation} />
+
       <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
           <Zap className="h-4 w-4" />Modello Ricavi Reseller Energia
@@ -31,8 +33,6 @@ export const RevenuesPage = ({ projectId, projectName }: RevenuesPageProps) => {
           <p className="text-xs mt-2 text-blue-600 dark:text-blue-500">Tutte le altre componenti (energia, trasporto, distribuzione, oneri) sono passanti verso il grossista/distributore.</p>
         </div>
       </div>
-
-      <ResellerRevenueSimulator projectId={projectId} simulationHook={revenueSimulation} />
     </div>
   );
 };
