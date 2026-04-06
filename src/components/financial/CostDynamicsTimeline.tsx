@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { CalendarClock, Info } from 'lucide-react';
 import { useStepCosts } from '@/hooks/useStepCosts';
 import { ProjectCost } from '@/hooks/useProjectFinancials';
-import { stepCostsData, costCategoryLabels, StepCostCategory } from '@/types/stepCosts';
+import { stepCostsData } from '@/types/stepCosts';
 import { stepTimingConfig, phaseDescriptions } from '@/lib/costTimingConfig';
 import { processSteps } from '@/data/processSteps';
 
