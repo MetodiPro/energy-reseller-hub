@@ -162,10 +162,11 @@ export const CostTabsView = ({
     
     return (
       <Table>
-        <TableHeader>
+         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Descrizione</TableHead>
+            <TableHead>Data Inizio</TableHead>
             <TableHead className="text-right">Importo</TableHead>
             <TableHead className="text-right">Qtà</TableHead>
             <TableHead className="text-right">Totale</TableHead>
