@@ -151,32 +151,9 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
       return { ...item, cumulative };
     });
 
-    // Chart data by category
-    const categoryTotals: Record<string, number> = {};
-    withCumulative.forEach(m => {
-      m.details.forEach(d => {
-        const cat = d.category;
-        categoryTotals[cat] = (categoryTotals[cat] || 0) + d.amount;
-      });
-    });
-
-    const chartData = Object.entries(categoryTotals)
-      .filter(([_, v]) => v > 0)
-      .sort((a, b) => b[1] - a[1])
-      .map(([category, total]) => ({
-        category,
-        label: costCategoryLabels[category as StepCostCategory]?.label || 
-               (category === 'commercial' ? 'Commerciali' : 
-                category === 'structural' ? 'Strutturali' : 
-                category === 'direct' ? 'Diretti' : 
-                category === 'indirect' ? 'Indiretti' : category),
-        total,
-        color: CATEGORY_COLORS[category] || 'hsl(215, 14%, 60%)',
-      }));
-
     const grandTotal = cumulative;
 
-    return { monthly: withCumulative, chartData, grandTotal };
+    return { monthly: withCumulative, grandTotal };
   }, [costs, commodityType, getCostAmount, plannedStartDate]);
 
   if (timelineData.grandTotal === 0) return null;
