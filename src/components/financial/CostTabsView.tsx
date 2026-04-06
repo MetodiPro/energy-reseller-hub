@@ -119,6 +119,7 @@ export const CostTabsView = ({
   onDelete,
   onAdd,
   activeChannelNames = [],
+  headerActions,
 }: CostTabsViewProps) => {
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
