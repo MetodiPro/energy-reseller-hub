@@ -89,7 +89,16 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
     visibleStepIds.forEach(stepId => {
       const stepData = stepCostsData[stepId];
       if (!stepData) return;
-      const month = stepTimingConfig[stepId] ?? 0;
+      // Use actual planned_end_date from step_progress if available, otherwise fallback to hardcoded config
+      let month = stepTimingConfig[stepId] ?? 0;
+      const stepPlannedEnd = stepDates[stepId];
+      if (stepPlannedEnd) {
+        const parts = stepPlannedEnd.split('-');
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const computedMonth = (y - baseYear) * 12 + (m - baseMonth);
+        month = Math.max(0, Math.min(13, computedMonth));
+      }
       stepData.items.forEach(item => {
         const amount = getCostAmount(stepId, item.id);
         if (amount > 0) {
