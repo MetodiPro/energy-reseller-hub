@@ -267,23 +267,49 @@ export const WholesalerCostsSummary = ({
 
                 {/* Subtotale Passanti */}
                 {passthroughRows.length > 0 && (
-                  <>
-                    <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
-                      <td className="py-2 pr-3" colSpan={3}>Totale Passanti (grossista)</td>
-                      <td className="py-2 text-right font-mono text-amber-600">{fmt(totalePassanti)}</td>
-                    </tr>
-                    <tr>
-                      <td colSpan={4} className="py-1.5 px-1">
-                        <p className="text-[10px] text-muted-foreground italic">
-                          Accise escluse da questo riepilogo: versate dal reseller direttamente all'Agenzia delle Dogane (ADM). Visibili nella sezione Flussi Fiscali.
-                        </p>
-                      </td>
-                    </tr>
-                  </>
+                  <tr className="border-t-2 border-foreground/20 font-bold bg-muted/30">
+                    <td className="py-2 pr-3" colSpan={3}>Totale Passanti (grossista)</td>
+                    <td className="py-2 text-right font-mono text-amber-600">{fmt(totalePassanti)}</td>
+                  </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          {/* Sezione Accise separata */}
+          {passthroughTotals && passthroughTotals.accise > 0 && (
+            <div className="mt-4 pt-4 border-t border-dashed border-foreground/20">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium" colSpan={4}>
+                      Accise — Obbligo diretto del Reseller (non in fattura grossista)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    className="border-b cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setActiveDetail('accise')}
+                  >
+                    <td className="py-2 pr-3 font-medium text-primary underline decoration-dotted">
+                      Accise Energia
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">Agenzia delle Dogane (ADM)</td>
+                    <td className="py-2 pr-3">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-500/10 text-violet-600">
+                        Obbligo diretto
+                      </span>
+                    </td>
+                    <td className="py-2 text-right font-mono text-violet-600">{fmt(passthroughTotals.accise)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="text-[10px] text-muted-foreground italic mt-1.5 px-1">
+                Le accise sono versate mensilmente dal reseller direttamente all'Agenzia delle Dogane. Non transitano nella fattura del grossista.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
