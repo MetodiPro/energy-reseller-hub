@@ -20,15 +20,8 @@ interface CostsPageProps {
 }
 
 export const CostsPage = ({ projectId, projectName, commodityType }: CostsPageProps) => {
-  const { costs, revenues, categories, loading, summary: costSummary, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
-  const revenueSimulation = useRevenueSimulation(projectId);
-  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
-  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
-  const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
-  const { channels: salesChannels, getChannelBreakdown, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
-  const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
-  const { cashFlowData } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData, sharedEngine: engineResult });
-  const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
+  const { costs, categories, loading, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
+  const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
