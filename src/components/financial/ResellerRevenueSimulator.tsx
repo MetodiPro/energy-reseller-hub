@@ -363,49 +363,6 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
-                {/* KPI Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <Card>
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground">Contratti Totali</p>
-                      <p className="text-2xl font-bold">{totals.totalContracts}</p>
-                      <p className="text-xs text-muted-foreground">in 14 mesi</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-red-50 dark:bg-red-950/20">
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-red-700 dark:text-red-300">Switch-out</p>
-                      <p className="text-2xl font-bold text-red-600">-{totals.totalChurned}</p>
-                      <p className="text-xs text-red-600">
-                        Clienti finali: {totals.totalActiveCustomers}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground">Fatturato Totale</p>
-                      <p className="text-2xl font-bold text-primary">{formatCurrency(totals.totalFatturato)}</p>
-                      <p className="text-xs text-muted-foreground">IVA inclusa</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-green-50 dark:bg-green-950/20">
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-green-700 dark:text-green-300">Margine Reseller</p>
-                      <p className="text-2xl font-bold text-green-600">{formatCurrency(totals.totalMargine)}</p>
-                      <p className="text-xs text-green-600">
-                        {totals.totalFatturato > 0 ? ((totals.totalMargine / totals.totalFatturato) * 100).toFixed(1) : 0}% del fatturato
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-orange-50 dark:bg-orange-950/20">
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-orange-700 dark:text-orange-300">Passanti</p>
-                      <p className="text-2xl font-bold text-orange-600">{formatCurrency(totals.totalPassanti)}</p>
-                      <p className="text-xs text-orange-600">Da girare a grossista/DSO</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
                 {/* Breakdown sintesi */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
@@ -434,6 +391,20 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
                         <div className="flex items-center justify-between text-green-600">
                           <span className="text-sm font-medium">Margine Reseller</span>
                           <span className="font-bold">{formatCurrency(totals.totalMargine)}</span>
+                        </div>
+                        <div className="ml-4 space-y-1">
+                          <div className="flex items-center justify-between text-green-600/80">
+                            <span className="text-xs">↳ CCV (Commercializzazione)</span>
+                            <span className="text-sm">{formatCurrency(projection.reduce((s, m) => s + m.margineCCV, 0))}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-green-600/80">
+                            <span className="text-xs">↳ Spread su PUN/PSV</span>
+                            <span className="text-sm">{formatCurrency(projection.reduce((s, m) => s + m.margineSpread, 0))}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-green-600/80">
+                            <span className="text-xs">↳ Altri servizi</span>
+                            <span className="text-sm">{formatCurrency(projection.reduce((s, m) => s + m.margineAltro, 0))}</span>
+                          </div>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">IVA</span>
