@@ -6,6 +6,8 @@ import { stepCostsData, costCategoryLabels, StepCostCategory } from '@/types/ste
 import { stepTimingConfig, phaseDescriptions } from '@/lib/costTimingConfig';
 import { format, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
+import type { SimulationEngineResult } from '@/lib/simulationEngine';
+import type { SalesChannel } from '@/hooks/useSalesChannels';
 
 const COST_CATEGORY_LABELS: Record<string, string> = {
   operational: 'Gestionali',
@@ -75,6 +77,8 @@ interface ExportOptions {
   commodityType?: string | null;
   plannedStartDate?: string | null;
   stepDates?: Record<string, string | null>;
+  engineResult?: SimulationEngineResult | null;
+  salesChannels?: SalesChannel[];
 }
 
 export const useExportFinancialPDF = () => {
@@ -176,6 +180,108 @@ export const useExportFinancialPDF = () => {
           },
           styles: { cellPadding: 3 },
           foot: [['', '', 'TOTALE', formatCurrency(startupTotal)]],
+          footStyles: {
+            fillColor: [241, 245, 249],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            halign: 'right',
+          },
+        });
+
+        yPosition = (doc as any).lastAutoTable.finalY + 15;
+      }
+    }
+
+    // ===== SECTION 1B: COMMERCIAL COSTS PER CHANNEL =====
+    if (startupCosts?.engineResult && startupCosts?.salesChannels) {
+      const { engineResult, salesChannels } = startupCosts;
+      const activeChannels = salesChannels.filter(c => c.is_active && c.contract_share > 0);
+
+      if (activeChannels.length > 0) {
+        if (yPosition > 220) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        const channelRows = activeChannels.map(ch => {
+          const share = ch.contract_share / 100;
+          let totalCost = 0;
+          let totalContratti = 0;
+          let totalAttivazioni = 0;
+
+          engineResult.monthly.forEach(m => {
+            let cost = 0;
+            if (ch.commission_type === 'per_contract') {
+              cost = m.customer.contrattiNuovi * share * ch.commission_amount;
+            } else {
+              cost = m.customer.attivazioni * share * ch.commission_amount;
+            }
+            totalCost += cost;
+            totalContratti += Math.round(m.customer.contrattiNuovi * share);
+            totalAttivazioni += Math.round(m.customer.attivazioni * share);
+          });
+
+          const cac = totalAttivazioni > 0 ? totalCost / totalAttivazioni : 0;
+          return {
+            name: ch.channel_name,
+            commissionType: ch.commission_type === 'per_contract' ? 'Per contratto' : 'Per attivazione',
+            commissionAmount: ch.commission_amount,
+            totalContratti,
+            totalAttivazioni,
+            totalCost,
+            cac,
+          };
+        });
+
+        const grandTotalCost = channelRows.reduce((s, r) => s + r.totalCost, 0);
+        const grandTotalContratti = channelRows.reduce((s, r) => s + r.totalContratti, 0);
+        const grandTotalAttivazioni = channelRows.reduce((s, r) => s + r.totalAttivazioni, 0);
+
+        doc.setFontSize(14);
+        doc.setTextColor(59, 130, 246);
+        doc.setFont(undefined!, 'bold');
+        doc.text('Costi Commerciali per Canale di Vendita', 14, yPosition);
+        yPosition += 4;
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont(undefined!, 'normal');
+        doc.text(`Totale Provvigioni Stimate: ${formatCurrencyShort(grandTotalCost)}`, 14, yPosition + 5);
+        yPosition += 12;
+
+        const channelBody = channelRows.map(r => [
+          r.name,
+          r.commissionType,
+          formatCurrencyShort(r.commissionAmount),
+          String(r.totalContratti),
+          String(r.totalAttivazioni),
+          formatCurrencyShort(r.totalCost),
+          formatCurrencyShort(r.cac),
+        ]);
+
+        autoTable(doc, {
+          startY: yPosition,
+          head: [['Canale', 'Tipo Comm.', '€/unità', 'Contratti', 'Attivazioni', 'Costo Totale', 'CAC']],
+          body: channelBody,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [168, 85, 247],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 8,
+          },
+          bodyStyles: { fontSize: 8 },
+          columnStyles: {
+            0: { cellWidth: 30 },
+            1: { cellWidth: 25 },
+            2: { halign: 'right', cellWidth: 20 },
+            3: { halign: 'right', cellWidth: 22 },
+            4: { halign: 'right', cellWidth: 22 },
+            5: { halign: 'right', cellWidth: 28, fontStyle: 'bold' },
+            6: { halign: 'right', cellWidth: 22 },
+          },
+          styles: { cellPadding: 3 },
+          foot: [['TOTALE', '', '', String(grandTotalContratti), String(grandTotalAttivazioni), formatCurrencyShort(grandTotalCost), grandTotalAttivazioni > 0 ? formatCurrencyShort(grandTotalCost / grandTotalAttivazioni) : '—']],
           footStyles: {
             fillColor: [241, 245, 249],
             textColor: [0, 0, 0],
