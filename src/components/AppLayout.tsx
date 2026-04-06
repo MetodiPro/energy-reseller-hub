@@ -338,6 +338,20 @@ export function AppLayout({ user }: AppLayoutProps) {
               <p>Crea prima un progetto per visualizzare la Customer Base</p>
             </div>
           );
+        case 'esiti-economici':
+          return currentProjectId ? (
+            <EsitiEconomiciPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+              sharedRevenueSimulation={revenueSimForTariffs}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per visualizzare gli Esiti Economici</p>
+            </div>
+          );
         case 'director-report':
           return currentProjectId ? (
             <DirectorReport
