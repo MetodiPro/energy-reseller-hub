@@ -326,35 +326,7 @@ export const OverviewTab = ({
         </CardContent>
       </Card>
 
-      {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><PieChart className="h-5 w-5" />Ripartizione Costi</CardTitle><CardDescription>Suddivisione per tipologia</CardDescription></CardHeader>
-          <CardContent>
-            {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <RechartsPie>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {pieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                </RechartsPie>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[250px] text-muted-foreground">Nessun costo registrato</div>
-            )}
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {pieData.map((entry) => (
-                <div key={entry.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} /><span className="truncate">{entry.name}</span></div>
-                  <span className="font-medium">{formatCurrency(entry.value)}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
-      </div>
 
       <FinancialTrendChart cashFlowData={cashFlowData} loading={cashFlowLoading} />
       <BreakEvenAnalysis summary={summary} breakEvenFinanziario={cashFlowData.mesePrimoPositivo} />
