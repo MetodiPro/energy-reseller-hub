@@ -7,6 +7,7 @@ import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
+import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
 
 interface CostsPageProps {
   projectId: string;
@@ -65,7 +66,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <TrendingDown className="h-6 w-6" />
-            Gestione Costi
+            Costi Generali
           </h2>
           <p className="text-muted-foreground">{projectName}</p>
         </div>
@@ -77,6 +78,8 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
           </Button>
         </div>
       </div>
+
+      <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
 
       <CostTabsView
         costs={filteredCosts}
