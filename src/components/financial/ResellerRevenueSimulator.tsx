@@ -187,22 +187,19 @@ export const ResellerRevenueSimulator = ({ projectId, simulationHook }: Reseller
       imponibileTotale: m.fatturato - m.ivaTotale,
       iva: m.ivaTotale,
       fatturaTotale: m.fatturato,
-      // NB: in multi-prodotto il margine aggregato non è scomponibile
-      // per CCV/Spread/Altro — i valori seguenti sono indicativi solo in
-      // modalità single-product; in multi-product sono tutti 0 e il totale
-      // è l'unica fonte affidabile.
-      margineCCV: m.margineCommerciale, // placeholder: intero margine
-      margineSpread: 0,
-      margineAltro: 0,
+      // Breakdown margine dai componenti del motore
+      margineCCV: m.margineCcvTotale,
+      margineSpread: m.margineSpreadTotale,
+      margineAltro: m.margineAltroTotale,
       margineTotale: m.margineCommerciale,
       expectedCollection: m.collection.totaleIncassi,
       cumulativeCollection: 0,
       cumulativeUncollected: 0,
       pendingReceivables: 0,
       invoicedAmount: m.fatturato,
-      revenueCCV: m.margineCommerciale,
-      revenueSpread: 0,
-      revenueOther: 0,
+      revenueCCV: m.margineCcvTotale,
+      revenueSpread: m.margineSpreadTotale,
+      revenueOther: m.margineAltroTotale,
     }));
 
     // Calcola campi cumulativi
