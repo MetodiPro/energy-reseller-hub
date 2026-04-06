@@ -59,7 +59,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
   }, [filteredCosts]);
 
   const handleTemplateApplied = () => refetch();
-  const handleExportPDF = () => exportToPDF(projectName, filteredCosts);
+  const handleExportPDF = () => exportToPDF(projectName, filteredCosts, { getCostAmount, commodityType });
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
     if (isEdit && editId) {
       await updateCost(editId, costData);
