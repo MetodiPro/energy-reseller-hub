@@ -261,7 +261,7 @@ export const CostTabsView = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-lg border border-border bg-muted/30 p-4">
-          <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
+          <p className="text-sm text-muted-foreground">Totale costi gestionali, commerciali e di infrastruttura</p>
           <p className="text-3xl font-bold text-primary mt-1">{formatCurrency(totalCosts)}</p>
         </div>
       
