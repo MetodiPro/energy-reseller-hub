@@ -44,6 +44,23 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
 
   const timelineData = useMemo(() => {
     const MONTHS = 14;
+
+    // Compute base date from planned_start_date
+    let baseMonth = new Date().getMonth();
+    let baseYear = new Date().getFullYear();
+    if (plannedStartDate) {
+      const parts = plannedStartDate.split('-');
+      baseYear = parseInt(parts[0], 10);
+      baseMonth = parseInt(parts[1], 10) - 1; // 0-indexed
+    }
+
+    const getMonthLabel = (offset: number) => {
+      const totalMonth = baseMonth + offset;
+      const m = ((totalMonth % 12) + 12) % 12;
+      const y = baseYear + Math.floor(totalMonth / 12);
+      return `${MONTHS_IT[m]} ${y}`;
+    };
+
     const monthlyItems: Array<{
       month: number;
       label: string;
