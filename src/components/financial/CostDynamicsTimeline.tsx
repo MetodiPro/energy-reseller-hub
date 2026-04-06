@@ -282,11 +282,3 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
     </Card>
   );
 };
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
