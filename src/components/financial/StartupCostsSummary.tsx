@@ -1,20 +1,17 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Wallet, TrendingUp, Calculator, Download, FileText,
+  Wallet, TrendingUp, Calculator, FileText,
   ChevronDown, FileCheck, Users, Monitor, Shield,
   GraduationCap, UserCheck, Building2, MoreHorizontal,
 } from "lucide-react";
 import { processSteps } from "@/data/processSteps";
 import { stepCostsData, costCategoryLabels, StepCostCategory, StepCostItem } from "@/types/stepCosts";
 import { useStepCosts } from "@/hooks/useStepCosts";
-import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
-import { useExportProcessCostsDocx } from "@/hooks/useExportProcessCostsDocx";
 import { cn } from "@/lib/utils";
 
 interface StartupCostsSummaryProps {
@@ -40,8 +37,6 @@ const formatCurrency = (value: number) =>
 
 export const StartupCostsSummary = ({ projectId, projectName, commodityType }: StartupCostsSummaryProps) => {
   const { getCostAmount } = useStepCosts(projectId);
-  const { exportToPDF } = useExportProcessCostsPDF();
-  const { exportToDocx } = useExportProcessCostsDocx();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const costSummary = useMemo(() => {
@@ -95,8 +90,6 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
     return { grandTotal, byCategory, topCategories, stepsWithCosts, itemsByCategory };
   }, [commodityType, getCostAmount]);
 
-  const handleExportPDF = () => exportToPDF(projectName, commodityType || null, getCostAmount);
-  const handleExportDocx = () => exportToDocx(projectName, commodityType || null, getCostAmount);
 
   const toggleCategory = (category: string) => {
     setExpandedCategory(prev => prev === category ? null : category);
@@ -112,31 +105,15 @@ export const StartupCostsSummary = ({ projectId, projectName, commodityType }: S
             </div>
             Riepilogo Costi di Avvio
           </CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
-              <Download className="h-4 w-4" />
-              PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExportDocx} className="gap-2">
-              <FileText className="h-4 w-4" />
-              Word
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* Summary stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
-            <p className="text-3xl font-bold text-primary mt-1">
-              {formatCurrency(costSummary.grandTotal)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/30 p-4">
-            <p className="text-sm text-muted-foreground">Step con costi</p>
-            <p className="text-3xl font-bold text-foreground mt-1">{costSummary.stepsWithCosts}</p>
-          </div>
+        {/* Summary stat */}
+        <div className="rounded-lg border border-border bg-muted/30 p-4">
+          <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
+          <p className="text-3xl font-bold text-primary mt-1">
+            {formatCurrency(costSummary.grandTotal)}
+          </p>
         </div>
 
         {/* Categories - clickable */}
