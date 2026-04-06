@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,6 +8,7 @@ import { ProjectCost } from '@/hooks/useProjectFinancials';
 import { stepCostsData } from '@/types/stepCosts';
 import { stepTimingConfig, phaseDescriptions } from '@/lib/costTimingConfig';
 import { processSteps } from '@/data/processSteps';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CostDynamicsTimelineProps {
   projectId: string;
@@ -24,6 +25,27 @@ const formatCurrency = (value: number) =>
 
 export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedStartDate }: CostDynamicsTimelineProps) => {
   const { getCostAmount } = useStepCosts(projectId);
+
+  // Fetch planned_end_date from step_progress for each step in this project
+  const [stepDates, setStepDates] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchStepDates = async () => {
+      const { data } = await supabase
+        .from('step_progress')
+        .select('step_id, planned_end_date')
+        .eq('project_id', projectId);
+      if (data) {
+        const map: Record<string, string | null> = {};
+        data.forEach((row: any) => {
+          map[row.step_id] = row.planned_end_date || null;
+        });
+        setStepDates(map);
+      }
+    };
+    fetchStepDates();
+  }, [projectId]);
 
   const timelineData = useMemo(() => {
     const MONTHS = 14;
@@ -67,7 +89,16 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
     visibleStepIds.forEach(stepId => {
       const stepData = stepCostsData[stepId];
       if (!stepData) return;
-      const month = stepTimingConfig[stepId] ?? 0;
+      // Use actual planned_end_date from step_progress if available, otherwise fallback to hardcoded config
+      let month = stepTimingConfig[stepId] ?? 0;
+      const stepPlannedEnd = stepDates[stepId];
+      if (stepPlannedEnd) {
+        const parts = stepPlannedEnd.split('-');
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const computedMonth = (y - baseYear) * 12 + (m - baseMonth);
+        month = Math.max(0, Math.min(13, computedMonth));
+      }
       stepData.items.forEach(item => {
         const amount = getCostAmount(stepId, item.id);
         if (amount > 0) {
@@ -144,7 +175,7 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
     const grandTotal = cumulative;
 
     return { monthly: withCumulative, grandTotal };
-  }, [costs, commodityType, getCostAmount, plannedStartDate]);
+  }, [costs, commodityType, getCostAmount, plannedStartDate, stepDates]);
 
   if (timelineData.grandTotal === 0) return null;
 
