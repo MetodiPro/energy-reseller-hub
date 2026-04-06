@@ -210,15 +210,17 @@ export const useExportFinancialPDF = () => {
           let totalAttivazioni = 0;
 
           engineResult.monthly.forEach(m => {
+            const contratti = Math.round(m.customer.contrattiNuovi * share);
+            const attivazioni = Math.round(m.customer.attivazioni * share);
             let cost = 0;
             if (ch.commission_type === 'per_contract') {
-              cost = m.customer.contrattiNuovi * share * ch.commission_amount;
+              cost = contratti * ch.commission_amount;
             } else {
-              cost = m.customer.attivazioni * share * ch.commission_amount;
+              cost = attivazioni * ch.commission_amount;
             }
             totalCost += cost;
-            totalContratti += Math.round(m.customer.contrattiNuovi * share);
-            totalAttivazioni += Math.round(m.customer.attivazioni * share);
+            totalContratti += contratti;
+            totalAttivazioni += attivazioni;
           });
 
           const cac = totalAttivazioni > 0 ? totalCost / totalAttivazioni : 0;
