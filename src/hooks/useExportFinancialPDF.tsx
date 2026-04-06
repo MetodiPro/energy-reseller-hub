@@ -26,7 +26,7 @@ const formatCurrency = (value: number) => {
 type CostCategory = 'operational' | 'commercial' | 'infrastructure';
 
 const categorizeCost = (cost: ProjectCost): CostCategory | null => {
-  if (cost.is_passthrough) return null;
+  const name = cost.name.toLowerCase();
   const name = cost.name.toLowerCase();
   const desc = (cost.description || '').toLowerCase();
   const combined = `${name} ${desc}`;
