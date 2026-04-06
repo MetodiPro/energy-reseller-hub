@@ -7,7 +7,7 @@ import { useEngineResult } from '@/hooks/useEngineResult';
 import { SimulationParamsConfig } from '@/components/financial/SimulationParamsConfig';
 import { SalesChannelsConfig } from '@/components/financial/SalesChannelsConfig';
 import { ProductsConfig } from '@/components/financial/ProductsConfig';
-import { CommercialCostsPerChannel } from '@/components/financial/CommercialCostsPerChannel';
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { fetchAreraTariffs, type AreraTariffData } from '@/lib/api/areraTariffs';
