@@ -30,6 +30,10 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
   const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
   const { getCostAmount } = useStepCosts(projectId);
+  const revenueSimulation = useRevenueSimulation(projectId);
+  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
+  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
+  const activeChannels = salesChannels.filter(c => c.is_active && c.contract_share > 0);
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
