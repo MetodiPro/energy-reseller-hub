@@ -52,6 +52,7 @@ const DirectorReport = lazy(() => import('@/components/DirectorReport').then(m =
 const CustomerBasePage = lazy(() => import('@/components/CustomerBasePage').then(m => ({ default: m.CustomerBasePage })));
 const CostsPage = lazy(() => import('@/components/CostsPage').then(m => ({ default: m.CostsPage })));
 const RevenuesPage = lazy(() => import('@/components/RevenuesPage').then(m => ({ default: m.RevenuesPage })));
+const EsitiEconomiciPage = lazy(() => import('@/components/EsitiEconomiciPage').then(m => ({ default: m.EsitiEconomiciPage })));
 
 function SectionLoader() {
   return (
@@ -63,7 +64,7 @@ function SectionLoader() {
 
 const VALID_SECTIONS = [
   'overview', 'dashboard', 'process', 'step-docs', 'team',
-  'documents', 'consultants', 'tariffs', 'wholesaler', 'costs', 'revenues', 'hypotheses', 'customer-base', 'director-report', 'financials', 'business-plan', 'marketing',
+  'documents', 'consultants', 'tariffs', 'wholesaler', 'costs', 'revenues', 'hypotheses', 'customer-base', 'esiti-economici', 'director-report', 'financials', 'business-plan', 'marketing',
   'gantt', 'prelaunch', 'contract-package', 'faq', 'settings', 'profile',
 ];
 
@@ -335,6 +336,20 @@ export function AppLayout({ user }: AppLayoutProps) {
             <div className="text-center py-12 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Crea prima un progetto per visualizzare la Customer Base</p>
+            </div>
+          );
+        case 'esiti-economici':
+          return currentProjectId ? (
+            <EsitiEconomiciPage
+              projectId={currentProjectId}
+              projectName={currentProject?.name || 'Progetto Corrente'}
+              commodityType={currentProject?.commodity_type}
+              sharedRevenueSimulation={revenueSimForTariffs}
+            />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Crea prima un progetto per visualizzare gli Esiti Economici</p>
             </div>
           );
         case 'director-report':
