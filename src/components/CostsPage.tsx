@@ -125,6 +125,9 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
         </Button>
       </div>
 
+      {/* Startup Costs Summary */}
+      <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
+
       {/* Commercial Costs per Channel */}
       {engineResult && activeChannels.length > 0 && (
         <CommercialCostsPerChannel
@@ -132,9 +135,6 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
           salesChannels={salesChannels}
         />
       )}
-
-      {/* Startup Costs Summary */}
-      <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
 
       {/* Operational Costs Tabs */}
       <CostTabsView
