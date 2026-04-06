@@ -79,6 +79,8 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
         </div>
       </div>
 
+      <StartupCostsSummary projectId={projectId} projectName={projectName} commodityType={commodityType} />
+
       <CostTabsView
         costs={filteredCosts}
         categories={categories}
