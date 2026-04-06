@@ -279,7 +279,6 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
                   {formatCurrency(timelineData.grandTotal)}
                 </TableCell>
                 <TableCell></TableCell>
-                <TableCell></TableCell>
               </TableRow>
             </TableBody>
           </Table>
