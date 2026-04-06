@@ -310,9 +310,6 @@ export const WholesalerCostsSummary = ({
               </p>
             </div>
           )}
-              </tbody>
-            </table>
-          </div>
         </CardContent>
       </Card>
 
