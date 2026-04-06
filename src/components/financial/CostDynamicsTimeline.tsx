@@ -39,7 +39,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   indirect: 'hsl(162, 63%, 41%)',
 };
 
-export const CostDynamicsTimeline = ({ projectId, costs, commodityType }: CostDynamicsTimelineProps) => {
+export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedStartDate }: CostDynamicsTimelineProps) => {
   const { getCostAmount } = useStepCosts(projectId);
 
   const timelineData = useMemo(() => {
