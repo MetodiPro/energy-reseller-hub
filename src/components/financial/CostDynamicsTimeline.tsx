@@ -137,7 +137,7 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
 
       monthlyItems.push({
         month: m,
-        label: `Mese ${m + 1}`,
+        label: getMonthLabel(m),
         startupCosts: startupTotal,
         operationalCosts: opTotal,
         total: startupTotal + opTotal,
