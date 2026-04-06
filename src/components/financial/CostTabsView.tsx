@@ -258,11 +258,13 @@ export const CostTabsView = ({
             </Button>
           </div>
         </div>
-        <CardDescription className="ml-12">
-          Totale costi gestionali, commerciali e infrastrutturali: <span className="font-semibold text-foreground">{formatCurrency(totalCosts)}</span>
-        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border border-border bg-muted/30 p-4">
+          <p className="text-sm text-muted-foreground">Investimento Totale Stimato</p>
+          <p className="text-3xl font-bold text-primary mt-1">{formatCurrency(totalCosts)}</p>
+        </div>
+      
         <Tabs defaultValue="operational">
           <TabsList className="grid w-full grid-cols-3">
             {Object.entries(COST_CATEGORIES).map(([key, config]) => {
