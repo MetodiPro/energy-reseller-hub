@@ -9,6 +9,7 @@ import { CostTemplateSelector } from '@/components/financial/CostTemplateSelecto
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
+import { CostDynamicsTimeline } from '@/components/financial/CostDynamicsTimeline';
 
 interface CostsPageProps {
   projectId: string;
