@@ -25,6 +25,7 @@ interface CostTabsViewProps {
   costs: ProjectCost[];
   categories: CostCategory[];
   commodityType: string | null;
+  plannedStartDate?: string | null;
   onEdit: (cost: ProjectCost) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
@@ -115,12 +116,45 @@ export const CostTabsView = ({
   costs,
   categories,
   commodityType,
+  plannedStartDate,
   onEdit,
   onDelete,
   onAdd,
   activeChannelNames = [],
   headerActions,
 }: CostTabsViewProps) => {
+  // Compute date-aware cost for a single cost item over 14 months
+  const computeDateAwareCost = (cost: ProjectCost): number => {
+    const MONTHS = 14;
+    let baseMonth = new Date().getMonth();
+    let baseYear = new Date().getFullYear();
+    if (plannedStartDate) {
+      const parts = plannedStartDate.split('-');
+      baseYear = parseInt(parts[0], 10);
+      baseMonth = parseInt(parts[1], 10) - 1;
+    }
+
+    const getMonthOffset = (dateStr: string | null | undefined): number => {
+      if (!dateStr) return 0;
+      const parts = dateStr.split('-');
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      return (y - baseYear) * 12 + (m - baseMonth);
+    };
+
+    if (cost.is_recurring) {
+      const startMonth = Math.max(0, getMonthOffset(cost.date));
+      const activeMonths = Math.max(0, MONTHS - startMonth);
+      return (cost.amount * (cost.quantity || 1)) / 12 * activeMonths;
+    } else {
+      const costMonth = Math.max(0, Math.min(MONTHS - 1, getMonthOffset(cost.date)));
+      if (costMonth < MONTHS) {
+        return cost.amount * (cost.quantity || 1);
+      }
+      return 0;
+    }
+  };
+
   const categorizedCosts = useMemo(() => {
     const filtered = costs.filter(cost => filterByCommodity(cost, commodityType));
     
@@ -135,7 +169,7 @@ export const CostTabsView = ({
       if (category === null) return;
       if (!(category in result)) return;
       
-      const amount = cost.amount * cost.quantity;
+      const amount = computeDateAwareCost(cost);
       const isDuplicate = category === 'commercial' && isCommissionDuplicate(cost, activeChannelNames);
       
       result[category].costs.push(cost);
@@ -145,7 +179,7 @@ export const CostTabsView = ({
     });
     
     return result;
-  }, [costs, commodityType, activeChannelNames]);
+  }, [costs, commodityType, activeChannelNames, plannedStartDate]);
   
   const totalCosts = Object.values(categorizedCosts).reduce((sum, cat) => sum + cat.total, 0);
   

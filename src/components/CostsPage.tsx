@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileDown, TrendingDown } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
@@ -10,6 +10,7 @@ import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
 import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
 import { CostDynamicsTimeline } from '@/components/financial/CostDynamicsTimeline';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CostsPageProps {
   projectId: string;
@@ -29,6 +30,25 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
   const [showCostDialog, setShowCostDialog] = useState(false);
+  const [stepDates, setStepDates] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchStepDates = async () => {
+      const { data } = await supabase
+        .from('step_progress')
+        .select('step_id, planned_end_date')
+        .eq('project_id', projectId);
+      if (data) {
+        const map: Record<string, string | null> = {};
+        data.forEach((row: any) => {
+          map[row.step_id] = row.planned_end_date || null;
+        });
+        setStepDates(map);
+      }
+    };
+    fetchStepDates();
+  }, [projectId]);
 
   const filteredCosts = useMemo(() => {
     return costs.filter(cost => {
@@ -61,7 +81,7 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
   }, [filteredCosts]);
 
   const handleTemplateApplied = () => refetch();
-  const handleExportPDF = () => exportToPDF(projectName, filteredCosts, { getCostAmount, commodityType });
+  const handleExportPDF = () => exportToPDF(projectName, filteredCosts, { getCostAmount, commodityType, plannedStartDate, stepDates });
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
     if (isEdit && editId) {
       await updateCost(editId, costData);
@@ -106,6 +126,7 @@ export const CostsPage = ({ projectId, projectName, commodityType, plannedStartD
         costs={filteredCosts}
         categories={categories}
         commodityType={commodityType || null}
+        plannedStartDate={plannedStartDate || null}
         onEdit={(cost) => { setEditingCost(cost); setShowCostDialog(true); }}
         onDelete={async (id) => { if (confirm('Sei sicuro di voler eliminare questo costo?')) await deleteCost(id); }}
         onAdd={() => { setEditingCost(null); setShowCostDialog(true); }}
