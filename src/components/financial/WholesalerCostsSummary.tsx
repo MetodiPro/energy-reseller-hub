@@ -180,11 +180,11 @@ export const WholesalerCostsSummary = ({
   const grossistaRows: CostRow[] = [
     { key: 'energia_pun', label: 'Materia Prima (PUN)', sublabel: 'Prezzo Unico Nazionale', value: costoEnergiaPun },
     { key: 'energia_spread', label: 'Spread Grossista', sublabel: 'Ricarico sul PUN', value: costoEnergiaSpread },
+    { key: 'dispacciamento', label: 'Dispacciamento', sublabel: 'Terna/GME', value: dispacciamentoTotale },
     { key: 'pod', label: 'Gestione POD', value: costoGestionePodTotale },
   ];
 
   const passthroughRows: CostRow[] = passthroughTotals ? [
-    { key: 'dispacciamento', label: 'Dispacciamento', sublabel: 'Terna/GME', value: passthroughTotals.dispacciamento, isPassthrough: true },
     { key: 'trasporto', label: 'Trasporto e Distribuzione', sublabel: 'Distributore', value: passthroughTotals.trasporto, isPassthrough: true },
     { key: 'oneri', label: 'Oneri di Sistema', sublabel: 'CSEA/ARERA', value: passthroughTotals.oneriSistema, isPassthrough: true },
   ] : [];
