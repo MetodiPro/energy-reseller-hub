@@ -2,13 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileDown, TrendingDown } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
-import { useRevenueSimulation } from '@/hooks/useRevenueSimulation';
-import { useSimulationSummary } from '@/hooks/useSimulationSummary';
-import { useEngineResult } from '@/hooks/useEngineResult';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
-import { useCashFlowAnalysis } from '@/hooks/useCashFlowAnalysis';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
@@ -20,15 +15,8 @@ interface CostsPageProps {
 }
 
 export const CostsPage = ({ projectId, projectName, commodityType }: CostsPageProps) => {
-  const { costs, revenues, categories, loading, summary: costSummary, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
-  const revenueSimulation = useRevenueSimulation(projectId);
-  const sharedSimData = { data: revenueSimulation.data, loading: revenueSimulation.loading };
-  const { engineResult } = useEngineResult(projectId, { simulationData: sharedSimData });
-  const { summary: simulationSummary } = useSimulationSummary(projectId, sharedSimData, engineResult);
-  const { channels: salesChannels, getChannelBreakdown, calculateCommissionCosts, loading: channelsLoading } = useSalesChannels(projectId);
-  const sharedChannelsData = { channels: salesChannels, calculateCommissionCosts, loading: channelsLoading };
-  const { cashFlowData } = useCashFlowAnalysis(projectId, { simulationData: sharedSimData, salesChannelsData: sharedChannelsData, sharedEngine: engineResult });
-  const summary = useFinancialSummary(costSummary, simulationSummary, cashFlowData);
+  const { costs, categories, loading, addCost, deleteCost, updateCost, refetch } = useProjectFinancials(projectId);
+  const { channels: salesChannels } = useSalesChannels(projectId);
   const { exportToPDF } = useExportFinancialPDF();
 
   const [editingCost, setEditingCost] = useState<ProjectCost | null>(null);
@@ -53,7 +41,7 @@ export const CostsPage = ({ projectId, projectName, commodityType }: CostsPagePr
   }, [costs, commodityType]);
 
   const handleTemplateApplied = () => refetch();
-  const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
+  const handleExportPDF = () => exportToPDF(projectName, filteredCosts);
   const handleCostSubmit = async (costData: any, isEdit: boolean, editId?: string) => {
     if (isEdit && editId) {
       await updateCost(editId, costData);

@@ -45,7 +45,7 @@ export const FinancialDashboard = ({ projectId, projectName, commodityType }: Fi
 
   const [activeTab, setActiveTab] = useState('margins');
 
-  const handleExportPDF = () => exportToPDF(projectName, costs, revenues, summary);
+  const handleExportPDF = () => exportToPDF(projectName, costs);
   const handleExportGrossista = useCallback(() => {
     if (!engineResult) return;
     exportGrossistaReport(projectName, engineResult, revenueSimulation.data.params);
