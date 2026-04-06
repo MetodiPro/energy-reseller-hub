@@ -58,6 +58,8 @@ export const WholesalerCostsSummary = ({
     : 0;
   // accise escluse: pagate dal reseller direttamente ad ADM, non al grossista
   // dispacciamento incluso nei costi grossista: pagato al grossista in fattura
+  // NOTA: dopo il fix engine (PR-base-fix), trasporto e oneri usano cumulativeActiveCustomers
+  // come base → totalePassanti è ora allineato con fatturaMensileConsumiTotale
 
   // Split energia into PUN and Spread components
   const pun = params?.punPerKwh ?? 0;
