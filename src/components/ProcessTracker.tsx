@@ -473,6 +473,35 @@ export const ProcessTracker = ({
                           <span>{getAssigneeName(step.id)}</span>
                         </div>
                       )}
+                      {/* Per-step target date */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            className="flex items-center gap-1 hover:text-foreground transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Flag className="h-4 w-4" />
+                            <span>
+                              {progress?.plannedEndDate
+                                ? format(parseISO(progress.plannedEndDate), "d MMM yyyy", { locale: it })
+                                : "Imposta scadenza"}
+                            </span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start" onClick={(e) => e.stopPropagation()}>
+                          <CalendarComponent
+                            mode="single"
+                            selected={progress?.plannedEndDate ? parseISO(progress.plannedEndDate) : undefined}
+                            onSelect={(date) => {
+                              updateProgress(step.id, {
+                                plannedEndDate: date ? format(date, 'yyyy-MM-dd') : undefined,
+                              });
+                            }}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     {/* Checklist Progress */}
