@@ -1,8 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CalendarClock, Info } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CalendarClock, ChevronDown } from 'lucide-react';
 import { useStepCosts } from '@/hooks/useStepCosts';
 import { ProjectCost } from '@/hooks/useProjectFinancials';
 import { stepCostsData } from '@/types/stepCosts';
@@ -202,60 +202,69 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
                 <TableHead className="text-right min-w-[120px]">Costi Operativi</TableHead>
                 <TableHead className="text-right min-w-[120px] font-bold">Totale Mese</TableHead>
                 <TableHead className="text-right min-w-[120px]">Cumulativo</TableHead>
-                <TableHead className="min-w-[40px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {timelineData.monthly.map(row => {
                 if (row.total === 0 && row.month > 5) return null;
                 return (
-                  <TableRow key={row.month} className={row.total > 0 ? '' : 'opacity-50'}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <span className="text-foreground">{row.label}</span>
-                        {phaseDescriptions[row.month] && (
-                          <p className="text-xs text-muted-foreground">{phaseDescriptions[row.month]}</p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {row.startupCosts > 0 ? formatCurrency(row.startupCosts) : '–'}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {row.operationalCosts > 0 ? formatCurrency(row.operationalCosts) : '–'}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm font-bold text-foreground">
-                      {row.total > 0 ? formatCurrency(row.total) : '–'}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm text-primary font-semibold">
-                      {formatCurrency(row.cumulative)}
-                    </TableCell>
-                    <TableCell>
+                  <Collapsible key={row.month} asChild>
+                    <>
+                      <TableRow className={row.total > 0 ? '' : 'opacity-50'}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {row.details.length > 0 && (
+                              <CollapsibleTrigger asChild>
+                                <button className="p-0.5 rounded hover:bg-muted transition-colors">
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                                </button>
+                              </CollapsibleTrigger>
+                            )}
+                            <div>
+                              <span className="text-foreground">{row.label}</span>
+                              {phaseDescriptions[row.month] && (
+                                <p className="text-xs text-muted-foreground">{phaseDescriptions[row.month]}</p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {row.startupCosts > 0 ? formatCurrency(row.startupCosts) : '–'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          {row.operationalCosts > 0 ? formatCurrency(row.operationalCosts) : '–'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm font-bold text-foreground">
+                          {row.total > 0 ? formatCurrency(row.total) : '–'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm text-primary font-semibold">
+                          {formatCurrency(row.cumulative)}
+                        </TableCell>
+                      </TableRow>
                       {row.details.length > 0 && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent side="left" className="max-w-xs">
-                              <div className="space-y-1">
-                                {row.details.map((d, i) => (
-                                  <div key={i} className="flex justify-between gap-4 text-xs">
-                                    <span className={d.type === 'startup' ? 'text-primary' : 'text-muted-foreground'}>
-                                      {d.name}
-                                    </span>
-                                    <span className="font-mono font-medium whitespace-nowrap">
-                                      {formatCurrency(d.amount)}
-                                    </span>
-                                  </div>
-                                ))}
+                        <CollapsibleContent asChild>
+                          <tr>
+                            <td colSpan={5} className="p-0">
+                              <div className="bg-muted/40 px-4 py-2 border-b border-border">
+                                <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1">
+                                  {row.details.map((d, i) => (
+                                    <div key={i} className="contents">
+                                      <span className={`text-xs ${d.type === 'startup' ? 'text-primary' : 'text-muted-foreground'}`}>
+                                        {d.name}
+                                      </span>
+                                      <span className="text-xs font-mono font-medium text-right whitespace-nowrap">
+                                        {formatCurrency(d.amount)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                            </td>
+                          </tr>
+                        </CollapsibleContent>
                       )}
-                    </TableCell>
-                  </TableRow>
+                    </>
+                  </Collapsible>
                 );
               })}
               <TableRow className="border-t-2 border-border bg-muted/30 font-bold">
@@ -269,7 +278,6 @@ export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedS
                 <TableCell className="text-right font-mono text-sm text-foreground">
                   {formatCurrency(timelineData.grandTotal)}
                 </TableCell>
-                <TableCell></TableCell>
                 <TableCell></TableCell>
               </TableRow>
             </TableBody>
