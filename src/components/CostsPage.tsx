@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FileDown, TrendingDown, Euro } from 'lucide-react';
+import { FileDown, TrendingDown } from 'lucide-react';
 import { useProjectFinancials, ProjectCost } from '@/hooks/useProjectFinancials';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
+import { useStepCosts } from '@/hooks/useStepCosts';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
