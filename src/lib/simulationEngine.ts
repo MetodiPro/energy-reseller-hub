@@ -84,6 +84,9 @@ export interface MonthlyEngineResult {
   costoEnergia: number;          // Per Esiti Economici: PUN + spreadGrossista (senza dispacciamento)
   costoEnergiaConDisp: number;   // Per Cash Flow: PUN + dispacciamento + spreadGrossista (uscita reale di cassa)
   margineCommerciale: number;
+  margineCcvTotale: number;
+  margineSpreadTotale: number;
+  margineAltroTotale: number;
   // Pre-computed breakdown fields for multi-product aggregation
   ivaTotale: number;
   materiaEnergiaTotale: number;
