@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Wallet, TrendingUp, Calculator, Download, FileText,
+  Wallet, TrendingUp, Calculator,
   ChevronDown, FileCheck, Users, Monitor, Shield,
   GraduationCap, UserCheck, Building2, MoreHorizontal,
 } from "lucide-react";
