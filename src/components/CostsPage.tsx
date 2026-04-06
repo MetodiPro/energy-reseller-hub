@@ -7,6 +7,7 @@ import { useExportFinancialPDF } from '@/hooks/useExportFinancialPDF';
 import { CostTemplateSelector } from '@/components/financial/CostTemplateSelector';
 import { CostTabsView } from '@/components/financial/CostTabsView';
 import { CostEditDialog } from '@/components/financial/CostEditDialog';
+import { StartupCostsSummary } from '@/components/financial/StartupCostsSummary';
 
 interface CostsPageProps {
   projectId: string;
