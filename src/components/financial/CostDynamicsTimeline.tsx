@@ -21,22 +21,6 @@ const MONTHS_IT = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
-const CATEGORY_COLORS: Record<string, string> = {
-  licenze: 'hsl(217, 91%, 60%)',
-  consulenza: 'hsl(271, 91%, 65%)',
-  burocrazia: 'hsl(215, 14%, 34%)',
-  software: 'hsl(187, 86%, 53%)',
-  garanzie: 'hsl(25, 95%, 53%)',
-  formazione: 'hsl(142, 71%, 45%)',
-  personale: 'hsl(330, 80%, 60%)',
-  infrastruttura: 'hsl(38, 92%, 50%)',
-  altro: 'hsl(215, 14%, 60%)',
-  // Operational cost types
-  commercial: 'hsl(340, 82%, 52%)',
-  structural: 'hsl(210, 79%, 46%)',
-  direct: 'hsl(24, 95%, 53%)',
-  indirect: 'hsl(162, 63%, 41%)',
-};
 
 export const CostDynamicsTimeline = ({ projectId, costs, commodityType, plannedStartDate }: CostDynamicsTimelineProps) => {
   const { getCostAmount } = useStepCosts(projectId);
