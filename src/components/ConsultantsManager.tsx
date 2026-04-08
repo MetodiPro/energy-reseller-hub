@@ -80,6 +80,8 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
   } = useConsultantTasks(projectId);
 
    const { exportToPDF } = useExportConsultantsPDF();
+   const { exportGuidePDF } = useExportConsultantsGuidePDF();
+   const { exportGuideDocx } = useExportConsultantsGuideDocx();
    const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'all' | ConsultantType>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
