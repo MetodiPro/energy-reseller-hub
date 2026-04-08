@@ -90,15 +90,25 @@ export const ProcessTracker = ({
   const { exportToPDF } = useExportProcessCostsPDF();
   const { getAssigneeName } = useStepAssignments(projectId ?? null);
   const { exportToDocx } = useExportProcessCostsDocx();
+  const { exportDetailedPDF } = useExportDetailedProcessPDF();
+  const { exportDetailedDocx } = useExportDetailedProcessDocx();
   const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
   const parsedEndDate = projectEndDate ? parseISO(projectEndDate) : null;
 
-  const handleExportPDF = () => {
+  const handleExportCostsPDF = () => {
     exportToPDF(projectName, commodityType ?? null, getCostAmount);
   };
 
-  const handleExportDocx = () => {
+  const handleExportCostsDocx = () => {
     exportToDocx(projectName, commodityType ?? null, getCostAmount);
+  };
+
+  const handleExportDetailedPDF = () => {
+    exportDetailedPDF({ projectName, commodityType, stepProgress });
+  };
+
+  const handleExportDetailedDocx = () => {
+    exportDetailedDocx({ projectName, commodityType, stepProgress });
   };
 
   const handleStartDateSelect = (date: Date | undefined) => {
