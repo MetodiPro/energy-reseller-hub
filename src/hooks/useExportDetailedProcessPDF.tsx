@@ -132,7 +132,7 @@ export const useExportDetailedProcessPDF = () => {
         }
 
         // Step title bar
-        doc.setFillColor(isCompleted ? 220, 252, 231 : 241, 245, 249);
+        if (isCompleted) { doc.setFillColor(220, 252, 231); } else { doc.setFillColor(241, 245, 249); }
         doc.roundedRect(14, y, pageWidth - 28, 12, 2, 2, 'F');
         doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
