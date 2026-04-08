@@ -40,7 +40,10 @@ import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/ste
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
 import { useExportProcessCostsDocx } from "@/hooks/useExportProcessCostsDocx";
+import { useExportDetailedProcessPDF } from "@/hooks/useExportDetailedProcessPDF";
+import { useExportDetailedProcessDocx } from "@/hooks/useExportDetailedProcessDocx";
 import { useStepAssignments } from "@/hooks/useStepAssignments";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 
