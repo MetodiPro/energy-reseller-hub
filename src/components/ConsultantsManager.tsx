@@ -46,7 +46,10 @@ import {
   type ConsultantType
 } from '@/data/consultantTasks';
  import { useExportConsultantsPDF } from '@/hooks/useExportConsultantsPDF';
+ import { useExportConsultantsGuidePDF } from '@/hooks/useExportConsultantsGuidePDF';
+ import { useExportConsultantsGuideDocx } from '@/hooks/useExportConsultantsGuideDocx';
  import { useToast } from '@/hooks/use-toast';
+ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface ConsultantsManagerProps {
   projectId: string | null;
@@ -77,6 +80,8 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
   } = useConsultantTasks(projectId);
 
    const { exportToPDF } = useExportConsultantsPDF();
+   const { exportGuidePDF } = useExportConsultantsGuidePDF();
+   const { exportGuideDocx } = useExportConsultantsGuideDocx();
    const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'all' | ConsultantType>('all');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -319,6 +324,22 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
               </Button>
             </div>
           </div>
+
+          <div className="border-t pt-4 mt-4">
+            <p className="text-sm text-muted-foreground text-center mb-3">
+              Oppure scarica la guida completa con tutte le attività e le spiegazioni:
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button variant="outline" size="sm" onClick={() => exportGuidePDF()}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Guida PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportGuideDocx()}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Guida Word
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -394,10 +415,28 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
               </CardDescription>
             </div>
              <div className="flex items-center gap-2">
-               <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                 <FileDown className="h-4 w-4 mr-2" />
-                 Esporta PDF
-               </Button>
+             <DropdownMenu>
+               <DropdownMenuTrigger asChild>
+                 <Button variant="outline" size="sm">
+                   <FileDown className="h-4 w-4 mr-2" />
+                   Esporta
+                 </Button>
+               </DropdownMenuTrigger>
+               <DropdownMenuContent align="end">
+                 <DropdownMenuItem onClick={handleExportPDF}>
+                   <FileDown className="h-4 w-4 mr-2" />
+                   Report attività (PDF)
+                 </DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => exportGuidePDF('Progetto')}>
+                   <FileDown className="h-4 w-4 mr-2" />
+                   Guida completa (PDF)
+                 </DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => exportGuideDocx('Progetto')}>
+                   <FileDown className="h-4 w-4 mr-2" />
+                   Guida completa (Word)
+                 </DropdownMenuItem>
+               </DropdownMenuContent>
+             </DropdownMenu>
                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                  <DialogTrigger asChild>
                    <Button size="sm">
