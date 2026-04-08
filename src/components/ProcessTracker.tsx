@@ -40,7 +40,10 @@ import { stepCostsData, costCategoryLabels, StepCostCategory } from "@/types/ste
 import { useStepCosts } from "@/hooks/useStepCosts";
 import { useExportProcessCostsPDF } from "@/hooks/useExportProcessCostsPDF";
 import { useExportProcessCostsDocx } from "@/hooks/useExportProcessCostsDocx";
+import { useExportDetailedProcessPDF } from "@/hooks/useExportDetailedProcessPDF";
+import { useExportDetailedProcessDocx } from "@/hooks/useExportDetailedProcessDocx";
 import { useStepAssignments } from "@/hooks/useStepAssignments";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -87,15 +90,25 @@ export const ProcessTracker = ({
   const { exportToPDF } = useExportProcessCostsPDF();
   const { getAssigneeName } = useStepAssignments(projectId ?? null);
   const { exportToDocx } = useExportProcessCostsDocx();
+  const { exportDetailedPDF } = useExportDetailedProcessPDF();
+  const { exportDetailedDocx } = useExportDetailedProcessDocx();
   const parsedStartDate = projectStartDate ? parseISO(projectStartDate) : null;
   const parsedEndDate = projectEndDate ? parseISO(projectEndDate) : null;
 
-  const handleExportPDF = () => {
+  const handleExportCostsPDF = () => {
     exportToPDF(projectName, commodityType ?? null, getCostAmount);
   };
 
-  const handleExportDocx = () => {
+  const handleExportCostsDocx = () => {
     exportToDocx(projectName, commodityType ?? null, getCostAmount);
+  };
+
+  const handleExportDetailedPDF = () => {
+    exportDetailedPDF({ projectName, commodityType, stepProgress });
+  };
+
+  const handleExportDetailedDocx = () => {
+    exportDetailedDocx({ projectName, commodityType, stepProgress });
   };
 
   const handleStartDateSelect = (date: Date | undefined) => {
@@ -359,6 +372,37 @@ export const ProcessTracker = ({
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Export Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                Esporta
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Processo Dettagliato</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleExportDetailedPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Processo completo (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportDetailedDocx}>
+                <FileText className="h-4 w-4 mr-2" />
+                Processo completo (Word)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Costi di Avvio</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleExportCostsPDF}>
+                <Euro className="h-4 w-4 mr-2" />
+                Costi di avvio (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportCostsDocx}>
+                <Euro className="h-4 w-4 mr-2" />
+                Costi di avvio (Word)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
