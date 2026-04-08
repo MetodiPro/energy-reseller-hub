@@ -372,6 +372,37 @@ export const ProcessTracker = ({
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Export Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                Esporta
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Processo Dettagliato</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleExportDetailedPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Processo completo (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportDetailedDocx}>
+                <FileText className="h-4 w-4 mr-2" />
+                Processo completo (Word)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Costi di Avvio</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleExportCostsPDF}>
+                <Euro className="h-4 w-4 mr-2" />
+                Costi di avvio (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportCostsDocx}>
+                <Euro className="h-4 w-4 mr-2" />
+                Costi di avvio (Word)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
