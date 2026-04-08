@@ -46,7 +46,10 @@ import {
   type ConsultantType
 } from '@/data/consultantTasks';
  import { useExportConsultantsPDF } from '@/hooks/useExportConsultantsPDF';
+ import { useExportConsultantsGuidePDF } from '@/hooks/useExportConsultantsGuidePDF';
+ import { useExportConsultantsGuideDocx } from '@/hooks/useExportConsultantsGuideDocx';
  import { useToast } from '@/hooks/use-toast';
+ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface ConsultantsManagerProps {
   projectId: string | null;
