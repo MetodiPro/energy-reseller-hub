@@ -372,59 +372,61 @@ export const ProcessTracker = ({
               </PopoverContent>
             </Popover>
           </div>
-
-          {/* Export Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Download className="h-4 w-4" />
-                Esporta
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Processo Dettagliato</DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleExportDetailedPDF}>
-                <FileText className="h-4 w-4 mr-2" />
-                Processo completo (PDF)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportDetailedDocx}>
-                <FileText className="h-4 w-4 mr-2" />
-                Processo completo (Word)
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Costi di Avvio</DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleExportCostsPDF}>
-                <Euro className="h-4 w-4 mr-2" />
-                Costi di avvio (PDF)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportCostsDocx}>
-                <Euro className="h-4 w-4 mr-2" />
-                Costi di avvio (Word)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
-      {/* Phase Filters */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={selectedPhase === null ? "default" : "outline"}
-          onClick={() => setSelectedPhase(null)}
-          size="sm"
-        >
-          Tutte le Fasi
-        </Button>
-        {phases.map(phase => (
+      {/* Phase Filters + Export */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
           <Button
-            key={phase.id}
-            variant={selectedPhase === phase.id ? "default" : "outline"}
-            onClick={() => setSelectedPhase(phase.id)}
+            variant={selectedPhase === null ? "default" : "outline"}
+            onClick={() => setSelectedPhase(null)}
             size="sm"
           >
-            Fase {phase.id}: {phase.name}
+            Tutte le Fasi
           </Button>
-        ))}
+          {phases.map(phase => (
+            <Button
+              key={phase.id}
+              variant={selectedPhase === phase.id ? "default" : "outline"}
+              onClick={() => setSelectedPhase(phase.id)}
+              size="sm"
+            >
+              Fase {phase.id}: {phase.name}
+            </Button>
+          ))}
+        </div>
+
+        {/* Export Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Esporta
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Processo Dettagliato</DropdownMenuLabel>
+            <DropdownMenuItem onClick={handleExportDetailedPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Processo completo (PDF)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportDetailedDocx}>
+              <FileText className="h-4 w-4 mr-2" />
+              Processo completo (Word)
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Costi di Avvio</DropdownMenuLabel>
+            <DropdownMenuItem onClick={handleExportCostsPDF}>
+              <Euro className="h-4 w-4 mr-2" />
+              Costi di avvio (PDF)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportCostsDocx}>
+              <Euro className="h-4 w-4 mr-2" />
+              Costi di avvio (Word)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Steps List */}
