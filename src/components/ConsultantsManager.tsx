@@ -324,6 +324,22 @@ export const ConsultantsManager = ({ projectId }: ConsultantsManagerProps) => {
               </Button>
             </div>
           </div>
+
+          <div className="border-t pt-4 mt-4">
+            <p className="text-sm text-muted-foreground text-center mb-3">
+              Oppure scarica la guida completa con tutte le attività e le spiegazioni:
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button variant="outline" size="sm" onClick={() => exportGuidePDF()}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Guida PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportGuideDocx()}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Guida Word
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
